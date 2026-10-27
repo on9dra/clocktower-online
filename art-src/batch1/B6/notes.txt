@@ -1,0 +1,2 @@
+gallows-wood-green.png：生成尺寸 1178×1335；编辑底图 是（B6 初稿（挂点位置修订））。
+gallows-noose-green.png：生成尺寸 725×2170；编辑底图 否（A1第1版仅作风格参考）。

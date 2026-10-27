@@ -1,0 +1,29 @@
+{
+  "stage": "A1_style_sample_awaiting_user_approval",
+  "method": "imagegen green screen + PyMatting alpha refinement + foreground color recovery",
+  "original_size": [
+    1254,
+    1254
+  ],
+  "crop": {
+    "left": 34,
+    "top": 40,
+    "width": 1250,
+    "height": 1239
+  },
+  "delivery_size": [
+    2048,
+    2048
+  ],
+  "resampling": "Whole-disc bounding box normalized to square; enlarged from native output, not native 2K generation.",
+  "aspect_normalization_percent": 0.8878127522195411,
+  "webp_quality": 80,
+  "webp_bytes": 239184,
+  "limit_bytes": 300000,
+  "clear_corners": true,
+  "green_spill_pixels": 0,
+  "sha256_png": "b3ffd0ae5d896533dceeb0efe1c7fb452ba21a991ef7ed3677d86346b96cb325",
+  "sha256_webp": "8f6a0bb25bb0d8d9edb3d299707277715ca7b8d85788864da7794447af0b5f85",
+  "browser_demo": "not_verified",
+  "site_integration": "not_performed"
+}

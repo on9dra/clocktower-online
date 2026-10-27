@@ -1,0 +1,17 @@
+{
+  "name": "clocktower-online",
+  "version": "1.0.0",
+  "description": "血染钟楼线上魔典：说书人 + 玩家实时同步",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}

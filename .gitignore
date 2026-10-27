@@ -1,0 +1,5 @@
+node_modules/
+# 運行時房間數據：裏面有說書人密鑰和玩家暱稱
+data/
+.DS_Store
+Thumbs.db

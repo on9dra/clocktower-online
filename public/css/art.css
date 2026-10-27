@@ -1,0 +1,68 @@
+/* GPT 生成的新美術（img/art/，原圖和處理腳本在 art-src/）。只在 body.art 下生效：演示頁「美術」場景打開，驗證後再並進正式樣式
+   動畫、文字、狀態都還是原來的代碼，這裏只換外觀 */
+
+/* A1 / A2 魔典台面：縮在座位環內側當桌子；日夜兩張疊著交叉淡入淡出。ring 自成一層，兩張圖墊在座位和中間文字下面 */
+body.art .ring { z-index: 0; }
+body.art .ring::before, body.art .ring::after { inset: 17%; border: 0; border-radius: 50%; background: center / contain no-repeat; }
+body.art .ring::before { z-index: -2; background-image: url(../img/art/table-day.webp); opacity: .8; }
+body.art .ring::after { z-index: -1; background-image: url(../img/art/table-night.webp); opacity: 0; transition: opacity 1.4s ease; }
+body.art[data-phase="night"] .ring::after { opacity: .85; }
+
+/* A3 / A4 遠景小鎮：遠、中、近三層疊在一起，晝夜兩組照舊淡入淡出 */
+body.art .skyline-day { background-image: url(../img/art/town-near-day.webp), url(../img/art/town-mid-day.webp), url(../img/art/town-far-day.webp); opacity: 1; }
+body.art .skyline-night { background-image: url(../img/art/town-near-night.webp), url(../img/art/town-mid-night.webp), url(../img/art/town-far-night.webp); }
+
+/* A5 空座、A6 名牌 */
+body.art .token.blank { border: 0; box-shadow: none; background: url(../img/art/seat-empty.webp) center / 100% 100% no-repeat; }
+body.art .plate { border: solid transparent; border-width: 3px 9px; border-radius: 0; padding: 0 1px;
+  border-image: url(../img/art/plate.webp) 56 190 fill / 3px 9px stretch; background: none; }
+body.art .seat.onblock .plate { border-image-source: url(../img/art/plate-evil.webp); }
+
+/* A7 紙卡框（九宮格），A8 牌背 */
+body.art .pc { border: 34px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 34px stretch; border-radius: 0; background: none;
+  padding: clamp(0px, 1vw, 10px) clamp(4px, 2vw, 16px); }
+body.art .sc-back { border: 0; box-shadow: none; background: url(../img/art/card-back.webp) center / cover; }
+body.art .sc-back .ico { display: none; }
+
+/* B3 開局幕布：橫向無縫的直垂幕布按高度鋪滿、橫向重複；每片切成豎條（fx.js drape），每條按位置對齊底圖 */
+body.art .cur-drape { border: 0; }
+body.art .cur-fold { background: url(../img/art/curtain-drape.webp) 0 100% / auto 100% repeat-x; }
+body.art .cur-fold::before, body.art .cur-fold::after { display: none; }
+body.art .cur-top { height: clamp(44px, 12%, 96px); background: url(../img/art/curtain-valance.webp) top left / auto 100% repeat-x; }
+body.art .cur-top svg { visibility: hidden; }
+
+/* B4 背景天空的太陽、月亮（底色動畫照舊跑，被圖蓋住） */
+body.art #scene .sun-disk { background: url(../img/art/sun.webp) center / contain no-repeat !important; border: 0; border-radius: 0; }
+body.art #scene .sun-disk::after { display: none; }
+body.art #scene .moon { background: url(../img/art/moon.webp) center / contain no-repeat; border: 0; border-radius: 0; box-shadow: none; }
+
+/* B5 印章：缺墨斑駁 */
+body.art .ink-stamp { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
+
+/* B6 處決台：木架換圖（和原線稿同一個 150×170 座標），繩子還是原來會擺的那根 */
+body.art .gallows { background: url(../img/art/gallows-wood.webp) center / 100% 100% no-repeat; }
+body.art .gallows .g-wood { display: none; }
+
+/* B7 皇冠 */
+body.art .crown.good, body.art .crown.evil { background: center / contain no-repeat; }
+body.art .crown.good { background-image: url(../img/art/crown-good.webp); }
+body.art .crown.evil { background-image: url(../img/art/crown-evil.webp); }
+body.art .crown > * { display: none; }
+
+/* B8 雞蛋、蛋漬（三種形狀輪流） */
+body.art .egg-fly { background: url(../img/art/egg.webp) center / contain no-repeat; }
+body.art .egg-fly svg { visibility: hidden; }
+body.art .egg-splat { background: url(../img/art/egg-splat-1.webp) center / contain no-repeat; }
+body.art .egg-splat:nth-of-type(3n+1) { background-image: url(../img/art/egg-splat-2.webp); }
+body.art .egg-splat:nth-of-type(3n+2) { background-image: url(../img/art/egg-splat-3.webp); }
+body.art .egg-splat svg { visibility: hidden; }
+
+/* 素材總覽（演示頁「素材」一步）：大廳字標、主視覺這類對局裏看不到的 */
+.art-gallery { position: absolute; inset: 12px; z-index: 30; overflow: auto; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 14px; display: grid; gap: 16px; }
+.art-gallery .lobby-mock { position: relative; aspect-ratio: 4 / 3; background: url(../img/art/lobby.webp) center / cover; display: grid; justify-items: center; align-content: start; padding-top: 8%; gap: 10px; }
+.art-gallery .lobby-mock img { width: 62%; }
+.art-gallery .lobby-mock .card { width: min(300px, 70%); display: grid; gap: 8px; }
+.art-gallery .row-art { display: flex; flex-wrap: wrap; align-items: end; gap: 18px; }
+.art-gallery .row-art img { height: 96px; }
+.art-gallery .curtain-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.art-gallery .curtain-cmp > div { aspect-ratio: 3 / 4; background: var(--val) top left / auto 14% repeat-x, var(--drape) 0 100% / auto 100% repeat-x; }

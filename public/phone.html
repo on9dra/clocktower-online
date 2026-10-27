@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>血染鐘樓 · 手機預覽</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* 手機預覽：同一個演示場景放進幾種常見手機尺寸的框裏並排看（每個框裏的演示條照常點） */
+    body { min-height: 100%; }
+    .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 16px; background: var(--card); border-bottom: 1.5px solid var(--ink); }
+    .bar .on { background: var(--ink); color: var(--card); }
+    .tag { font: 700 12px var(--sans); background: var(--brass); color: #fff; padding: 2px 8px; border-radius: 10px; letter-spacing: .1em; }
+    .phones { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 28px; padding: 24px 16px 40px; }
+    .phone { display: grid; justify-items: center; gap: 8px; }
+    .phone b { font: 700 13px var(--sans); color: var(--muted); }
+    .phone iframe { display: block; border: 0; border-radius: 22px; background: var(--paper); box-shadow: 0 0 0 8px var(--ink), 0 18px 40px #0004; }
+  </style>
+</head>
+<body>
+  <div class="bar" id="bar"><span class="tag">手機</span></div>
+  <div class="phones" id="phones"></div>
+  <script>
+    const SIZES = [[360, 640, 'Android 小屏'], [375, 667, 'iPhone SE'], [390, 760, 'iPhone 15（瀏覽器內）']];
+    const SCENES = [['log', '日誌'], ['chat', '私聊'], ['vote', '提名與投票'], ['night', '夜晚'], ['day', '白天'], ['start', '開局·日夜'], ['end', '終局'], ['egg', '雞蛋'], ['ui', '界面']];
+    const bar = document.getElementById('bar'), phones = document.getElementById('phones');
+    let scene = new URLSearchParams(location.search).get('s') || 'day';
+    function go(k) {
+      scene = k;
+      history.replaceState(null, '', '?s=' + k);
+      bar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+      phones.replaceChildren(...SIZES.map(([w, h, name]) => {
+        const box = document.createElement('div'); box.className = 'phone';
+        box.innerHTML = `<iframe src="demo.html?s=${k}" width="${w}" height="${h}"></iframe><b>${name} · ${w}×${h}</b>`;
+        return box;
+      }));
+    }
+    for (const [k, t] of SCENES) {
+      const b = document.createElement('button'); b.className = 'btn sm'; b.dataset.k = k; b.textContent = t; b.onclick = () => go(k);
+      bar.append(b);
+    }
+    go(scene);
+  </script>
+</body>
+</html>

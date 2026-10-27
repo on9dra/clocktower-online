@@ -1,0 +1,167 @@
+/* 積分、MVP、雞蛋、煙花、開局拉幕：平塗 + 墨線，和其他演出一個風格（不漸變、不發光） */
+
+/* 扔雞蛋（egg.js）、煙花（fireworks.js）：蓋在桌面上，不擋點擊；演出舞台和彈窗在它們上面 */
+#eggs, #fireworks { position: fixed; inset: 0; pointer-events: none; }
+#fireworks { z-index: 30; }
+#eggs { z-index: 31; }
+.egg-fly, .egg-splat, .egg-bit { position: fixed; pointer-events: none; }
+.egg-fly svg, .egg-splat svg, .egg-bit svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.egg-splat .drip { transform-box: fill-box; transform-origin: 50% 0; }
+.egg-bit.white, .egg-bit.yolk { border-radius: 50%; border: 1.2px solid var(--ink); background: #fffdf3; }
+.egg-bit.yolk { background: #f2b632; }
+.fw-burst { position: fixed; width: 0; height: 0; }
+.fw-spark { position: absolute; left: -2px; top: 0; width: 4px; border-radius: 2px; transform-origin: 50% 0; box-shadow: 0 0 0 1.2px var(--ink); }
+.fw-bit { position: absolute; left: -3px; top: -3px; width: 7px; height: 5px; border: 1px solid var(--ink); }
+.fw-ring { position: absolute; left: 0; top: 0; border: 3px solid; border-radius: 50%; }
+.fw-rise { position: fixed; width: 4px; height: 14px; margin: -7px 0 0 -2px; border-radius: 2px; box-shadow: 0 0 0 1.2px var(--ink); }
+
+/* 皇冠：善良藍冠（圓頭寶珠），邪惡紅冠（尖角）；戴在頭像頂上歪一點，終局演出播完從上面落下來 */
+.crown { display: block; overflow: visible; }
+.crown .cr-body, .crown .cr-band, .crown .cr-gem { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.crown.good .cr-body { fill: var(--good); }
+.crown.evil .cr-body { fill: var(--evil); }
+.crown.good .cr-band { fill: var(--card); }
+.crown.evil .cr-band { fill: var(--ink); }
+.crown .cr-gem { fill: #e9c46a; }
+.crown.good .cr-dot { fill: var(--evil); }
+.crown.evil .cr-dot { fill: #e9c46a; }
+.seat-token > .crown { position: absolute; left: 50%; top: 0; z-index: 3; width: 54%; height: auto; transform: translate(-50%, -64%) rotate(-9deg); pointer-events: none; }
+.seat-token > .crown.fx-crown { animation: crown-drop .8s cubic-bezier(.3,1.3,.5,1) both; animation-delay: var(--fx-delay, 0s); }
+@keyframes crown-drop {
+  0% { transform: translate(-50%, -300%) rotate(-40deg); opacity: 0; }
+  55% { transform: translate(-50%, -52%) rotate(-3deg); opacity: 1; }
+  75% { transform: translate(-50%, -74%) rotate(-12deg); }
+  100% { transform: translate(-50%, -64%) rotate(-9deg); opacity: 1; }
+}
+.seat-token:has(> .crown) .ghost-vote { left: 10%; }
+.crown.xs { display: inline-block; width: 22px; height: 17px; vertical-align: -3px; }
+
+/* MVP 投票：座位右上角的星星鈕（投了的實心，別的安靜下來），圓桌中間的倒數小牌；當選人名牌上的 MVP 標 */
+.mvp-btn { position: absolute; right: -10px; top: -8px; z-index: 4; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border-radius: 50%;
+  background: var(--card); color: var(--brass); border: 2px solid var(--brass); box-shadow: 0 2px 6px #2a262240; cursor: pointer;
+  animation: vstamp .3s cubic-bezier(.5,0,.7,1) both, mvp-beckon 1.6s ease-in-out .3s infinite; }
+.mvp-btn .ico { width: 64%; height: 64%; }
+.mvp-btn:hover { background: #fff3cf; }
+.mvp-btn.on { background: var(--brass); color: var(--card); animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }
+.mvp-btn.quiet { animation: none; opacity: .55; }
+@keyframes mvp-beckon { 50% { transform: translateY(-3px); } }
+.mvp-tag { display: inline-flex; align-items: center; gap: 1px; margin-left: 1px; padding: 0 4px 0 2px; border-radius: 2px; flex: none;
+  background: var(--brass); color: var(--card); font: 800 10px/15px var(--sans); letter-spacing: .04em; }
+.mvp-tag .ico { width: 10px; height: 10px; }
+.mvp-tag.fx-mvp { animation: vstamp .4s cubic-bezier(.5,0,.7,1) both; animation-delay: var(--fx-delay, 0s); }
+.mvp-pane { gap: 5px; margin-top: 10px; padding: 8px 16px 10px; color: var(--ink); background: var(--card) url(../img/grain.svg);
+  border: 2px solid var(--brass); border-radius: 12px; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px var(--brass), 0 10px 24px #0004;
+  animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
+.mvp-k { display: inline-flex; align-items: center; gap: 6px; font: 900 22px/1 var(--serif); letter-spacing: .12em; color: var(--brass); }
+.mvp-k .ico { width: 22px; height: 22px; }
+.mvp-left { min-width: 1.7em; margin-left: 2px; padding: 3px 6px; border-radius: 999px; background: var(--ink); color: var(--card);
+  font: 800 16px/1 var(--serif); letter-spacing: 0; text-align: center; font-variant-numeric: tabular-nums; }
+.mvp-pane.low .mvp-left { background: var(--evil); }
+.mvp-pane .dock-frm { justify-content: center; font-size: 18px; }
+.mvp-n { font: 800 16px var(--serif); }
+.sc-who.mvp .token { outline: 3px solid var(--brass); outline-offset: 4px; }
+.pc.mvp .pc-row { gap: clamp(12px, 3vw, 26px); }
+.pc.mvp .pc-sub { color: var(--brass); }
+
+.w.brass, .ico.gl-mvp { color: var(--brass); }
+
+/* 準備階段座位下面的勝利積分 / MVP 次數 */
+.score { display: flex; gap: 4px; margin-top: 3px; }
+.score span { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--card);
+  font: 700 12px/16px var(--serif); color: var(--ink); }
+.score .ico { width: 12px; height: 12px; color: var(--brass); }
+
+/* 頂欄的雞蛋數：結算時雞蛋飛進來，跳一下、冒「+N」 */
+.egg-pill { position: relative; display: inline-flex; align-items: center; gap: 4px; }
+.btn.egg-pill .ico { width: 17px; height: 17px; margin: 0; }
+.egg-pill b { font: 800 15px var(--serif); min-width: 1.1em; text-align: left; }
+.egg-pill.fx-egg { animation: egg-bump .5s cubic-bezier(.3,1.6,.5,1) both; animation-delay: var(--fx-delay, 0s); }
+@keyframes egg-bump { 30% { transform: scale(1.3); } }
+.egg-gain { position: absolute; left: 50%; top: 100%; z-index: 5; font: 900 15px var(--serif); font-style: normal; color: var(--brass); pointer-events: none;
+  animation: egg-gain 1.3s ease-out both; animation-delay: var(--fx-delay, 0s); }
+@keyframes egg-gain { 0% { transform: translate(-50%, 0) scale(.6); opacity: 0; } 20% { transform: translate(-50%, 6px) scale(1.15); opacity: 1; } 100% { transform: translate(-50%, 20px); opacity: 0; } }
+.menu-ico { width: 16px; height: 16px; margin-right: 6px; vertical-align: -3px; }
+.menu-n { margin-left: 8px; padding: 0 7px; border-radius: 9px; background: var(--ink); color: var(--card); font: 700 11px/17px var(--sans); }
+.menu-n.none { background: var(--line-strong); }
+
+/* 結算：勝利積分 / 雞蛋一枚枚落在紙牌上 */
+.pc-reward { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.pc-gain { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px 4px 9px; border: 2px solid var(--ink); border-radius: 999px; background: var(--card);
+  font: 900 clamp(18px, 3.4vmin, 26px)/1 var(--serif); color: var(--ink); }
+.pc-gain .ico { width: 1.15em; height: 1.15em; }
+.pc-gain.trophy { color: var(--brass); border-color: var(--brass); }
+.fx-chip.egg { color: var(--ink); }
+
+/* 桌布上的天（town.js feltSky）：夜裏桌布上留幾顆星 */
+.felt-sky { position: absolute; inset: 7%; z-index: 0; border-radius: 50%; overflow: hidden; pointer-events: none; }
+.fs-stars i { position: absolute; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: #fff3cf; opacity: 0; transition: opacity .4s ease; }
+.fs-stars i:nth-child(3n) { width: 6px; height: 6px; margin: -3px; }
+body[data-phase="night"] .fs-stars i { opacity: .7; transition: opacity .5s ease calc(var(--i) * 70ms); }
+
+/* 可以跳過的演出（翻角色牌、「第 N 夜」）：右下角一枚「跳過」，點哪裏都行 */
+#stage.skippable { cursor: pointer; }
+.skip-hint { position: fixed; right: 18px; bottom: 18px; z-index: 5; display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px 4px 10px;
+  border: 1.5px solid var(--ink); border-radius: 999px; background: var(--card); color: var(--ink); font: 700 13px var(--serif); letter-spacing: .1em;
+  pointer-events: none; animation: skip-in .3s ease-out .6s both; }
+.skip-hint .ico { width: 13px; height: 13px; }
+@keyframes skip-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* 開局拉幕：紅幕（平塗的豎褶 + 墨線收邊 + 金色流蘇），頂上一條圓弧帷幔 */
+.curtain { position: fixed; inset: 0; overflow: hidden; }
+.cur-drape { position: absolute; top: 0; bottom: 0; width: 50.5%; }
+.cur-drape.l { left: 0; transform-origin: 0 50%; border-right: 2.5px solid var(--ink); }
+.cur-drape.r { right: 0; transform-origin: 100% 50%; border-left: 2.5px solid var(--ink); }
+.cur-cloth { position: absolute; inset: 0 -12%; transform-origin: 50% 0; }
+/* 豎條比自己寬 2px，互相壓一點，下擺擺動時條與條之間不露縫 */
+.cur-fold { position: absolute; top: 0; bottom: -4px; width: calc(100% / 14 + 2px); transform-origin: 50% 0;
+  background: repeating-linear-gradient(90deg, #8a1c1c 0 20px, #741515 20px 27px, #8a1c1c 27px 33px, #a02a22 33px 37px); }
+.cur-fold::before { content: ""; position: absolute; left: 0; right: 0; bottom: 12px; height: 10px; background: #c9a24a; border-block: 1.5px solid var(--ink); }
+.cur-fold::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 12px; background: repeating-linear-gradient(90deg, #c9a24a 0 4px, transparent 4px 8px); }
+.cur-top { position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: clamp(30px, 9%, 64px); }
+.cur-top svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.cv-red { fill: #741515; stroke: var(--ink); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.cv-trim { fill: none; stroke: #c9a24a; stroke-width: 4; vector-effect: non-scaling-stroke; }
+.cur-mid { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; }
+.cur-mid .pc.cal { min-width: min(300px, 74%); }
+
+/* 積分榜 */
+.score-tbl { width: 100%; border-collapse: collapse; }
+.score-tbl th { padding: 4px 6px; border-bottom: 1.5px solid var(--ink); font: 700 12px var(--sans); color: var(--muted); text-align: center; white-space: nowrap; }
+.score-tbl th .ico { width: 15px; height: 15px; margin-right: 3px; vertical-align: -3px; color: var(--brass); }
+.score-tbl td { padding: 6px; border-bottom: 1px dashed var(--line); text-align: center; font: 700 17px var(--serif); }
+.score-tbl td:nth-child(2) { text-align: left; }
+.score-tbl tr.mine td { background: #fff3cf; }
+.score-tbl .rank { width: 2em; font-size: 13px; color: var(--muted); }
+.st-who { display: inline-flex; align-items: center; gap: 6px; font: 600 14px var(--sans); }
+.st-who .sb { font-size: 16px; }
+
+/* 設置 */
+.settings { display: grid; min-width: min(300px, 76vw); }
+.set-row { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px dashed var(--line);
+  font: 700 15px var(--serif); cursor: pointer; }
+.set-row:last-child { border-bottom: 0; }
+.set-row .ico { width: 20px; height: 20px; color: var(--brass); }
+.set-row input[type=range] { width: 150px; padding: 0; border: 0; background: none; accent-color: var(--ink); }
+.switch { position: relative; width: 44px; height: 24px; padding: 0; appearance: none; border-radius: 12px; border: 1.5px solid var(--ink); background: var(--line); cursor: pointer; transition: background .2s; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--ink); transition: transform .2s; }
+.switch:checked { background: var(--ink); }
+.switch:checked::after { transform: translateX(19px); }
+.switch:focus { outline-offset: 2px; }
+
+@media (max-width: 860px) {
+  .mvp-btn { width: 24px; height: 24px; right: -7px; top: -6px; }
+  /* 手機：圓桌中間很小，MVP 小牌排成一行，勝負原因讓位 */
+  .mvp-pane { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 2px; padding: 3px 8px; gap: 2px 6px; border-radius: 9px; }
+  .mvp-k { gap: 3px; font-size: 14px; letter-spacing: .04em; }
+  .mvp-k .ico { width: 14px; height: 14px; }
+  .mvp-left { font-size: 12px; padding: 2px 4px; }
+  .mvp-pane .dock-frm { gap: 3px; margin: 0; font-size: 13px; }
+  .mvp-pane .w { font-size: 11px; }
+  .mvp-n { font-size: 13px; }
+  .center:has(.mvp-pane) .phase-sub { display: none; }
+  .score span { font-size: 10px; line-height: 14px; }
+  .score .ico { width: 10px; height: 10px; }
+  .egg-pill b { font-size: 13px; }
+  .btn.egg-pill .ico { width: 15px; height: 15px; }
+}
+@media (prefers-reduced-motion: reduce) { .mvp-btn, .seat-token > .crown.fx-crown { animation: none; } }

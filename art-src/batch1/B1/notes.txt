@@ -1,0 +1,2 @@
+title-traditional-green.png：生成尺寸 2172×724；编辑底图 否（A1第1版仅作风格参考）。
+title-simplified-green.png：生成尺寸 2172×724；编辑底图 是（B1 title-traditional）。

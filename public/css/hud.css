@@ -1,0 +1,313 @@
+/* 信息式子：座位號圓章、角色小牌、陣營牌、惡魔是否、數字、符號（尺寸都跟隨 font-size） */
+.ico { width: 1em; height: 1em; flex: none; vertical-align: middle; }
+.frm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 20px; line-height: 1; }
+.frm.big { font-size: 26px; gap: 7px; justify-content: center; }
+.ico.op { width: .9em; height: .9em; color: var(--muted); }
+.op-or { width: 2px; height: 1.2em; background: var(--line-strong); transform: skewX(-18deg); margin: 0 2px; flex: none; }
+.op-sep { width: 12px; flex: none; }
+.w { font: 700 14px/1 var(--serif); color: var(--muted); flex: none; }
+.w.bad, .w.evil { color: var(--evil); } .w.good { color: var(--good, #2f5f8f); } .w.ink { color: var(--ink); }
+.op-br { flex-basis: 100%; height: 0; }
+.tag { display: inline-flex; align-items: center; gap: .3em; height: 1.5rem; padding: 0 .6em 0 .45em; border-radius: 999px; border: 1.5px solid var(--team); color: var(--team); background: var(--card); font: 700 13px/1 var(--serif); flex: none; }
+.tag .ico { width: 15px; height: 15px; }
+.rn { display: inline-flex; align-items: center; gap: .2em; flex: none; }
+.rn b { font: 700 13px/1 var(--serif); color: var(--ink); }
+.sb { display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; border-radius: 50%; background: var(--card); color: var(--ink);
+  border: 1.5px solid var(--ink); font: 700 .78em/1 var(--serif); flex: none; }
+.grim-cell.dead .sb { opacity: .5; }
+.sb.mine { border-color: var(--brass); box-shadow: 0 0 0 2px #e9c46a99; }
+.sb.lg { font-size: 26px; }
+.sb.sm { font-size: 13px; }
+.token.xs { width: 1.6em; height: 1.6em; border-width: 1.5px; box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px var(--team); }
+.token.xs .token-icon { width: 70%; height: 70%; }
+.token.xs .token-name { display: none; }
+.token.xs.via, .token.xs.fake { width: 1.05em; height: 1.05em; margin-left: -.5em; align-self: flex-end; }
+.token.xs.fake { border-style: dashed; opacity: .75; }
+.tt { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; border: 1.5px solid var(--team); color: var(--team); background: var(--card); flex: none; }
+.tt .ico { width: 68%; height: 68%; }
+.tt.none { border-style: dashed; }
+.tt.q { --team: var(--muted); font: 700 .8em/1 var(--serif); }
+.dm { position: relative; display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; border: 1.5px solid var(--evil); color: var(--evil); background: var(--card); flex: none; }
+.dm > .ico:first-child { width: 72%; height: 72%; }
+.dm .dm-k { position: absolute; right: -.28em; bottom: -.22em; width: .82em; height: .82em; border-radius: 50%; padding: 2px; color: #fff; }
+.dm.yes .dm-k { background: var(--evil); }
+.dm.no { border-color: var(--line-strong); }
+.dm.no > .ico:first-child { opacity: .35; }
+.dm.no .dm-k { background: var(--good); }
+.num { display: inline-grid; place-items: center; min-width: 1.45em; height: 1.45em; padding: 0 .25em; border-radius: 999px; background: var(--evil); color: #fff; font: 700 .95em/1 var(--serif); flex: none; }
+.num.plain { background: none; color: var(--ink); min-width: 0; padding: 0; }
+.grim { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.6em, 1fr)); gap: 5px 6px; font-size: 17px; width: 100%; }
+.grim-cell { display: inline-flex; align-items: center; gap: 2px; }
+.grim-cell.dead .token { filter: grayscale(1); opacity: .5; }
+.ico.poison, .ico.res-poison { color: #3d8b3d; }
+.ico.good, .ico.res-protect { color: var(--good); }
+.ico.bad, .ico.res-kill, .ico.res-blocked, .ico.res-mayor, .ico.res-starpass, .ico.evil { color: var(--evil); }
+.ico.res-fail { opacity: .35; }
+.ico.res-master { color: var(--brass); }
+.btn .ico { width: 16px; height: 16px; margin-right: 6px; vertical-align: -3px; }
+.btn.icon-only { padding: 4px 8px; }
+.btn.icon-only .ico { margin: 0; width: 18px; height: 18px; }
+
+/* 說書人給信息卡：頭部（行動者）、真相 / 干擾項、玩家將看到的式子 */
+.infocard { display: grid; gap: 10px; }
+.ic-head { display: flex; align-items: center; gap: 8px; font-size: 26px; }
+.ic-actor { position: relative; display: inline-flex; }
+.ic-why { position: absolute; right: -8px; bottom: -6px; width: 20px; height: 20px; border-radius: 50%; background: var(--card); }
+.ic-why.poison { color: #3d8b3d; padding: 1px; }
+span.ic-why { display: grid; place-items: center; color: var(--team-outsider, #3f7f86); border: 1.5px solid currentColor; }
+span.ic-why .ico { width: 78%; height: 78%; }
+.opt-row { display: flex; flex-wrap: wrap; gap: 6px; font-size: 20px; }
+.opt-tile { position: relative; display: inline-flex; align-items: center; gap: 5px; padding: 4px 6px; border: 1.5px solid var(--line); border-radius: 8px;
+  background: var(--card); cursor: pointer; font: inherit; color: inherit; transition: transform .12s, border-color .12s, box-shadow .12s; }
+.opt-tile:hover { border-color: var(--ink); transform: translateY(-1px); }
+.opt-tile.alt { border-color: #d9a066; border-style: dashed; }
+.opt-tile.on { border: 1.5px solid var(--brass); background: #fff3cf; box-shadow: 0 0 0 2px #e9c46a; }
+.opt-tile.fixed { cursor: default; padding: 6px 12px; border: 1.5px solid var(--brass); background: linear-gradient(#fff8e3, #f4e3b4);
+  box-shadow: inset 0 0 0 3px #fff8e3, inset 0 0 0 4px #e0c47e; transform: none; }
+.tm { position: absolute; top: -7px; right: -7px; width: 16px; height: 16px; border-radius: 50%; background: var(--good); color: #fff;
+  font: 700 10px/16px var(--serif); text-align: center; font-style: normal; }
+.ic-preview { display: flex; justify-content: center; align-items: center; min-height: 60px; padding: 10px; border: 2px solid var(--line); border-radius: 10px; background: #fffdf6; }
+.ic-preview.good { border-color: #c9a227; box-shadow: 0 0 0 3px #e9c46a44; }
+.ic-preview.alt { border-color: #d9a066; border-style: dashed; }
+.ic-preview.bad { border-color: var(--evil); background: #8a1c1c0d; }
+.ic-preview.empty { border-style: dashed; }
+.waiting { display: inline-flex; gap: 5px; margin-left: auto; }
+.waiting i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite; }
+.waiting i:nth-child(2) { animation-delay: .2s; }
+.waiting i:nth-child(3) { animation-delay: .4s; }
+.waiting.off { color: var(--evil); }
+@keyframes blink { 50% { opacity: .2; } }
+.seat.fixed-pick .token { outline: 4px solid #c9a227; outline-offset: 3px; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team); }
+
+/* 玩家左上角面板：寬屏時佔桌面左邊一欄（不擋座位），收起後只剩角色牌浮在左上角 */
+.hud { position: relative; z-index: 7; flex: none; align-self: flex-start; margin: 12px 0 12px 12px; width: 320px; max-height: calc(100% - 24px);
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto 1fr; gap: 4px 12px; padding: 12px;
+  background: var(--card) url(../img/grain.svg); border: 2px solid var(--team); border-radius: 14px; box-shadow: 0 10px 28px #0005; }
+.hud-body { display: contents; }
+.hud-me { grid-row: 1 / 3; background: none; border: 0; padding: 0; cursor: pointer; align-self: start; }
+.hud .hud-me .token { width: 86px; height: 86px; }
+.hud-name { font: 700 26px/1.2 var(--serif); color: var(--team); }
+.hud-team { font: 400 13px var(--sans); margin-left: 8px; color: var(--muted); }
+.hud-ab { font-size: 15px; line-height: 1.5; }
+.hud.min { position: absolute; left: 0; top: 0; width: auto; display: block; padding: 5px; border-radius: 50%; }
+/* 開局 / 接任翻牌時面板先空著：虛線圈等牌落進來，牌落定後名字、能力、信息淡入 */
+.hud { transition: border-color .4s; }
+.hud.held { border-color: var(--line-strong); }
+.hud.held .hud-me .token, .hud.held .hud-name, .hud.held .hud-ab, .hud.held .hud-list { visibility: hidden; }
+.hud.held .hud-me { border-radius: 50%; outline: 2px dashed var(--line-strong); outline-offset: -2px; }
+.hud.fx-in :is(.hud-name, .hud-ab, .hud-list) { animation: hud-in .4s ease-out both; animation-delay: var(--fx-delay, 0s); }
+@keyframes hud-in { from { opacity: 0; transform: translateX(-10px); } }
+.hud.min .hud-me .token { width: 66px; height: 66px; }
+.hud-list { grid-column: 1 / -1; overflow: auto; min-height: 0; display: grid; gap: 8px; align-content: start; border-top: 1.5px dashed var(--line); padding-top: 8px; margin-top: 4px; }
+.hud-night { display: grid; grid-template-columns: 36px 1fr; gap: 6px; align-items: start; }
+.hud-n { display: flex; align-items: center; gap: 2px; padding-top: 8px; color: #4a5272; font: 700 17px var(--serif); }
+.hud-rows { display: grid; gap: 5px; }
+.hud-row { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 10px; border: 1.5px solid var(--line); background: #fffdf6; cursor: pointer; font-size: 22px; }
+.hud-row .frm { font-size: 22px; }
+.hud-row:hover, .hud-row.on { border-color: var(--brass); background: #fff3cf; }
+.hud-row.act { background: transparent; border-style: dashed; font-size: 18px; }
+.hud-row.act .frm { font-size: 18px; }
+.hud-text { font-size: 14px; white-space: pre-wrap; }
+.hud-row.fresh { animation: arrive .9s cubic-bezier(.2, 1.3, .4, 1) both, flashrow .6s ease 4 alternate; animation-delay: var(--fx-delay, 0s); }
+@keyframes arrive { from { transform: translateX(-60px) scale(1.5); opacity: 0; } }
+@keyframes flashrow { to { border-color: var(--brass); box-shadow: 0 0 0 2px var(--brass); background: #fff3cf; } }
+
+/* 座位上的信息標記和面板聯動高亮 */
+.pm { position: relative; display: inline-flex; font-size: 22px; }
+.pm.q::after { content: "?"; position: absolute; right: -5px; top: -6px; width: 14px; height: 14px; border-radius: 50%; background: var(--brass); color: #fff;
+  font: 700 11px/14px var(--serif); text-align: center; }
+.seat.linked .token { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 3px var(--card), 0 0 0 6px var(--brass); transform: scale(1.06); }
+@media (min-width: 861px) and (max-width: 1180px) {
+  .hud { position: absolute; left: 0; top: 0; width: min(320px, 46%); }
+}
+/* 手機：展開時在桌面上方佔一條（最多四成高，信息列表內部滾動），收起後只剩角色牌浮在左上角（圓桌的角落是空的） */
+@media (max-width: 860px) {
+  .hud { position: relative; left: auto; top: auto; width: auto; max-height: 42%; margin: 6px 6px 0; align-self: stretch;
+    gap: 2px 10px; padding: 8px 10px; border-radius: 12px; box-shadow: 0 6px 16px #0003; }
+  .hud .hud-me .token { width: 54px; height: 54px; }
+  .hud-name { font-size: 18px; }
+  .hud-team { font-size: 12px; }
+  .hud-ab { font-size: 12.5px; line-height: 1.4; }
+  .hud-list { gap: 5px; padding-top: 5px; }
+  .hud-night { grid-template-columns: 30px 1fr; gap: 4px; }
+  .hud-n { padding-top: 5px; font-size: 13px; }
+  .hud-row, .hud-row .frm { font-size: 17px; }
+  .hud-row { gap: 6px; padding: 3px 6px; }
+  .hud-row.act, .hud-row.act .frm { font-size: 15px; }
+  .hud.min { position: absolute; left: 4px; top: 4px; width: auto; max-height: none; margin: 0; padding: 4px; }
+  .hud.min .hud-me .token { width: 44px; height: 44px; }
+  .pm { font-size: 16px; }
+}
+
+/* 說書人流程日誌 */
+.log2 { display: grid; gap: 12px; align-content: start; }
+.log-group { display: grid; gap: 3px; }
+.log-head { display: flex; align-items: center; gap: 4px; font: 700 15px var(--serif); color: var(--muted); border-bottom: 1.5px solid var(--line); padding-bottom: 3px; }
+.log-group.night .log-head { color: #4a5272; }
+.log-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 20px; padding: 3px 4px; border-radius: 6px; }
+.log-row:hover { background: #2a26220d; }
+.log-row .frm { font-size: inherit; }
+.log-row.k-setup .grim { font-size: 15px; }
+.lv { display: inline-flex; padding: 2px 5px; border-radius: 8px; }
+.lv0 { background: #8a1c1c14; box-shadow: inset 0 0 0 1.5px var(--evil); }
+.lv1 { box-shadow: inset 0 0 0 1.5px #d9a066; }
+.log-text { font-size: 13px; color: var(--muted); }
+.voters { display: inline-flex; flex-wrap: wrap; gap: 2px; font-size: 13px; }
+.log-empty { display: grid; place-items: center; height: 80px; color: var(--line-strong); font-size: 32px; }
+
+/* 演出舞台：平塗壓暗的桌面上放紙牌、紙片圓牌和墨線印章（不漸變、不發光） */
+#stage { position: fixed; inset: 0; z-index: 85; pointer-events: none; }
+#stage.block { pointer-events: auto; }
+/* 塊級容器：裏面的牌按 100% 撐滿（grid 的 auto 行裏百分比高度不生效，牌會被內容撐成橢圓） */
+.sp { position: fixed; display: block; color: var(--ink); pointer-events: none; }
+.sp > svg, .sp > div, .sp > div > svg { width: 100%; height: 100%; }
+.sp > svg { display: block; }
+.sp.fork { color: var(--evil); }
+.sp.shot { color: var(--ink); }
+.sp.aim { color: var(--evil); }
+/* 座位上砸的大章（反噬 / 射殺 / 死亡）：錨點放在座位中心 */
+.seat-pad { position: fixed; width: 0; height: 0; z-index: 2; }
+.seat-pad .ink-stamp { font-size: clamp(28px, 6vmin, 50px); }
+/* 反噬的閃電：金色折線，外面一圈紙色邊 */
+.fx-bolt { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.fx-bolt polyline { fill: none; stroke-linejoin: miter; stroke-linecap: round; }
+.fx-bolt .b-paper { stroke: var(--card); stroke-width: 11; }
+.fx-bolt .b-ink { stroke: var(--brass); stroke-width: 5; }
+.fx-chip { display: grid; place-items: center; border-radius: 50%; background: var(--card) url(../img/grain.svg); color: var(--ink);
+  border: 2px solid currentColor; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3.5px currentColor, 0 8px 16px #2a262240; }
+.sp .fx-chip > svg { width: 56%; height: 56%; }
+.fx-chip.poison { color: #3d8b3d; }
+.fx-chip.good { color: var(--good); }
+.fx-chip.evil { color: var(--evil); }
+.fx-chip.brass { color: var(--brass); }
+.fx-chip.dim { color: var(--muted); border-style: dashed; box-shadow: 0 8px 16px #2a262230; }
+.sc-center { position: fixed; left: 50%; top: 45%; translate: -50% -50%; display: grid; justify-items: center; gap: 10px; color: var(--ink); text-align: center; }
+/* 翻角色牌：背面是墨色圓牌 + 金色雙圈，正面是角色牌 */
+.sc-card { position: relative; width: clamp(130px, 28vmin, 180px); height: clamp(130px, 28vmin, 180px); transform-style: preserve-3d; }
+.sc-back, .sc-front { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; border-radius: 50%; }
+.sc-back { background: var(--ink); color: var(--brass); border: 3px solid var(--brass); box-shadow: inset 0 0 0 8px var(--ink), inset 0 0 0 10px var(--brass); }
+.sc-back .ico { width: 50%; height: 50%; }
+.sc-front { transform: rotateY(180deg); }
+.sc-front .token { width: 100%; height: 100%; box-shadow: inset 0 0 0 5px var(--card), inset 0 0 0 7px var(--team); }
+/* 名字和面板上的牌同比例（86px 的牌配 14px），飛進面板時換牌看不出來 */
+.sc-front .token .token-name { font-size: clamp(21px, 4.56vmin, 29px); }
+.pc-ab { max-width: min(400px, 78vw); margin: 0; font: 15px/1.65 var(--sans); color: var(--ink); text-align: center; }
+.pc.reveal { perspective: 900px; }
+
+/* 操作塢：現狀用座位號、角色牌、圖標表達 */
+.dock-frm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 22px; line-height: 1; margin: 3px 0; }
+.dock-big .dock-frm { font-size: 24px; margin: 0; }
+.dock-big .ico, .card-k .ico { width: 1em; height: 1em; vertical-align: -2px; }
+.dock-frm small { font: 700 .7em var(--serif); color: var(--muted); }
+.ico.brass, .ico.act { color: var(--brass); }
+.steps { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 20px; }
+.step-tok { display: inline-flex; border-radius: 50%; padding: 2px; }
+.step-tok.done { opacity: .35; filter: grayscale(.6); }
+.step-tok.now { box-shadow: 0 0 0 2px var(--brass); background: #fff3cf; }
+.step-tok > .ico { width: 1.4em; height: 1.4em; color: var(--brass); }
+.slots { display: inline-flex; gap: 6px; align-items: center; }
+.sb.empty { border-style: dashed; border-color: var(--line-strong); animation: blink 1.4s infinite; }
+.sb.me-now { background: var(--brass); color: #fff; border-color: var(--brass); animation: blink .8s infinite; }
+.team-n { display: inline-flex; align-items: center; gap: 4px; font: 700 20px var(--serif); color: var(--team); }
+.team-n i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--team); box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 9px var(--team); }
+.maybe { display: inline-flex; align-items: center; gap: 2px; font: 700 15px var(--serif); color: #3f7f86; opacity: .8; }
+.rule { position: relative; display: inline-flex; }
+.rule.lock { box-shadow: 0 0 0 2px var(--brass); border-radius: 50%; }
+.rule.ban .token { opacity: .4; }
+.rule-x { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--evil); }
+
+/* 提名、計票結果：壓暗桌面上的紙牌 + 紅色印章（平塗墨線，不發光不漸變） */
+.pc { position: relative; display: flex; align-items: center; gap: clamp(14px, 3vw, 30px); padding: clamp(18px, 3.4vw, 34px) clamp(20px, 4.4vw, 44px);
+  background: var(--card) url(../img/grain.svg); color: var(--ink); border: 2px solid var(--ink); border-radius: 12px; box-shadow: 0 24px 50px #0006; }
+.sc-who { display: grid; justify-items: center; gap: 8px; }
+.sc-who .token { width: clamp(84px, 20vmin, 132px); height: clamp(84px, 20vmin, 132px); }
+.sc-who .token.blank { font-size: clamp(30px, 7vmin, 46px); }
+.sc-who.to .token { outline: 3px solid var(--evil); outline-offset: 4px; }
+.sc-who b { padding: 2px 10px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 3px; font: 700 clamp(14px, 2.4vw, 18px) var(--serif); white-space: nowrap; }
+.pc-arrow { width: clamp(36px, 8vmin, 60px); height: clamp(36px, 8vmin, 60px); color: var(--evil); }
+.pc-arrow .ico { width: 100%; height: 100%; }
+.pc-tally { display: grid; justify-items: start; gap: 10px; }
+.pc-count { display: flex; align-items: baseline; gap: 8px; font-family: var(--serif); }
+.pc-count .ico { width: clamp(30px, 6vmin, 44px); height: clamp(30px, 6vmin, 44px); align-self: center; color: var(--brass); }
+.pc-num { font: 900 clamp(72px, 18vmin, 130px)/.9 var(--serif); }
+.pc-num.hit { color: var(--evil); }
+.pc-need { font: 700 clamp(24px, 5vmin, 38px)/1 var(--serif); color: var(--muted); }
+.pc-voters { display: flex; flex-wrap: wrap; gap: 5px; max-width: 42vw; }
+.pc-voters .sb { font-size: 20px; background: var(--brass); border-color: var(--brass); color: var(--card); }
+.pc-voters span { opacity: 0; }
+.pc-voters.in span { animation: tr-in .34s cubic-bezier(.2,1.4,.4,1) both; animation-delay: calc(var(--i) * 60ms); }
+.ink-stamp { position: absolute; left: 50%; top: 50%; z-index: 2; transform: translate(-50%, -50%) rotate(-7deg); pointer-events: none;
+  padding: .06em .28em .1em .46em; font: 900 clamp(48px, 11vw, 96px)/1.05 var(--serif); letter-spacing: .18em; white-space: nowrap;
+  color: var(--evil); border: .07em solid currentColor; border-radius: .12em; box-shadow: inset 0 0 0 .035em var(--card), inset 0 0 0 .07em currentColor;
+  mix-blend-mode: multiply; }
+.pc.result { flex-direction: column; gap: 4px; padding-bottom: clamp(10px, 2vw, 18px); }
+.pc-row { display: flex; align-items: center; gap: clamp(14px, 3vw, 30px); }
+.pc-slot { position: relative; align-self: stretch; height: clamp(64px, 13vmin, 104px); }
+.pc-slot .ink-stamp { font-size: clamp(34px, 7.5vmin, 64px); }
+.ink-stamp.brass { color: var(--brass); }
+.ink-stamp.gray { color: var(--muted); }
+.ink-ring { position: absolute; left: 50%; top: 50%; width: 180px; height: 180px; margin: -90px 0 0 -90px; border: 4px solid var(--evil); border-radius: 50%; pointer-events: none; }
+.ink-ring.brass { border-color: var(--brass); }
+.ink-ring.good { border-color: var(--good); }
+.ink-ring.gray { border-color: var(--muted); }
+.ink-ring.poison { border-color: #3d8b3d; }
+.ink-ring.night { border-color: #4a5272; }
+.ink-ring.at { border-width: 3px; }
+.ink-stamp.good { color: var(--good); }
+.pc-arrow.brass { color: var(--brass); }
+/* 豎排的紙牌：入夜 / 天亮 / 勝負 / 翻角色牌 / 輪到你 / 無人處決 */
+.pc.cal { flex-direction: column; gap: 10px; min-width: min(340px, 86vw); padding-bottom: clamp(10px, 2vw, 18px); }
+.pc-seal { position: relative; display: grid; place-items: center; width: clamp(68px, 15vmin, 104px); height: clamp(68px, 15vmin, 104px); border-radius: 50%;
+  color: var(--ink); border: 2.5px solid currentColor; box-shadow: inset 0 0 0 4px var(--card), inset 0 0 0 6px currentColor; }
+.pc-seal .ico { width: 54%; height: 54%; }
+.pc-seal.night { color: #4a5272; }
+.pc-seal.sun { color: var(--brass); }
+.pc-seal.demon { color: var(--evil); }
+.pc-seal .ink-ring { width: 120px; height: 120px; margin: -60px 0 0 -60px; border-width: 3px; }
+.pc-title { font: 900 clamp(40px, 9vmin, 76px)/1.1 var(--serif); letter-spacing: .16em; padding-left: .16em; white-space: nowrap; }
+.pc-title span { display: inline-block; }
+.pc-title.good { color: var(--good); }
+.pc-title.evil { color: var(--evil); }
+.pc-sub { font: 700 clamp(15px, 2.6vmin, 20px)/1.4 var(--serif); letter-spacing: .08em; color: var(--muted); max-width: 70vw; }
+.pc-winners { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; max-width: min(560px, 80vw); padding-top: 10px; border-top: 1.5px dashed var(--line); }
+.pc-mini { display: grid; justify-items: center; gap: 3px; opacity: 0; }
+.pc-winners.in .pc-mini { animation: tr-in .34s cubic-bezier(.2,1.4,.4,1) both; animation-delay: calc(var(--i) * 90ms); }
+.pc-mini small { max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 12px var(--serif); }
+.pc.cal .pc-slot { width: 100%; }
+.pc.turn .sc-who .token { width: clamp(96px, 22vmin, 140px); height: clamp(96px, 22vmin, 140px); }
+.pc-gallows .gallows { display: block; width: clamp(84px, 18vmin, 130px); height: auto; }
+.pc-gallows .g-rope { transform-box: view-box; transform-origin: 75px 6px; animation: sway 2.4s ease-in-out infinite; }
+@keyframes sway { 0%, 100% { rotate: 5deg; } 50% { rotate: -5deg; } }
+@media (prefers-reduced-motion: reduce) { .pc-gallows .g-rope, .pc-winners.in .pc-mini { animation: none; opacity: 1; } }
+@media (max-width: 860px) { .pc.face { gap: 10px; } }
+
+/* 處決演出：絞刑架（木架不動）、晃動層以繩頭為軸，繩子拉長、套索和頭像跟著往下；尺寸按台上頭像縮放（--k） */
+.sp.ex-tok { filter: drop-shadow(0 4px 10px #0009); }
+.sp.ex-tok > div { width: 100%; height: 100%; }
+.sp.ex-tok .token { width: 100%; height: 100%; }
+.sp.ex-tok.gray { filter: grayscale(1) brightness(.75); }
+.ex-rig { position: fixed; z-index: 1; width: calc(150px * var(--k)); height: calc(170px * var(--k)); }
+.ex-rig > .gallows { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ex-swing { position: absolute; inset: 0; transform-origin: 50% calc(6px * var(--k)); }
+.ex-rope { position: absolute; left: calc(73.25px * var(--k)); top: calc(6px * var(--k)); width: calc(3.5px * var(--k)); height: calc(38px * var(--k)); background: var(--brass); transform-origin: top; }
+.ex-hanger { position: absolute; inset: 0; }
+.ex-noose { position: absolute; left: calc(65px * var(--k)); top: calc(43px * var(--k)); width: calc(20px * var(--k)); height: calc(26px * var(--k));
+  border: calc(3.5px * var(--k)) solid var(--brass); border-radius: 50%; box-sizing: border-box; }
+.ex-face { position: absolute; left: calc(33px * var(--k)); top: calc(62px * var(--k)); width: calc(84px * var(--k)); height: calc(84px * var(--k)); }
+.ex-face .token { width: 100%; height: 100%; }
+.ex-pad { position: fixed; width: 0; height: 0; z-index: 2; }
+.ex-pad .ink-stamp { font-size: clamp(40px, 8vmin, 72px); }
+
+/* 說書人喊立即計票：全屏紙牌上的兩行字 */
+.pc.callvote { min-width: min(420px, 90vw); }
+.pc-say { font: 900 clamp(26px, 5.4vmin, 44px)/1.2 var(--serif); letter-spacing: .1em; text-align: center; }
+.pc-sub { font: 700 clamp(18px, 3.6vmin, 28px)/1.3 var(--serif); letter-spacing: .14em; color: var(--evil); text-align: center; }
+
+/* 被刀光斬開的提名卡：兩半各是一份拷貝，按刀口裁開 */
+.fx-torn { position: fixed; pointer-events: none; color: var(--ink); }
+.fx-torn > .trial, .fx-torn > .pc { position: static; inset: auto; margin: 0; width: 100%; height: 100%; box-sizing: border-box; }
+.fx-blade { position: fixed; height: 30px; margin-top: -15px; transform-origin: 0 50%; pointer-events: none; }
+.fx-blade svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.fx-blade polygon { fill: var(--card); stroke: var(--ink); stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linejoin: miter; }
+.fx-blade polygon.core { fill: var(--ink); stroke: none; }
+.fx-flash { position: fixed; inset: 0; background: var(--card); pointer-events: none; }

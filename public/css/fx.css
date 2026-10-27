@@ -1,0 +1,165 @@
+/* 背景場景與特效。場景常駐在頁面最底層，隨階段（白天/黃昏/夜晚）淡入淡出。 */
+#app { position: relative; z-index: 1; }
+#scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+#scene .layer { position: absolute; inset: 0; transition: opacity 1.4s ease; }
+body::after { content: ""; position: fixed; inset: 0; z-index: 2; pointer-events: none; background: url(../img/grain.svg); opacity: .55; mix-blend-mode: multiply; }
+
+.sky { background: linear-gradient(#efe5cc, #e5d5b0 70%); }
+.sky::before, .sky::after { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
+.sky::before { background: linear-gradient(#5d6787 0%, #c99a7c 62%, #e6c49a 100%); } /* 黎明 */
+.sky::after { background: linear-gradient(#141826 0%, #232a3f 60%, #2f3550 100%); }  /* 夜晚 */
+.stars { background: url(../img/stars.svg) top center / cover; opacity: 0; }
+.stars-2 { background-position: 37% 12%; transform: scale(1.3) rotate(8deg); }
+/* 太陽、月亮在桌面右上角那塊空處（側欄另算）：入夜時太陽沉到小鎮後面、月亮從下面升起，天亮反過來。
+   位置跟著 body[data-phase] 過渡，什麼時候切由 fx.js 的入夜 / 天亮演出按節拍決定（dusk 是日落那一拍） */
+:root { --side-w: 340px; }
+body:has(.game.side-min) { --side-w: 44px; }
+body:not(:has(.game)) { --side-w: 0px; }
+#scene .moon { inset: auto; top: 8vh; right: calc(var(--side-w) + 15vw); width: 76px; height: 76px; border-radius: 50%; opacity: 0;
+  background: #f6ecd0; border: 2px solid #d9c79a; box-shadow: inset -13px -5px 0 #e6d5a9;
+  transform: translate(5vw, 74vh); transition: transform 1.9s cubic-bezier(.3,.6,.35,1), opacity 1.2s ease; }
+body[data-phase="night"] #scene .moon { opacity: 1; transform: none; }
+#scene .sun-disk { inset: auto; top: 12vh; right: calc(var(--side-w) + 6vw); width: 70px; height: 70px; border-radius: 50%;
+  background: #f0c869; border: 2px solid var(--brass);
+  transition: transform 1.9s cubic-bezier(.45,0,.55,1), background-color 1.6s ease, opacity 1.2s ease; }
+#scene .sun-disk::after { content: ""; position: absolute; inset: -13px; border-radius: 50%; border: 4px dashed #d9ad4f; }
+body[data-phase="dusk"] #scene .sun-disk { transform: translate(4vw, 66vh); background-color: #df7f4c; }
+body[data-phase="night"] #scene .sun-disk { transform: translate(4vw, 78vh); background-color: #df7f4c; opacity: 0; }
+body[data-phase="dawn"] #scene .sun-disk { transform: translate(-2vw, 50vh); background-color: #e99a5c; }
+#scene .sun { inset: auto; top: -18vh; left: -10vw; width: 60vh; height: 60vh; border-radius: 50%;
+  background: radial-gradient(circle, #fff3cf99, #fff3cf00 70%); }
+#scene .skyline { inset: auto 0 0 0; height: 30vh; background-repeat: no-repeat; background-position: bottom center; background-size: cover; }
+.skyline-day { background-image: url(../img/skyline-day.svg); opacity: .9; }
+.skyline-night { background-image: url(../img/skyline-night.svg); opacity: 0; }
+.candle { opacity: 0; background: radial-gradient(ellipse at 38% 55%, #ffc76a33 0, #ffb04a1a 30%, transparent 60%); }
+
+body[data-phase="night"] .sky::after, body[data-phase="night"] .stars, body[data-phase="night"] .moon,
+body[data-phase="night"] .skyline-night { opacity: 1; }
+body[data-phase="night"] .skyline-day, body[data-phase="night"] .sun { opacity: 0; }
+body[data-phase="night"] .stars-2 { opacity: .7; animation: twinkle 4s ease-in-out infinite alternate; }
+body[data-phase="dawn"] .sky::before { opacity: 1; }
+body[data-phase="dawn"] .stars { opacity: .25; }
+body[data-phase="dawn"] .skyline-night { opacity: .8; }
+body[data-phase="dawn"] .skyline-day { opacity: .3; }
+body[data-phase="dusk"] .sky::before { opacity: 1; }
+body[data-phase="dusk"] .stars { opacity: .12; }
+body[data-phase="dusk"] .skyline-day { opacity: .55; }
+body[data-phase="dusk"] .skyline-night { opacity: .35; }
+body[data-phase="dusk"] .ring::before { background-color: #d79c7488; }
+/* 首次載入 / 換視角時直接是當前的天色，不播過渡 */
+body.sky-instant *, body.sky-instant *::before, body.sky-instant *::after { transition: none !important; }
+body.my-turn[data-phase="night"] .candle { opacity: 1; animation: flicker 2.6s ease-in-out infinite; }
+@keyframes twinkle { from { opacity: .15; } to { opacity: .8; } }
+@keyframes flicker { 0%, 100% { filter: brightness(1); } 40% { filter: brightness(1.25); } 70% { filter: brightness(.9); } }
+
+/* 桌面：中央一張圓形的「小鎮廣場」墊子 */
+.board { background: transparent; }
+.ring::before { inset: 7%; border: 2px solid #2a262233; border-radius: 50%;
+  background-color: #f8f1e180; box-shadow: inset 0 0 0 10px #fbf7ec33, inset 0 0 0 11px #2a26221f;
+  transition: background-color 1.4s ease, border-color 1.4s ease, box-shadow 1.4s ease; }
+.ring::after { content: ""; position: absolute; inset: 14%; border: 1px dashed #2a26222b; border-radius: 50%; pointer-events: none; }
+body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { border-color: #8e95b055; background-color: #1b2132c4; box-shadow: inset 0 0 0 10px #ffffff08, inset 0 0 0 11px #8e95b033; }
+body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { border-color: #8e95b040; }
+.topbar, .side, .card, .dock, .modal, .popmenu, .mycard { background-image: url(../img/grain.svg); }
+
+/* 座位互動 */
+.seat .token { transition: transform .15s ease, box-shadow .2s ease; }
+.seat:hover .token { transform: translateY(-3px); }
+.seat.selectable .token { animation: beckon 1.6s ease-in-out infinite; }
+.seat.selected .token { box-shadow: inset 0 0 0 3px #fff3cf, inset 0 0 0 4px var(--team); animation: picked .26s cubic-bezier(.5,0,.6,1.3); }
+@keyframes picked { from { scale: 1.25; } }
+.seat.nominee .token { animation: nominee 1.6s ease-in-out infinite; animation-delay: var(--fx-delay, 0s); }
+@keyframes beckon { 50% { transform: translateY(-3px); } }
+@keyframes nominee { 0%, 100% { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 0 #8a1c1c66; }
+  50% { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 12px #8a1c1c00; } }
+
+/* 死亡：角色牌褪色，死因印章砸下、一圈墨線散開，死亡票隨後落到頭頂 */
+.seat.fx-died .token { animation: fade-out 1.2s ease forwards; animation-delay: var(--fx-delay, 0s); }
+.seat.fx-died .dead-stamp { animation: dead-stamp .42s cubic-bezier(.5,0,.6,1.3) both; animation-delay: var(--fx-delay, 0s); }
+.seat.fx-died .seat-token::after { content: ""; position: absolute; inset: -4px; border: 3px solid var(--evil); border-radius: 50%; pointer-events: none;
+  animation: ink-ring .6s ease-out .18s both; animation-delay: calc(.18s + var(--fx-delay, 0s)); }
+@keyframes ink-ring { from { transform: scale(.8); opacity: .8; } to { transform: scale(1.7); opacity: 0; } }
+.seat.fx-died .ghost-vote { animation: ghost-in .4s ease-out both; animation-delay: calc(.5s + var(--fx-delay, 0s)); }
+@keyframes dead-stamp { from { transform: translate(-50%, -50%) scale(2.8) rotate(-30deg); opacity: 0; } }
+@keyframes ghost-in { from { transform: translateX(-50%) translateY(-12px) rotate(-10deg); opacity: 0; } }
+@keyframes fade-out { from { filter: none; opacity: 1; } to { filter: grayscale(1); opacity: .55; } }
+
+/* 舉手 / 反對：圓標像小印章一樣按在座位上；計票時鐘數過去時，舉著的手再按一下（定下來） */
+.hand.fx-voted, .vmark.fx-voted { animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; animation-delay: var(--fx-delay, 0s); }
+@keyframes vstamp { from { transform: scale(2.4) rotate(-20deg); opacity: 0; } 65% { transform: scale(.9); opacity: 1; } }
+.vmark.fx-lock { animation: vlock .32s cubic-bezier(.5,0,.7,1) both; animation-delay: var(--fx-delay, 0s); }
+@keyframes vlock { 0% { transform: scale(1); } 35% { transform: scale(1.6) rotate(-10deg); } 70% { transform: scale(.88); } }
+.seat.counted .vmark { border-color: var(--ink); }
+/* 計票時鐘指到的人：牌外一圈金線散開 */
+.seat.clock .seat-token::after { content: ""; position: absolute; inset: -6px; border: 2.5px solid var(--brass); border-radius: 50%; pointer-events: none;
+  animation: ink-ring .5s ease-out both; }
+/* 彈窗：像一張紙落到桌上，略歪一下再擺正；提示條從下面滑上來；按鈕按下去一點 */
+.modal { animation: paper-drop .3s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes paper-drop { from { transform: translateY(-18px) rotate(-1.5deg); opacity: 0; } 70% { transform: translateY(2px) rotate(.3deg); opacity: 1; } }
+.toast { animation: slip-in .24s cubic-bezier(.2,1.2,.4,1); }
+@keyframes slip-in { from { translate: 0 18px; opacity: 0; } }
+.btn:active, .vbtn:active, .opt-tile:active { translate: 0 1px; }
+.popmenu { animation: unfold .15s ease-out; transform-origin: top center; }
+@keyframes unfold { from { transform: translateY(6px) scale(.97); opacity: 0; } }
+
+@media (max-width: 860px) {
+  #scene .moon { width: 52px; height: 52px; right: 22vw; }
+  #scene .sun-disk { width: 46px; height: 46px; right: 8vw; }
+  #scene .sun-disk::after { inset: -9px; border-width: 3px; }
+  #scene .skyline { height: 18vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* 玩家座位標註：說書人信息（金色）+ 自己的備註（墨色） */
+.pmarks { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: 3px; max-width: 132px; }
+.pmark { font-size: 11px; line-height: 16px; padding: 0 5px; border-radius: 2px; white-space: nowrap; }
+.pmark.auto { background: #e9c46a; color: #3a2b08; }
+.pmark.auto.evil { background: var(--evil); color: #fff; }
+.pmark.note { background: var(--card); color: var(--ink); border: 1px solid var(--ink); }
+/* 自己今晚的行動：語義色實底 + 圖標（中毒 / 保護 / 擊殺 / 主人 / 查驗） */
+.pmark.act { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; color: #fff; font-weight: 700; animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }
+.pmark.act .ico { width: 12px; height: 12px; }
+.pmark.act.poison { background: #3d8b3d; }
+.pmark.act.good { background: var(--good); }
+.pmark.act.evil { background: var(--evil); }
+.pmark.act.brass { background: var(--brass); }
+@media (max-width: 860px) { .pmarks { max-width: 80px; } .pmark { font-size: 10px; padding: 0 3px; } }
+
+/* 說書人夜晚操作卡：浮在正在行動的座位旁 */
+.step-bubble { position: absolute; z-index: 6; width: min(340px, 46%); max-height: 62%; overflow: auto;
+  border-radius: 6px; box-shadow: 0 10px 30px #0006; }
+.step-bubble.fresh { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes bubble-in { from { scale: .92; rotate: -1.5deg; opacity: 0; } }
+.step-bubble .card { margin: 0; }
+.seat.acting .token { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 3px var(--card), 0 0 0 6px var(--brass); }
+.seat.acting .seat-token::after { content: ""; position: absolute; inset: -6px; border: 2px solid var(--brass); border-radius: 50%; pointer-events: none;
+  animation: acting 1.8s ease-out infinite; }
+@keyframes acting { from { transform: scale(1); opacity: .9; } 70%, to { transform: scale(1.45); opacity: 0; } }
+@media (max-width: 860px) {
+  /* .town 是尺寸容器，fixed 以桌面區為準：卡片貼在桌面區底部，不擋操作塢 */
+  .step-bubble { position: fixed; left: 6px !important; right: 6px; top: auto !important; bottom: 6px; width: auto; max-height: 72%; transform: none !important; }
+}
+
+/* 白天的裁定卡：金色雙框 + 標題；按規則應有的結果是主按鈕、帶 ✓。裁定的另一方座位紅色虛線圈 */
+.infocard.ruling { border-color: var(--brass); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px var(--brass); }
+.rule-k { display: flex; align-items: center; gap: 6px; font: 700 17px var(--serif); color: var(--brass); letter-spacing: .1em; }
+.rule-k .ico { width: 20px; height: 20px; }
+.infocard.ruling .dock-frm { font-size: 24px; }
+.infocard.ruling .row { justify-content: flex-end; }
+.infocard.ruling .btn .ico { width: 15px; height: 15px; margin-right: 4px; }
+.seat.ruled .token { outline: 3px dashed var(--evil); outline-offset: 4px; }
+/* 貞潔者小窗：投票照常進行，卡片縮小、不帶計時圖標 */
+.step-bubble.side { left: 0; top: 0; z-index: 9; width: auto; max-width: 300px; }
+.infocard.ruling.side { padding: 10px 12px; gap: 6px; }
+.infocard.ruling.side .rule-k { font-size: 14px; }
+.infocard.ruling.side .dock-frm { font-size: 18px; }
+.v-left { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; color: var(--evil); }
+.v-left .ico { width: 16px; height: 16px; }
+.v-left b { font: 800 20px var(--serif); min-width: 1.4em; text-align: right; }
+
+/* 射空的人：所有人視角都標「射 N 號失敗」，「未中」章飛過來時按上去 */
+.pmark.shot { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; background: var(--muted); color: #fff; font-weight: 700; }
+.pmark.shot .ico { width: 12px; height: 12px; }
+.pmark.shot.fx-shot { animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }

@@ -1,0 +1,45 @@
+{
+  "input": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-27\\http-47-107-182-81-3000\\work\\a1-padded-green.png",
+  "source_sha256": "84bb67c5620b3a0c8172125599a7d6a4769ee9667fb56f1fb824b260c1eb424d",
+  "method": "automatic_screen_trimap_closed_form_matting_foreground_ml",
+  "parameters": {
+    "foreground": 240,
+    "background": 10,
+    "erode_size": 5,
+    "threads": 4
+  },
+  "limits": {
+    "core_retention_min": 0.985,
+    "far_background_visible_pixels_max": 5,
+    "color_spill_visible_pixels_max": 5
+  },
+  "passed": true,
+  "production_overwritten": false,
+  "caveat": "Color heuristics are not ground truth and can miss same-color foreground loss; inspect composites",
+  "screen": {
+    "kind": "green",
+    "border_median_rgb": [
+      0.0,
+      255.0,
+      0.0
+    ],
+    "border_screen_fraction": 1.0
+  },
+  "native_size": [
+    1318,
+    1318
+  ],
+  "core_retention": 1.0,
+  "far_background_visible_pixels": 0,
+  "color_spill_visible_pixels": 0,
+  "core_rgb_mean_absolute_change": 0.5134265702293175,
+  "heuristic_pass": true,
+  "native_sha256": "51ac3eb8f0b221fcfd54ad35e1f1c035be54302dcda08a3e69c31c8093ff6775",
+  "versions": {
+    "pymatting": "1.1.15",
+    "numpy": "2.2.2",
+    "pillow": "12.1.0",
+    "scipy": "1.18.1"
+  },
+  "source_unchanged": true
+}

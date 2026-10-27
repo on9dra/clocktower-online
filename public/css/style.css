@@ -1,0 +1,99 @@
+/* 紙質桌遊風：米白紙張、墨色細線、印章式角色牌。無漸變、無發光。 */
+:root {
+  --paper: #f4eedf;
+  --card: #fbf8f0;
+  --ink: #2a2622;
+  --muted: #7d7365;
+  --line: #d3c7ae;
+  --line-strong: #a89a7d;
+  --good: #2f5d8a;
+  --evil: #8a1c1c;
+  --brass: #9a7a2f;
+  --serif: "Songti TC", "Noto Serif TC", "Source Han Serif TC", "PMingLiU", "MingLiU", serif;
+  --sans: "PingFang HK", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+}
+/* 簡體：整套換成簡體字型，避免繁體字型缺字時混進別的字型（lang.js 設 data-lang） */
+:root[data-lang="sc"] {
+  --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "STSong", "SimSun", serif;
+  --sans: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+/* 對局界面一屏放下：彈出的浮窗、氣泡越界也不出滾動條（滾動條一出一收整頁會跳） */
+body:has(.game) { overflow: hidden; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.55 var(--sans); }
+#app { height: 100%; }
+button { font: inherit; color: inherit; cursor: pointer; }
+input, select, textarea {
+  font: inherit; color: var(--ink); background: var(--card); width: 100%; min-width: 0;
+  border: 1px solid var(--line-strong); border-radius: 4px; padding: 7px 9px;
+}
+textarea { resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
+.muted { color: var(--muted); }
+.warn { color: var(--evil); }
+.pre { white-space: pre-wrap; word-break: break-word; }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.grow { flex: 1; }
+
+.btn {
+  background: var(--card); border: 1.5px solid var(--ink); border-radius: 4px; padding: 7px 14px;
+  font-weight: 600; white-space: nowrap;
+}
+.btn:hover { background: #efe7d4; }
+.btn.primary { background: var(--ink); color: var(--card); }
+.btn.primary:hover { background: #45403a; }
+.btn.red { background: var(--evil); border-color: var(--evil); color: #fff; }
+.btn.ghost { border-color: var(--line-strong); font-weight: 400; }
+.btn.disabled { opacity: .35; pointer-events: none; }
+.btn.sm { padding: 3px 10px; font-size: 13px; }
+.btn.wide { width: 100%; margin-top: 10px; padding: 10px; font-size: 15px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; }
+.card.focus { border: 2px solid var(--ink); }
+.card-k { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+.card-big { font-family: var(--serif); font-size: 20px; font-weight: 700; margin: 2px 0 4px; }
+.card-big.good { color: var(--good); }
+.card-big.evil { color: var(--evil); }
+.card p { margin: 6px 0; }
+
+/* 大廳 */
+.lobby { max-width: 360px; margin: 0 auto; padding: 10vh 16px 40px; display: grid; gap: 14px; }
+.lobby .title { font-family: var(--serif); font-size: 42px; font-weight: 700; letter-spacing: 10px; text-align: center; }
+.lobby > .muted { text-align: center; margin-top: -10px; }
+.lobby .card { display: grid; gap: 8px; }
+
+/* 彈窗與菜單 */
+.backdrop { position: fixed; inset: 0; background: #2a262266; display: grid; place-items: center; z-index: 50; padding: 16px; }
+.modal { background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; width: min(420px, 100%); max-height: 86vh; display: flex; flex-direction: column; }
+.modal.wide { width: min(720px, 100%); }
+.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); font-family: var(--serif); font-weight: 700; }
+.modal-body { padding: 12px 14px; overflow: auto; }
+.icon-btn { background: none; border: 0; font-size: 16px; color: var(--muted); }
+.popmenu { position: fixed; z-index: 60; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 4px; min-width: 160px; display: flex; flex-direction: column; }
+.popmenu-title { padding: 5px 10px; font-family: var(--serif); font-weight: 700; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.popmenu button { background: none; border: 0; text-align: left; padding: 7px 10px; border-radius: 4px; }
+.popmenu button:hover { background: #efe7d4; }
+.popmenu button.danger { color: var(--evil); }
+.popmenu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 99; background: var(--ink); color: var(--card); padding: 8px 16px; border-radius: 4px; max-width: 90vw; }
+
+/* 角色牌：雙圈印章 */
+.token {
+  --team: var(--ink);
+  width: 96px; height: 96px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1px; text-align: center; background: var(--card); border: 2px solid var(--team);
+  box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team);
+  color: var(--team); cursor: pointer; user-select: none; flex: none;
+}
+.token-icon { width: 52%; height: 52%; }
+.token .token-name { font-family: var(--serif); font-weight: 700; font-size: 14px; line-height: 1.1; padding: 0 6px; }
+.token.sm { width: 48px; height: 48px; border-width: 1.5px; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--team); }
+.token.sm .token-icon { width: 62%; height: 62%; }
+.token.sm .token-name { display: none; }
+.token.blank { color: var(--muted); border: 1.5px dashed var(--line-strong); box-shadow: none; font-family: var(--serif); font-size: 24px; }
+.token.empty { border-style: dashed; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 8px; }
+.chip { position: relative; background: var(--card); border: 1px solid var(--line-strong); border-radius: 3px; padding: 3px 9px; font-size: 13px; }
+.chip.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.true-mark { font-style: normal; font-size: 10px; margin-left: 4px; padding: 0 3px; border-radius: 2px; background: var(--good); color: #fff; }
