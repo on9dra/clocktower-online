@@ -1,22 +1,46 @@
 // 說書人給信息的表單：服務端生成表單（含真實答案），說書人選擇後兩端用同一個函數拼出句子和式子。
-// form.kind：two（兩名玩家+一個角色）、number（數字）、yesno（有/沒有）、role（一個角色）、text（間諜看魔典）
-// form.ok / form.mayBe / form.noneOk：隱士、間諜「登記」為別的身份時也算合規的答案
+// form.kind：two（兩名玩家+一個角色）、number（數字）、yesno（是/否）、role（一個角色）、dream（一善一惡兩個角色）、text（間諜看魔典）
+// form.ok / form.mayBe / form.noneOk：隱士、間諜「登記」為別的身份時也算合規的答案；form.unknown：系統不知道真相（雜耍藝人、數學家）
 import { ROLES, TEAMS } from './roles.js';
 
 const name = id => (ROLES[id] ? ROLES[id].name : '?');
+const seats = ids => (ids || []).map(s => ({ s }));
+
+// 數字類信息：一句話 + 式子
+const NUM = {
+  chef: { text: n => `場上鄰座的邪惡玩家有 ${n} 對`, f: (form, n) => [{ w: '鄰座的邪惡' }, { n, evil: true }, { w: '對' }] },
+  empath: { text: (n, form) => `你存活的鄰座（${form.extra.nb}）中有 ${n} 名邪惡玩家`, f: (form, n) => [...seats(form.extra?.nbIds), { w: '中邪惡' }, { n, evil: true }, { w: '名' }] },
+  chambermaid: { text: n => `你選的玩家中今晚有 ${n} 人被喚醒`, f: (form, n) => [...seats(form.extra?.nbIds), { w: '中被喚醒' }, { n }, { w: '人' }] },
+  clockmaker: { text: n => `惡魔與最近的爪牙相距 ${n} 步`, f: (form, n) => [{ tag: 'demon' }, { w: '與' }, { tag: 'minion' }, { w: '相距' }, { n }, { w: '步' }] },
+  oracle: { text: n => `死亡的玩家中有 ${n} 名邪惡玩家`, f: (form, n) => [{ w: '死者中邪惡' }, { n, evil: true }, { w: '名' }] },
+  mathematician: { text: n => `有 ${n} 名玩家的能力失常`, f: (form, n) => [{ w: '能力失常' }, { n }, { w: '人' }] },
+  juggler: { text: n => `你猜對了 ${n} 個角色`, f: (form, n) => [{ w: '猜對' }, { n }, { w: '個' }] },
+};
+// 是否類信息：兩個答案各自的短詞
+export const YES = {
+  fortuneteller: { yes: '中有惡魔', no: '中沒有惡魔', k: ['evil', 'good'] },
+  flowergirl: { yes: '惡魔今天投過票', no: '惡魔今天沒投票', k: ['evil', 'good'] },
+  towncrier: { yes: '爪牙今天提名過', no: '爪牙今天沒提名', k: ['evil', 'good'] },
+  seamstress: { yes: '陣營相同', no: '陣營不同', k: ['good', 'evil'] },
+};
+const yesOf = form => YES[form.roleId] || YES.fortuneteller;
 
 export function formatInfo(form, f, label) {
   switch (form.kind) {
     case 'two':
-      return f.none ? form.noneText : `${label(f.a)} 和 ${label(f.b)} 之中有一位是【${name(f.role)}】`;
+      if (f.none) return form.noneText;
+      return `${label(f.a)} 和 ${label(f.b)} 之中有一位是` + (form.plain ? '惡魔' : `【${name(f.role)}】`);
     case 'number':
-      return form.roleId === 'chef' ? `場上鄰座的邪惡玩家有 ${f.n} 對`
-        : `你存活的鄰座（${form.extra.nb}）中有 ${f.n} 名邪惡玩家`;
-    case 'yesno':
-      return `${form.extra.pair} 之中【${f.yes ? '有' : '沒有'}】惡魔`;
+      return (NUM[form.roleId] || NUM.chef).text(f.n, form);
+    case 'yesno': {
+      const y = yesOf(form), ids = form.extra?.ids;
+      return (ids ? `${ids.map(label).join(' 和 ')} ` : '') + `【${f.yes ? y.yes : y.no}】`;
+    }
     case 'role':
-      return form.roleId === 'ravenkeeper' ? `${form.extra.target} 的角色是【${name(f.role)}】`
+      return form.extra?.target ? `${form.extra.target} 的角色是【${name(f.role)}】`
         : `今天被處決的玩家是【${name(f.role)}】`;
+    case 'dream':
+      return `${form.extra.target} 是【${name(f.good)}】或【${name(f.evil)}】`;
     default:
       return form.text;
   }
@@ -26,18 +50,16 @@ export function formatInfo(form, f, label) {
 // 項：{ s 座位 } { r 角色, named } { w 短詞, k } { tag 帶字陣營 } { t 陣營, none } { n 數字, evil } { demon 是否 } { op } { grim [[座位, 角色, 狀態]] }
 // 原則：座位、角色、數字畫成圖；關係（或 / 是 / 中有）用字，不用符號
 export function infoFormula(form, f) {
-  const seats = ids => (ids || []).map(s => ({ s }));
   const role = r => ({ r, named: true });
   switch (form.kind) {
     case 'two':
       return f.none ? [{ w: `沒有${TEAMS[form.team]?.name || ''}` }]
-        : [{ s: f.a }, { w: '或' }, { s: f.b }, { w: '是' }, role(f.role)];
-    case 'number':
-      return form.roleId === 'chef' ? [{ w: '鄰座的邪惡' }, { n: f.n, evil: true }, { w: '對' }]
-        : [...seats(form.extra?.nbIds), { w: '中邪惡' }, { n: f.n, evil: true }, { w: '名' }];
-    case 'yesno': return [...seats(form.extra.ids), f.yes ? { w: '中有惡魔', k: 'evil' } : { w: '中沒有惡魔', k: 'good' }];
+        : [{ s: f.a }, { w: '或' }, { s: f.b }, { w: '是' }, form.plain ? { tag: 'demon' } : role(f.role)];
+    case 'number': return (NUM[form.roleId] || NUM.chef).f(form, f.n);
+    case 'yesno': { const y = yesOf(form); return [...seats(form.extra?.ids), { w: f.yes ? y.yes : y.no, k: y.k[f.yes ? 0 : 1] }]; }
     case 'role': return form.extra?.targetId ? [{ s: form.extra.targetId }, { w: '是' }, role(f.role)]
       : [{ w: '被處決者是' }, role(f.role)];
+    case 'dream': return [{ s: form.extra.targetId }, { w: '是' }, role(f.good), { w: '或' }, role(f.evil)];
     default: return form.f || [];
   }
 }
@@ -53,9 +75,10 @@ export function truthLevel(form, f) {
       if (of[f.a] === f.role || of[f.b] === f.role) return 2;
       return (may[f.a] || []).includes(f.role) || (may[f.b] || []).includes(f.role) ? 1 : 0;
     }
-    case 'number': return Number(f.n) === t.n ? 2 : ok.includes(Number(f.n)) ? 1 : 0;
+    case 'number': return form.unknown || Number(f.n) === t.n ? 2 : ok.includes(Number(f.n)) ? 1 : 0;
     case 'yesno': return !!f.yes === t.yes ? 2 : ok.includes(!!f.yes) ? 1 : 0;
     case 'role': return f.role === t.role ? 2 : ok.includes(f.role) ? 1 : 0;
+    case 'dream': return [f.good, f.evil].includes(form.role) ? 2 : ok.some(r => r === f.good || r === f.evil) ? 1 : 0;
     default: return 2;
   }
 }
@@ -72,6 +95,7 @@ export function checkFields(form, f, seatIds) {
     case 'number': return Number.isInteger(f.n) && f.n >= 0 && f.n <= form.max ? null : '請選擇數字';
     case 'yesno': return typeof f.yes === 'boolean' ? null : '請選擇有或沒有';
     case 'role': return form.roles.includes(f.role) ? null : '請選擇角色';
+    case 'dream': return form.goods.includes(f.good) && form.evils.includes(f.evil) ? null : '請選擇一個善良角色和一個邪惡角色';
     default: return null;
   }
 }
@@ -80,7 +104,8 @@ export function checkFields(form, f, seatIds) {
 export function infoMarks(form, f) {
   switch (form.kind) {
     case 'two': return f.none ? [] : [f.a, f.b].map(seatId => ({ seatId, r: f.role, q: true, text: name(f.role) + '?' }));
-    case 'yesno': return (form.extra.ids || []).map(seatId => ({ seatId, demon: !!f.yes, text: f.yes ? '可能是惡魔' : '不是惡魔' }));
+    case 'yesno': return form.roleId === 'fortuneteller' ? (form.extra.ids || []).map(seatId => ({ seatId, demon: !!f.yes, text: f.yes ? '可能是惡魔' : '不是惡魔' })) : [];
+    case 'dream': return [f.good, f.evil].map(r => ({ seatId: form.extra.targetId, r, q: true, text: name(r) + '?' }));
     case 'role': return form.extra && form.extra.targetId ? [{ seatId: form.extra.targetId, r: f.role, text: name(f.role) }] : [];
     case 'text': return form.grim ? Object.entries(form.grim).map(([seatId, r]) => ({ seatId, r, text: name(r) })) : [];
     default: return [];

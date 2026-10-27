@@ -9,7 +9,7 @@ import { hudLinked } from './hud.js';
 import { trialPanel } from './trial.js';
 import { seatPicking } from './infoform.js';
 import { stepCard } from './stepcard.js';
-import { clockState, blockLines, playerCenter, rulingCard } from './flow.js';
+import { clockState, blockLines, playerCenter, rulingCard, scriptPick } from './flow.js';
 import { pickRole } from './setup.js';
 
 // 當前的選人狀態：{ count, notSelfId, ids, key }
@@ -61,7 +61,7 @@ export function renderTown(ctx) {
     if (ck && !ck.done && ck.current === seat.id) cls.push('clock');
     if (ck && ck.locked(seat.id)) cls.push('counted');
     if (sel.on) {
-      cls.push(sel.on.notSelfId === seat.id ? 'unselectable' : 'selectable');
+      cls.push(sel.on.notSelfId === seat.id || (sel.on.alive && seat.dead) || (sel.on.dead && !seat.dead) ? 'unselectable' : 'selectable');
       if (sel.on.ids.includes(seat.id)) cls.push('selected');
     }
     // 坐上處決台的人：座位上只留一個虛線空位，頭像在圓桌中間
@@ -143,6 +143,7 @@ export function renderTown(ctx) {
     !s.isSt && pop('st', '說書人'),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
     !blk && playerCenter(ctx),
+    s.isSt && !s.peek && s.phase === 'lobby' && scriptPick(ctx),
     s.phase === 'ended' && mvpPane(ctx),
   ));
   if (blk) ring.append(blockSeat(ctx, blk));
@@ -223,9 +224,11 @@ function onSeat(ctx, seat, anchor) {
   if (pk && pk.can.has(seat.id)) return pk.pick(seat.id);
   if (sel.on) {
     if (sel.on.notSelfId === seat.id) return toast('不能選擇自己');
-    const ids = sel.on.ids;
+    const ids = sel.on.ids, max = Math.max(...(sel.on.counts || [sel.on.count]));
     if (ids.includes(seat.id)) ids.splice(ids.indexOf(seat.id), 1);
-    else { ids.push(seat.id); if (ids.length > sel.on.count) ids.shift(); }
+    else if (sel.on.alive && seat.dead) return toast('只能選擇存活的玩家');
+    else if (sel.on.dead && !seat.dead) return toast('只能選擇死亡的玩家');
+    else { ids.push(seat.id); if (ids.length > max) ids.shift(); }
     return ctx.render();
   }
   const title = seatLabel(s, seat.id);

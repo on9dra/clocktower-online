@@ -1,6 +1,6 @@
 // 說書人流程日誌：按夜 / 天分組，每一步畫成一行式子（數據見 lib 裏 stLog 的 e）
 import { h } from './ui.js';
-import { formula, seatBadge, mini, icon, tag, named, w } from './glyph.js';
+import { formula, seatBadge, mini, icon, tag, named, w, ACTS } from './glyph.js';
 
 // 原則：座位號、角色牌是圖；動作和結果用短詞（投毒 / 殺死 / 提名…）
 const RES = { poison: ['投毒'], protect: ['保護', 'good'], kill: ['殺死', 'bad'], blocked: ['想殺'], fail: ['失效', 'muted'],
@@ -10,9 +10,12 @@ const CAUSE = { demon: '被殺', execute: '被處決', slayer: '被射殺', virg
 const VOTE = { block: ['上處決台', 'bad'], tie: ['平票'], fail: ['票數不足', 'muted'] };
 const SRC_VERB = { poisoner: '投毒', monk: '保護', imp: '想殺', butler: '認主' };
 
+// 新劇本的角色：投毒 / 保護 / 認主這類「落到目標上」的結果，按角色換成它自己的動作詞（詛咒、瘋狂、變身、驅魔……）
+const OWN_VERB = { snakecharmer: '交換', eviltwin: '雙子', fanggu: '跳身' };
 function actRow(s, e) {
   const seats = (e.to || []).map(id => seatBadge(s, id));
-  const [verb, k] = e.res === 'fail' ? [SRC_VERB[e.src] || '行動'] : RES[e.res] || ['行動'];
+  const own = ['poison', 'protect', 'master', 'starpass'].includes(e.res) && !SRC_VERB[e.src] && (OWN_VERB[e.src] || ACTS[e.src]?.mark);
+  const [verb, k] = e.res === 'fail' ? [SRC_VERB[e.src] || ACTS[e.src]?.mark || '行動'] : own ? [own, ACTS[e.src]?.tone === 'evil' ? 'bad' : ''] : RES[e.res] || ['行動'];
   return [w(verb, k), seats, e.res === 'fail' && w('失效', 'muted'), e.why && w(WHY[e.why] || '', 'good')];
 }
 

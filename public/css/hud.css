@@ -311,3 +311,21 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .fx-blade polygon { fill: var(--card); stroke: var(--ink); stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linejoin: miter; }
 .fx-blade polygon.core { fill: var(--ink); stroke: none; }
 .fx-flash { position: fixed; inset: 0; background: var(--card); pointer-events: none; }
+
+/* 劇本選擇（準備階段操作塢）：三個劇本名，當前的墨底反白 */
+.script-pick { display: inline-flex; gap: 0; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; }
+.script-pick .chip { border: 0; background: var(--card); padding: 3px 10px; font: 700 13px var(--serif); }
+.script-pick .chip + .chip { border-left: 1.5px solid var(--ink); }
+.script-pick .chip.on { background: var(--ink); color: var(--card); }
+.script-name { font: 700 13px var(--serif); color: var(--muted); border: 1px solid var(--line-strong); border-radius: 3px; padding: 0 6px; white-space: nowrap; }
+/* 選角色的格子：沒選時是虛線圈 +「角色」，選中後是角色牌 + 名字 */
+.role-slot { display: inline-flex; align-items: center; gap: 4px; background: none; border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 2px 8px 2px 4px; font-size: 15px; }
+.role-slot.on { border-style: solid; border-color: var(--ink); background: var(--card); }
+.role-slot .sb.empty { font-size: 18px; }
+/* 可以不選（不使用能力）：虛線圈不閃 */
+.sb.empty.opt { animation: none; opacity: .6; }
+.tp-picks { justify-content: center; margin-top: 0; }
+/* 渦流在場：真實答案不能選 */
+.opt-tile.off { opacity: .35; pointer-events: none; }
+.center .script-pick { margin-top: 10px; pointer-events: auto; }
+.center .script-pick .chip { padding: 5px 14px; font-size: 15px; }

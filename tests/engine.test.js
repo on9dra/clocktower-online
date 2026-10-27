@@ -3,6 +3,8 @@ import assert from 'assert';
 import { createRoom } from '../lib/store.js';
 import { applyStOp, applyPlayerAction, joinPlayer } from '../lib/ops.js';
 import { viewFor } from '../lib/view.js';
+import { autoPicks } from '../lib/engine.js';
+import { truthLevel } from '../public/js/infofmt.js';
 
 const rnd = a => a[Math.floor(Math.random() * a.length)];
 // 構造一份錯誤答案，模擬說書人給假信息
@@ -11,13 +13,21 @@ export function lie(form) {
   if (form.kind === 'number') return { n: (t.n + 1) % (form.max + 1) };
   if (form.kind === 'yesno') return { yes: !t.yes };
   if (form.kind === 'role') return { role: form.roles.find(r => r !== t.role) };
-  if (form.kind === 'two') return t.none ? t : { ...t, role: form.roles.find(r => r !== t.role) || t.role };
+  if (form.kind === 'two') {
+    if (t.none) return t;
+    const role = form.roles.find(r => r !== t.role);
+    if (role) return { ...t, role };
+    const of = form.roleOf || {}, ids = Object.keys(form._seats || {}).filter(id => !of[id]);
+    return { a: ids[0], b: ids[1], role: t.role };
+  }
+  if (form.kind === 'dream') return { good: form.goods.find(r => r !== t.good && r !== form.role), evil: form.evils.find(r => r !== t.evil && r !== form.role) };
   return {};
 }
 const ok = r => assert.strictEqual(r, undefined, r);
 
-function playGame(n) {
+function playGame(n, scriptId = 'tb') {
   const room = createRoom();
+  room.scriptId = scriptId;
   for (let i = 0; i < n; i++) ok(joinPlayer(room, 'p' + i, '玩家' + i));
   ok(applyStOp(room, { op: 'next' }));
   const pidOf = s => s.pid;
@@ -27,15 +37,14 @@ function playGame(n) {
       const step = room.g.step;
       assert.ok(step && step.status !== 'done', '夜晚必須停在待處理步驟上');
       if (step.status === 'choose') {
-        const pool = room.seats.filter(s => !(step.choose.notSelf && s.id === step.seatId));
-        const ids = [];
-        while (ids.length < step.choose.count) { const s = rnd(pool); if (!ids.includes(s.id)) ids.push(s.id); }
+        const { ids, role, stuck } = autoPicks(room, step);
+        assert.ok(!stuck, `${step.roleId} 找不到合規的選擇`);
         const seat = room.seats.find(s => s.id === step.seatId);
         // 玩家自己的視圖裏要能看到選擇提示，別人看不到
         assert.ok(viewFor(room, { pid: seat.pid }).prompt);
         const other = room.seats.find(s => s !== seat);
         assert.strictEqual(viewFor(room, { pid: other.pid }).prompt, null);
-        ok(applyPlayerAction(room, pidOf(seat), { act: 'pick', ids }));
+        ok(applyPlayerAction(room, pidOf(seat), { act: 'pick', ids, role }));
       } else if (step.status === 'decide') {
         ok(applyStOp(room, { op: 'decide', choice: rnd(step.decide.options).id }));
       } else if (step.status === 'review') {
@@ -43,7 +52,11 @@ function playGame(n) {
         for (const id of room.g.diedTonight) assert.ok(!viewFor(room, { pid: 'p0' }).seats.find(s => s.id === id).dead || room.seats.find(s => s.pid === 'p0').id === id);
         ok(applyStOp(room, { op: 'dawn' }));
       } else {
-        ok(applyStOp(room, { op: 'confirm', fields: step.form.free && Math.random() < 0.3 ? lie(step.form) : step.form.truth }));
+        const form = step.form;
+        form._seats = Object.fromEntries(room.seats.map(s => [s.id, 1]));
+        const fields = form.vortox || (form.free && Math.random() < 0.3) ? lie(form) : form.truth;
+        if (form.vortox) assert.strictEqual(truthLevel(form, fields), 0, `${step.roleId} 渦流下要能給出錯誤信息`);
+        ok(applyStOp(room, { op: 'confirm', fields }));
       }
     } else if (room.phase === 'dawn') {
       ok(applyStOp(room, { op: 'next' }));
@@ -94,6 +107,8 @@ function playGame(n) {
   assert.ok(joinPlayer(room, 'late', 'late'));
 }
 
-const stats = { good: 0, evil: 0 };
-for (let i = 0; i < 300; i++) stats[playGame(5 + (i % 11)).winner]++;
-console.log('300 局隨機對局全部正常結束 ✔', stats);
+for (const id of ['tb', 'bmr', 'snv']) {
+  const stats = { good: 0, evil: 0 };
+  for (let i = 0; i < 300; i++) stats[playGame(5 + (i % 11), id).winner]++;
+  console.log(`${id}：300 局隨機對局全部正常結束 ✔`, stats);
+}

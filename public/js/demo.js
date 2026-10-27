@@ -8,7 +8,7 @@ import { stFlow, playerFlow } from './flow.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
 import { renderHud, onInfo } from './hud.js';
 import { topbar } from './topbar.js';
-import { ROLES, TEAMS } from './roles.js';
+import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { onEggs } from './egg.js';
 import { openBoard } from './scores.js';
 import { openSettings } from './settings.js';
@@ -33,6 +33,7 @@ function fresh() {
     players: Object.fromEntries(ROSTER.map((_, i) => ['s' + (i + 1), { eggs: EGG.start, wins: 0, mvp: 0 }])), result: null, mvp: null, games: 1,
     chat: [], nomination: null, nominators: [], nominees: [], history: [], dayOver: false,
     diedTonight: [], lastNight: [], prompt: null, winner: null, winReason: '', shotEver: [], ruling: null, virginCheck: null, step: null, slayerUsed: false, shots: [], poisoned: null,
+    scriptId: 'tb',
   };
   who = { me: ME };
   done = new Set();
@@ -64,7 +65,7 @@ function viewOf() {
   const score = x => { const p = world.players[x.id]; return { crown: res?.winners.includes(x.id) ? res.team : null,
     mvp: !!(sameGame && m?.done && m.winners.includes(x.id)), wins: p.wins, mvps: p.mvp, eggs: p.eggs }; };
   return {
-    code: 'DEMO', gameId: 'demo', isSt, myId, serverNow: Date.now(), stOnline: true, scriptId: 'tb',
+    code: 'DEMO', gameId: 'demo', isSt, myId, serverNow: Date.now(), stOnline: true, scriptId: world.scriptId,
     phase: world.phase, night: world.night, day: world.day,
     seats: world.seats.map(x => ({ id: x.id, name: x.name, online: true, dead: shown(x), deathBy: shown(x) ? x.deathBy || null : null, voteUsed: x.voteUsed, mine: x.id === myId, bot: false, ...score(x),
       ...(isSt || world.phase === 'ended' ? { role: x.role, fakeRole: x.fakeRole || null, tags: [] } : {}) })),
@@ -96,7 +97,7 @@ const ctx = {
     const myId = ctx.state.myId;
     if (act === 'chat') say(myId, args.to, args.text);
     else if (act === 'vote') setVote(myId, args.v !== undefined ? args.v : args.up ? 'yes' : null);
-    else if (act === 'pick') pick(myId, args.ids);
+    else if (act === 'pick') pick(myId, args.ids, args.role);
     else if (act === 'egg') throwEgg(myId, args.targetId);
     else if (act === 'mvp') voteMvp(myId, args.targetId);
     else if (act === 'slay') {
@@ -118,6 +119,9 @@ const ctx = {
     }
     else if (op === 'virgin') resolveVirgin(args.work);
     else if (op === 'decide') { const st = world.step; world.step = null; grim(st.roleId, st.seatId, st.picks[0], args.choice === 'work' ? 'protect' : 'fail'); }
+    else if (op === 'confirm') { world.step = null; toast('已發送'); }
+    else if (op === 'script') { world.scriptId = args.scriptId; sys(`說書人選擇了劇本：${SCRIPTS[args.scriptId].name}`, { k: 'script' }); }
+    else if (op === 'pick') { world.step = null; toast('已代為選擇'); }
     else if (op === 'mvp') voteMvp('st', args.seatId);
     else if (op === 'next' && world.phase === 'ended') lobby();
     else if (op === 'next' && world.phase === 'lobby') startGame();
@@ -210,11 +214,12 @@ setInterval(() => {
 
 // ———— 夜晚、勝負 ————
 // 玩家選完人：自己的行動演出 + 面板裏記一條
-function pick(id, ids) {
+function pick(id, ids, chosen) {
   world.prompt = null;
   const role = seatOf(id).role;
-  fx({ k: 'act', src: role, to: ids }, id);
-  say('st', id, '你選擇了 ' + ids.map(label).join('、'), { info: true, night: world.night, k: 'act', src: role, f: [{ op: 'to' }, ...ids.map(x => ({ s: x }))] });
+  if (ids.length) fx({ k: 'act', src: role, to: ids }, id);
+  say('st', id, ids.length || chosen ? '你選擇了 ' + ids.map(label).join('、') + (chosen ? `【${ROLES[chosen].name}】` : '') : '你沒有使用能力',
+    { info: true, night: world.night, k: 'act', src: role, f: [{ op: 'to' }, ...ids.map(x => ({ s: x })), ...(chosen ? [{ r: chosen, named: true }] : [])] });
 }
 // 開槍（規則和 lib/day.js 一致）：真獵手打中惡魔才死人；射空只有一支箭
 function slay(from, to) {
@@ -236,6 +241,9 @@ function resolveRuling(work) {
     if (work) Object.assign(seatOf(r.to), { dead: true, deathBy: 'slayer' });
     fx({ k: 'slay', from: r.seatId, to: r.to, hit: work });
     sys(work ? `${label(r.to)} 倒下了！` : '什麼也沒有發生。', work ? { k: 'slayhit', seat: r.to } : { k: 'slaymiss' });
+  } else if (r.kind === 'pacifist') {
+    if (!work) Object.assign(seatOf(r.to), { dead: true, deathBy: 'execute' });
+    sys(work ? `${label(r.to)} 沒有死亡。` : `${label(r.to)} 死亡。`);
   } else if (r.kind === 'mayor') {
     if (work) win('good', '僅剩三人且無人被處決，鎮長獲勝');
     else { Object.assign(world, { phase: 'night', night: world.night + 1 }); fx({ k: 'night', n: world.night }); }
@@ -522,6 +530,56 @@ const SCENES = {
         f: [{ s: 's4' }, { w: '和' }, { s: 's7' }, { w: '之中有' }, { r: 'empath', named: true }] })],
       ['彈窗', () => ask('結束白天？今天沒有人上處決台。', () => {}, '結束白天')],
       ['提示', () => toast('已發送')],
+    ],
+  },
+  // 黯月初升 / 夢殞春宵：開局選劇本、夜裏選人帶角色、新的信息卡和裁定
+  scripts: {
+    title: '劇本',
+    init() { lobby(); who = { st: true }; },
+    steps: [
+      ['選劇本', () => { view({ st: true }); }],
+      ['賭徒', () => {
+        world.scriptId = 'bmr'; setRoles(['gambler', 'innkeeper', 'po', 'tealady', 'godfather', 'fool', 'goon']);
+        Object.assign(world, { phase: 'night', night: 2, day: 1 });
+        world.prompt = { seatId: ME, stepId: 'g' + Date.now(), roleId: 'gambler', count: 1, counts: [1], roles: SCRIPTS.bmr.roles };
+        view({ me: ME });
+      }],
+      ['侍臣', () => {
+        world.scriptId = 'bmr'; setRoles(['courtier', 'innkeeper', 'po', 'tealady', 'godfather', 'fool', 'goon']);
+        Object.assign(world, { phase: 'night', night: 1, day: 0 });
+        world.prompt = { seatId: ME, stepId: 'c' + Date.now(), roleId: 'courtier', count: 0, counts: [0], roles: SCRIPTS.bmr.roles, roleOptional: true };
+        view({ me: ME });
+      }],
+      ['誰醉酒', () => {
+        world.scriptId = 'bmr'; setRoles(['gambler', 'innkeeper', 'po', 'tealady', 'godfather', 'fool', 'goon']);
+        Object.assign(world, { phase: 'night', night: 2, day: 1 });
+        world.step = { id: 'i' + Date.now(), roleId: 'innkeeper', seatId: 's2', status: 'decide', title: '旅店老闆', picks: ['s4', 's6'],
+          decide: { kind: 'drunk', say: '誰醉酒？', options: [{ id: 's4', label: '4號' }, { id: 's6', label: '6號' }] } };
+        view({ st: true });
+      }],
+      ['築夢師', () => {
+        world.scriptId = 'snv'; setRoles(['dreamer', 'oracle', 'vortox', 'seamstress', 'witch', 'klutz', 'sweetheart']);
+        Object.assign(world, { phase: 'night', night: 2, day: 1 });
+        const goods = SCRIPTS.snv.roles.filter(id => TEAMS[ROLES[id].team].good), evils = SCRIPTS.snv.roles.filter(id => !TEAMS[ROLES[id].team].good);
+        world.step = { id: 'd' + Date.now(), roleId: 'dreamer', seatId: 's1', status: 'confirm', title: '築夢師', picks: ['s5'],
+          form: { kind: 'dream', roleId: 'dreamer', goods, evils, role: 'witch', ok: [], truth: { good: 'savant', evil: 'witch' }, free: false, extra: { target: '5號Lily', targetId: 's5' } } };
+        view({ st: true });
+      }],
+      ['渦流', () => {
+        world.scriptId = 'snv'; setRoles(['dreamer', 'oracle', 'vortox', 'seamstress', 'witch', 'klutz', 'sweetheart']);
+        Object.assign(world, { phase: 'night', night: 3, day: 2 });
+        world.seats[5].dead = true;
+        world.step = { id: 'v' + Date.now(), roleId: 'oracle', seatId: 's2', status: 'confirm', title: '神諭者',
+          form: { kind: 'number', roleId: 'oracle', max: 7, truth: { n: 0 }, ok: [], free: true, vortox: true, why: 'vortox' } };
+        view({ st: true });
+      }],
+      ['和平主義者', () => {
+        world.scriptId = 'bmr'; setRoles(['gambler', 'pacifist', 'po', 'tealady', 'godfather', 'fool', 'goon']);
+        Object.assign(world, { phase: 'day', night: 2, day: 2, step: null });
+        world.ruling = { kind: 'pacifist', seatId: 's2', role: 'pacifist', to: 's4', auto: false, forced: false, why: null, reg: null };
+        fx({ k: 'execute', seat: 's4' });
+        view({ st: true });
+      }],
     ],
   },
   // 新美術資源包（img/kit/）的角色牌和現在的對比：左舊右新；「換上桌」把桌上所有角色牌換成新圖

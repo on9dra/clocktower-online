@@ -8,6 +8,7 @@ import { sheetTabs } from './side.js';
 import { shownEggs, eggGainFx } from './fx.js';
 import { openBoard } from './scores.js';
 import { openSettings } from './settings.js';
+import { SCRIPTS } from './roles.js';
 
 export const copy = (text, msg) => navigator.clipboard.writeText(text).then(() => toast(msg, 3500), () => toast(text, 8000));
 
@@ -21,6 +22,7 @@ export function topbar(ctx) {
   const s = ctx.state, me = s.seats.find(x => x.mine);
   const stKey = s.isSt && ctx.ls.get('botc.st.' + s.code);
   const invite = () => copy(`${location.origin}/?room=${s.code}`, '邀請鏈接已複製');
+  const inGame = s.phase !== 'lobby' && s.phase !== 'ended';
   const more = e => menu(e.currentTarget, null, [
     { label: '複製邀請鏈接', onclick: invite },
     stKey && { label: '複製說書人鏈接（換設備主持用）',
@@ -29,11 +31,15 @@ export function topbar(ctx) {
     { label: [icon('gear', 'menu-ico'), '設置'], onclick: () => openSettings(ctx) },
     '-',
     { label: '離開房間', onclick: () => ask('離開房間？之後可以用同一個鏈接回來。', ctx.leave, '離開') },
+    // 規則沒自動判到的勝負（呆瓜選中邪惡等）
+    s.isSt && inGame && { label: '判定善良獲勝…', onclick: () => ask('直接判定善良陣營獲勝，結束本局？', () => ctx.st('win', { team: 'good' }), '善良獲勝') },
+    s.isSt && inGame && { label: '判定邪惡獲勝…', onclick: () => ask('直接判定邪惡陣營獲勝，結束本局？', () => ctx.st('win', { team: 'evil' }), '邪惡獲勝') },
     s.isSt && s.phase !== 'lobby' && { label: '放棄本局…', danger: true, onclick: () => ask('放棄本局？所有角色和進度會清空，玩家留在座位上。', () => ctx.st('abandon'), '放棄本局') },
   ]);
   return h('header', { class: 'topbar' },
     h('span', { class: 'brand' }, '血染鐘樓'),
     h('span', { class: 'room' }, h('i', {}, '房間 '), h('b', {}, s.code)),
+    h('span', { class: 'script-name' }, SCRIPTS[s.scriptId]?.name),
     s.phase === 'lobby' && h('button', { class: 'btn sm invite', onclick: invite }, h('span', { class: 'long' }, '複製邀請鏈接'), h('span', { class: 'short' }, '邀請')),
     h('span', { class: 'grow' }),
     !s.isSt && !s.peek && !s.stOnline && h('span', { class: 'warn' }, '說書人離線'),

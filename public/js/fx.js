@@ -6,7 +6,7 @@
 // 震屏省著用：只給全桌一起看、一天最多幾次的定局時刻（上處決台、處決、反噬、射殺、天亮的死者、接任惡魔、邪惡獲勝），一個時刻只震一下；
 // 提名、平票、聊天、投票、計票、夜晚行動這些高頻或不擋操作的場合一律不震（shake 本身也只在擋操作的演出裏生效）
 import { h, roleToken } from './ui.js';
-import { icon, roleIcon, seatBadge, gallows } from './glyph.js';
+import { icon, roleIcon, seatBadge, gallows, ACTS } from './glyph.js';
 import { play } from './sfx.js';
 import { ROLES, TEAMS } from './roles.js';
 import { burst, setBusy, setFireworks } from './fireworks.js';
@@ -858,7 +858,8 @@ const ACT = {
 async function grimScene(e) {
   const a = seatAt(e.seat), t = e.to[0] && seatAt(e.to[0]);
   if (!t) return;
-  const look = ACT[e.src] || ACT.default;
+  // 新劇本的角色沒有專門的棋子：用選人提示裏的圖標和顏色
+  const look = ACT[e.src] || (ACTS[e.src] && { ico: () => icon(ACTS[e.src].ico), tone: ACTS[e.src].tone, sfx: 'pop', hard: ACTS[e.src].tone === 'evil' }) || ACT.default;
   const land = async (f, ms = 600) => { await wait(ms); fadeOut(f.el, 300); await wait(300); };
   switch (e.res) {
     case 'poison': case 'protect': case 'master': {

@@ -1,11 +1,13 @@
 // 說書人開局配置：角色「必選 / 排除」；給某個座位更換角色（預覽時和遊戲中都可以）
 import { h, modal, closeModal, roleToken, seatLabel } from './ui.js';
-import { ROLES, TEAMS, SCRIPTS, teamCounts, skippedForNoOutsider } from './roles.js';
+import { ROLES, TEAMS, SCRIPTS, teamCounts, skippedForNoOutsider, changesSetup } from './roles.js';
 
 const RULE_TEXT = { lock: '必選', ban: '排除' };
 const nextRule = r => (r === 'lock' ? 'ban' : r === 'ban' ? null : 'lock');
 
-const countsOf = (n, rules) => teamCounts(n, Object.keys(rules).filter(id => rules[id] === 'lock' && ROLES[id].team === 'minion'));
+const countsOf = (n, rules) => teamCounts(n, Object.keys(rules).filter(id => rules[id] === 'lock' && changesSetup(id)));
+// 以為自己是別的角色：酒鬼以為是鎮民，瘋子以為是惡魔
+const FAKE = { drunk: 'townsfolk', lunatic: 'demon' };
 
 function countsLine(n, rules) {
   if (n < 5) return h('p', { class: 'muted' }, `現在 ${n} 人，至少需要 5 人才能開局。`);
@@ -29,7 +31,7 @@ export function openSetup(ctx) {
   const reset = () => { for (const k in rules) delete rules[k]; ctx.st('clearRules'); draw(); };
   const skipped = id => s.seats.length >= 5 && !rules[id] && skippedForNoOutsider(id, countsOf(s.seats.length, rules));
   const draw = () => body.replaceChildren(h('div', {},
-    h('p', { class: 'muted', style: { marginTop: 0 } }, '點角色切換：隨機（默認）→ 必選 → 排除。必選的一定出現，排除的一定不出現，其餘按人數隨機抽。男爵隨機時只在 7 人及以上出現，設為必選則任何人數都會出現。'),
+    h('p', { class: 'muted', style: { marginTop: 0 } }, '點角色切換：隨機（默認）→ 必選 → 排除。' + (s.scriptId === 'tb' ? '男爵隨機時只在 7 人及以上出現。' : '')),
     countsLine(s.seats.length, rules),
     Object.keys(TEAMS).map(team => [
       h('div', { class: 'sheet-team', style: { color: TEAMS[team].color } }, TEAMS[team].name),
@@ -44,7 +46,7 @@ export function openSetup(ctx) {
   modal('角色配置', body, { wide: true });
 }
 
-// 選一個新角色；選酒鬼時再選他以為自己是哪個鎮民
+// 選一個新角色；選酒鬼 / 瘋子時再選他以為自己是哪個鎮民 / 惡魔
 export function pickRole(ctx, seat) {
   const s = ctx.state, roles = SCRIPTS[s.scriptId].roles;
   const used = new Set(s.seats.map(x => x.role));
@@ -54,9 +56,9 @@ export function pickRole(ctx, seat) {
   const set = (roleId, fakeRole) => { closeModal(); ctx.st('setRole', { seatId: seat.id, roleId, fakeRole }); };
   const body = h('div', {});
   const choose = id => {
-    if (id !== 'drunk') return set(id);
-    body.replaceChildren(h('p', { style: { marginTop: 0 } }, '酒鬼以為自己是哪個鎮民？一般選不在場的。'),
-      grid(roles.filter(r => ROLES[r].team === 'townsfolk'), f => set('drunk', f), true));
+    if (!FAKE[id]) return set(id);
+    body.replaceChildren(h('p', { style: { marginTop: 0 } }, `${ROLES[id].name}以為自己是哪個${TEAMS[FAKE[id]].name}？`),
+      grid(roles.filter(r => ROLES[r].team === FAKE[id]), f => set(id, f), true));
   };
   body.append(h('div', {},
     s.phase !== 'lobby' && h('p', { class: 'warn small', style: { marginTop: 0 } }, '遊戲中更換角色會私下通知該玩家；今晚已經排好的喚醒順序不變。'),

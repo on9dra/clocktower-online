@@ -3,7 +3,7 @@
 // 下方是玩家將看到的式子，邊框顏色表示真實 / 登記 / 錯誤。
 import { h } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
-import { infoFormula, truthLevel, checkFields } from './infofmt.js';
+import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
 import { formula, seatBadge, mini, evilNum, icon, w } from './glyph.js';
 
 const drafts = {}; // stepId -> 說書人當前的選擇
@@ -19,9 +19,10 @@ function truths(s, form) {
   return out;
 }
 
-// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項
+// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項（渦流在場時不預填，說書人自己挑錯的）
 function initial(form) {
   const t = form.truth;
+  if (form.vortox) return {};
   if (form.kind !== 'two') return form.kind === 'text' ? {} : { ...t };
   if (t.none) return { none: true };
   const of = form.roleOf || {};
@@ -92,32 +93,45 @@ function choiceBody(s, step, d, set) {
   const form = step.form, t = form.truth, key = { number: 'n', yesno: 'yes', role: 'role' }[form.kind];
   const ok = [...new Set([t[key], ...(form.ok || [])])];
   const all = form.kind === 'number' ? [...Array(form.max + 1).keys()] : form.kind === 'yesno' ? [true, false] : form.roles;
-  const values = form.free ? all : ok;
-  const face = v => (form.kind === 'number' ? evilNum(v) : form.kind === 'yesno' ? w(v ? '有惡魔' : '沒有惡魔', v ? 'evil' : 'good') : mini(v));
-  const level = v => (v === t[key] ? 2 : ok.includes(v) ? 1 : 0);
+  // unknown：系統不知道真相（雜耍藝人、數學家），全部列出、不標真假
+  const values = form.free || form.unknown ? all : ok;
+  const y = YES[form.roleId] || YES.fortuneteller;
+  const face = v => (form.kind === 'number' ? evilNum(v) : form.kind === 'yesno' ? w(v ? y.yes : y.no, y.k[v ? 0 : 1]) : mini(v));
+  const level = v => (form.unknown ? 0 : v === t[key] ? 2 : ok.includes(v) ? 1 : 0);
   if (values.length === 1) return null; // 唯一答案：卡片只留下面的式子和發送
-  const tiles = vs => row(vs.map(v => opt(face(v), { on: d[key] === v, level: level(v), onclick: () => set({ [key]: v }) })));
+  // 渦流在場：真實 / 登記的答案不能選
+  const tiles = vs => row(vs.map(v => opt(face(v), { on: d[key] === v, level: level(v), cls: form.vortox && level(v) ? 'off' : '', onclick: () => set({ [key]: v }) })));
   // 全部角色時按陣營分行
   if (form.kind === 'role' && form.free) return Object.keys(TEAMS).map(team => tiles(values.filter(id => ROLES[id].team === team)));
   return tiles(values);
+}
+
+// 築夢師：一個善良角色 + 一個邪惡角色，其中一個是他的真角色（能力正常時必須包含）
+function dreamBody(s, step, d, set) {
+  const form = step.form, ok = form.ok || [];
+  const level = id => (id === form.role ? 2 : ok.includes(id) ? 1 : 0);
+  const tiles = (ids, key) => row(ids.map(id => opt(mini(id), { on: d[key] === id, level: level(id), cls: form.vortox && level(id) ? 'off' : '', onclick: () => set({ [key]: id }) })));
+  return [tiles(form.goods, 'good'), tiles(form.evils, 'evil')];
 }
 
 export function infoForm(ctx, step) {
   const s = ctx.state, form = step.form;
   const d = draftOf(step);
   const set = patch => { Object.assign(d, patch); ctx.render(); };
-  const body = form.kind === 'two' ? twoBody(s, step, d, set) : form.kind === 'text' ? null : choiceBody(s, step, d, set);
-  const err = checkFields(form, d, s.seats.map(x => x.id));
-  const level = err ? -1 : truthLevel(form, d);
+  const body = form.kind === 'two' ? twoBody(s, step, d, set) : form.kind === 'dream' ? dreamBody(s, step, d, set)
+    : form.kind === 'text' ? null : choiceBody(s, step, d, set);
+  const level = checkFields(form, d, s.seats.map(x => x.id)) ? -1 : truthLevel(form, d);
+  // 不能發的：能力正常卻不合規（築夢師）、渦流在場卻是真的
+  const err = level < 0 || (!form.free && level === 0) || (form.vortox && level > 0);
   const actor = s.seats.find(x => x.id === step.seatId);
   return h('div', { class: 'card focus infocard' + (form.free ? ' free' : '') },
     h('div', { class: 'ic-head' },
       h('span', { class: 'ic-actor' }, mini(step.roleId)),
       actor && seatBadge(s, actor.id, 'lg'),
-      form.why && w(form.why === 'poison' ? '中毒' : '酒鬼', 'evil')),
+      form.why && w({ poison: '中毒', drunk: '酒鬼', vortox: '渦流' }[form.why], 'evil')),
     body,
-    h('div', { class: 'ic-preview ' + (err ? 'empty' : ['bad', 'alt', 'good'][level]) },
-      err ? h('span', { class: 'frm' }, h('i', { class: 'op-sep' })) : formula(s, infoFormula(form, d), 'big')),
+    h('div', { class: 'ic-preview ' + (level < 0 ? 'empty' : ['bad', 'alt', 'good'][level]) },
+      level < 0 ? h('span', { class: 'frm' }, h('i', { class: 'op-sep' })) : formula(s, infoFormula(form, d), 'big')),
     h('button', {
       class: 'btn wide ' + (err ? 'disabled' : level === 0 ? 'red' : 'primary'), 'data-hot': '1',
       onclick: () => !err && ctx.st('confirm', { fields: d }),

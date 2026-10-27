@@ -68,10 +68,16 @@ npm start
 ## 开发
 
 - 规则：`lib/night.js`（夜晚行动）、`lib/rules.js`（死亡/胜负）、`lib/day.js`（提名、计票时钟）、`lib/engine.js`（流程）、`lib/setup.js`（抽角色、预览）。
-- 角色数据：`public/js/roles.js`，前后端共用。目前内置剧本：暗流涌动。
+- 角色数据：`public/js/roles.js`，前后端共用。内置剧本：暗流涌动、黯月初升、梦殒春宵（说书人在准备阶段圆桌中央切换；换剧本会清空角色配置和预览）。夜晚顺序取自官方总顺序表。
+- 新剧本的规则（`lib/night.js` 各角色、`lib/rules.js` 死亡保护与胜负）：
+  - 状态效果统一记在 `g.eff`（中毒 / 醉酒 / 夜里保护 / 处决不死 / 诅咒 / 疯狂），按「第 N 夜 = 2N、第 N 天 = 2N+1」的刻度过期；诺-达鲺的邻居中毒是实时算的。阵营可以和角色不同（`seat.align`：莽夫、舞蛇人、方古；麻脸巫婆、理发师换角色不换阵营）。
+  - 自动判定：茶艺师、水手、弄臣、旅店老板、魔鬼代言人的保护，僵怖假死，主谋的额外一天，镜像双子，涡流（镇民信息只能给错的、白天无人处决邪恶胜），驱魔人，莽夫，疯子（恶魔得知他选了谁），普卡、珀、方古、亡骨魔、教父、刺客、女巫、吟游诗人、教授、侍臣、哲学家、舞蛇人、理发师。
+  - 说书人在夜里裁定：水手 / 旅店老板谁醉酒、赌徒猜对与否（可登记时）、造谣者的声明是否成真、月之子选中谁、沙巴洛斯反刍谁；白天和平主义者救不救被处决的善良玩家。
+  - 系统随机、说书人可在座位菜单改：心上人死后谁醉酒、亡骨魔杀爪牙后毒哪个镇民邻居、祖母的孙子、镜像双子的对手。
+  - 不自动处理、由说书人手动：博学者 / 艺术家的私下问答（座位菜单「补发信息」）、修补匠随时死亡、畸形秀演员和洗脑师的「疯狂」、呆瓜选人（「⋯ → 判定善良 / 邪恶获胜」）、麻脸巫婆造出恶魔那晚的死亡。杂耍艺人、数学家的数字系统不知道真相，说书人自己挑。
 - 前端每次收到状态都用 `morph()`（`public/js/ui.js`）做差量更新；聊天按序号增量推送。事件请用 `onclick` 等属性挂（`h()` 的 `on*` 参数），不要用 `addEventListener`。
 - 积分 / 鸡蛋 / 演出的前端：`public/js/scores.js`（皇冠、MVP 投票、积分榜）、`egg.js`（扔鸡蛋，事件在 `state.eggs`，不进演出队列）、`fireworks.js`、`settings.js`，样式在 `public/css/party.css`；背景的日夜由 `fx.js` 在入夜 / 天亮演出里按节拍切 `body[data-phase]`（`dusk` 是日落那一拍）。
-- 测试：`node tests/score.test.js`（积分、MVP、鸡蛋）、`node tests/rules.test.js`（关键规则）、`node tests/flow.test.js`（登记、替死、传位、计票、管家）、`node tests/ops.test.js`（配置、预览、纠错）、`node tests/engine.test.js`（300 局随机对局）。
+- 测试：`node tests/dlc.test.js`（黯月初升 / 梦殒春宵关键规则）、`node tests/score.test.js`（积分、MVP、鸡蛋）、`node tests/rules.test.js`（关键规则）、`node tests/flow.test.js`（登记、替死、传位、计票、管家）、`node tests/ops.test.js`（配置、预览、纠错）、`node tests/engine.test.js`（三个剧本各 300 局随机对局）。
 - 存档 `data/rooms.json` 先写临时文件再改名；读取失败时会备份成 `rooms.json.bad-时间戳` 而不是悄悄丢掉。三天没动静的房间会被清理。
 - 机器人陪测：`node tests/bots.js 房间号 7`；同一浏览器多开玩家：链接加 `&as=player`。
 
