@@ -12,7 +12,8 @@
   <link rel="stylesheet" href="css/art.css">
 </head>
 <body>
-  <script>if (/[?&]art(&|=|$)/.test(location.search)) document.body.classList.add('art'); // 新美術預覽：網址帶 ?art</script>
+  <script>// 新美術默認打開，「⋯ → 設置」裏可切回舊版（記在 botc.sfx 的 art，見 sfx.js）；在這裏先加上，免得閃一下舊圖
+    try { document.body.classList.toggle('art', JSON.parse(localStorage.getItem('botc.sfx') || '{}').art !== false); } catch { document.body.classList.add('art'); }</script>
   <div id="app"><div class="lobby"><div class="title">血染鐘樓</div><div class="muted">連接中…</div></div></div>
   <script src="/socket.io/socket.io.js"></script>
   <script type="module" src="js/app.js"></script>

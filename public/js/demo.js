@@ -11,7 +11,7 @@ import { topbar } from './topbar.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { onEggs } from './egg.js';
 import { openBoard } from './scores.js';
-import { openSettings } from './settings.js';
+import { openSettings, applyArt } from './settings.js';
 import { EGG, MVP_DELAY, MVP_WINDOW } from './score.js';
 import { tr } from './lang.js';
 
@@ -672,7 +672,7 @@ function go(k) {
   scene = k;
   history.replaceState(null, '', `?s=${k}`);
   document.getElementById('app').replaceChildren();
-  document.body.classList.remove('art');
+  applyArt();
   fresh();
   SCENES[k].init?.();
   refresh();
