@@ -74,3 +74,11 @@ npm start
 - 测试：`node tests/score.test.js`（积分、MVP、鸡蛋）、`node tests/rules.test.js`（关键规则）、`node tests/flow.test.js`（登记、替死、传位、计票、管家）、`node tests/ops.test.js`（配置、预览、纠错）、`node tests/engine.test.js`（300 局随机对局）。
 - 存档 `data/rooms.json` 先写临时文件再改名；读取失败时会备份成 `rooms.json.bad-时间戳` 而不是悄悄丢掉。三天没动静的房间会被清理。
 - 机器人陪测：`node tests/bots.js 房间号 7`；同一浏览器多开玩家：链接加 `&as=player`。
+
+## 新美术（预览中）
+
+GPT 生成的美术素材放在 `public/img/art/`，样式集中在 `public/css/art.css`，只在 `body.art` 下生效，默认不影响线上页面。
+
+- 大厅预览：`/?art`
+- 对局预览：`/demo.html?s=art`（按顶上的步骤走一遍开局、昼夜、处决、胜利、扔蛋，「素材」一步看总览）
+- 原图和处理脚本在 `art-src/`：`process.py` 抠绿底并压成 webp，`soften.py` 把过艳的红色压柔和；提示词见 `docs/美术资源-GPT提示词.md`

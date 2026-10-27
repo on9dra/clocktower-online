@@ -57,6 +57,28 @@ body.art .egg-splat:nth-of-type(3n+1) { background-image: url(../img/art/egg-spl
 body.art .egg-splat:nth-of-type(3n+2) { background-image: url(../img/art/egg-splat-3.webp); }
 body.art .egg-splat svg { visibility: hidden; }
 
+/* B1 / B2 大廳：字標圖替掉標題文字（文字留給讀屏），主視覺鋪底；它自帶小鎮，所以藏掉背景天空那一層 */
+body.art:has(.lobby) { background: #efe4c9 url(../img/art/lobby.webp) center bottom / cover no-repeat fixed; }
+body.art:has(.lobby) #scene { display: none; }
+body.art .lobby .title { height: clamp(84px, 24vw, 128px); background: url(../img/art/title-tc.webp) center / contain no-repeat; color: transparent; overflow: hidden; }
+html[data-lang="sc"] body.art .lobby .title { background-image: url(../img/art/title-sc.webp); }
+
+/* 彈窗套紙卡框 */
+body.art .modal { border: 30px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 30px stretch; border-radius: 0; background: none; }
+body.art .modal-head { padding: 0 4px 8px; }
+body.art .modal-body { padding: 10px 4px 0; }
+
+/* B7 MVP 獎章（投 MVP 的按鈕）、勝利結算裏的獎盃 */
+body.art .mvp-btn { background: url(../img/art/mvp-medal.webp) center / 70% auto no-repeat var(--card); }
+body.art .mvp-btn.on { background-color: #fff3cf; }
+body.art .mvp-btn .ico { visibility: hidden; }
+body.art .pc-gain.trophy .ico { background: url(../img/art/trophy.webp) center / contain no-repeat; }
+body.art .pc-gain.trophy .ico > * { display: none; }
+
+/* B6 處決演出的繩套：原來的黃銅線 + 圓圈換成繩套圖，掛點、擺動不變 */
+body.art .ex-rope { left: calc(66.8px * var(--k)); width: calc(16.4px * var(--k)); height: calc(63px * var(--k)); background: url(../img/art/gallows-noose.webp) top center / 100% 100% no-repeat; }
+body.art .ex-noose { border-color: transparent; }
+
 /* 素材總覽（演示頁「素材」一步）：大廳字標、主視覺這類對局裏看不到的 */
 .art-gallery { position: absolute; inset: 12px; z-index: 30; overflow: auto; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 14px; display: grid; gap: 16px; }
 .art-gallery .lobby-mock { position: relative; aspect-ratio: 4 / 3; background: url(../img/art/lobby.webp) center / cover; display: grid; justify-items: center; align-content: start; padding-top: 8%; gap: 10px; }
