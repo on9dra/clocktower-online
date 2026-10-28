@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 [ -f tools/deploy.env ] && . tools/deploy.env
 : "${HOST:?在 tools/deploy.env 里设置 HOST，例如 HOST=user@1.2.3.4}"
 KEY=${KEY:-~/.ssh/id_ed25519}
-DIR=${DIR:-/home/${HOST%%@*}/clocktower}
+DIR=${DIR:-$([ "${HOST%%@*}" = root ] && echo /root/clocktower || echo "/home/${HOST%%@*}/clocktower")}
 SSH=(ssh -i "$KEY" -o BatchMode=yes "$HOST")
 
 if [ -n "$(git status --porcelain)" ]; then
@@ -16,7 +16,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 REV=$(git rev-parse --short HEAD)
 
-"${SSH[@]}" "cp $DIR/data/rooms.json $DIR/data/rooms.json.before-deploy 2>/dev/null || true; md5sum < $DIR/package-lock.json > /tmp/clocktower-lock.md5"
+"${SSH[@]}" "cp $DIR/data/rooms.json $DIR/data/rooms.json.before-deploy 2>/dev/null || true; (md5sum < $DIR/package-lock.json 2>/dev/null || echo new) > /tmp/clocktower-lock.md5"
 
 # 美术原图、文档、本地配置不上传；换行统一成 LF
 git -c core.autocrlf=false archive HEAD -- . ':!art-src' ':!docs' ':!.claude' | "${SSH[@]}" "tar -x -C $DIR"

@@ -99,7 +99,8 @@ npm start
   ```
   `sudo systemctl enable --now clocktower`
 - **HTTPS**：说书人链接里带着说书人密钥，公开部署建议用域名加 HTTPS。用 [Caddy](https://caddyserver.com/) 最省事，`Caddyfile` 一行：`your.domain.com { reverse_proxy localhost:3000 }`（WebSocket 自动支持），然后防火墙只开 80 / 443。
-- **一键更新**：复制 `tools/deploy.env.example` 为 `tools/deploy.env` 填上自己的服务器（这个文件不会提交），本地提交后 `bash tools/deploy.sh`：上传当前提交（不碰 `data/`、不传 `art-src/`），先把存档备份成 `rooms.json.before-deploy`，`package-lock.json` 变了才重装依赖，然后重启 systemd 服务 `clocktower`。重启时进行中的对局会断线几秒，存档不丢。
+- **一键搭建新服务器**：复制 `tools/deploy.env.example` 为 `tools/deploy.env` 填上自己的服务器和域名（这个文件不会提交），`bash tools/setup-server.sh` 装好 Node、Caddy（自动 HTTPS）和 systemd 服务并部署。云服务器防火墙要放行 80 / 443，域名 A 记录指向服务器。
+- **一键更新**：本地提交后 `bash tools/deploy.sh`：上传当前提交（不碰 `data/`、不传 `art-src/`），先把存档备份成 `rooms.json.before-deploy`，`package-lock.json` 变了才重装依赖，然后重启 systemd 服务 `clocktower`。重启时进行中的对局会断线几秒，存档不丢。
 
 ## 让朋友连进来（其他方式）
 
