@@ -165,24 +165,42 @@ span.ic-why .ico { width: 78%; height: 78%; }
   background: var(--card) url(../img/grain.svg); border: 2px solid var(--evil); border-radius: 14px; box-shadow: 0 10px 28px #0005;
   animation: bl-in .36s cubic-bezier(.5, 0, .7, 1) both; }
 @keyframes bl-in { from { transform: scale(1.8) rotate(-6deg); opacity: 0; } 65% { transform: scale(.96); opacity: 1; } }
-.board:has(> .bluffs) > .hud:not(.min) { max-height: calc(100% - 36px - var(--bl-h, 138px)); }
-.bl-head { display: flex; align-items: center; gap: 8px; }
+.bl-head { display: flex; align-items: center; gap: 8px; padding-right: 44px; }
 .bl-sub { font-size: 13px; line-height: 1.3; color: var(--muted); }
+.bl-x { top: 9px; }
+.bl-minis { display: none; gap: 3px; font-size: 22px; }
 .bl-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .bl-role { display: grid; justify-items: center; gap: 4px; padding: 0; background: none; border: 0; cursor: pointer; font: inherit; color: var(--ink); }
 .bl-role b { font: 700 14px/1.15 var(--serif); }
 .bl-role:hover .token { transform: translateY(-2px); }
 .bl-ab { display: flex; align-items: center; gap: 14px; }
 .bl-ab p { margin: 0; line-height: 1.6; }
+/* 收起：一條「偽裝 + 三張小牌」，點一下展開 */
+.bluffs.min { width: auto; padding: 6px 10px; border-radius: 999px; cursor: pointer; animation: none; }
+.bluffs.min .bl-head { padding-right: 0; }
+.bluffs.min :is(.bl-sub, .bl-x, .bl-row) { display: none; }
+.bluffs.min .bl-minis { display: inline-flex; }
+@media (min-width: 861px) {
+  .board:has(> .bluffs:not(.min)) > .hud:not(.min) { max-height: calc(100% - 36px - var(--bl-h, 138px)); }
+}
+/* 中屏：卡和 HUD 一樣浮在桌面上，輪到自己選人時收成一條，不蓋座位 */
 @media (min-width: 861px) and (max-width: 1180px) {
   .bluffs { left: 0; bottom: 0; width: min(320px, 46%); }
+  .bluffs.pick { width: auto; padding: 6px 10px; border-radius: 999px; animation: none; }
+  .bluffs.pick .bl-head { padding-right: 0; }
+  .bluffs.pick :is(.bl-sub, .bl-x, .bl-row) { display: none; }
+  .bluffs.pick .bl-minis { display: inline-flex; }
 }
-/* 手機：桌面左下角一條小卡（圓桌的角落是空的），只留陣營詞和三張牌 */
+/* 手機：不浮在桌上，排在圓桌下面一行（圓桌按寬度取大小，下面有空），左邊陣營詞和說明、右邊三張牌 */
 @media (max-width: 860px) {
-  .bluffs { left: 4px; bottom: 4px; width: auto; gap: 4px; padding: 5px 8px 6px; border-width: 1.5px; border-radius: 10px; }
-  .bl-sub { display: none; }
-  .bl-row { grid-template-columns: repeat(3, 44px); gap: 4px; }
-  .bl-role .token.sm { width: 34px; height: 34px; }
+  .bluffs { position: relative; left: auto; bottom: auto; flex: none; width: auto; margin: 0 6px 6px; display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px; border-width: 1.5px; border-radius: 12px; box-shadow: 0 4px 12px #0004; }
+  .bl-head { flex: 1; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; padding-right: 0; }
+  .bl-sub { font-size: 11px; }
+  .bl-x { display: none; }
+  .bl-row { grid-template-columns: repeat(3, 50px); gap: 2px; }
+  .bl-row .token.sm { width: 34px; height: 34px; }
+  .bl-role { gap: 2px; }
   .bl-role b { font-size: 11px; }
 }
 

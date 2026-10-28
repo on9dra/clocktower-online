@@ -642,7 +642,7 @@ function render() {
     h('div', { class: 'demo-top' }, !bare && demoBar(), topbar(ctx)),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), renderBluffs(ctx), town, renderChatWins(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), dock, side, card);
+    renderHud(ctx), town, renderChatWins(ctx), renderBluffs(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), dock, side, card);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
   app.querySelectorAll('[data-scroll]').forEach(el => {

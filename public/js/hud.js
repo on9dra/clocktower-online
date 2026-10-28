@@ -93,13 +93,17 @@ export function renderHud(ctx) {
         h('div', { class: 'hud-rows' }, g.rows.slice().reverse().map(m => rowView(ctx, m))))))));
 }
 
-// 惡魔的偽裝卡（桌面左下角）：首夜得知的三個不在場角色，白天可以冒充。點牌看能力
+// 惡魔的偽裝卡（桌面左下角）：首夜得知的三個不在場角色，白天可以冒充。點牌看能力。
+// 可以收成一條（偽裝 + 三張小牌）；中屏上輪到自己選人時也收成一條，不蓋座位（hud.css .bluffs.pick）；手機上排在圓桌下面
 export function renderBluffs(ctx) {
   const s = ctx.state;
   if (s.isSt || !s.bluffs?.length || s.phase === 'ended' || roleHeld()) return null;
+  const min = ctx.ls.get('botc.bluffs') === 'min', set = v => { ctx.ls.set('botc.bluffs', v ? 'min' : ''); ctx.render(); };
   const show = id => modal(ROLES[id].name, h('div', { class: 'bl-ab' }, roleToken(id), h('p', {}, ROLES[id].ability)));
-  return h('aside', { class: 'bluffs' },
-    h('div', { class: 'bl-head' }, tag('bluff'), h('span', { class: 'bl-sub' }, '這些角色不在場，需要時可以偽裝成他們')),
+  return h('aside', { class: 'bluffs' + (min ? ' min' : '') + (s.prompt ? ' pick' : ''), onclick: min ? () => set(false) : null },
+    h('div', { class: 'bl-head' }, tag('bluff'), h('span', { class: 'bl-minis' }, s.bluffs.map(id => mini(id))),
+      h('span', { class: 'bl-sub' }, '這些角色不在場，需要時可以偽裝成他們'),
+      h('button', { class: 'hud-x bl-x', onclick: e => { e.stopPropagation(); set(true); } }, '收起')),
     h('div', { class: 'bl-row' }, s.bluffs.map(id => h('button', { class: 'bl-role', onclick: () => show(id) },
       roleToken(id, { size: 'sm' }), h('b', {}, ROLES[id].name)))));
 }
