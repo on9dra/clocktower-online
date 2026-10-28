@@ -15,7 +15,7 @@ const R = (id, name, team, ability, first, other, extra = {}) =>
 
 export const ROLES = Object.fromEntries([
   R('washerwoman', '洗衣婦', 'townsfolk', '在你的首個夜晚，你會得知兩名玩家和一個鎮民角色：這兩名玩家之一是該角色。', 33, 0),
-  R('librarian', '圖書管理員', 'townsfolk', '在你的首個夜晚，你會得知兩名玩家和一個外來者角色：這兩名玩家之一是該角色（或者你會得知沒有外來者在場）。', 34, 0, { needsOutsider: true }),
+  R('librarian', '圖書管理員', 'townsfolk', '在你的首個夜晚，你會得知兩名玩家和一個外來者角色：這兩名玩家之一是該角色（或者你會得知沒有外來者在場）。', 34, 0),
   R('investigator', '調查員', 'townsfolk', '在你的首個夜晚，你會得知兩名玩家和一個爪牙角色：這兩名玩家之一是該角色。', 35, 0),
   R('chef', '廚師', 'townsfolk', '在你的首個夜晚，你會得知場上鄰座的邪惡玩家有多少對。', 36, 0),
   R('empath', '共情者', 'townsfolk', '每個夜晚，你會得知與你鄰近的兩名存活的玩家中邪惡玩家的數量。', 37, 53),
@@ -139,8 +139,5 @@ export function teamCounts(n, setupRoles = [], picks = {}) {
   return c;
 }
 export const changesSetup = id => !!ROLES[id]?.setup;
-
-// 配置里沒有外來者時，隨機抽取默認排除和外來者相關的鎮民（說書人設為必選則仍會出現）
-export const skippedForNoOutsider = (id, c) => !!ROLES[id]?.needsOutsider && c.outsider === 0;
 
 export const isEvilRole = id => !!ROLES[id] && !TEAMS[ROLES[id].team].good;

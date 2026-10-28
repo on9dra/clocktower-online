@@ -1,6 +1,6 @@
 // 說書人開局配置：角色「必選 / 排除」；給某個座位更換角色（預覽時和遊戲中都可以）
 import { h, modal, closeModal, roleToken, seatLabel } from './ui.js';
-import { ROLES, TEAMS, SCRIPTS, teamCounts, skippedForNoOutsider, changesSetup } from './roles.js';
+import { ROLES, TEAMS, SCRIPTS, teamCounts, changesSetup } from './roles.js';
 
 const RULE_TEXT = { lock: '必選', ban: '排除' };
 const nextRule = r => (r === 'lock' ? 'ban' : r === 'ban' ? null : 'lock');
@@ -29,15 +29,14 @@ export function openSetup(ctx) {
     draw();
   };
   const reset = () => { for (const k in rules) delete rules[k]; ctx.st('clearRules'); draw(); };
-  const skipped = id => s.seats.length >= 5 && !rules[id] && skippedForNoOutsider(id, countsOf(s.seats.length, rules));
   const draw = () => body.replaceChildren(h('div', {},
     h('p', { class: 'muted', style: { marginTop: 0 } }, '點角色切換：隨機（默認）→ 必選 → 排除。' + (s.scriptId === 'tb' ? '男爵隨機時只在 7 人及以上出現。' : '')),
     countsLine(s.seats.length, rules),
     Object.keys(TEAMS).map(team => [
       h('div', { class: 'sheet-team', style: { color: TEAMS[team].color } }, TEAMS[team].name),
       h('div', { class: 'setup-grid' }, roles.filter(id => ROLES[id].team === team).map(id =>
-        h('button', { class: 'setup-role ' + (rules[id] || (skipped(id) ? 'ban' : 'rand')), onclick: () => toggle(id) },
-          roleToken(id, { size: 'sm' }), h('span', {}, ROLES[id].name), h('i', {}, RULE_TEXT[rules[id]] || (skipped(id) ? '無外來者' : '隨機'))))),
+        h('button', { class: 'setup-role ' + (rules[id] || 'rand'), onclick: () => toggle(id) },
+          roleToken(id, { size: 'sm' }), h('span', {}, ROLES[id].name), h('i', {}, RULE_TEXT[rules[id]] || '隨機')))),
     ]),
     h('div', { class: 'row', style: { justifyContent: 'space-between' } },
       h('button', { class: 'btn ghost', onclick: reset }, '全部恢復隨機'),
