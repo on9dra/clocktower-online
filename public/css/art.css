@@ -1,7 +1,8 @@
-/* GPT 生成的新美術（img/art/，原圖和處理腳本在 art-src/）。只在 body.art 下生效：默認打開，「⋯ → 設置 → 新美術」關掉就是舊版
+/* GPT 生成的新美術（img/art/，原圖和處理腳本在 art-src/）。只在 body.art 下生效：永久啟用（body.art）
    動畫、文字、狀態都還是原來的代碼，這裏只換外觀 */
 
-/* A1 / A2 魔典台面：縮在座位環內側當桌子；日夜兩張疊著交叉淡入淡出。ring 自成一層，兩張圖墊在座位和中間文字下面 */
+/* A1 / A2 魔典台面：縮在座位環內側當桌子；日夜兩張疊著交叉淡入淡出。ring 自成一層，兩張圖墊在座位和中間文字下面
+   素淨版（art-src/mat-plain.py）：只留兩道圈線，星星、花枝、日月都去掉，桌上的標誌只留印章 */
 body.art .ring { z-index: 0; }
 body.art .ring::before, body.art .ring::after { inset: 17%; border: 0; border-radius: 50%; background: center / contain no-repeat; }
 body.art .ring::before { z-index: -2; background-image: url(../img/art/table-day.webp); opacity: .8; }
@@ -57,11 +58,12 @@ body.art .egg-splat:nth-of-type(3n+1) { background-image: url(../img/art/egg-spl
 body.art .egg-splat:nth-of-type(3n+2) { background-image: url(../img/art/egg-splat-3.webp); }
 body.art .egg-splat svg { visibility: hidden; }
 
-/* B1 / B2 大廳：字標圖替掉標題文字（文字留給讀屏），主視覺鋪底；它自帶小鎮，所以藏掉背景天空那一層 */
-body.art:has(.lobby) { background: #efe4c9 url(../img/art/lobby.webp) center bottom / cover no-repeat fixed; }
-body.art:has(.lobby) #scene { display: none; }
-body.art .lobby .title { height: clamp(84px, 24vw, 128px); background: url(../img/art/title-tc.webp) center / contain no-repeat; color: transparent; overflow: hidden; }
-html[data-lang="sc"] body.art .lobby .title { background-image: url(../img/art/title-sc.webp); }
+/* B1 大廳：字標圖替掉標題文字（文字留給讀屏）；只留四個字（art-src/mat-plain.py 去掉了日月、星星、花枝），標誌交給旁邊的紅印章。
+   不再鋪主視覺插畫（lobby.webp），大廳是紙面 + 真實截圖 */
+body.art .lobby .title { --tw: min(420px, 66vw); width: var(--tw); aspect-ratio: 1461 / 337; background: url(../img/art/title-tc-plain.webp) center / contain no-repeat; color: transparent; overflow: hidden; }
+html[data-lang="sc"] body.art .lobby .title { aspect-ratio: 1446 / 336; background-image: url(../img/art/title-sc-plain.webp); }
+body.art .lobby-seal { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
+body.art .lobby-seal { left: calc(50% + min(210px, 33vw) + 12px); }
 
 /* 彈窗套紙卡框 */
 body.art .modal { border: 30px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 30px stretch; border-radius: 0; background: none; }

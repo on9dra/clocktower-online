@@ -24,20 +24,9 @@
     .demo-step.done { opacity: .5; }
     .demo-step i { font-style: normal; display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: 4px; border-radius: 50%; background: var(--ink); color: var(--card); font-size: 10px; }
     .demo-view.on { background: var(--ink); color: var(--card); }
-    .cmp { position: absolute; inset: 12px; z-index: 30; overflow: auto; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 10px 16px 16px; }
-    .cmp-head { display: flex; gap: 6px; font: 700 12px var(--sans); color: var(--muted); margin-left: 4px; }
-    .cmp-head span { width: 96px; text-align: center; }
-    .cmp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-    .cmp-row > b { flex-basis: 100%; font-family: var(--serif); }
-    .cmp-pair { display: flex; gap: 6px; align-items: center; padding: 4px; border-radius: 50px; background: #efe7d4; }
-    .cmp-pair .token.xs { font-size: 28px; }
-    .token.kit { position: relative; background: var(--kit) center / 100% 100% no-repeat; border-color: transparent; box-shadow: none; }
-    .token.kit .token-icon { visibility: hidden; }
-    .token.kit .token-name { color: var(--ink); text-shadow: 0 0 2px #f7eedb, 0 0 2px #f7eedb, 0 0 3px #f7eedb; position: absolute; top: 72%; left: 9%; right: 9%; white-space: nowrap; font-size: 12px; }
-    .token.kit:not(.md) .token-name, .token.xs.kit .token-name { display: none; }
   </style>
 </head>
-<body>
+<body class="art">
   <div id="app"></div>
   <script type="module" src="js/demo.js"></script>
 </body>

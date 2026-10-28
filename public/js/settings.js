@@ -1,10 +1,7 @@
-// 設置（「⋯」菜單裏）：音效開關、音量、煙花、煙花聲、新美術，都記在本機
+// 設置（「⋯」菜單裏）：音效開關、音量、煙花、煙花聲，都記在本機
 import { h, modal } from './ui.js';
 import { icon } from './glyph.js';
 import { muted, setMuted, prefs, setPref, play } from './sfx.js';
-
-// 新美術（css/art.css 掛在 body.art 上）默認打開，關掉就是舊版
-export const applyArt = () => document.body.classList.toggle('art', prefs().art);
 
 export function openSettings(ctx) {
   const p = prefs();
@@ -15,6 +12,5 @@ export function openSettings(ctx) {
     row('sound', '音量', h('input', { type: 'range', min: 0, max: 100, value: Math.round(p.vol * 100),
       oninput: e => setPref('vol', e.target.value / 100), onchange: () => play('pop') })),
     row('firework', '煙花', sw(p.fw, v => setPref('fw', v))),
-    row('firework', '煙花聲', sw(p.fwSound, v => setPref('fwSound', v))),
-    row('art', '新美術', sw(p.art, v => { setPref('art', v); applyArt(); }))));
+    row('firework', '煙花聲', sw(p.fwSound, v => setPref('fwSound', v)))));
 }

@@ -1,7 +1,7 @@
 // 說書人的夜晚操作卡（浮在行動者座位旁）；天亮前確認在操作塢裏（flow.js）
 import { h, ask } from './ui.js';
 import { sel, startSelect } from './town.js';
-import { selectBar, selFrom, B } from './flow.js';
+import { selectBar, selFrom, B, PRETEND } from './flow.js';
 import { infoForm } from './infoform.js';
 import { seatBadge, mini, icon, named, w } from './glyph.js';
 
@@ -23,8 +23,21 @@ export function stepCard(ctx) {
         B('跳過', () => ask(`跳過 ${step.title} 的行動？`, () => ctx.st('skip'), '跳過'), 'ghost')));
   }
   if (step.status === 'decide') return decideCard(ctx, step);
+  if (step.status === 'fake') return pretendCard(ctx, step);
   return infoForm(ctx, step);
 }
+
+// 假裝叫醒：沒有人醒（不在場 / 今晚不醒 / 已經做完），停一會兒再往下走，玩家看不出這一格是空的。
+// 計時條走完自動繼續（服務端計時，app.js 每半秒重繪一次），說書人也可以直接繼續
+function pretendCard(ctx, step) {
+  const left = Math.min(1, Math.max(0, (step.due - ctx.now()) / Math.max(1, step.due - step.at)));
+  return h('div', { class: 'card infocard pretend' },
+    h('div', { class: 'ic-head' }, step.roleId in GROUP ? w(GROUP[step.roleId], 'ink') : named(step.roleId), w(PRETEND[step.why], 'muted')),
+    h('div', { class: 'pt-row' }, icon('moon', 'pt-moon'), w('假裝叫醒', 'ink'),
+      h('i', { class: 'pt-bar' }, h('i', { style: { width: (left * 100).toFixed(1) + '%' } }))),
+    h('div', { class: 'row' }, B('繼續', () => ctx.st('pretend'), 'primary', true)));
+}
+const GROUP = { minioninfo: '爪牙信息', demoninfo: '惡魔信息' };
 
 // 鎮長替死、小惡魔傳位、誰醉酒、造謠 / 月之子選中誰、反芻誰……：說書人從選項裏挑一個（座位號 + 角色牌，或短詞）
 function decideCard(ctx, step) {

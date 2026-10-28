@@ -14,7 +14,7 @@ function countsLine(n, rules) {
   const locked = Object.keys(rules).filter(id => rules[id] === 'lock');
   const c = countsOf(n, rules);
   const over = Object.keys(TEAMS).filter(t => locked.filter(id => ROLES[id].team === t).length > c[t]);
-  return [h('p', { class: 'small' }, `${n} 人：鎮民 ${c.townsfolk} · 外來者 ${c.outsider} · 爪牙 ${c.minion} · 惡魔 ${c.demon}`),
+  return [h('p', { class: 'small' }, `${n} 人：鎮民 ${c.townsfolk}、外來者 ${c.outsider}、爪牙 ${c.minion}、惡魔 ${c.demon}`),
     over.length > 0 && h('p', { class: 'warn small' }, `必選的${over.map(t => TEAMS[t].name).join('、')}超過了名額，開局時會報錯。`)];
 }
 

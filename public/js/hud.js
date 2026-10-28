@@ -1,11 +1,13 @@
-// 玩家左上角面板：大角色牌 + 能力 + 每晚的信息式子。可收成只剩角色牌。
+// 玩家左上角面板：大角色牌 + 能力 + 每晚的信息式子。可收成只剩角色牌（點牌或「收起」）。
 // 懸停 / 點一條信息，桌上相關座位高亮；新信息到達時面板自動展開，新的一行飛入並閃一下。
-import { h, roleToken } from './ui.js';
+// 中屏（面板浮在桌面上）輪到自己選人時自動收起，免得蓋住要點的座位；這一步裏點牌可以再打開。
+import { h, roleToken, modal } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
-import { formula, formulaSeats, mini, w } from './glyph.js';
+import { formula, formulaSeats, mini, w, icon, tag, ACTS } from './glyph.js';
 import { roleHeld, hudFx } from './fx.js';
 
-const ui = { hover: null, pin: null, fresh: new Map() }; // fresh：消息 id -> 到達時間
+const ui = { hover: null, pin: null, fresh: new Map(), openFor: null }; // fresh：消息 id -> 到達時間；openFor：選人時手動展開的那一步
+const MID = '(min-width: 861px) and (max-width: 1180px)'; // 和 hud.css 裏面板浮在桌面上的寬度一致
 const FRESH_MS = 3200;
 
 const collapsed = ctx => ctx.ls.get('botc.hud') === 'min';
@@ -49,15 +51,27 @@ function rowView(ctx, m) {
     onmouseleave: () => { if (ui.hover === m.id) { ui.hover = null; ctx.render(); } },
     onclick: () => { ui.pin = ui.pin === m.id ? null : m.id; ctx.render(); },
   },
-  // 來源：給信息的角色；爪牙 / 惡魔互認用自己的牌；說書人手寫的補充信息用羽毛筆
-  m.src ? mini(ROLES[m.src] ? m.src : s.myRole, 'src') : w('說書人', 'src'),
-  m.f ? formula(s, m.f) : h('span', { class: 'hud-text' }, m.text));
+  ...rowBody(s, m));
+}
+// 自己的夜晚行動：行動圖標（毒滴、盾牌…）→ 座位；信息：式子，來源是別的角色時（換過角色）前面帶那張牌，說書人手寫的帶「說書人」
+function rowBody(s, m) {
+  if (m.k === 'act') {
+    const a = ACTS[m.src], picked = (m.f || []).some(t => t.s || t.r);
+    return [a && h('span', { class: 'act-chip ' + a.tone }, icon(a.ico)), picked ? formula(s, m.f) : w('沒有選人', 'muted')];
+  }
+  return [!m.src ? w('說書人', 'src') : ROLES[m.src] && m.src !== s.myRole && mini(m.src, 'src'),
+    m.f ? formula(s, m.f) : h('span', { class: 'hud-text' }, m.text)];
 }
 
 export function renderHud(ctx) {
   const s = ctx.state;
   if (s.isSt || !s.myRole || s.phase === 'lobby') return null;
   const r = ROLES[s.myRole], min = collapsed(ctx);
+  // 選人時自動收起（只在中屏生效，見 hud.css .hud.pick）
+  const pick = !min && !!s.prompt && ui.openFor !== s.prompt.stepId;
+  const toggle = () => {
+    if (pick && matchMedia(MID).matches) { ui.openFor = s.prompt.stepId; ctx.render(); } else setCollapsed(ctx, !min);
+  };
   const rows = hudRows(s);
   // 按夜晚分組，最新的一晚在最上面
   const groups = [];
@@ -68,12 +82,24 @@ export function renderHud(ctx) {
   groups.reverse();
   // 翻角色牌演出期間面板空著，等牌飛進來；落定後名字、能力、信息淡入
   const held = roleHeld(), fx = !held && hudFx();
-  return h('aside', { class: 'hud' + (min ? ' min' : '') + (held ? ' held' : '') + (fx ? ' fx-in' : ''), style: { '--team': TEAMS[r.team].color, ...fx } },
-    h('button', { class: 'hud-me', title: min ? '展開' : '收起', onclick: () => setCollapsed(ctx, !min) }, roleToken(s.myRole)),
+  return h('aside', { class: 'hud' + (min ? ' min' : '') + (pick ? ' pick' : '') + (held ? ' held' : '') + (fx ? ' fx-in' : ''), style: { '--team': TEAMS[r.team].color, ...fx } },
+    h('button', { class: 'hud-me', title: min ? '展開' : '收起', 'aria-label': min ? '展開角色面板' : '收起角色面板', onclick: toggle }, roleToken(s.myRole)),
+    !min && h('button', { class: 'hud-x', onclick: () => setCollapsed(ctx, true) }, '收起'),
     !min && h('div', { class: 'hud-body' },
       h('div', { class: 'hud-name' }, r.name, h('span', { class: 'hud-team' }, TEAMS[r.team].name)),
       h('div', { class: 'hud-ab' }, r.ability),
       groups.length > 0 && h('div', { class: 'hud-list', 'data-scroll': 'hud' }, groups.map(g => h('div', { class: 'hud-night' },
         h('div', { class: 'hud-n' }, g.n ? `第 ${g.n} 夜` : '開局'),
         h('div', { class: 'hud-rows' }, g.rows.slice().reverse().map(m => rowView(ctx, m))))))));
+}
+
+// 惡魔的偽裝卡（桌面左下角）：首夜得知的三個不在場角色，白天可以冒充。點牌看能力
+export function renderBluffs(ctx) {
+  const s = ctx.state;
+  if (s.isSt || !s.bluffs?.length || s.phase === 'ended' || roleHeld()) return null;
+  const show = id => modal(ROLES[id].name, h('div', { class: 'bl-ab' }, roleToken(id), h('p', {}, ROLES[id].ability)));
+  return h('aside', { class: 'bluffs' },
+    h('div', { class: 'bl-head' }, tag('bluff'), h('span', { class: 'bl-sub' }, '這些角色不在場，需要時可以偽裝成他們')),
+    h('div', { class: 'bl-row' }, s.bluffs.map(id => h('button', { class: 'bl-role', onclick: () => show(id) },
+      roleToken(id, { size: 'sm' }), h('b', {}, ROLES[id].name)))));
 }

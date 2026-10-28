@@ -3,16 +3,20 @@ import { h, toast, closeModal, morph, closeMenu } from './ui.js';
 import { renderTown } from './town.js';
 import { renderSide, sideCollapsed, renderChatWins, closeSheet } from './side.js';
 import { stFlow, playerFlow } from './flow.js';
-import { sel, stopSelect } from './town.js';
+import { progressBar } from './progress.js';
+import { sel, stopSelect, stCard } from './town.js';
 import { topbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
-import { renderHud, onInfo } from './hud.js';
-import { getLang, setLang, tr } from './lang.js';
+import { renderHud, renderBluffs, onInfo } from './hud.js';
+import { tr } from './lang.js';
 import { onEggs } from './egg.js';
+import { renderLobby, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
+import { openInvite } from './invite.js';
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* 隱私模式 */ } },
+  del: k => { try { localStorage.removeItem(k); } catch { /* 隱私模式 */ } },
 };
 const params = new URLSearchParams(location.search);
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
@@ -24,10 +28,13 @@ if (params.get('as') === 'player') {
 }
 // 說書人恢復鏈接（?room=1234&st=密鑰）：記下密鑰，再從地址欄去掉
 if (params.get('room') && params.get('st')) { LS.set('botc.st.' + params.get('room'), params.get('st')); params.delete('st'); }
+// 說書人發的換設備鏈接（?room=1234&r=…&seat=…）：連上後接過那個座位
+let claimToken = params.get('seat');
+params.delete('seat');
 document.title = tr(document.title);
 
 const sock = io();
-let session = null, chat = [];
+let session = null, chat = [], fresh = false; // session：{ code, inst, st }；fresh：剛建好房間，第一次收到狀態時彈邀請
 const done = res => r => { if (!r.ok) toast(r.error); res(r); };
 export const ctx = {
   state: null, ls: LS, offset: 0,
@@ -39,55 +46,99 @@ export const ctx = {
     return new Promise(res => sock.emit('pl:act', { act, ...args }, done(res)));
   },
   peek: seatId => new Promise(res => sock.emit('st:peek', { seatId }, done(res))),
+  // 觀戰的人入座（準備階段有空位時）
+  sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst),
+  // 說書人解散房間
+  close: () => ctx.st('close').then(r => r.ok && bye('closed')),
   render, leave,
 };
 
-function setUrl(code) {
+function setUrl(code, inst) {
   const u = new URL(location.href);
-  u.search = code ? `?room=${code}` + (params.get('as') ? `&as=${params.get('as')}` : '') : '';
+  u.search = code ? `?room=${code}` + (inst ? `&r=${inst}` : '') + (params.get('as') ? `&as=${params.get('as')}` : '') : '';
   history.replaceState(null, '', u);
 }
-function enter(code, st) { session = { code, st }; setUrl(code); }
+function enter(code, st, inst = '') {
+  session = { code, st, inst };
+  setUrl(code, inst);
+  if (inst) rememberRoom(LS, { code, inst });
+}
 
-function joinPlayer(code, name) {
-  LS.set('botc.name', name);
-  sock.emit('pl:join', { code, pid, name }, r => (r.ok ? enter(code, false) : (toast(r.error), lobby(code))));
+function joinPlayer(code, name, inst = '') {
+  if (name) LS.set('botc.name', name);
+  sock.emit('pl:join', { code, inst, pid, name }, r => (r.ok ? enter(code, false, inst) : fail(r.error, code)));
+}
+// 進不去：回大廳，地址欄清掉（斷線重連時不再拿它重試），房間號留在輸入框裏
+function fail(err, code = '') {
+  toast(err);
+  session = null;
+  params.delete('room'); params.delete('r');
+  setUrl('');
+  lobby(code);
 }
 function resume() {
   const code = (session && session.code) || params.get('room');
   if (!code) return lobby();
+  const inst = (session && session.inst) || params.get('r') || '';
+  if (claimToken) {
+    const token = claimToken;
+    claimToken = null;
+    // 鏈接失效了也照常進房：有座位回座位，沒有就觀戰 / 入座
+    return sock.emit('pl:claim', { code, inst, pid, token }, r => (r.ok ? enter(code, false, inst) : (toast(r.error), resume())));
+  }
   const key = params.get('as') === 'player' ? null : LS.get('botc.st.' + code);
-  if (key) return sock.emit('st:join', { code, stKey: key }, r => (r.ok ? enter(code, true) : (toast(r.error), lobby())));
+  if (key) return sock.emit('st:join', { code, stKey: key }, r => {
+    if (r.ok) return enter(code, true, inst);
+    // 房號換了一個房間，本機記著的是舊房間的密鑰：丟掉，當玩家進
+    if (r.error === '說書人密鑰錯誤') { LS.del('botc.st.' + code); return resume(); }
+    fail(r.error);
+  });
   const name = LS.get('botc.name');
-  return name ? joinPlayer(code, name) : lobby(code);
+  return name ? joinPlayer(code, name, inst) : lobby(code);
+}
+
+// 被移出、座位在別的設備上打開、房間解散：退回大廳
+const BYE = { kicked: '你已被說書人移出房間', moved: '這個座位已在別的設備上打開', closed: '房間已解散' };
+function bye(why) {
+  if (session) { forgetRoom(LS, session.code); if (why === 'closed') LS.del('botc.st.' + session.code); }
+  session = null;
+  closeModal();
+  params.delete('room'); params.delete('r');
+  setUrl('');
+  toast(BYE[why] || '已離開房間', 5000);
+  lobby();
 }
 
 function lobby(code = params.get('room') || '') {
   ctx.state = ctx.live = null;
   ensureScene();
   document.body.dataset.phase = 'lobby';
-  const codeIn = h('input', { placeholder: '房間號', value: code, maxlength: 4, inputmode: 'numeric' });
-  const nameIn = h('input', { placeholder: '你的暱稱', value: LS.get('botc.name') || '', maxlength: 12 });
-  const join = () => {
-    if (!/^\d{4}$/.test(codeIn.value.trim())) return toast('請輸入 4 位房間號');
-    if (!nameIn.value.trim()) return toast('請輸入暱稱');
-    joinPlayer(codeIn.value.trim(), nameIn.value.trim());
-  };
-  const create = () => sock.emit('st:create', {}, r => { if (!r.ok) return toast(r.error); LS.set('botc.st.' + r.code, r.stKey); enter(r.code, true); });
-  nameIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) join(); };
-  document.getElementById('app').replaceChildren(h('div', { class: 'lobby' },
-    h('div', { class: 'title' }, '血染鐘樓'),
-    h('div', { class: 'muted' }, '線上魔典 · 自動推進流程'),
-    h('div', { class: 'card' }, h('div', { class: 'card-k' }, '我是玩家'), codeIn, nameIn,
-      h('button', { class: 'btn primary wide', onclick: join }, '加入房間')),
-    h('div', { class: 'card' }, h('div', { class: 'card-k' }, '我是說書人'),
-      h('p', { class: 'muted' }, '創建房間後把房間號發給朋友，人齊了一鍵開局。'),
-      h('button', { class: 'btn wide', onclick: create }, '創建房間')),
-    langButton('btn sm ghost lang-lobby')));
+  const create = () => sock.emit('st:create', {}, r => {
+    if (!r.ok) return toast(r.error);
+    LS.set('botc.st.' + r.code, r.stKey);
+    fresh = true;
+    enter(r.code, true, r.inst);
+  });
+  // 重畫時保留已經填了的房間號、暱稱
+  const typed = i => document.querySelectorAll('.lobby-forms input')[i]?.value;
+  const draw = recent => document.getElementById('app').replaceChildren(renderLobby({
+    code: typed(0) ?? code, name: typed(1) ?? (LS.get('botc.name') || ''), recent,
+    // 從邀請鏈接來、第一次填暱稱：房間號沒改的話帶上鏈接裏的實例標識
+    onJoin: (c, name) => joinPlayer(c, name, c === params.get('room') ? params.get('r') || '' : ''), onCreate: create,
+    onPick: r => { session = { code: r.code, inst: r.inst }; resume(); },
+  }));
+  draw([]);
+  // 最近的房間：問服務器哪些還在、走到哪了；不在的從本機記錄裏去掉
+  const mine = recentRooms(LS);
+  if (mine.length) sock.emit('rooms:info', { list: mine }, r => {
+    if (!r.ok || ctx.state) return;
+    const alive = new Map(r.list.map(x => [x.code, x]));
+    for (const x of mine) if (!alive.has(x.code)) forgetRoom(LS, x.code);
+    // 是不是說書人看本機有沒有這個房間的密鑰
+    const list = mine.filter(x => alive.has(x.code)).map(x => ({ ...x, ...alive.get(x.code), st: !!LS.get('botc.st.' + x.code) }));
+    if (list.length && document.querySelector('.lobby')) draw(list);
+  });
 }
-
-const langButton = cls => h('button', { class: cls, title: '切換繁體 / 簡體',
-  onclick: () => { setLang(getLang() === 'sc' ? 'tc' : 'sc'); location.reload(); } }, getLang() === 'sc' ? '繁體' : '简体');
 
 function render() {
   // 開新局拉幕時，幕布合上之前畫的還是上一局（fx.js heldView）
@@ -99,11 +150,12 @@ function render() {
   app.querySelectorAll('[data-scroll]').forEach(el => { atBottom[el.dataset.scroll] = el.scrollHeight - el.scrollTop - el.clientHeight < 30; });
   const dock = s.isSt ? stFlow(ctx) : playerFlow(ctx); // 先算操作塢：玩家的選人狀態在這裏建立，桌面要用到
   const side = renderSide(ctx);
-  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (sideCollapsed(ctx) ? ' side-min' : '') },
+  const town = renderTown(ctx), card = stCard(ctx); // 說書人的操作卡：有卡時側欄展開放它（收起的側欄先讓位）
+  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (card ? ' has-card' : sideCollapsed(ctx) ? ' side-min' : '') },
     topbar(ctx),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), renderTown(ctx), renderChatWins(ctx)), dock, side);
+    renderHud(ctx), renderBluffs(ctx), town, renderChatWins(ctx)), progressBar(ctx), dock, side, card);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
   // 聊天、日誌：原本停在底部的保持在底部，新打開的貼底列表直接滾到底
@@ -113,29 +165,33 @@ function render() {
   });
 }
 
-function leave() { session = null; params.delete('room'); setUrl(''); location.reload(); }
+function leave() { session = null; params.delete('room'); params.delete('r'); setUrl(''); location.reload(); }
 
 sock.on('state', s => {
   chat = s.chatReset ? s.chat : chat.concat(s.chat);
   if (chat.length > 600) chat = chat.slice(-600);
   s.chat = chat;
   ctx.offset = s.serverNow - Date.now();
+  // 說書人用密鑰回來、舊鏈接沒帶 r 時：從狀態裏補上房間實例標識
+  if (session && s.inst && session.inst !== s.inst) enter(session.code, session.st, s.inst);
   onInfo(ctx, s, render); onState(s); ctx.live = s; render();
+  if (fresh) { fresh = false; openInvite(ctx); } // 剛建好房間：先把房間號、二維碼亮出來
   onEggs(s); // 桌面畫好之後再扔，按座位現在的位置飛
 });
 sock.on('connect', () => (session || params.get('room') ? resume() : lobby()));
 sock.on('disconnect', () => toast('連接斷開，正在重連…'));
+sock.on('bye', bye);
 setRender(render);
 // 計票時鐘走到下一位時重繪（數到誰、誰的手已經定下）；投票倒數、MVP 倒數每秒重繪
 let clockTick = null;
 setInterval(() => {
-  const n = ctx.state?.nomination, c = n?.clock, m = ctx.state?.mvpVote;
+  const n = ctx.state?.nomination, c = n?.clock, m = ctx.state?.mvpVote, f = ctx.state?.st?.step;
   const k = c ? `${c.at}:${Math.floor((ctx.now() - c.at) / c.step)}` : n ? `t${n.paused ?? Math.ceil((n.deadline - ctx.now()) / 1000)}`
-    : m && !m.done ? `m${Math.ceil((m.closesAt - ctx.now()) / 1000)}` : null;
+    : m && !m.done ? `m${Math.ceil((m.closesAt - ctx.now()) / 1000)}` : f?.status === 'fake' ? `f${Math.floor(ctx.now() / 500)}` : null;
   if (k !== clockTick) { clockTick = k; if (k) render(); }
 }, 200);
 
-// 快捷鍵：回車 = 當前主操作（帶 data-hot 的按鈕，座位旁的操作卡優先），確認框裏回車 = 確認；Esc 關閉菜單 / 彈窗 / 取消代選
+// 快捷鍵：回車 = 當前主操作（帶 data-hot 的按鈕，說書人的操作卡優先），確認框裏回車 = 確認；Esc 關閉菜單 / 彈窗 / 取消代選
 document.addEventListener('keydown', e => {
   if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey || !ctx.state) return;
   const t = e.target, typing = t.closest && t.closest('input, textarea, select, [contenteditable]');
@@ -149,7 +205,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key !== 'Enter' || typing || document.querySelector('.popmenu')) return;
   const hot = open ? open.querySelector('.btn.primary:not(.disabled)')
-    : document.querySelector('.step-bubble [data-hot]:not(.disabled)') || document.querySelector('.dock [data-hot]:not(.disabled)');
+    : document.querySelector('.st-card [data-hot]:not(.disabled)') || document.querySelector('.dock [data-hot]:not(.disabled)');
   // 焦點停在別的按鈕上時也走主操作，避免回車重複點到剛剛用鼠標點過的按鈕
   e.preventDefault();
   if (hot) hot.click();

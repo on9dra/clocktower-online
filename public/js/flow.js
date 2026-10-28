@@ -81,7 +81,7 @@ const lastNight = s => s.lastNight && row(w('昨晚'), s.lastNight.length ? [s.l
 // 票數：當前 / 需要
 const clockView = (s, ck) => ck && (ck.done ? w('計票完成', 'good') : ck.pending ? w('立即計票', 'bad')
   : [w('數到'), seatBadge(s, ck.current, ck.current === s.myId ? 'me-now' : '')]);
-const stepToken = id => (ROLES[id] ? mini(id) : tag(id === 'demoninfo' ? 'demon' : 'minion'));
+const stepToken = (id, fake) => (ROLES[id] ? mini(id, fake ? 'ghost' : '') : tag(id === 'demoninfo' ? 'demon' : 'minion'));
 const nomRow = (s, nom) => row(seatBadge(s, nom.nominatorId), h('b', { class: 'nom-verb' }, '提名'), seatBadge(s, nom.nomineeId));
 const masterRow = s => s.master && row(mini('butler'), w('主人'), seatBadge(s, s.master));
 
@@ -96,7 +96,7 @@ export function stFlow(ctx) {
       const nom = s.nomination, ck = clockState(ctx), r = s.st.ruling;
       if (r) return rulingDock(ctx, r);
       return dock([sun(s.day), nom ? nomRow(s, nom) : row(blockView(s) || '討論與提名')],
-        [lastNight(s), nom && (ck || s.block) && row(clockView(s, ck), ck && s.block && h('i', { class: 'op-sep' }), s.block && blockView(s))],
+        [!nom && lastNight(s), nom && (ck || s.block) && row(clockView(s, ck), ck && s.block && h('i', { class: 'op-sep' }), s.block && blockView(s))],
         [nom && B('取消提名', () => ask('取消這次提名？雙方今天可以重新提名 / 被提名。', () => ctx.st('cancelVote'), '取消提名'), 'ghost'),
           nom && B(ck ? '立即結算' : '按當前舉手結算', () => ctx.st('closeVote')),
           endDayButton(ctx),
@@ -150,35 +150,33 @@ export function rulingCard(ctx, r = ctx.state.st.ruling, op = 'rule') {
 // 可以被登記成另一類的角色在這次裁定裏可能被當作什麼
 const REG_AS = { slayer: '可以被當作惡魔', virgin: '可以被當作鎮民' };
 
-// 夜晚：今晚的喚醒順序排成一串角色牌（已過的變淡，當前的高亮），最後是天亮
+// 夜晚：當前的步驟（今晚的整個順序在進度條上，見 progress.js）。假裝叫醒的格子：虛線角色牌
 function nightDock(ctx) {
-  const s = ctx.state, st = s.st, step = st.step, review = step && step.status === 'review';
-  const passed = st.passed || [], cur = step && !review ? passed.length - 1 : -1;
-  const chips = h('div', { class: 'steps' },
-    passed.map((id, i) => h('span', { class: 'step-tok' + (i === cur ? ' now' : ' done') }, stepToken(id))),
-    st.queue.map(id => h('span', { class: 'step-tok' }, stepToken(id))),
-    h('span', { class: 'step-tok' + (review ? ' now' : '') }, icon('sun')));
-  if (review) return reviewDock(ctx, chips);
-  return dock([moon(s.night), step && step.seatId ? row(mini(step.roleId), seatBadge(s, step.seatId)) : step ? row(stepToken(step.roleId)) : '…'], chips, null);
+  const s = ctx.state, step = s.st.step;
+  if (step?.status === 'review') return reviewDock(ctx);
+  return dock([moon(s.night), step && step.seatId ? row(mini(step.roleId), seatBadge(s, step.seatId))
+    : step ? row(stepToken(step.roleId, step.status === 'fake'), step.status === 'fake' && w(PRETEND[step.why], 'muted')) : '…'], null, null);
 }
+// 假裝叫醒的原因（stepcard.js 也用）
+export const PRETEND = { absent: '不在場', idle: '今晚不醒', quick: '已完成' };
 
 // 夜晚走完：核對今晚的死亡、中毒、保護（點座位糾錯），再公佈死訊
-function reviewDock(ctx, chips) {
+function reviewDock(ctx) {
   const s = ctx.state, st = s.st;
   const seatsOr = ids => (ids?.length ? ids.map(id => seatBadge(s, id)) : w('無', 'ink'));
   const sep = h('i', { class: 'op-sep' });
   return dock([moon(s.night), row(w('今晚'), st.diedTonight.length ? [st.diedTonight.map(id => seatBadge(s, id)), w('死亡', 'bad')] : w('無人死亡', 'good'))],
-    [chips, row(w('中毒', 'evil'), seatsOr(st.poisonList), st.drunkList?.length > 0 && [sep, w('醉酒', 'evil'), seatsOr(st.drunkList)],
+    [row(w('中毒', 'evil'), seatsOr(st.poisonList), st.drunkList?.length > 0 && [sep, w('醉酒', 'evil'), seatsOr(st.drunkList)],
       h('i', { class: 'op-sep' }), w('保護', 'good'), seatsOr(st.protectList))],
-    B('天亮 · 公佈死訊', () => ctx.st('dawn'), 'primary big', true));
+    B('天亮，公佈死訊', () => ctx.st('dawn'), 'primary big', true));
 }
 
 // 結束白天前說清楚會發生什麼，避免誤點直接入夜
 function endDayButton(ctx) {
   const s = ctx.state, nom = s.nomination, block = s.block && seatLabel(s, s.block.nomineeId);
   const [label, msg] = nom ? ['結算並結束白天', '結算當前投票，然後結束白天？']
-    : block && !s.dayOver ? [`結束白天 · 處決${block}`, `處決 ${block}，然後入夜？`]
-      : ['結束白天 · 入夜', s.dayOver ? '結束白天並入夜？' : '今天沒有人被處決。確定結束白天、直接入夜？'];
+    : block && !s.dayOver ? [`處決${block}，入夜`, `處決 ${block}，然後入夜？`]
+      : ['結束白天，入夜', s.dayOver ? '結束白天並入夜？' : '今天沒有人被處決。確定結束白天、直接入夜？'];
   return B(label, () => ask(msg, () => ctx.st('next'), label), nom ? 'ghost' : 'primary big', !nom);
 }
 
@@ -237,7 +235,9 @@ export function playerFlow(ctx) {
 // 玩家：圓桌中央在「第 N 天」下面放的東西——輪到自己行動時的選人和確認、準備階段的離開 / 改名、昨晚死訊、管家的主人
 export function playerCenter(ctx) {
   const s = ctx.state, me = s.seats.find(x => x.mine);
-  if (s.isSt || s.peek || !me) return null;
+  if (s.isSt || s.peek) return null;
+  // 觀戰的人：準備階段有空位就能入座
+  if (!me) return s.phase === 'lobby' && s.seats.length < 15 && !s.locked ? h('div', { class: 'cx' }, h('div', { class: 'row' }, B('入座', () => ctx.sit(), 'primary'))) : null;
   if (s.prompt && sel.on) return turnPane(ctx);
   if (s.phase === 'lobby') return h('div', { class: 'cx' }, h('div', { class: 'row' }, B('離開房間', () => ctx.act('leave').then(() => ctx.leave()), 'ghost sm'),
     B('改名', () => prompt2('你的暱稱', me.name, name => { if (name) { ctx.ls.set('botc.name', name); ctx.act('rename', { name }); } }, { max: 12 }), 'sm')));
@@ -249,7 +249,7 @@ export function playerCenter(ctx) {
 function turnPane(ctx) {
   // 這一步的角色（理髮師死後惡魔替他選人時是理髮師）
   const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = ACTS[rid];
-  const say = a ? a.say : [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
+  const say = a?.say || [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
   return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : '') },
     h('div', { class: 'tp-head' }, rid && roleToken(rid), rid && h('span', { class: 'tp-ico' }, actIcon(rid))),
     h('div', { class: 'tp-say' }, say.map((t, i) => (i % 2 ? h('b', {}, `「${t}」`) : t))),

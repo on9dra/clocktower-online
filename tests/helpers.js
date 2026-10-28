@@ -5,6 +5,7 @@ import { applyStOp, applyPlayerAction, joinPlayer } from '../lib/ops.js';
 
 export function setup(roles) {
   const room = createRoom();
+  room.settings.pretend = false; // 規則測試不等假裝叫醒（engine.test.js 和 flow.test.js 裏另外測）
   roles.forEach((_, i) => joinPlayer(room, 'p' + i, 'n' + i));
   applyStOp(room, { op: 'next' });
   room.seats.forEach((s, i) => Object.assign(s, { role: roles[i], fakeRole: null }));

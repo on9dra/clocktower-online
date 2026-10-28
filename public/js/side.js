@@ -128,7 +128,8 @@ export function chatUnread(s) {
 
 // [鍵, 側欄標籤, 手機短標籤]
 const tabsOf = s => (s.isSt ? [['flow', '流程', '流程'], ['log', '遊戲日誌', '日誌'], ['dm', '私聊', '私聊'], ['sheet', '角色表', '角色']]
-  : [['log', '遊戲日誌', '日誌'], ['st', '說書人', '說書人'], ['sheet', '角色表', '角色']]);
+  : s.myId ? [['log', '遊戲日誌', '日誌'], ['st', '說書人', '說書人'], ['sheet', '角色表', '角色']]
+    : [['log', '遊戲日誌', '日誌'], ['sheet', '角色表', '角色']]); // 觀戰的人不能私聊
 const unreadBadge = n => n > 0 && h('i', { class: 'count' }, n > 99 ? '99+' : n);
 // 標籤上的未讀：日誌算公告，說書人標籤算和說書人的私聊，私聊收件箱算所有私聊
 const tabUnread = (k, byCh) => (k === 'log' ? byCh.all?.n || 0 : k === 'st' ? byCh.st?.n || 0
@@ -270,10 +271,10 @@ export const markView = k => (k.r ? h('span', { class: 'pm' + (k.q ? ' q' : '') 
 function seatMarks(ctx, id) {
   const s = ctx.state;
   if (s.isSt) return [];
-  const g = guesses(ctx)[id];
+  const own = !s.peek, g = own && guesses(ctx)[id]; // 代入視角不帶說書人本機的猜測和備註
   return [g && h('span', { class: 'pm q', title: '你的猜測' }, mini(g)),
     ...(infoMarksBySeat(s)[id] || []).map(markView),
-    ...(notes(ctx)[id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t))].filter(Boolean);
+    ...(own && notes(ctx)[id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t))].filter(Boolean);
 }
 
 function renderSheet(ctx) {

@@ -210,6 +210,24 @@ console.log('規則測試全部通過 ✔');
   assert.deepStrictEqual(msg.marks.map(m => m.seatId).sort(), [S(r, 'imp').id, S(r, 'soldier').id].sort());
   console.log('信息座位標記 ✔');
 }
+// 惡魔信息裏的三個偽裝：只有惡魔的視角帶著（左下角偽裝卡），爪牙和善良玩家沒有；換成善良角色後收起
+{
+  const { viewFor } = await import('../lib/view.js');
+  const r = setup(['imp', 'poisoner', 'chef', 'soldier', 'saint', 'monk', 'empath']);
+  r.g.bluffs = ['mayor', 'virgin', 'slayer'];
+  const { run } = await import('../lib/engine.js');
+  r.phase = 'night'; r.g.night = 1; r.g.queue = [{ roleId: 'demoninfo', at: 9 }];
+  run(r);
+  const v = role => viewFor(r, { pid: S(r, role).pid }).bluffs;
+  assert.deepStrictEqual(v('imp'), ['mayor', 'virgin', 'slayer']);
+  assert.strictEqual(v('poisoner'), null);
+  assert.strictEqual(v('chef'), null);
+  r.g.bluffs = ['ravenkeeper', 'undertaker', 'recluse'];
+  assert.deepStrictEqual(v('imp'), ['mayor', 'virgin', 'slayer'], '說書人改了偽裝，惡魔看到的還是當時告訴他的');
+  S(r, 'imp').role = 'snakecharmer';
+  assert.strictEqual(v('snakecharmer'), null);
+  console.log('惡魔偽裝卡 ✔');
+}
 // 放棄本局：回到準備階段，玩家保留
 {
   const r = setup(['monk', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);

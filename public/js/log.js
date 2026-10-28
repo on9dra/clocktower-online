@@ -22,8 +22,8 @@ function actRow(s, e) {
 function body(s, e) {
   switch (e.k) {
     case 'setup': return formula(s, [{ grim: e.grim }]);
-    case 'bluffs': return [tag('bluff'), e.bluffs.map(r => named(r)), h('i', { class: 'op-br' }),
-      named('fortuneteller'), w('紅鯡魚'), e.herring && seatBadge(s, e.herring)];
+    case 'bluffs': return [tag('bluff'), e.bluffs.map(r => named(r)),
+      e.herring && [h('i', { class: 'op-br' }), named('fortuneteller'), w('紅鯡魚'), seatBadge(s, e.herring)]];
     case 'act': return [mini(e.src), seatBadge(s, e.seat), actRow(s, e)];
     case 'info': return [mini(e.src), seatBadge(s, e.seat), e.free && w('中毒/醉酒', 'evil'),
       h('span', { class: 'lv lv' + e.level }, formula(s, e.f))];

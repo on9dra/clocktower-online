@@ -3,8 +3,8 @@ let ac = null, master = null, bus = null;
 const LS = 'botc.mute', PREFS = 'botc.sfx';
 export const muted = () => { try { return localStorage.getItem(LS) === '1'; } catch { return false; } };
 export function setMuted(v) { try { localStorage.setItem(LS, v ? '1' : ''); } catch { /* 忽略 */ } }
-// 設置：vol 音量 0–1；fw 煙花；fwSound 煙花聲；art 新美術（index.html 開頭也直接讀這一項）
-const DEF = { vol: 0.8, fw: true, fwSound: true, art: true };
+// 設置：vol 音量 0–1；fw 煙花；fwSound 煙花聲
+const DEF = { vol: 0.8, fw: true, fwSound: true };
 export function prefs() { try { return { ...DEF, ...JSON.parse(localStorage.getItem(PREFS) || '{}') }; } catch { return { ...DEF }; } }
 export function setPref(k, v) {
   const p = { ...prefs(), [k]: v };

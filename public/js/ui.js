@@ -20,7 +20,13 @@ export function h(tag, attrs = {}, ...kids) {
     if (kid == null || kid === false) continue;
     el.append(kid instanceof Node ? kid : document.createTextNode(tr(String(kid))));
   }
+  if (tag === 'button') label(el);
   return el;
+}
+// 按鈕的提示和讀屏名字：主操作（data-hot，回車觸發，見 app.js）懸停寫快捷鍵；只有圖標 / 符號的按鈕把 title 當作讀屏名字
+function label(el) {
+  if (el.hasAttribute('data-hot') && !el.title) el.title = tr('快捷鍵：回車');
+  if (!el.hasAttribute('aria-label') && el.title && !/[\p{L}\p{N}]/u.test(el.textContent)) el.setAttribute('aria-label', el.title);
 }
 
 // 把頁面上已有的節點 a 更新成新構造的 b：盡量複用節點，保留焦點、滾動、輸入內容和正在播放的動畫

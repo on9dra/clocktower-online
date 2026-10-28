@@ -148,5 +148,93 @@ import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
   r.g.redHerring = S(r, 'chef').id;
   const step = await runOnly(r, 'spy');
   assert.ok(step.form.text.includes('紅鯡魚') && step.form.text.includes('惡魔偽裝'));
+  // 式子裏每個座位帶完整的提示標記（不只中毒）
+  const grim = step.form.f[0].grim, chef = grim.find(x => x[0] === S(r, 'chef').id);
+  assert.ok(chef[2].tags.includes('紅鯡魚'), '間諜的魔典式子帶紅鯡魚');
+}
+// A14 沒有占卜師就不分配紅鯡魚；局中途出現占卜師時補一個
+{
+  const { drawRoles } = await import('../lib/setup.js');
+  const { createRoom } = await import('../lib/store.js');
+  const { joinPlayer } = await import('../lib/ops.js');
+  for (let k = 0; k < 30; k++) {
+    const room = createRoom();
+    for (let i = 0; i < 8; i++) joinPlayer(room, 'q' + i, 'n' + i);
+    assert.strictEqual(drawRoles(room), undefined);
+    const ft = room.seats.some(s => s.role === 'fortuneteller' || s.fakeRole === 'fortuneteller');
+    assert.strictEqual(!!room.g.redHerring, ft, '紅鯡魚只在有占卜師時分配');
+  }
+  const r = setup(['washerwoman', 'imp', 'chef', 'soldier', 'saint', 'monk']);
+  r.phase = 'day';
+  ok(st(r, 'setRole', { seatId: S(r, 'chef').id, roleId: 'fortuneteller' }));
+  const rh = r.seats.find(s => s.id === r.g.redHerring);
+  assert.ok(rh && rh.role !== 'imp' && rh.role !== 'fortuneteller', '換出占卜師後補紅鯡魚');
+}
+// A15 機器人按座位號起名
+{
+  const { createRoom } = await import('../lib/store.js');
+  const { joinPlayer } = await import('../lib/ops.js');
+  const room = createRoom();
+  joinPlayer(room, 'h1', '真人');
+  ok(st(room, 'addBots', { count: 6 }));
+  assert.deepStrictEqual(room.seats.map(s => s.name), ['真人', '機器人2', '機器人3', '機器人4', '機器人5', '機器人6', '機器人7']);
+  ok(st(room, 'kick', { seatId: room.seats[2].id }));
+  ok(st(room, 'moveSeat', { seatId: room.seats[0].id, dir: 1 }));
+  room.seats.forEach((s, i) => s.name !== '真人' && assert.strictEqual(s.name, `機器人${i + 1}`));
+}
+// A16 夜晚順序表：不在場、死了、一下子做完的角色都假裝叫醒一會兒；玩家的進度條只有劇本順序
+{
+  const { nightProgress, pretendTick, PRETEND_MS } = await import('../lib/engine.js');
+  const { viewFor } = await import('../lib/view.js');
+  const r = setup(['empath', 'monk', 'imp', 'poisoner', 'chef', 'saint', 'butler']);
+  r.settings.pretend = true;
+  r.seats[0].dead = true; // 共情者死了，今晚不醒
+  startNight(r); // 第 2 夜（setup 跳過了首夜）
+  const order = r.g.order, step = () => r.g.step;
+  assert.deepStrictEqual(order.slice(0, 4), ['poisoner', 'monk', 'imp', 'ravenkeeper'], '按官方順序，不在場的守鴉人也佔一格');
+  assert.ok(!order.includes('washerwoman') && !order.includes('chef'), '只在首夜行動的不在第二夜的表裏');
+  act(r, 'poisoner', [S(r, 'chef').id]);
+  act(r, 'monk', [S(r, 'chef').id]);
+  act(r, 'imp', [S(r, 'saint').id]);
+  assert.strictEqual(step().status, 'fake');
+  assert.strictEqual(step().roleId, 'ravenkeeper');
+  assert.strictEqual(step().why, 'absent');
+  const d = step().due - Date.now();
+  assert.ok(d > PRETEND_MS[0] - 100 && d <= PRETEND_MS[1], '停幾秒，像有人在選');
+  assert.ok(pl(r, 'butler', 'pick', { ids: [S(r, 'chef').id] }), '假裝期間誰也不能行動');
+  // 玩家：只有角色順序，看不出守鴉人不在場；說書人：這一格標成假的
+  const pv = viewFor(r, { pid: S(r, 'chef').pid }).prog, sv = viewFor(r, { st: true }).prog;
+  assert.deepStrictEqual(pv.order[3], { r: 'ravenkeeper' });
+  assert.strictEqual(pv.at, 3);
+  assert.ok(sv.order[3].fake && !sv.order[1].fake && sv.order[1].seats[0] === S(r, 'monk').id);
+  assert.ok(sv.order[order.indexOf('empath')].fake, '死了的共情者今晚不醒');
+  ok(st(r, 'pretend'));
+  assert.strictEqual(step().status, 'fake', '送葬者也不在場');
+  // 到點自動往下走
+  step().due = Date.now() + 5;
+  const at = r.g.beat.roleId;
+  await new Promise(res => pretendTick(r, () => res()));
+  assert.notStrictEqual(r.g.beat?.roleId, at, '到點自動繼續');
+  // 走完：每一格都停過
+  for (let i = 0; i < 40 && !atReview(r); i++) {
+    if (step().status === 'fake') ok(st(r, 'pretend'));
+    else if (step().status === 'choose') act(r, r.seats.find(s => s.id === step().seatId).role, [S(r, 'monk').id]);
+    else ok(st(r, 'confirm', { fields: step().form.truth }));
+  }
+  assert.ok(atReview(r));
+  assert.strictEqual(nightProgress(r, false).at, order.length);
+}
+// A17 首夜表：首夜不行動的角色（小惡魔、僧侶）不出現；爪牙 / 惡魔信息照發，但不佔格
+{
+  const { createRoom } = await import('../lib/store.js');
+  const { joinPlayer } = await import('../lib/ops.js');
+  const room = createRoom();
+  for (let i = 0; i < 8; i++) joinPlayer(room, 'f' + i, 'n' + i);
+  ok(st(room, 'next'));
+  const o = room.g.order;
+  assert.ok(!o.includes('imp') && !o.includes('monk') && !o.includes('minioninfo') && !o.includes('demoninfo'), o.join());
+  assert.ok(o.includes('washerwoman') && o.indexOf('poisoner') === 0, '首夜從投毒者開始');
+  const demon = room.seats.find(s => s.role === 'imp');
+  assert.ok(room.chat.some(m => m.to === demon.id && m.text.includes('你的爪牙')), '惡魔信息照常發出');
 }
 console.log('新規則測試通過 ✔');

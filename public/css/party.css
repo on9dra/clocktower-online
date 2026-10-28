@@ -92,11 +92,6 @@
 .pc-gain.trophy { color: var(--brass); border-color: var(--brass); }
 .fx-chip.egg { color: var(--ink); }
 
-/* 桌布上的天（town.js feltSky）：夜裏桌布上留幾顆星 */
-.felt-sky { position: absolute; inset: 7%; z-index: 0; border-radius: 50%; overflow: hidden; pointer-events: none; }
-.fs-stars i { position: absolute; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: #fff3cf; opacity: 0; transition: opacity .4s ease; }
-.fs-stars i:nth-child(3n) { width: 6px; height: 6px; margin: -3px; }
-body[data-phase="night"] .fs-stars i { opacity: .7; transition: opacity .5s ease calc(var(--i) * 70ms); }
 
 /* 可以跳過的演出（翻角色牌、「第 N 夜」）：右下角一枚「跳過」，點哪裏都行 */
 #stage.skippable { cursor: pointer; }

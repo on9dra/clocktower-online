@@ -79,7 +79,7 @@ export function ensureScene() {
   if (document.getElementById('scene')) return;
   const L = cls => h('div', { class: 'layer ' + cls });
   document.body.prepend(h('div', { id: 'scene', 'aria-hidden': 'true' },
-    L('sky'), L('stars'), L('stars stars-2'), L('moon'), L('sun'), L('sun-disk'),
+    L('sky'), L('stars'), L('moon'), L('sun'), L('sun-disk'),
     L('skyline skyline-day'), L('skyline skyline-night'), L('candle')));
 }
 

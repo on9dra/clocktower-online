@@ -9,7 +9,6 @@ body::after { content: ""; position: fixed; inset: 0; z-index: 2; pointer-events
 .sky::before { background: linear-gradient(#5d6787 0%, #c99a7c 62%, #e6c49a 100%); } /* 黎明 */
 .sky::after { background: linear-gradient(#141826 0%, #232a3f 60%, #2f3550 100%); }  /* 夜晚 */
 .stars { background: url(../img/stars.svg) top center / cover; opacity: 0; }
-.stars-2 { background-position: 37% 12%; transform: scale(1.3) rotate(8deg); }
 /* 太陽、月亮在桌面右上角那塊空處（側欄另算）：入夜時太陽沉到小鎮後面、月亮從下面升起，天亮反過來。
    位置跟著 body[data-phase] 過渡，什麼時候切由 fx.js 的入夜 / 天亮演出按節拍決定（dusk 是日落那一拍） */
 :root { --side-w: 340px; }
@@ -36,7 +35,6 @@ body[data-phase="dawn"] #scene .sun-disk { transform: translate(-2vw, 50vh); bac
 body[data-phase="night"] .sky::after, body[data-phase="night"] .stars, body[data-phase="night"] .moon,
 body[data-phase="night"] .skyline-night { opacity: 1; }
 body[data-phase="night"] .skyline-day, body[data-phase="night"] .sun { opacity: 0; }
-body[data-phase="night"] .stars-2 { opacity: .7; animation: twinkle 4s ease-in-out infinite alternate; }
 body[data-phase="dawn"] .sky::before { opacity: 1; }
 body[data-phase="dawn"] .stars { opacity: .25; }
 body[data-phase="dawn"] .skyline-night { opacity: .8; }
@@ -46,10 +44,11 @@ body[data-phase="dusk"] .stars { opacity: .12; }
 body[data-phase="dusk"] .skyline-day { opacity: .55; }
 body[data-phase="dusk"] .skyline-night { opacity: .35; }
 body[data-phase="dusk"] .ring::before { background-color: #d79c7488; }
+/* 大廳只有紙面，不放天空和小鎮 */
+body:has(.lobby) #scene { display: none; }
 /* 首次載入 / 換視角時直接是當前的天色，不播過渡 */
 body.sky-instant *, body.sky-instant *::before, body.sky-instant *::after { transition: none !important; }
 body.my-turn[data-phase="night"] .candle { opacity: 1; animation: flicker 2.6s ease-in-out infinite; }
-@keyframes twinkle { from { opacity: .15; } to { opacity: .8; } }
 @keyframes flicker { 0%, 100% { filter: brightness(1); } 40% { filter: brightness(1.25); } 70% { filter: brightness(.9); } }
 
 /* 桌面：中央一張圓形的「小鎮廣場」墊子 */
@@ -127,19 +126,25 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .pmark.act.brass { background: var(--brass); }
 @media (max-width: 860px) { .pmarks { max-width: 80px; } .pmark { font-size: 10px; padding: 0 3px; } }
 
-/* 說書人夜晚操作卡：浮在正在行動的座位旁 */
-.step-bubble { position: absolute; z-index: 6; width: min(340px, 46%); max-height: 62%; overflow: auto;
-  border-radius: 6px; box-shadow: 0 10px 30px #0006; }
-.step-bubble.fresh { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
+/* 說書人的操作卡：側欄頂上（手機在桌面和操作塢之間），不蓋座位；正在行動的座位外圈金線擴散 */
+.st-card { grid-area: card; z-index: 6; min-width: 0; max-height: 64vh; overflow: auto; padding: 10px 10px 2px; background: var(--paper); border-left: 1.5px solid var(--ink); }
+.st-card > .card { margin: 0; box-shadow: 0 6px 18px #2a262233; }
+.st-card.fresh > .card { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
+/* 假裝叫醒：月亮 + 「假裝叫醒」+ 慢慢縮短的計時條（到點自動繼續） */
+.infocard.pretend .ic-head .rn .token { border-style: dashed; }
+.pt-row { display: flex; align-items: center; gap: 6px; margin: 4px 0 10px; }
+.pt-moon { width: 18px; height: 18px; color: var(--brass); flex: none; }
+.pt-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.pt-bar > i { display: block; height: 100%; background: var(--brass); transition: width .5s linear; }
+.token.xs.ghost { border-style: dashed; opacity: .6; }
 @keyframes bubble-in { from { scale: .92; rotate: -1.5deg; opacity: 0; } }
-.step-bubble .card { margin: 0; }
+.game.has-card .side { padding-top: 6px; }
 .seat.acting .token { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 3px var(--card), 0 0 0 6px var(--brass); }
 .seat.acting .seat-token::after { content: ""; position: absolute; inset: -6px; border: 2px solid var(--brass); border-radius: 50%; pointer-events: none;
   animation: acting 1.8s ease-out infinite; }
 @keyframes acting { from { transform: scale(1); opacity: .9; } 70%, to { transform: scale(1.45); opacity: 0; } }
 @media (max-width: 860px) {
-  /* .town 是尺寸容器，fixed 以桌面區為準：卡片貼在桌面區底部，不擋操作塢 */
-  .step-bubble { position: fixed; left: 6px !important; right: 6px; top: auto !important; bottom: 6px; width: auto; max-height: 72%; transform: none !important; }
+  .st-card { max-height: 46vh; max-height: 46dvh; padding: 6px 6px 0; border-left: 0; border-top: 1.5px solid var(--ink); background: var(--card); }
 }
 
 /* 白天的裁定卡：金色雙框 + 標題；按規則應有的結果是主按鈕、帶 ✓。裁定的另一方座位紅色虛線圈 */
@@ -151,7 +156,6 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .infocard.ruling .btn .ico { width: 15px; height: 15px; margin-right: 4px; }
 .seat.ruled .token { outline: 3px dashed var(--evil); outline-offset: 4px; }
 /* 貞潔者小窗：投票照常進行，卡片縮小、不帶計時圖標 */
-.step-bubble.side { left: 0; top: 0; z-index: 9; width: auto; max-width: 300px; }
 .infocard.ruling.side { padding: 10px 12px; gap: 6px; }
 .infocard.ruling.side .rule-k { font-size: 14px; }
 .infocard.ruling.side .dock-frm { font-size: 18px; }

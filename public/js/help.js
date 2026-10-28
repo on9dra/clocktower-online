@@ -46,10 +46,10 @@ const dwindle = (n, left) => h('span', { class: 'hp-dots' }, Array.from({ length
 
 const GOAL = () => sec('goal', 'trophy', '目標', '誰會贏？',
   scene('hp-vs',
-    team('good', '善良', '鎮民 · 外來者', ['washerwoman', 'empath', 'chef', 'saint'],
+    team('good', '善良', '鎮民和外來者', ['washerwoman', 'empath', 'chef', 'saint'],
       h('span', { class: 'hp-row' }, icon('noose'), mini('imp'), h('b', {}, '處決惡魔'))),
     h('span', { class: 'hp-vs-k' }, 'VS'),
-    team('evil', '邪惡', '爪牙 · 惡魔', ['poisoner', 'spy', 'imp'],
+    team('evil', '邪惡', '爪牙和惡魔', ['poisoner', 'spy', 'imp'],
       h('span', { class: 'hp-row' }, dwindle(7, 2), h('b', {}, '只剩 2 人存活')))),
   grid('two',
     card('fact', big('mask'), say('角色是秘密', '可以說真話，也可以說謊')),
@@ -139,8 +139,8 @@ const EGGS = () => sec('egg', 'egg', '獎勵', '贏了有什麼',
       say('隨時扔雞蛋', '點別人的座位「扔雞蛋」，扔一枚少一枚；點頂欄的雞蛋數看積分榜'))));
 
 // 一屏的地圖：各區域在哪（手機上側欄收進頂欄的標籤）
-const ZONES = [['top', '頂欄', '雞蛋 · 靜音 · 規則 · ⋯', '雞蛋 · 日誌 · 角色表 · ⋯'], ['hud', '你的牌', '角色 · 能力 · 每晚信息'],
-  ['ring', '圓桌', '點座位'], ['side', '側欄', '日誌 · 說書人 · 角色表'], ['dock', '操作塢', '現在該做什麼']];
+const ZONES = [['top', '頂欄', '雞蛋、靜音、規則、更多', '雞蛋、日誌、角色表、更多'], ['hud', '你的牌', '角色、能力、每晚的信息'],
+  ['ring', '圓桌', '點座位'], ['side', '側欄', '日誌、說書人、角色表'], ['dock', '操作塢', '現在該做什麼']];
 const MENU_P = [[icon('egg', 'menu-ico'), '扔雞蛋', h('b', { class: 'menu-n' }, 3)], '提名他', '宣稱獵手：向他開槍', '私聊', '標記角色猜測', '加備註'];
 const OPS = () => sec('ops', 'tap', '操作', '網頁怎麼用',
   scene('hp-map', h('div', { class: 'hp-screen' }, ZONES.map(([k, name, sub, m], i) => nth(i, h('div', { class: 'z z-' + k },
@@ -180,7 +180,9 @@ const WAKE = ['poisoner', 'monk', 'imp', 'ravenkeeper', 'empath', 'fortuneteller
 const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && h('i', { class: 'tm' }, '真'));
 const NIGHT = () => sec('night', 'moon', '夜晚', '夜晚',
   scene('hp-wake', WAKE.map((r, i) => nth(i, h('span', { class: 'hp-w' + (i < 3 ? ' done' : i === 3 ? ' cur' : '') }, tok(r), i < 3 && icon('check', 'hp-ok'))))),
-  h('p', { class: 'hp-lead' }, '按官方順序逐個喚醒，操作卡浮在被喚醒的座位旁'),
+  h('p', { class: 'hp-lead' }, '按官方順序逐個喚醒，操作卡在右側欄頂上，被喚醒的座位外圈亮金線'),
+  card('how', pic(h('span', { class: 'hp-row' }, mini('ravenkeeper', 'ghost'), w('不在場'), icon('moon', 'pt-moon'), w('假裝叫醒'), fake('繼續', 'primary'))),
+    say('不在場的角色', '也輪一次：停幾秒自動繼續，玩家看不出誰不在場。底部進度條上是虛線')),
   grid('two',
     card('how', pic(h('span', { class: 'hp-row' }, mini('poisoner'), w('等玩家選')), h('span', { class: 'hp-row' }, fake('代為選擇', 'ghost'), fake('跳過', 'ghost'))),
       say('要選人的角色', '玩家在手機上選；離線時你代為選擇或跳過')),
@@ -199,7 +201,7 @@ const NIGHT = () => sec('night', 'moon', '夜晚', '夜晚',
     card('how', pic(h('span', { class: 'tags hp-tagrow' }, ['中毒', '被保護', '酒鬼', '紅鯡魚', '能力已用'].map(t => h('span', { class: 'tag' + (t === '中毒' ? ' bad' : '') }, t)))),
       say('座位下的小標籤', '還有洗衣婦等角色得到的信息'))),
   card('wide dawn', pic(h('span', { class: 'hp-row' }, h('span', { class: 'hp-yn' }, icon('skull'), '死亡'), h('span', { class: 'hp-yn' }, icon('drop', 'poison'), '中毒'),
-    h('span', { class: 'hp-yn' }, icon('shield', 'good'), '保護')), fake('天亮 · 公佈死訊', 'primary', 'sun')),
+    h('span', { class: 'hp-yn' }, icon('shield', 'good'), '保護')), fake('天亮，公佈死訊', 'primary', 'sun')),
     say('天亮前確認', '夜晚最後停在這裏：核對、需要時糾錯，再按「天亮」')));
 
 const SDAY = () => sec('sday', 'sun', '白天', '白天',
@@ -209,10 +211,10 @@ const SDAY = () => sec('sday', 'sun', '白天', '白天',
       say('倒數 5 分鐘', '到點按當前舉手結算；審判牌上可以暫停 / 重置')),
     h('li', {}, h('span', { class: 'hp-pic hp-row' }, fake('立即計票', 'primary'), fake('按當前舉手結算'), fake('取消提名', 'ghost')),
       say('也可以由你推進', '「立即計票」先給所有人彈提示，再順時針數票，走完自動結算；取消提名後雙方今天可以重新提名 / 被提名')),
-    h('li', {}, h('span', { class: 'hp-pic' }, fake('結束白天 · 處決5號', 'primary')),
+    h('li', {}, h('span', { class: 'hp-pic' }, fake('處決5號，入夜', 'primary')),
       say('結束白天', '按鈕上寫清將處決誰 / 無人處決，確認後入夜'))));
 
-const AUTO = [['poisoner', '投毒'], ['monk', '保護'], ['soldier', '免疫'], ['imp', '殺人 · 傳位'], ['scarletwoman', '接任'], ['mayor', '替死 · 三人勝'],
+const AUTO = [['poisoner', '投毒'], ['monk', '保護'], ['soldier', '免疫'], ['imp', '殺人、傳位'], ['scarletwoman', '接任'], ['mayor', '替死、三人勝'],
   ['ravenkeeper', '死亡喚醒'], ['undertaker', '得知處決'], ['virgin', '反噬'], ['slayer', '開槍'], ['butler', '投票限制'], ['saint', '處決即敗']];
 const AUTO_SEC = () => sec('auto', 'check', '自動', '系統幫你做的',
   scene('hp-auto', h('div', { class: 'hp-tokgrid' },
@@ -220,7 +222,7 @@ const AUTO_SEC = () => sec('auto', 'check', '自動', '系統幫你做的',
     nth(12, h('span', { class: 'hp-tk' }, h('span', { class: 'hp-icotok' }, icon('ticket')), h('small', {}, '死亡票'))),
     nth(13, h('span', { class: 'hp-tk' }, h('span', { class: 'hp-icotok' }, icon('trophy')), h('small', {}, '勝負判定')))),
     h('span', { class: 'hp-stamp brass' }, '自動')),
-  card('fact', big('quill'), say('黯月初升 · 夢殞春宵', '大多也自動；要你裁定時會停下來問。博學者、藝術家的問答等少數情況，用座位菜單「補發信息」')));
+  card('fact', big('quill'), say('黯月初升、夢殞春宵', '大多也自動；要你裁定時會停下來問。博學者、藝術家的問答等少數情況，用座位菜單「補發信息」')));
 
 const MENU_ST = ['代入他的視角', '私聊', '補發信息（彈窗告訴他）', '-', '更換角色', '設為中毒', '設為占卜師的紅鯡魚', '標記死亡（糾錯）', '立即處決（糾錯）'];
 const FIX = () => sec('fix', 'quill', '糾錯', '出錯了怎麼辦',

@@ -56,6 +56,7 @@ export const PATHS = {
   // 規則說明用：聊天氣泡、點一下（手指）、鎖、書、四角星（分隔線）
   talk: `<path ${F} d="M4 4h16a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 20 17h-9l-5 4.5V17H4a1.5 1.5 0 0 1-1.5-1.5v-10A1.5 1.5 0 0 1 4 4z"/>`,
   tap: `<path ${F} d="M9 4.5a1.8 1.8 0 0 1 3.6 0V11l4.6.9a2.4 2.4 0 0 1 1.9 2.7l-.8 5.2a2.6 2.6 0 0 1-2.6 2.2h-5.3a2.6 2.6 0 0 1-2.1-1.1L4.6 16a1.6 1.6 0 0 1 2.4-2.1L9 15.6z"/>`,
+  unlock: `<rect ${F} x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path ${S} d="M8 10.5V7.5a4 4 0 0 1 7.7-1.6"/>`,
   lock: `<rect ${F} x="4.5" y="10.5" width="15" height="10.5" rx="1.5"/><path ${S} d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>`,
   book: `<path ${F} d="M3 5c3.2-1.4 6.2-1.3 8.2.6V20c-2-1.6-5-1.8-8.2-.6zM21 5c-3.2-1.4-6.2-1.3-8.2.6V20c2-1.6 5-1.8 8.2-.6z"/>`,
   spark: `<path ${F} d="M12 1.5c.7 5.4 3.6 8.8 9.5 10.5-5.9 1.7-8.8 5.1-9.5 10.5-.7-5.4-3.6-8.8-9.5-10.5 5.9-1.7 8.8-5.1 9.5-10.5z"/>`,
@@ -137,10 +138,13 @@ function term(s, t) {
   if (t.op === 'br') return h('i', { class: 'op-br' });
   return icon(OPS[t.op] || 'to', 'op');
 }
-// 間諜看到的魔典：座位號 + 角色小牌（死亡變灰、中毒帶毒滴、酒鬼帶他以為的角色）
+// 間諜看到的魔典：座位號 + 角色小牌（死亡變灰、酒鬼帶他以為的角色），再加魔典上的提示標記：中毒毒滴、被保護盾牌，其餘寫字
+const GRIM_ICO = { 中毒: ['drop', 'poison'], 醉酒: ['drop', 'drunk'], 被保護: ['shield', 'good'] };
+const grimTag = t => (GRIM_ICO[t] ? h('span', { class: 'grim-ico', title: t }, icon(...GRIM_ICO[t])) : h('span', { class: 'grim-tag' + (t === '紅鯡魚' ? ' herring' : '') }, t));
 function grimGrid(s, rows) {
   return h('span', { class: 'grim' }, rows.map(([id, r, st = {}]) => h('span', { class: 'grim-cell' + (st.dead ? ' dead' : '') },
-    seatBadge(s, id), mini(r), st.fake && mini(st.fake, 'fake'), st.poison && icon('drop', 'poison'))));
+    seatBadge(s, id), mini(r), st.fake && mini(st.fake, 'fake'),
+    (st.tags || (st.poison ? ['中毒'] : [])).filter(t => t !== '死亡票已用').map(grimTag))));
 }
 
 export const formula = (s, terms, cls = '') => h('span', { class: 'frm ' + cls }, (terms || []).map(t => term(s, t)));
@@ -171,6 +175,8 @@ export const ACTS = {
   zombuul: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
   pukka: { ico: 'drop', tone: 'poison', mark: '中毒', say: ['選擇一名玩家，使其', '中毒', '，他明晚死亡'] },
   shabaloth: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇兩名玩家，使其', '死亡'] },
+  // 珀：可以不選人（下次殺三人），選人提示用這一步自己的說法（flow.js turnPane）
+  po: { ico: 'pitchfork', tone: 'evil', mark: '擊殺' },
   // 夢殞春宵
   dreamer: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名玩家，得知他可能的', '角色'] },
   snakecharmer: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名存活的玩家，如果是惡魔就', '交換身份'] },

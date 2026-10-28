@@ -1,20 +1,21 @@
 // 演示頁：用真實的界面模塊（桌面、側欄、私聊浮窗、操作塢、演出）渲染一份模擬對局，頂欄按步驟觸發場景。
 // 不連服務器：world 是整局的真實數據，按當前視角（玩家 / 說書人 / 代入某個玩家）裁剪成和服務端一樣的狀態。
-// 新功能加演示：往 SCENES 裏加一項，打開 /demo.html?s=場景名
-import { h, toast, morph, ask, roleToken } from './ui.js';
-import { renderTown } from './town.js';
+// 只放對局裏不好撞上的東西（要好幾個人一起投票、特定角色和狀態、終局、新美術素材）；開一局就能看到的界面不放這裏。
+// 加場景：往 SCENES 裏加一項，打開 /demo.html?s=場景名
+import { h, toast, morph } from './ui.js';
+import { renderTown, stCard } from './town.js';
 import { renderSide, sideCollapsed, renderChatWins } from './side.js';
 import { stFlow, playerFlow } from './flow.js';
+import { progressBar } from './progress.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
-import { renderHud, onInfo } from './hud.js';
+import { renderHud, renderBluffs, onInfo } from './hud.js';
 import { topbar } from './topbar.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { onEggs } from './egg.js';
-import { openBoard } from './scores.js';
-import { openSettings, applyArt } from './settings.js';
 import { EGG, MVP_DELAY, MVP_WINDOW } from './score.js';
 import { tr } from './lang.js';
-import { showHelp } from './help.js';
+import { renderLobby } from './lobby.js';
+import { openInvite } from './invite.js';
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -58,7 +59,7 @@ const setRoles = roles => world.seats.forEach((x, i) => { x.role = roles[i]; });
 
 // 按視角裁剪（和 lib/view.js 一致）：說書人看全部角色、玩家之間的私聊只看到「誰私聊了誰」、夜裏的死亡天亮才公佈、演出按觀眾分發
 function viewOf() {
-  const isSt = !!who.st, myId = isSt ? null : who.me || who.peek;
+  const isSt = !!who.st, myId = isSt ? null : who.me || who.peek || null; // 都沒有：觀戰
   const alive = world.seats.filter(x => !x.dead).length;
   const me = world.seats.find(x => x.id === myId);
   const shown = x => x.dead && !(!isSt && world.phase === 'night' && world.diedTonight.includes(x.id));
@@ -66,12 +67,14 @@ function viewOf() {
   const score = x => { const p = world.players[x.id]; return { crown: res?.winners.includes(x.id) ? res.team : null,
     mvp: !!(sameGame && m?.done && m.winners.includes(x.id)), wins: p.wins, mvps: p.mvp, eggs: p.eggs }; };
   return {
-    code: 'DEMO', gameId: 'demo', isSt, myId, serverNow: Date.now(), stOnline: true, scriptId: world.scriptId,
+    code: world.code || 'DEMO', inst: world.inst || '', locked: !!world.locked, watchers: world.watchers || 0,
+    gameId: 'demo', isSt, myId, serverNow: Date.now(), stOnline: true, scriptId: world.scriptId,
     phase: world.phase, night: world.night, day: world.day,
-    seats: world.seats.map(x => ({ id: x.id, name: x.name, online: true, dead: shown(x), deathBy: shown(x) ? x.deathBy || null : null, voteUsed: x.voteUsed, mine: x.id === myId, bot: false, ...score(x),
-      ...(isSt || world.phase === 'ended' ? { role: x.role, fakeRole: x.fakeRole || null, tags: [] } : {}) })),
+    seats: world.seats.map(x => ({ id: x.id, name: x.name, online: true, dead: shown(x), deathBy: shown(x) ? x.deathBy || null : null, voteUsed: x.voteUsed, mine: x.id === myId, bot: !!x.bot, ...score(x),
+      ...(isSt || world.phase === 'ended' ? { role: x.role, fakeRole: x.fakeRole || null, tags: x.tags || [] } : {}) })),
     myRole: me ? (me.role === 'drunk' ? me.fakeRole : me.role) : null, master: null, slayerUsed: world.shotEver.includes(myId),
     prompt: !isSt && world.prompt && world.prompt.seatId === myId ? world.prompt : null,
+    prog: world.phase === 'night' ? progOf(isSt) : null,
     nomination: world.nomination && !isSt ? { ...world.nomination, abstain: world.nomination.abstain[myId] ? { [myId]: true } : {} } : world.nomination,
     required: Math.ceil(alive / 2),
     lastNight: world.lastNight, history: world.history, ...blockOf(),
@@ -83,16 +86,18 @@ function viewOf() {
       mine: m.votes[isSt ? 'st' : myId] || null, winners: m.winners, tally: m.done ? m.tally : null } : null,
     fireworks: myId && sameGame && (world.phase === 'ended' || world.phase === 'lobby') && res.winners.includes(myId) ? res.team : null,
     eggs: world.eggs,
-    st: isSt ? { step: world.step, log: [], bluffs: ['mayor', 'virgin', 'slayer'], queue: [], passed: [], draft: false, roleRules: {},
+    st: isSt ? { step: world.step, log: world.stLog || [], bluffs: ['mayor', 'virgin', 'slayer'], draft: false, roleRules: {}, banned: world.banned || 0,
       redHerring: null, poisoned: null, diedTonight: [], protected: null, ruling: world.ruling, virginCheck: world.virginCheck } : null,
     peek: who.peek ? { seatId: who.peek, label: label(who.peek) } : undefined,
   };
 }
 
-const ok = () => Promise.resolve({ ok: true });
+const ok = (extra = {}) => Promise.resolve({ ok: true, ...extra });
 const ctx = {
   state: null, ls: LS, offset: 0, now: () => Date.now(), leave() {},
   render: () => render(),
+  sit() { who = { me: ME }; refresh(); return ok(); },
+  close() { screen = 'lobby'; toast('房間已解散', 5000); refresh(); return ok(); },
   act(act, args = {}) {
     if (ctx.state.peek) { toast('代入視角中只能查看'); return Promise.resolve({ ok: false }); }
     const myId = ctx.state.myId;
@@ -126,6 +131,10 @@ const ctx = {
     else if (op === 'mvp') voteMvp('st', args.seatId);
     else if (op === 'next' && world.phase === 'ended') lobby();
     else if (op === 'next' && world.phase === 'lobby') startGame();
+    else if (op === 'lock') world.locked = !!args.on;
+    else if (op === 'seatLink') return ok({ token: '0123456789ab' });
+    else if (op === 'kick') { world.banned = (world.banned || 0) + 1; world.seats = world.seats.filter(x => x.id !== args.seatId); }
+    else if (op === 'unban') world.banned = 0;
     else if (op === 'pauseTimer') pauseTimer();
     else if (op === 'resetTimer') resetTimer();
     else toast('演示裏沒有這個操作');
@@ -340,46 +349,22 @@ function view(w) {
 }
 const resetDay = () => Object.assign(world, { nomination: null, history: [], dayOver: false });
 
+// ———— 夜晚進度條（和 lib/engine.js startNight / pretend / nightProgress 一致）————
+// 順序表：劇本上今晚行動的角色（首夜表只有首夜行動的，其他夜晚只有其他夜晚行動的；瘋子以惡魔的身份行動，不單獨佔一格）
+const actingOf = x => (x.role === 'drunk' || x.role === 'lunatic' ? x.fakeRole : x.role);
+const atOf = r => (world.night === 1 ? ROLES[r].first : ROLES[r].other);
+const nightOrder = () => [...new Set([...SCRIPTS[world.scriptId].roles, ...world.seats.map(actingOf).filter(Boolean)])]
+  .filter(r => r !== 'lunatic' && atOf(r) > 0).sort((a, b) => atOf(a) - atOf(b));
+const holders = r => world.seats.filter(x => actingOf(x) === r).map(x => x.id);
+const wakes = r => holders(r).some(id => !seatOf(id).dead);
+function progOf(isSt) {
+  const order = nightOrder(), step = world.step;
+  const at = step?.status === 'review' ? order.length : order.indexOf(world.beat || step?.roleId);
+  return { at, order: order.map(r => (isSt ? { r, seats: holders(r), fake: !wakes(r) } : { r })) };
+}
 // ———— 場景：每步一個按鈕，按順序點 ————
 const SCENES = {
-  log: {
-    title: '日誌',
-    steps: [
-      ['公告', () => say('st', 'all', '大家先別急著提名，每人輪流說一句')],
-      ['提名·得票', async () => {
-        nominate('s2', 's4'); refresh(); await wait(2600);
-        for (const id of ['s3', 's5', 's2', 's1']) { setVote(id, 'yes'); refresh(); await wait(250); }
-        await wait(400); closeVote();
-      }],
-      ['票不夠', async () => { nominate('s6', 's7'); refresh(); await wait(2600); setVote('s3', 'yes'); closeVote(); }],
-      ['處決', () => endDay()],
-      ['入夜', () => { Object.assign(world, { phase: 'night', night: world.night + 1 }); fx({ k: 'night', n: world.night }); sys(`第 ${world.night} 夜降臨，所有人閉眼。`, { k: 'night', n: world.night }); }],
-      ['天亮死人', () => { nightKill('s5'); dawn(); resetDay(); }],
-      ['開槍', () => { sys(`${label('s6')} 宣稱自己是獵手，向 ${label('s3')} 開槍……`, { k: 'slay', from: 's6', to: 's3' }); sys('什麼也沒有發生。', { k: 'slaymiss' }); }],
-      ['說書人私聊', () => say('st', ME, '你今晚想好選誰了嗎')],
-      ['善良勝', () => win('good', '惡魔被處決')],
-    ],
-  },
-  chat: {
-    title: '私聊',
-    steps: [
-      ['2號私聊', () => say('s2', ME, '今晚我們對一下信息？')],
-      ['說書人私聊', () => say('st', ME, '記得明天公佈你的信息')],
-      ['標註2號', () => {
-        LS.set('botc.guess.DEMO.demo', JSON.stringify({ s2: 'chef' }));
-        LS.set('botc.note.DEMO.demo', JSON.stringify({ s2: ['自稱廚師'] }));
-      }],
-      ['再來4人私聊', async () => {
-        for (const [id, t] of [['s3', '你是誰？'], ['s4', '我是共情者'], ['s5', '投他嗎？'], ['s6', '今晚保護誰']]) { say(id, ME, t); refresh(); await wait(500); }
-      }],
-      ['說書人收私聊', async () => {
-        who = { st: true }; refresh(); await wait(400);
-        say('s2', 'st', '我想問一下規則'); refresh(); await wait(500);
-        say('s4', 'st', '我能私聊你嗎');
-      }],
-      ['代入1號', async () => { who = { st: true }; say('st', ME, '代入前剛發的'); refresh(); await wait(500); who = { peek: ME }; }],
-    ],
-  },
+  // 提名、大家舉手、計票時鐘、上處決台 / 票不夠、處決、無人處決（要好幾個人一起投，自己一個人測不到）
   vote: {
     title: '提名與投票',
     steps: [
@@ -404,49 +389,12 @@ const SCENES = {
         await wait(500); closeVote();
       }],
       ['結束白天', () => endDay()],
+      ['無人處決', () => { resetDay(); endDay(); }],
     ],
   },
-  night: {
-    title: '夜晚',
-    init() {
-      setRoles(['poisoner', 'chef', 'imp', 'empath', 'fortuneteller', 'monk', 'saint']);
-      Object.assign(world, { phase: 'night', day: 0, night: 1, chat: world.chat.filter(m => !m.info) });
-    },
-    steps: [
-      ['開局', () => { fx({ k: 'role', role: 'poisoner' }, ME); fx({ k: 'night', n: 1 }); }],
-      ['輪到你', () => { world.prompt = { seatId: ME, stepId: 'p' + Date.now(), count: 1, notSelf: false }; }],
-      ['選人', () => pick(ME, ['s4'])],
-      ['毒·護', async () => {
-        view({ st: true });
-        grim('poisoner', 's1', 's4', 'poison'); refresh(); await wait(1600);
-        grim('monk', 's6', 's2', 'protect');
-      }],
-      ['擋刀', () => { view({ st: true }); grim('imp', 's3', 's2', 'blocked', { why: 'protect' }); }],
-      ['殺人', () => { view({ st: true }); nightKill('s4'); grim('imp', 's3', 's4', 'kill'); }],
-      ['失效', () => { view({ st: true }); grim('monk', 's6', 's7', 'fail'); }],
-      // 以為自己是僧侶的酒鬼：說書人卡片上只有「無效」
-      ['酒鬼僧侶', () => {
-        view({ st: true }); Object.assign(seatOf('s6'), { role: 'drunk', fakeRole: 'monk' });
-        world.step = { id: 'dm' + Date.now(), roleId: 'monk', seatId: 's6', status: 'decide', title: '僧侶', picks: ['s2'],
-          decide: { kind: 'ability', role: 'monk', targetId: 's6', why: '酒鬼', options: [{ id: 'fail', label: '無效' }] } };
-      }],
-      ['傳刀', async () => {
-        view({ st: true }); nightKill('s3'); grim('imp', 's3', 's3', 'starpass'); refresh(); await wait(1800);
-        view({ me: ME }); seatOf(ME).role = 'imp';
-        fx({ k: 'demon', role: 'imp' }, ME);
-        say('st', ME, '惡魔死亡，你現在是【小惡魔】。', { info: true, night: world.night, k: 'role', src: 'imp', f: [{ op: 'become' }, { r: 'imp' }] });
-      }],
-      ['天亮', () => { view({ me: ME }); dawn(); }],
-      ['平安夜', () => {
-        view({ me: ME });
-        world.diedTonight.forEach(id => { seatOf(id).dead = false; });
-        world.diedTonight = [];
-        dawn();
-      }],
-    ],
-  },
+  // 白天被動能力：獵手開槍、貞潔者被提名、鎮長勝利的說書人裁定（要湊齊角色和中毒狀態，對局裏不好撞上）
   day: {
-    title: '白天',
+    title: '裁定',
     init() { setRoles(['washerwoman', 'chef', 'imp', 'slayer', 'poisoner', 'virgin', 'saint']); },
     steps: [
       ['我是獵手', () => { resetDay(); Object.assign(world, { shotEver: [], slayerUsed: false, ruling: null, poisoned: null }); view({ me: ME }); setRoles(['slayer', 'chef', 'imp', 'empath', 'poisoner', 'virgin', 'saint']); }],
@@ -474,82 +422,54 @@ const SCENES = {
       ['獵手·中', () => { Object.assign(world, { ruling: null, slayerUsed: false, poisoned: null }); view({ st: true }); slay('s4', 's3'); }],
       ['獵手中毒', () => { Object.assign(world, { ruling: null, slayerUsed: false, poisoned: 's4' }); view({ st: true }); slay('s4', 's3'); }],
       ['假獵手', () => { Object.assign(world, { ruling: null, poisoned: null }); view({ st: true }); slay('s5', 's3'); }],
-      ['計票時鐘', async () => {
-        resetDay(); nominate('s5', 's7'); refresh(); await wait(2600);
-        for (const [id, v] of [['s1', 'yes'], ['s2', 'abstain'], ['s3', 'yes'], ['s4', 'yes'], ['s6', 'abstain'], ['s5', 'yes'], ['s7', 'abstain']]) { setVote(id, v); refresh(); await wait(250); }
-        await wait(500); startCount();
+    ],
+  },
+  // 說書人魔典上的夜晚結算演出（下毒、保護、擋刀、殺人、失效、酒鬼僧侶、傳刀）和天亮
+  night: {
+    title: '夜晚',
+    init() {
+      setRoles(['poisoner', 'chef', 'imp', 'empath', 'fortuneteller', 'monk', 'saint']);
+      // 第二夜：僧侶、小惡魔首夜不行動
+      Object.assign(world, { phase: 'night', day: 1, night: 2, beat: null, step: null, chat: world.chat.filter(m => !m.info) });
+    },
+    steps: [
+      ['開局', () => { fx({ k: 'role', role: 'poisoner' }, ME); fx({ k: 'night', n: 2 }); }],
+      ['輪到你', () => { world.beat = 'poisoner'; world.prompt = { seatId: ME, stepId: 'p' + Date.now(), count: 1, notSelf: false }; }],
+      ['選人', () => pick(ME, ['s4'])],
+      ['毒·護', async () => {
+        view({ st: true });
+        grim('poisoner', 's1', 's4', 'poison'); refresh(); await wait(1600);
+        world.beat = 'monk'; grim('monk', 's6', 's2', 'protect');
       }],
-      ['無人處決', () => { resetDay(); endDay(); }],
-    ],
-  },
-  // 開局拉幕；入夜、天亮時背景演日落 / 日出
-  start: {
-    title: '開局·日夜',
-    init() { lobby(); world.chat = world.chat.filter(m => m.e?.k === 'lobby'); },
-    steps: [
-      ['拉幕開局', () => { view({ me: ME }); startGame(); }],
-      ['天亮', () => { view({ me: ME }); dawn(); }],
-      ['入夜', () => { view({ me: ME }); toNight(); }],
-      ['天亮死人', () => { view({ me: ME }); nightKill('s5'); dawn(); resetDay(); }],
-      ['說書人開局', () => { lobby(); view({ st: true }); startGame(); }],
-    ],
-  },
-  // 終局結算（勝利積分、雞蛋）→ 贏家戴皇冠、自己桌上放煙花 → 30 秒 MVP 投票 → MVP 揭曉 → 回準備（煙花、皇冠還在）→ 開新局（煙花停，皇冠留到下一次分出勝負）
-  end: {
-    title: '終局',
-    steps: [
-      ['善良勝', () => { view({ me: ME }); win('good', '惡魔被處決'); }],
-      ['別人投 MVP', async () => {
-        for (const [v, id] of [['s2', ME], ['s3', 's3'], ['st', ME], ['s4', ME], ['s6', 's2']]) { voteMvp(v, id); refresh(); await wait(450); }
+      ['擋刀', () => { view({ st: true }); world.beat = 'imp'; grim('imp', 's3', 's2', 'blocked', { why: 'protect' }); }],
+      ['殺人', () => { view({ st: true }); world.beat = 'imp'; nightKill('s4'); grim('imp', 's3', 's4', 'kill'); }],
+      ['失效', () => { view({ st: true }); world.beat = 'monk'; grim('monk', 's6', 's7', 'fail'); }],
+      // 以為自己是僧侶的酒鬼：說書人卡片上只有「無效」
+      ['酒鬼僧侶', () => {
+        view({ st: true }); world.beat = 'monk'; Object.assign(seatOf('s6'), { role: 'drunk', fakeRole: 'monk' });
+        world.step = { id: 'dm' + Date.now(), roleId: 'monk', seatId: 's6', status: 'decide', title: '僧侶', picks: ['s2'],
+          decide: { kind: 'ability', role: 'monk', targetId: 's6', why: '酒鬼', options: [{ id: 'fail', label: '無效' }] } };
       }],
-      ['MVP 揭曉', () => closeMvp()],
-      ['回準備', () => lobby()],
-      ['開新局', () => { view({ me: ME }); startGame(); }],
-      ['邪惡勝', () => { view({ me: ME }); setRoles(ROSTER.map(r => r[1])); win('evil', '只剩兩名玩家存活'); }],
-      ['說書人看', () => { view({ st: true }); setRoles(ROSTER.map(r => r[1])); win('evil', '只剩兩名玩家存活'); }],
-    ],
-  },
-  // 扔雞蛋（點別人的座位 →「扔雞蛋」）、積分榜（點頂欄的雞蛋數）、設置（⋯ 菜單）
-  egg: {
-    title: '雞蛋',
-    steps: [
-      ['被扔', () => throwEgg('s3', ME)],
-      ['我扔3號', () => throwEgg(ME, 's3')],
-      ['亂扔一通', async () => {
-        for (const [a, b] of [['s2', 's5'], ['s4', 's3'], ['s6', 's3'], ['s7', ME], ['s5', 's3'], ['s3', 's2'], ['s6', 's7']]) { throwEgg(a, b); refresh(); await wait(280); }
+      ['傳刀', async () => {
+        view({ st: true }); nightKill('s3'); grim('imp', 's3', 's3', 'starpass'); refresh(); await wait(1800);
+        view({ me: ME }); seatOf(ME).role = 'imp';
+        fx({ k: 'demon', role: 'imp' }, ME);
+        say('st', ME, '惡魔死亡，你現在是【小惡魔】。', { info: true, night: world.night, k: 'role', src: 'imp', f: [{ op: 'become' }, { r: 'imp' }] });
       }],
-      ['積分榜', () => { world.players.s2.wins = 3; world.players.s2.mvp = 1; world.players[ME].wins = 2; refresh(); openBoard(ctx); }],
-      ['準備階段', () => { world.result = { team: 'good', winners: ['s1', 's2', 's4'], game: 0 }; lobby(); }],
-      ['設置', () => openSettings(ctx)],
+      ['天亮', () => { view({ me: ME }); world.beat = null; world.step = null; dawn(); }],
+      ['平安夜', () => {
+        view({ me: ME });
+        world.diedTonight.forEach(id => { seatOf(id).dead = false; });
+        world.diedTonight = [];
+        dawn();
+      }],
     ],
   },
-  ui: {
-    title: '界面',
-    steps: [
-      ['新信息', () => say('st', ME, '4號老王 和 7號阿杰 之中有一位是【共情者】', { info: true, night: 1,
-        marks: [{ seatId: 's4', r: 'empath', q: true }, { seatId: 's7', r: 'empath', q: true }],
-        f: [{ s: 's4' }, { w: '和' }, { s: 's7' }, { w: '之中有' }, { r: 'empath', named: true }] })],
-      ['彈窗', () => ask('結束白天？今天沒有人上處決台。', () => {}, '結束白天')],
-      ['提示', () => toast('已發送')],
-    ],
-  },
-  // 規則與流程（help.js）：圖解說明書；後兩步直接跳到某一節
-  help: {
-    title: '規則',
-    init: () => setTimeout(() => showHelp(false)),
-    steps: [
-      ['玩家', () => showHelp(false)],
-      ['說書人', () => showHelp(true)],
-      ['處決', () => { showHelp(false); setTimeout(() => document.querySelector('.hp-nav [data-k="vote"]')?.click(), 50); }],
-      ['夜晚', () => { showHelp(true); setTimeout(() => document.querySelector('.hp-nav [data-k="night"]')?.click(), 50); }],
-    ],
-  },
-  // 黯月初升 / 夢殞春宵：開局選劇本、夜裏選人帶角色、新的信息卡和裁定
+  // 黯月初升 / 夢殞春宵裏少見的信息卡和選角色（賭徒、侍臣、旅店老闆、築夢師、渦流、和平主義者）
   scripts: {
     title: '劇本',
     init() { lobby(); who = { st: true }; },
     steps: [
-      ['選劇本', () => { view({ st: true }); }],
       ['賭徒', () => {
         world.scriptId = 'bmr'; setRoles(['gambler', 'innkeeper', 'po', 'tealady', 'godfather', 'fool', 'goon']);
         Object.assign(world, { phase: 'night', night: 2, day: 1 });
@@ -594,38 +514,59 @@ const SCENES = {
       }],
     ],
   },
-  // 新美術資源包（img/kit/）的角色牌和現在的對比：左舊右新；「換上桌」把桌上所有角色牌換成新圖
-  tokens: {
-    title: '角色牌',
-    init: () => { cmp = 'grid'; kitTable = false; },
+  // 終局結算（勝利積分、雞蛋）→ 贏家戴皇冠、自己桌上放煙花 → 30 秒 MVP 投票 → MVP 揭曉 → 回準備（煙花、皇冠還在）→ 開新局；
+  // 最後兩步：別人朝自己扔雞蛋（自己一個人測不到）
+  end: {
+    title: '終局',
     steps: [
-      ['並排', () => { cmp = 'grid'; }],
-      ['小尺寸', () => { cmp = 'size'; }],
-      ['易混', () => { cmp = 'confuse'; }],
-      ['換上桌', () => { cmp = null; kitTable = !kitTable; view({ st: true }); }],
+      ['善良勝', () => { view({ me: ME }); win('good', '惡魔被處決'); }],
+      ['別人投 MVP', async () => {
+        for (const [v, id] of [['s2', ME], ['s3', 's3'], ['st', ME], ['s4', ME], ['s6', 's2']]) { voteMvp(v, id); refresh(); await wait(450); }
+      }],
+      ['MVP 揭曉', () => closeMvp()],
+      ['回準備', () => lobby()],
+      ['開新局', () => { view({ me: ME }); startGame(); }],
+      ['邪惡勝', () => { view({ me: ME }); setRoles(ROSTER.map(r => r[1])); win('evil', '只剩兩名玩家存活'); }],
+      ['說書人看', () => { view({ st: true }); setRoles(ROSTER.map(r => r[1])); win('evil', '只剩兩名玩家存活'); }],
+      ['被扔雞蛋', () => throwEgg('s3', ME)],
+      ['亂扔一通', async () => {
+        for (const [a, b] of [['s2', 's5'], ['s4', 's3'], ['s6', 's3'], ['s7', ME], ['s5', 's3'], ['s3', 's2'], ['s6', 's7']]) { throwEgg(a, b); refresh(); await wait(280); }
+      }],
     ],
   },
-  // GPT 生成的新美術（img/art/ + css/art.css）：body.art 打開；每一步走到一處換了圖的地方
+  // 新美術資源（img/art/ + css/art.css）先在這裏看：對局裏看不到的單件素材，以及新舊美術切換
   art: {
     title: '美術',
     init: () => { document.body.classList.add('art'); gallery = false; },
     steps: [
-      ['舊/新', () => document.body.classList.toggle('art')],
-      ['拉幕開局', () => { lobby(); view({ me: ME }); startGame(); }],
-      ['入夜', () => { view({ me: ME }); toNight(); }],
-      ['天亮', () => { view({ me: ME }); dawn(); resetDay(); }],
-      ['處決', async () => {
-        nominate('s2', 's4'); refresh(); await wait(2600);
-        for (const id of ['s3', 's5', 's2', 's1']) { setVote(id, 'yes'); refresh(); await wait(250); }
-        await wait(400); closeVote(); refresh(); await wait(2400); endDay();
-      }],
-      ['善良勝', () => { view({ me: ME }); win('good', '惡魔被處決'); }],
-      ['扔雞蛋', async () => { for (const [a, b] of [['s3', ME], ['s2', 's5'], ['s4', 's3']]) { throwEgg(a, b); refresh(); await wait(320); } }],
       ['素材', () => { gallery = !gallery; }],
+      ['舊/新', () => document.body.classList.toggle('art')],
+    ],
+  },
+  // 房間：要好幾台設備 / 好幾個房間才撞得上的——最近的房間、玩家看到鎖房、觀戰、被移出（邀請二維碼、換設備鏈接一台設備就能在對局裏看）
+  room: {
+    title: '房間',
+    init() { lobby(); Object.assign(world, { code: '2468', inst: 'a1b2c3', locked: false, watchers: 0, banned: 0 }); who = { st: true }; LS.set('botc.st.2468', 'demo'); },
+    steps: [
+      ['大廳', () => { screen = 'lobby'; }],
+      ['鎖房', () => { screen = null; world.locked = true; view({ me: ME }); }],
+      ['觀戰', () => { screen = null; world.locked = false; world.watchers = 2; view({}); }],
+      ['開局觀戰', () => { screen = null; world.watchers = 2; view({}); startGame(); }],
+      ['被移出', () => { screen = 'lobby'; toast('你已被說書人移出房間', 5000); }],
+    ],
+  },
+  // 截圖用（tools/shots.sh 的「自動發信息」）：不在演示條上
+  info: {
+    title: '截圖',
+    hidden: true,
+    steps: [
+      ['新信息', () => say('st', ME, '4號老王 和 7號阿杰 之中有一位是【共情者】', { info: true, night: 1,
+        marks: [{ seatId: 's4', r: 'empath', q: true }, { seatId: 's7', r: 'empath', q: true }],
+        f: [{ s: 's4' }, { w: '和' }, { s: 's7' }, { w: '之中有' }, { r: 'empath', named: true }] })],
     ],
   },
 };
-let cmp = null, kitTable = false, gallery = false;
+let gallery = false, screen = null; // screen = 'lobby'：畫大廳而不是對局
 // 對局裏看不到的素材：大廳（字標 + 主視覺，疊上真實的 .card / .btn）和其餘單件
 const ART = n => h('img', { src: `img/art/${n}.webp`, alt: n });
 function artGallery() {
@@ -638,53 +579,31 @@ function artGallery() {
     // 幕布紅色：原色和壓柔和後並排
     h('div', { class: 'curtain-cmp' }, ['curtain-drape-vivid', 'curtain-drape'].map(n => h('div', { style: { '--drape': `url(img/art/${n}.webp)`, '--val': `url(img/art/${n.replace('drape', 'valance')}.webp)` } }))));
 }
-const kitToken = (id, size = 'md') => h('div', { class: `token ${size} kit`, style: { '--kit': `url(img/kit/${id}-token.svg)` } },
-  h('span', { class: 'token-name' }, ROLES[id].name));
-const pair = (id, size) => h('div', { class: 'cmp-pair' }, roleToken(id, { size }), kitToken(id, size));
-const CONFUSE = [['monk', 'recluse'], ['investigator', 'fortuneteller', 'spy']];
-function cmpPanel() {
-  const ids = Object.keys(ROLES).filter(id => KIT.has(id));
-  const body = cmp === 'grid' ? Object.keys(TEAMS).map(t => h('div', { class: 'cmp-row' },
-    h('b', { style: { color: TEAMS[t].color } }, TEAMS[t].name), ids.filter(id => ROLES[id].team === t).map(id => pair(id))))
-    : cmp === 'size' ? ['sm', 'xs'].map(s => h('div', { class: 'cmp-row' }, h('b', {}, s === 'sm' ? '48px' : '座位角標'),
-      ids.map(id => pair(id, s))))
-    : CONFUSE.map(g => h('div', { class: 'cmp-row' }, g.map(id => pair(id))));
-  return h('div', { class: 'cmp', 'data-scroll': 'cmp' },
-    h('div', { class: 'cmp-head' }, h('span', {}, '舊'), h('span', {}, '新')), body);
-}
-// 資源包只畫了暗流湧動的 22 個角色
-const KIT = new Set(['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortuneteller', 'undertaker', 'monk', 'ravenkeeper',
-  'virgin', 'slayer', 'soldier', 'mayor', 'butler', 'drunk', 'recluse', 'saint', 'poisoner', 'spy', 'scarletwoman', 'baron', 'imp']);
-const NAME2ID = Object.fromEntries(Object.entries(ROLES).flatMap(([id, r]) => [[r.name, id], [tr(r.name), id]]));
-function kitifyTable(app) {
-  app.querySelectorAll('.board .token:not(.blank):not(.empty):not(.kit)').forEach(el => {
-    const id = NAME2ID[(el.title || '').split('：')[0]];
-    if (!KIT.has(id)) return;
-    el.classList.add('kit');
-    el.style.setProperty('--kit', `url(img/kit/${id}-token.svg)`);
-  });
-}
 const params = new URLSearchParams(location.search);
-let scene = SCENES[params.get('s')] ? params.get('s') : 'log';
+let scene = SCENES[params.get('s')] ? params.get('s') : 'vote';
+// 截圖用（tools/shots.sh）：bare 去掉演示條，run=2,3 打開後依次點這幾步
+const bare = params.has('bare'), RUN = (params.get('run') || '').split(',').filter(Boolean).map(Number);
 
 function demoBar() {
   const sc = SCENES[scene];
   const view = (text, w, on) => h('button', { class: 'btn sm demo-view' + (on ? ' on' : ''), onclick: () => { who = w; refresh(); } }, text);
   return h('nav', { class: 'demo-bar' },
     h('span', { class: 'demo-tag' }, '演示'),
-    Object.entries(SCENES).map(([k, x]) => h('button', { class: 'btn sm' + (k === scene ? ' primary' : ' ghost'), onclick: () => go(k) }, x.title)),
+    Object.entries(SCENES).filter(([, x]) => !x.hidden).map(([k, x]) => h('button', { class: 'btn sm' + (k === scene ? ' primary' : ' ghost'), onclick: () => go(k) }, x.title)),
     h('i', { class: 'op-sep' }),
     sc.steps.map(([text, fn], i) => h('button', { class: 'btn sm demo-step' + (done.has(i) ? ' done' : ''),
       onclick: async () => { done.add(i); const r = fn(); refresh(); await r; refresh(); } }, h('i', {}, i + 1), text)),
     h('span', { class: 'grow' }),
     view('玩家', { me: ME }, !!who.me), view('說書人', { st: true }, !!who.st),
+    scene === 'room' && view('觀戰', {}, !who.me && !who.st && !who.peek),
     h('button', { class: 'btn sm ghost', onclick: () => go(scene) }, '重置'));
 }
 function go(k) {
   scene = k;
+  screen = null;
   history.replaceState(null, '', `?s=${k}`);
   document.getElementById('app').replaceChildren();
-  applyArt();
+  document.body.classList.add('art');
   fresh();
   SCENES[k].init?.();
   refresh();
@@ -697,23 +616,35 @@ function refresh() {
   render();
   onEggs(ctx.live);
 }
+// 大廳：真實的 lobby.js，最近的房間是模擬的
+const RECENT = [{ code: '2468', inst: 'a1b2c3', st: true, phase: 'night', n: 9 }, { code: '5173', st: false, phase: 'lobby', n: 4 },
+  { code: '8802', st: false, phase: 'ended', n: 12 }];
+function renderDemoLobby(app) {
+  document.body.dataset.phase = 'lobby';
+  app.replaceChildren(h('div', { class: 'demo-top' }, !bare && demoBar()), renderLobby({
+    name: '小明', recent: RECENT,
+    onJoin: () => toast('演示裏不連服務器'), onCreate: () => { screen = null; view({ st: true }); refresh(); openInvite(ctx); },
+    onPick: r => { screen = null; who = r.st ? { st: true } : { me: ME }; refresh(); },
+  }));
+}
 function render() {
   if (ctx.live) ctx.state = heldView() || ctx.live; // 開新局拉幕時，幕布合上之前畫的還是上一局
   const s = ctx.state;
   if (!s) return;
   const app = document.getElementById('app');
+  if (screen === 'lobby') return renderDemoLobby(app);
   const atBottom = {};
   app.querySelectorAll('[data-scroll]').forEach(el => { atBottom[el.dataset.scroll] = el.scrollHeight - el.scrollTop - el.clientHeight < 30; });
   const dock = s.isSt ? stFlow(ctx) : playerFlow(ctx);
   const side = renderSide(ctx);
-  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (sideCollapsed(ctx) ? ' side-min' : '') },
-    h('div', { class: 'demo-top' }, demoBar(), topbar(ctx)),
+  const town = renderTown(ctx), card = stCard(ctx);
+  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (card ? ' has-card' : sideCollapsed(ctx) ? ' side-min' : '') },
+    h('div', { class: 'demo-top' }, !bare && demoBar(), topbar(ctx)),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), renderTown(ctx), renderChatWins(ctx), scene === 'tokens' && cmp && cmpPanel(), scene === 'art' && gallery && artGallery()), dock, side);
+    renderHud(ctx), renderBluffs(ctx), town, renderChatWins(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), dock, side, card);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
-  if (scene === 'tokens' && kitTable) kitifyTable(app);
   app.querySelectorAll('[data-scroll]').forEach(el => {
     const b = atBottom[el.dataset.scroll];
     if (b || (b == null && el.dataset.stick)) el.scrollTop = el.scrollHeight;
@@ -723,3 +654,11 @@ function render() {
 ensureScene();
 setRender(render);
 go(scene);
+(async () => {
+  for (const i of RUN) {
+    await wait(900);
+    done.add(i - 1);
+    const r = SCENES[scene].steps[i - 1][1]();
+    refresh(); await r; refresh();
+  }
+})();

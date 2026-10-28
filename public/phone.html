@@ -22,9 +22,10 @@
   <div class="phones" id="phones"></div>
   <script>
     const SIZES = [[360, 640, 'Android 小屏'], [375, 667, 'iPhone SE'], [390, 760, 'iPhone 15（瀏覽器內）']];
-    const SCENES = [['log', '日誌'], ['chat', '私聊'], ['vote', '提名與投票'], ['night', '夜晚'], ['day', '白天'], ['start', '開局·日夜'], ['end', '終局'], ['egg', '雞蛋'], ['ui', '界面'], ['help', '規則']];
+    // 和 demo.js 的 SCENES 一致（美術場景不用在手機上看）
+    const SCENES = [['vote', '提名與投票'], ['day', '裁定'], ['night', '夜晚'], ['scripts', '劇本'], ['end', '終局'], ['room', '房間']];
     const bar = document.getElementById('bar'), phones = document.getElementById('phones');
-    let scene = new URLSearchParams(location.search).get('s') || 'day';
+    let scene = new URLSearchParams(location.search).get('s') || 'vote';
     function go(k) {
       scene = k;
       history.replaceState(null, '', '?s=' + k);

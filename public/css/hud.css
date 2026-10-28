@@ -37,8 +37,13 @@
 .num { display: inline-grid; place-items: center; min-width: 1.45em; height: 1.45em; padding: 0 .25em; border-radius: 999px; background: var(--evil); color: #fff; font: 700 .95em/1 var(--serif); flex: none; }
 .num.plain { background: none; color: var(--ink); min-width: 0; padding: 0; }
 .grim { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.6em, 1fr)); gap: 5px 6px; font-size: 17px; width: 100%; }
-.grim-cell { display: inline-flex; align-items: center; gap: 2px; }
+.grim-cell { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 .grim-cell.dead .token { filter: grayscale(1); opacity: .5; }
+/* 間諜魔典上的提示標記：圖標（中毒 / 醉酒 / 被保護）或小字條 */
+.grim-ico { display: inline-flex; }
+.ico.drunk { color: #9a6a1f; }
+.grim-tag { padding: 0 3px; border: 1px solid var(--line-strong); border-radius: 2px; background: var(--card); color: var(--ink); font: 600 10.5px/1.4 var(--sans); white-space: nowrap; }
+.grim-tag.herring { border-color: var(--evil); color: var(--evil); }
 .ico.poison, .ico.res-poison { color: #3d8b3d; }
 .ico.good, .ico.res-protect { color: var(--good); }
 .ico.bad, .ico.res-kill, .ico.res-blocked, .ico.res-mayor, .ico.res-starpass, .ico.evil { color: var(--evil); }
@@ -90,6 +95,11 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .hud-team { font: 400 13px var(--sans); margin-left: 8px; color: var(--muted); }
 .hud-ab { font-size: 15px; line-height: 1.5; }
 .hud.min { position: absolute; left: 0; top: 0; width: auto; display: block; padding: 5px; border-radius: 50%; }
+/* 收起：右上角一個小字按鈕（點角色牌也行） */
+.hud-x { position: absolute; right: 8px; top: 8px; padding: 1px 8px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 10px;
+  color: var(--muted); font: 600 12px/1.5 var(--sans); }
+.hud-x:hover { color: var(--ink); border-color: var(--ink); }
+.hud-name { padding-right: 44px; }
 /* 開局 / 接任翻牌時面板先空著：虛線圈等牌落進來，牌落定後名字、能力、信息淡入 */
 .hud { transition: border-color .4s; }
 .hud.held { border-color: var(--line-strong); }
@@ -107,6 +117,13 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .hud-row:hover, .hud-row.on { border-color: var(--brass); background: #fff3cf; }
 .hud-row.act { background: transparent; border-style: dashed; font-size: 18px; }
 .hud-row.act .frm { font-size: 18px; }
+/* 自己的夜晚行動打頭的圖標：和桌上目標座位的行動標記同色（fx.css .pmark.act） */
+.act-chip { display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; border-radius: 50%; color: #fff; flex: none; margin-right: -4px; }
+.act-chip .ico { width: 64%; height: 64%; }
+.act-chip.poison { background: #3d8b3d; }
+.act-chip.good { background: var(--good); }
+.act-chip.evil { background: var(--evil); }
+.act-chip.brass { background: var(--brass); }
 .hud-text { font-size: 14px; white-space: pre-wrap; }
 .hud-row.fresh { animation: arrive .9s cubic-bezier(.2, 1.3, .4, 1) both, flashrow .6s ease 4 alternate; animation-delay: var(--fx-delay, 0s); }
 @keyframes arrive { from { transform: translateX(-60px) scale(1.5); opacity: 0; } }
@@ -119,6 +136,10 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .seat.linked .token { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 3px var(--card), 0 0 0 6px var(--brass); transform: scale(1.06); }
 @media (min-width: 861px) and (max-width: 1180px) {
   .hud { position: absolute; left: 0; top: 0; width: min(320px, 46%); }
+  /* 面板浮在桌面上：輪到自己選人時收成角色牌（hud.js），不蓋座位 */
+  .hud.pick { width: auto; display: block; padding: 5px; border-radius: 50%; }
+  .hud.pick .hud-body, .hud.pick .hud-x { display: none; }
+  .hud.pick .hud-me .token { width: 66px; height: 66px; }
 }
 /* 手機：展開時在桌面上方佔一條（最多四成高，信息列表內部滾動），收起後只剩角色牌浮在左上角（圓桌的角落是空的） */
 @media (max-width: 860px) {
@@ -137,6 +158,32 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .hud.min { position: absolute; left: 4px; top: 4px; width: auto; max-height: none; margin: 0; padding: 4px; }
   .hud.min .hud-me .token { width: 44px; height: 44px; }
   .pm { font-size: 16px; }
+}
+
+/* 惡魔的偽裝卡：桌面左下角，寬屏在左欄 HUD 下面（HUD 讓出它的高度，信息列表在裏面滾動） */
+.bluffs { --bl-h: 138px; position: absolute; left: 12px; bottom: 12px; z-index: 7; width: 320px; box-sizing: border-box; display: grid; gap: 8px; padding: 10px 12px 12px;
+  background: var(--card) url(../img/grain.svg); border: 2px solid var(--evil); border-radius: 14px; box-shadow: 0 10px 28px #0005;
+  animation: bl-in .36s cubic-bezier(.5, 0, .7, 1) both; }
+@keyframes bl-in { from { transform: scale(1.8) rotate(-6deg); opacity: 0; } 65% { transform: scale(.96); opacity: 1; } }
+.board:has(> .bluffs) > .hud:not(.min) { max-height: calc(100% - 36px - var(--bl-h, 138px)); }
+.bl-head { display: flex; align-items: center; gap: 8px; }
+.bl-sub { font-size: 13px; line-height: 1.3; color: var(--muted); }
+.bl-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.bl-role { display: grid; justify-items: center; gap: 4px; padding: 0; background: none; border: 0; cursor: pointer; font: inherit; color: var(--ink); }
+.bl-role b { font: 700 14px/1.15 var(--serif); }
+.bl-role:hover .token { transform: translateY(-2px); }
+.bl-ab { display: flex; align-items: center; gap: 14px; }
+.bl-ab p { margin: 0; line-height: 1.6; }
+@media (min-width: 861px) and (max-width: 1180px) {
+  .bluffs { left: 0; bottom: 0; width: min(320px, 46%); }
+}
+/* 手機：桌面左下角一條小卡（圓桌的角落是空的），只留陣營詞和三張牌 */
+@media (max-width: 860px) {
+  .bluffs { left: 4px; bottom: 4px; width: auto; gap: 4px; padding: 5px 8px 6px; border-width: 1.5px; border-radius: 10px; }
+  .bl-sub { display: none; }
+  .bl-row { grid-template-columns: repeat(3, 44px); gap: 4px; }
+  .bl-role .token.sm { width: 34px; height: 34px; }
+  .bl-role b { font-size: 11px; }
 }
 
 /* 說書人流程日誌 */
@@ -328,4 +375,5 @@ span.ic-why .ico { width: 78%; height: 78%; }
 /* 渦流在場：真實答案不能選 */
 .opt-tile.off { opacity: .35; pointer-events: none; }
 .center .script-pick { margin-top: 10px; pointer-events: auto; }
-.center .script-pick .chip { padding: 5px 14px; font-size: 15px; }
+.center .script-pick .chip { padding: 5px 14px; font-size: 15px; white-space: nowrap; }
+.ring.crowded .center .script-pick .chip { padding: 4px 8px; font-size: 13px; }
