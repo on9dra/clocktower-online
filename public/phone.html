@@ -22,7 +22,7 @@
   <div class="phones" id="phones"></div>
   <script>
     const SIZES = [[360, 640, 'Android 小屏'], [375, 667, 'iPhone SE'], [390, 760, 'iPhone 15（瀏覽器內）']];
-    const SCENES = [['log', '日誌'], ['chat', '私聊'], ['vote', '提名與投票'], ['night', '夜晚'], ['day', '白天'], ['start', '開局·日夜'], ['end', '終局'], ['egg', '雞蛋'], ['ui', '界面']];
+    const SCENES = [['log', '日誌'], ['chat', '私聊'], ['vote', '提名與投票'], ['night', '夜晚'], ['day', '白天'], ['start', '開局·日夜'], ['end', '終局'], ['egg', '雞蛋'], ['ui', '界面'], ['help', '規則']];
     const bar = document.getElementById('bar'), phones = document.getElementById('phones');
     let scene = new URLSearchParams(location.search).get('s') || 'day';
     function go(k) {

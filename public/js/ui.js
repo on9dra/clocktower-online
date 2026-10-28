@@ -54,9 +54,9 @@ export function toast(msg, ms = 2200) {
 }
 
 let openModal = null;
-export function modal(title, body, { wide = false } = {}) {
+export function modal(title, body, { wide = false, cls = '' } = {}) {
   closeModal();
-  const box = h('div', { class: 'modal' + (wide ? ' wide' : '') },
+  const box = h('div', { class: 'modal' + (wide ? ' wide' : '') + (cls ? ' ' + cls : '') },
     h('div', { class: 'modal-head' }, h('span', {}, title),
       h('button', { class: 'icon-btn', onclick: closeModal, title: '關閉' }, '✕')),
     h('div', { class: 'modal-body' }, body));

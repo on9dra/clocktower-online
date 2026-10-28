@@ -14,6 +14,7 @@ import { openBoard } from './scores.js';
 import { openSettings, applyArt } from './settings.js';
 import { EGG, MVP_DELAY, MVP_WINDOW } from './score.js';
 import { tr } from './lang.js';
+import { showHelp } from './help.js';
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -530,6 +531,17 @@ const SCENES = {
         f: [{ s: 's4' }, { w: '和' }, { s: 's7' }, { w: '之中有' }, { r: 'empath', named: true }] })],
       ['彈窗', () => ask('結束白天？今天沒有人上處決台。', () => {}, '結束白天')],
       ['提示', () => toast('已發送')],
+    ],
+  },
+  // 規則與流程（help.js）：圖解說明書；後兩步直接跳到某一節
+  help: {
+    title: '規則',
+    init: () => setTimeout(() => showHelp(false)),
+    steps: [
+      ['玩家', () => showHelp(false)],
+      ['說書人', () => showHelp(true)],
+      ['處決', () => { showHelp(false); setTimeout(() => document.querySelector('.hp-nav [data-k="vote"]')?.click(), 50); }],
+      ['夜晚', () => { showHelp(true); setTimeout(() => document.querySelector('.hp-nav [data-k="night"]')?.click(), 50); }],
     ],
   },
   // 黯月初升 / 夢殞春宵：開局選劇本、夜裏選人帶角色、新的信息卡和裁定
