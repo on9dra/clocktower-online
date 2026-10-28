@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), 'public')));
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, { maxHttpBufferSize: 64 * 1024 }); // 單條消息最多 64KB
 
 // 說書人可以「代入」某位玩家的視角：拿到的就是那位玩家看到的狀態（只讀）
 function viewOf(room, who, since) {
@@ -61,7 +61,8 @@ io.on('connection', socket => {
   const done = (room, cb, err) => { store.touch(room); reply(cb, err); broadcast(room); };
 
   socket.on('st:create', handle((_, cb) => {
-    const room = store.createRoom();
+    const room = store.createRoom(code => socketsOf(code).length > 0);
+    if (!room) return reply(cb, '房間已滿，請稍後再試');
     socket.data = { code: room.code, st: true };
     cb && cb({ ok: true, code: room.code, stKey: room.stKey });
     broadcast(room);

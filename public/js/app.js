@@ -73,7 +73,7 @@ function lobby(code = params.get('room') || '') {
     if (!nameIn.value.trim()) return toast('請輸入暱稱');
     joinPlayer(codeIn.value.trim(), nameIn.value.trim());
   };
-  const create = () => sock.emit('st:create', {}, r => { LS.set('botc.st.' + r.code, r.stKey); enter(r.code, true); });
+  const create = () => sock.emit('st:create', {}, r => { if (!r.ok) return toast(r.error); LS.set('botc.st.' + r.code, r.stKey); enter(r.code, true); });
   nameIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) join(); };
   document.getElementById('app').replaceChildren(h('div', { class: 'lobby' },
     h('div', { class: 'title' }, '血染鐘樓'),

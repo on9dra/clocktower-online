@@ -2,10 +2,19 @@
   "name": "clocktower-online",
   "version": "1.0.0",
   "description": "血染钟楼线上魔典：说书人 + 玩家实时同步",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/on9dra/clocktower-online.git"
+  },
   "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node tests/run.js"
   },
   "dependencies": {
     "express": "^4.21.2",

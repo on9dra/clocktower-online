@@ -3,3 +3,6 @@ node_modules/
 data/
 .DS_Store
 Thumbs.db
+
+# 本地部署配置（服务器地址、密钥路径）
+tools/deploy.env

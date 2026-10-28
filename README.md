@@ -2,6 +2,26 @@
 
 说书人一键开局，系统自动分配角色、按夜晚顺序唤醒玩家、结算能力；给信息时系统列出选项并标出真实答案，由说书人挑选并确认。语音请配合腾讯会议等。
 
+**在线试玩：http://47.107.182.81:3000**（创建房间，把房间号发给朋友）
+
+![白天](docs/img/screenshot-day.webp)
+![夜晚](docs/img/screenshot-night.webp)
+
+> 本项目是非官方、非商业的粉丝作品，与 The Pandemonium Institute 无关，也未获其认可。「血染钟楼 / Blood on the Clocktower」及其角色名、能力文字归 The Pandemonium Institute 所有；本仓库的代码与原创美术以 MIT 许可发布（见 [LICENSE](LICENSE)），不包含对上述游戏内容的任何授权。请勿用于商业用途。
+
+<details>
+<summary>English</summary>
+
+An unofficial, browser-based grimoire for *Blood on the Clocktower* (Chinese UI, Simplified / Traditional). The storyteller starts a game with one click; the server deals roles, wakes players in night order, resolves abilities, and offers the storyteller legal answers for information roles. Players join from their phones with a 4-digit room code. Supports Trouble Brewing, Bad Moon Rising and Sects & Violets. Voice chat is not included — use any call app.
+
+```bash
+npm install && npm start   # http://localhost:3000
+npm test
+```
+
+This is a non-commercial fan project, not affiliated with or endorsed by The Pandemonium Institute. Code and original artwork are MIT-licensed; game names and ability text belong to their owner.
+</details>
+
 ## 启动
 
 ```bash
@@ -51,20 +71,41 @@ npm start
 - 背景（小镇剪影、星空、纸纹）是 `public/img/` 下自己画的 SVG。
 - 演出：服务端在关键节点推演出事件（`lib/util.js` 的 `fx`，`state.fx`），客户端 `public/js/fx.js` 排队播放（入夜、天亮叉子刺向夜死者、提名、计票、贞洁者、处决、无人处决、猎手、胜负、翻角色牌、轮到你、自己的行动、说书人魔典上的夜间结算；计票时钟每数过一人滴答一声）。统一是「平涂压暗桌面 + 米白纸牌 + 墨线印章」，不用渐变和发光，冲击感靠一拍一拍落下的节奏、盖章、震屏和音效。公共演出挡住操作、不能跳过，播完为止（开局翻角色牌和「第 N 夜」纸牌例外：点一下或按 Esc / 空格 / 回车跳过）（页面切到后台时直接跳到结尾）；开局翻角色牌时中间亮出能力说明，读完牌飞进左上角面板（面板在这之前空着）；反噬是闪电劈向提名者、射杀是准星加一支箭，夜里死的人天亮时统一盖「死亡」章（不透露死法），只有真正的处决才用绞刑架；射空在说书人裁定后也播全屏（箭擦过去，「未中」章飞到射手身上），射手座位上所有人都看得到「射 N 号失败」；音效在 `public/js/sfx.js` 现场合成，顶栏喇叭静音。式子和图标在 `public/js/glyph.js`，样式在 `public/css/hud.css`。
 
-## 线上地址（深圳服务器）
+## 自己部署
 
-**http://47.107.182.81:3000** —— 发给朋友即可，不需要你电脑开着。
+需要 Node.js 18 及以上。房间存在 `data/rooms.json`，重启不丢；同时最多 99 个房间，满了会腾掉最久没动静、也没人连着的房间。
 
-- 服务器：阿里云深圳，用户 `admin`，密钥 `~/.ssh/aliyun`，代码在 `/home/admin/clocktower`。
-- 以 systemd 服务 `clocktower` 运行，崩溃自动重启、开机自启。
-- 查看状态 / 日志：`ssh -i ~/.ssh/aliyun admin@47.107.182.81 "systemctl status clocktower"`
-- 更新代码：本地提交后 `bash tools/deploy.sh`（上传当前提交，不碰 `data/`、不传 `art-src/`；先把存档备份成 `rooms.json.before-deploy`，`package-lock.json` 变了才重装依赖，然后重启服务）。重启时进行中的对局会断线几秒，存档不丢。
+- **直接运行**：`npm ci --omit=dev && PORT=3000 npm start`
+- **Docker**：
+  ```bash
+  docker build -t clocktower .
+  docker run -d --restart unless-stopped -p 3000:3000 -v clocktower-data:/app/data clocktower
+  ```
+- **systemd**（Linux 服务器长期运行，崩溃自动重启）：`/etc/systemd/system/clocktower.service`
+  ```ini
+  [Unit]
+  Description=clocktower
+  After=network.target
+
+  [Service]
+  WorkingDirectory=/home/user/clocktower
+  ExecStart=/usr/bin/node server.js
+  Environment=PORT=3000
+  Restart=always
+  User=user
+
+  [Install]
+  WantedBy=multi-user.target
+  ```
+  `sudo systemctl enable --now clocktower`
+- **HTTPS**：说书人链接里带着说书人密钥，公开部署建议用域名加 HTTPS。用 [Caddy](https://caddyserver.com/) 最省事，`Caddyfile` 一行：`your.domain.com { reverse_proxy localhost:3000 }`（WebSocket 自动支持），然后防火墙只开 80 / 443。
+- **一键更新**：复制 `tools/deploy.env.example` 为 `tools/deploy.env` 填上自己的服务器（这个文件不会提交），本地提交后 `bash tools/deploy.sh`：上传当前提交（不碰 `data/`、不传 `art-src/`），先把存档备份成 `rooms.json.before-deploy`，`package-lock.json` 变了才重装依赖，然后重启 systemd 服务 `clocktower`。重启时进行中的对局会断线几秒，存档不丢。
 
 ## 让朋友连进来（其他方式）
 
 - 同一局域网：把 `localhost` 换成你电脑的局域网 IP。
 - 内网穿透：`cloudflared tunnel --protocol http2 --url http://localhost:3000`。开着 Clash/Mihomo 时要给 cloudflared 设直连规则，否则连不上；国内朋友访问 trycloudflare 可能偏慢，cpolar / natapp 是备选。
-- 云服务器：`npm install && PORT=80 npm start`。
+- 云服务器：见上面「自己部署」。
 
 ## 机器人（测试用）
 
@@ -77,7 +118,7 @@ npm start
 - 新剧本的规则在 `lib/night.js` 各角色和 `lib/rules.js`（死亡保护与胜负），哪些自动、哪些由说书人裁定见上面「一局怎么走」第 7 条。状态效果统一记在 `g.eff`（中毒 / 醉酒 / 夜里保护 / 处决不死 / 诅咒 / 疯狂），按「第 N 夜 = 2N、第 N 天 = 2N+1」的刻度过期；诺-达鲺的邻居中毒是实时算的。阵营可以和角色不同（`seat.align`：莽夫、舞蛇人、方古；麻脸巫婆、理发师换角色不换阵营）。
 - 前端每次收到状态都用 `morph()`（`public/js/ui.js`）做差量更新；聊天按序号增量推送。事件请用 `onclick` 等属性挂（`h()` 的 `on*` 参数），不要用 `addEventListener`。
 - 积分 / 鸡蛋 / 演出的前端：`public/js/scores.js`（皇冠、MVP 投票、积分榜）、`egg.js`（扔鸡蛋，事件在 `state.eggs`，不进演出队列）、`fireworks.js`、`settings.js`，样式在 `public/css/party.css`；背景的日夜由 `fx.js` 在入夜 / 天亮演出里按节拍切 `body[data-phase]`（`dusk` 是日落那一拍）。
-- 测试：`node tests/dlc.test.js`（黯月初升 / 梦殒春宵关键规则）、`node tests/score.test.js`（积分、MVP、鸡蛋）、`node tests/rules.test.js`（关键规则）、`node tests/flow.test.js`（登记、替死、传位、计票、管家）、`node tests/ops.test.js`（配置、预览、纠错）、`node tests/engine.test.js`（三个剧本各 300 局随机对局）。
+- 测试：`npm test` 跑全部；也可以单独跑 `node tests/dlc.test.js`（黯月初升 / 梦殒春宵关键规则）、`node tests/score.test.js`（积分、MVP、鸡蛋）、`node tests/rules.test.js`（关键规则）、`node tests/flow.test.js`（登记、替死、传位、计票、管家）、`node tests/ops.test.js`（配置、预览、纠错）、`node tests/engine.test.js`（三个剧本各 300 局随机对局）。
 - 存档 `data/rooms.json` 先写临时文件再改名；读取失败时会备份成 `rooms.json.bad-时间戳` 而不是悄悄丢掉。三天没动静的房间会被清理。
 - 机器人陪测：`node tests/bots.js 房间号 7`；同一浏览器多开玩家：链接加 `&as=player`。
 
@@ -87,3 +128,7 @@ GPT 生成的美术素材放在 `public/img/art/`，样式集中在 `public/css/
 
 - 演示：`/demo.html?s=art`（按顶上的步骤走一遍开局、昼夜、处决、胜利、扔蛋；「舊/新」对比，「素材」一步看总览）
 - 原图和处理脚本在 `art-src/`：`process.py` 抠绿底并压成 webp，`soften.py` 把过艳的红色压柔和；提示词见 `docs/美术资源-GPT提示词.md`
+
+## 许可
+
+代码与原创美术：MIT（见 [LICENSE](LICENSE)）。欢迎提 issue 和 PR，提交前请跑一遍 `npm test`。游戏本身的知识产权归 The Pandemonium Institute 所有，本项目仅供非商业的线上娱乐。

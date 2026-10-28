@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# 部署到深圳服务器：上传当前提交（不碰 data/），依赖变了才重装，重启服务后检查能打开
-# 用法：bash tools/deploy.sh
+# 部署到自己的服务器：上传当前提交（不碰 data/），依赖变了才重装，重启服务后检查能打开
+# 用法：复制 tools/deploy.env.example 为 tools/deploy.env 填好（不会提交），然后 bash tools/deploy.sh
 set -euo pipefail
 
-HOST=admin@47.107.182.81
-KEY=~/.ssh/aliyun
-DIR=/home/admin/clocktower
+cd "$(dirname "$0")/.."
+[ -f tools/deploy.env ] && . tools/deploy.env
+: "${HOST:?在 tools/deploy.env 里设置 HOST，例如 HOST=user@1.2.3.4}"
+KEY=${KEY:-~/.ssh/id_ed25519}
+DIR=${DIR:-/home/${HOST%%@*}/clocktower}
 SSH=(ssh -i "$KEY" -o BatchMode=yes "$HOST")
 
-cd "$(dirname "$0")/.."
 if [ -n "$(git status --porcelain)" ]; then
   echo "有未提交的改动，先提交再部署" >&2
   exit 1
