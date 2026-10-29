@@ -57,26 +57,46 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .card-big.evil { color: var(--evil); }
 .card p { margin: 6px 0; }
 
-/* 大廳：字標 + 紅印章，左邊真實的對局截圖輪播，右邊加入 / 創建；手機上截圖放在最下面 */
-.lobby { max-width: 1060px; margin: 0 auto; padding: 7vh 24px 40px; display: grid; gap: 22px 36px; align-items: start;
-  grid-template-columns: minmax(0, 1fr) 320px; grid-template-areas: "head head" "shots forms"; }
-.lobby-head { grid-area: head; position: relative; display: grid; justify-items: center; gap: 6px; }
+/* 大廳：整頁一個居中的豎排——字標 + 一句話、一條加入房間的表單、說書人建房；底下鋪對局裏的小鎮，最近去過的房間是插在屋頂上的旗子 */
+.lobby { position: relative; z-index: 0; min-height: 100%; padding: 9vh 24px calc(29vh + 96px); display: grid; align-content: start; justify-items: center; gap: 36px; }
+.lobby-head { position: relative; display: grid; justify-items: center; gap: 10px; }
 .lobby .title { margin: 0; font-family: var(--serif); font-size: 42px; font-weight: 700; letter-spacing: 10px; text-align: center; }
 .lobby-seal { position: absolute; left: calc(50% + 150px); top: 2px; transform: rotate(-8deg); padding: 2px 4px 3px 8px;
   color: var(--evil); font: 900 15px/1.15 var(--serif); letter-spacing: .25em; writing-mode: vertical-rl;
   border: 2px solid currentColor; border-radius: 3px; box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 3px currentColor; mix-blend-mode: multiply; }
-.lobby-forms { grid-area: forms; display: grid; gap: 14px; }
-.lobby .card { display: grid; gap: 8px; }
-.shots { grid-area: shots; margin: 0; display: grid; gap: 10px; }
-.shot-imgs { position: relative; aspect-ratio: 16 / 10; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; background: var(--card); box-shadow: 0 12px 30px #2a262233; }
-.shot-imgs img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .6s ease; }
-.shot-imgs img.on { opacity: 1; }
-.shot-tabs { display: flex; justify-content: center; gap: 6px; }
-.shot-tab { padding: 4px 14px; background: none; border: 1.5px solid var(--line-strong); border-radius: 999px; color: var(--muted); font: 700 14px var(--serif); letter-spacing: .08em; }
-.shot-tab.on { background: var(--ink); border-color: var(--ink); color: var(--card); }
+.lobby-tag { margin: 0; font: 700 16px var(--serif); letter-spacing: .24em; padding-left: .24em; }
+.lang-lobby { position: absolute; top: 12px; right: 16px; display: flex; gap: 2px; }
+.lang-lobby .btn { border: 0; background: none; color: var(--muted); font-weight: 400; }
+.lang-lobby .btn:hover { background: none; color: var(--ink); }
+/* 加入房間：一張方角紙條，下面再露一層紙邊 */
+.lobby-forms { width: min(780px, 100%); display: grid; gap: 18px; }
+.join { display: grid; grid-template-columns: 230px minmax(0, 1fr) auto; align-items: end; gap: 10px; padding: 16px 18px 18px;
+  background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); box-shadow: 0 10px 0 -6px var(--card), 0 10px 0 -4.5px var(--ink); }
+.join-k { grid-column: 1 / -1; font: 900 20px var(--serif); letter-spacing: .2em; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field-k { font-size: 12px; color: var(--muted); letter-spacing: .1em; }
+.join input { height: 56px; padding: 0 14px; font-size: 17px; background: var(--paper); }
+.join .btn { height: 56px; padding: 0 30px; font: 900 17px var(--serif); letter-spacing: .25em; }
+/* 房間號：四個小方格連成一個框，格子之間一道細線；聚焦時整個框描黑，下一格閃光標，看著就是一個要連著打的輸入框 */
+.code-box { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; max-width: 232px; height: 56px; background: var(--paper);
+  border: 1px solid var(--line-strong); border-radius: 4px; cursor: text; }
+.code-box:focus-within { outline: 2px solid var(--ink); outline-offset: -1px; }
+.code-box i { display: grid; place-items: center; font: 700 26px/1 var(--serif); font-style: normal; }
+.code-box i + i { border-left: 1px solid var(--line); }
+.code-box i.cur::after { content: ""; width: 2px; height: 26px; background: var(--ink); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+.code-box input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; opacity: 0; font-size: 16px; color: transparent; caret-color: transparent; }
+.st-line { display: flex; justify-content: center; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; }
+.st-line .btn { padding: 5px 16px; font: 700 14px var(--serif); letter-spacing: .15em; }
+/* 小鎮：墊在整頁底下（新美術換成三層圖，見 art.css） */
+.lobby-town { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: 34vh; pointer-events: none;
+  background: url(../img/skyline-day.svg) bottom center / cover no-repeat; }
 @media (max-width: 860px) {
-  .lobby { max-width: 420px; padding: 6vh 16px 32px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "forms" "shots"; gap: 16px; }
+  .lobby { padding: 5vh 16px calc(20vh + 28px); gap: 22px; }
   .lobby-seal { left: calc(50% + 112px); font-size: 12px; }
+  .lobby-tag { font-size: 14px; letter-spacing: .14em; }
+  .join { grid-template-columns: minmax(0, 1fr); }
+  .lobby-town { height: 20vh; }
 }
 
 /* 彈窗與菜單 */
@@ -114,12 +134,17 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .chip.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
 .true-mark { font-style: normal; font-size: 10px; margin-left: 4px; padding: 0 3px; border-radius: 2px; background: var(--good); color: #fff; }
 
-/* 大廳：最近的房間（房號、走到哪、人數、自己的身份），點一下回去 */
-.recent { gap: 6px; }
-.recent-room { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 10px; text-align: left;
-  background: none; border: 1.5px solid var(--line-strong); border-radius: 4px; }
-.recent-room:hover { border-color: var(--ink); background: #efe7d4; }
-.rr-code { font: 700 18px var(--serif); letter-spacing: 2px; }
+/* 大廳：最近的房間是插在小鎮屋頂上的旗子（房號、走到哪、人數、自己的身份），點一下回去；高低錯開，旗杆底下一個紅點 */
+.recent { position: absolute; z-index: 1; left: 0; right: 0; bottom: 19vh; height: 0; }
+.recent-room { position: absolute; bottom: 0; left: var(--x); display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; width: 150px;
+  padding: 6px 12px 7px; text-align: left; background: var(--card); border: 1.5px solid var(--ink); transition: translate .2s; }
+.recent-room:nth-child(even) { bottom: -4vh; }
+.recent-room::after { content: ""; position: absolute; left: -1.5px; top: 100%; height: 9vh; border-left: 2px solid var(--ink); }
+.recent-room::before { content: ""; position: absolute; left: -6px; top: calc(100% + 9vh - 5px); width: 10px; height: 10px; border-radius: 50%; background: var(--evil); }
+.recent-room:nth-child(even)::after { height: 5vh; }
+.recent-room:nth-child(even)::before { top: calc(100% + 5vh - 5px); }
+.recent-room:hover { background: #efe7d4; translate: 0 -3px; }
+.rr-code { width: 100%; font: 700 24px var(--serif); letter-spacing: 3px; }
 .rr-phase { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; color: var(--muted); }
 .rr-phase.ph-night .ico { color: #5b6275; }
 .rr-phase.ph-day .ico, .rr-phase.ph-dawn .ico, .rr-phase.ph-ended .ico { color: var(--brass); }
@@ -127,6 +152,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .rr-st, .rr-pl { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; padding: 0 6px; border-radius: 2px; }
 .rr-st { color: var(--evil); border: 1.5px solid currentColor; font-weight: 700; }
 .rr-pl { color: var(--muted); border: 1px solid var(--line-strong); }
+@media (max-width: 860px) {
+  .recent { position: static; height: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .recent-room, .recent-room:nth-child(even) { position: relative; left: auto; bottom: auto; width: 150px; }
+  .recent-room::before, .recent-room::after { display: none; }
+}
 
 /* 邀請 / 換設備：大號房間號 + 二維碼 + 複製 */
 .invite { display: grid; justify-items: center; gap: 12px; padding: 4px 0 6px; }

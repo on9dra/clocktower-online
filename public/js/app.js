@@ -12,6 +12,7 @@ import { tr } from './lang.js';
 import { onEggs } from './egg.js';
 import { renderLobby, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
 import { openInvite } from './invite.js';
+import { showIntro, introSeen } from './intro.js';
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -126,8 +127,10 @@ function lobby(code = params.get('room') || '') {
     // 從邀請鏈接來、第一次填暱稱：房間號沒改的話帶上鏈接裏的實例標識
     onJoin: (c, name) => joinPlayer(c, name, c === params.get('room') ? params.get('r') || '' : ''), onCreate: create,
     onPick: r => { session = { code: r.code, inst: r.inst }; resume(); },
+    onIntro: () => showIntro(LS),
   }));
   draw([]);
+  if (!introSeen(LS)) showIntro(LS); // 第一次來：先看介紹
   // 最近的房間：問服務器哪些還在、走到哪了；不在的從本機記錄裏去掉
   const mine = recentRooms(LS);
   if (mine.length) sock.emit('rooms:info', { list: mine }, r => {

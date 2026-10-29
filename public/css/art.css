@@ -59,11 +59,13 @@ body.art .egg-splat:nth-of-type(3n+2) { background-image: url(../img/art/egg-spl
 body.art .egg-splat svg { visibility: hidden; }
 
 /* B1 大廳：字標圖替掉標題文字（文字留給讀屏）；只留四個字（art-src/mat-plain.py 去掉了日月、星星、花枝），標誌交給旁邊的紅印章。
-   不再鋪主視覺插畫（lobby.webp），大廳是紙面 + 真實截圖 */
+   不再鋪主視覺插畫（lobby.webp），大廳是紙面，底下墊對局裏的三層小鎮 */
 body.art .lobby .title { --tw: min(420px, 66vw); width: var(--tw); aspect-ratio: 1461 / 337; background: url(../img/art/title-tc-plain.webp) center / contain no-repeat; color: transparent; overflow: hidden; }
 html[data-lang="sc"] body.art .lobby .title { aspect-ratio: 1446 / 336; background-image: url(../img/art/title-sc-plain.webp); }
 body.art .lobby-seal { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
 body.art .lobby-seal { left: calc(50% + min(210px, 33vw) + 12px); }
+body.art .lobby-town { background: url(../img/art/town-near-day.webp) bottom center / cover no-repeat, url(../img/art/town-mid-day.webp) bottom center / cover no-repeat,
+  url(../img/art/town-far-day.webp) bottom center / cover no-repeat; }
 
 /* 彈窗套紙卡框 */
 body.art .modal { border: 30px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 30px stretch; border-radius: 0; background: none; }

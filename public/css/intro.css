@@ -1,0 +1,149 @@
+/* 第一次打開的全屏介紹（js/intro.js）：整屏一張紙，三頁沿左邊翻；不套框，欄和行用細線分開，
+   頁碼是紅色方印，「自動」是黃銅印章。手機上一頁一屏，放不下時頁內滾動 */
+.intro { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-rows: minmax(0, 1fr) auto;
+  background: var(--paper) url(../img/grain.svg); color: var(--ink); animation: it-fade .3s ease both; }
+.intro.out { animation: it-fade .26s ease reverse both; pointer-events: none; }
+@keyframes it-fade { from { opacity: 0; } }
+.it-skip { position: absolute; z-index: 3; top: max(14px, env(safe-area-inset-top)); right: 18px; padding: 4px 8px; background: none; border: 0;
+  color: var(--muted); font: 600 14px var(--sans); letter-spacing: .1em; }
+.it-skip:hover { color: var(--ink); }
+
+/* 書頁：疊在一起，翻的那頁沿左邊轉走 */
+.it-stage { position: relative; perspective: 2400px; overflow: hidden; touch-action: pan-y; }
+.it-page { position: absolute; inset: 0; display: grid; place-items: center; padding: 56px 32px 20px; overflow: auto;
+  background: var(--paper) url(../img/grain.svg); transform-origin: left center; backface-visibility: hidden; }
+.it-page.leaf { z-index: 2; box-shadow: 18px 0 30px #2a262233; }
+.it-body { width: min(980px, 100%); display: grid; gap: clamp(20px, 3.4vh, 34px); justify-items: center; }
+
+/* 標題：紅色方印頁碼 + 大字，下面一粗一細兩道線 */
+.it-h { display: flex; align-items: center; gap: 16px; padding-bottom: 12px; border-bottom: 3px double var(--ink); }
+.it-h h2 { margin: 0; font: 900 clamp(28px, 4.6vw, 50px)/1.15 var(--serif); letter-spacing: .14em; }
+.it-n { display: inline-grid; place-items: center; flex: none; width: 1.5em; height: 1.5em; color: var(--evil); border: .09em solid currentColor;
+  box-shadow: inset 0 0 0 .07em var(--card), inset 0 0 0 .12em currentColor; font: 900 clamp(18px, 2.4vw, 26px)/1 var(--serif); rotate: -4deg; mix-blend-mode: multiply; }
+body.art .it-n { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
+
+/* 一 對照表：右邊「這本魔典」一欄墊紙卡、兩邊墨線，欄頭蓋「自動」章 */
+.it-cmp { width: min(820px, 100%); display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.2fr); }
+.it-cmp > span { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 8px clamp(10px, 2vw, 22px); border-bottom: 1px solid var(--line); }
+.it-th { border-bottom: 1.5px solid var(--ink) !important; font: 700 15px var(--serif); letter-spacing: .1em; }
+.it-th.o { color: var(--muted); }
+.it-th.y { position: relative; font-size: 18px; }
+.it-k { font: 700 16px var(--serif); letter-spacing: .06em; white-space: nowrap; }
+.it-k .ico { width: 20px; height: 20px; color: var(--brass); }
+.it-o { color: var(--muted); }
+.it-y, .it-th.y { background: var(--card); border-left: 1.5px solid var(--ink); border-right: 1.5px solid var(--ink); }
+.it-y { font-weight: 700; }
+.it-y .ico { width: 18px; height: 18px; flex: none; color: var(--good); }
+.it-th.y { border-top: 1.5px solid var(--ink); }
+.it-cmp > .it-y:last-child { border-bottom: 1.5px solid var(--ink); }
+.it-stamp { left: auto; right: 6%; top: 50%; font-size: 30px; }
+/* 底下的存根：撕線 + 幾個小項 */
+.it-stub { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 30px; padding-top: 14px; border-top: 2px dashed var(--line-strong); color: var(--muted); font-size: 14px; }
+.it-stub span { display: inline-flex; align-items: center; gap: 6px; }
+.it-stub .ico { width: 18px; height: 18px; color: var(--ink); }
+
+/* 二 陣營 */
+.it-facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 34px; font: 700 16px var(--serif); }
+.it-facts span { display: inline-flex; align-items: center; gap: 7px; }
+.it-facts b { font-size: 26px; }
+.it-facts .ico { width: 22px; height: 22px; color: var(--brass); }
+.it-teams { width: min(860px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; }
+.it-team { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 0 clamp(8px, 3vw, 34px); }
+.it-team h3 { margin: 0; font: 900 clamp(26px, 3.4vw, 36px)/1.2 var(--serif); letter-spacing: .3em; padding-left: .3em; }
+.it-team.good h3 { color: var(--good); }
+.it-team.evil h3 { color: var(--evil); }
+.it-team small { color: var(--muted); }
+.it-toks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0 6px; }
+.it-toks .token { width: 68px; height: 68px; cursor: default; }
+.it-toks .token .token-name { font-size: 11px; }
+.it-win { display: flex; align-items: center; gap: 8px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line-strong); font: 700 17px var(--serif); }
+.it-win .ico { width: 22px; height: 22px; }
+.it-team.good .it-win .ico { color: var(--good); }
+.it-team.evil .it-win .ico { color: var(--evil); }
+.it-win-k { font: 400 12px var(--sans); color: var(--muted); letter-spacing: .2em; }
+.it-vs { align-self: center; padding: 0 6px; font: 900 italic 30px var(--serif); color: var(--line-strong); }
+
+/* 三 一天：四個圓章排成一行，中間一根線串著；最後一站畫回頭線 */
+.it-loop { position: relative; width: min(900px, 100%); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 12px; padding-bottom: 66px; }
+.it-loop::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: clamp(34px, 7.5vmin, 52px); border-top: 1.5px solid var(--ink); }
+.it-stop { position: relative; display: grid; justify-items: center; gap: 6px; text-align: center; }
+.it-stop .pc-seal { background: var(--paper); }
+.it-stop b { font: 900 22px var(--serif); letter-spacing: .2em; padding-left: .2em; margin-top: 4px; }
+.it-stop small { color: var(--muted); font-size: 14px; }
+/* 回頭線：從最後一站下面折回第一站 */
+.it-back { position: absolute; left: 12.5%; right: 12.5%; bottom: 0; height: 30px; display: flex; align-items: flex-end; justify-content: center; gap: 6px;
+  border: 1.5px solid var(--ink); border-top: 0; color: var(--ink); }
+.it-back > * { position: relative; top: 13px; background: var(--paper); padding: 0 4px; }
+.it-back .ico { width: 20px; height: 20px; padding: 0; margin-right: -4px; color: var(--brass); }
+.it-back b { font: 700 16px var(--serif); letter-spacing: .1em; }
+.it-back small { color: var(--muted); }
+
+/* 翻頁條：上面一道雙線；頁碼是三個小方印，當前那個蓋實 */
+.it-nav { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; gap: clamp(14px, 4vw, 40px);
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--paper) url(../img/grain.svg); border-top: 3px double var(--ink); }
+.it-nav .btn { min-width: 132px; padding: 9px 18px; font: 700 15px var(--serif); letter-spacing: .14em; }
+.it-dots { display: flex; gap: 10px; }
+.it-dot { width: 30px; height: 30px; padding: 0; background: none; border: 1.5px solid var(--line-strong); color: var(--muted); font: 900 14px var(--serif); rotate: -4deg; }
+.it-dot.on { background: var(--evil); border-color: var(--evil); color: var(--card); }
+
+/* 落下：標題先蓋，印章再按，表格一行一行出來 */
+.it-page.in .it-h { animation: it-drop .4s cubic-bezier(.3, 1.4, .5, 1) both; }
+.it-page.in .it-n { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) .18s both; }
+.it-page.in .it-stamp { animation: it-stamp .28s cubic-bezier(.5, 0, .7, 1) 1.05s both; }
+.it-page.in .it-cmp > span:not(.it-th) { animation: it-rise .35s ease both; animation-delay: calc(.3s + var(--i) * .1s); }
+.it-page.in .it-toks > span { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) both; animation-delay: calc(.35s + var(--i) * .1s); }
+.it-page.in .it-stop { animation: it-rise .4s ease both; animation-delay: calc(.3s + var(--i) * .16s); }
+.it-page.in .it-back { animation: it-rise .4s ease .95s both; }
+.it-page.in .it-stub, .it-page.in .it-facts { animation: it-rise .4s ease .25s both; }
+@keyframes it-drop { from { opacity: 0; transform: translateY(-14px); } }
+@keyframes it-rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes it-slam { from { opacity: 0; scale: 2.2; } }
+@keyframes it-stamp { from { opacity: 0; transform: translate(-0%, -50%) rotate(-7deg) scale(2.4); } to { transform: translate(0, -50%) rotate(-7deg); } }
+.it-th.y .it-stamp { transform: translate(0, -50%) rotate(-7deg); }
+
+@media (max-width: 640px) {
+  .it-page { place-items: start center; padding: 50px 12px 16px; }
+  .it-h { gap: 10px; }
+  .it-cmp > span { min-height: 44px; padding: 6px 7px; font-size: 13px; gap: 5px; }
+  .it-k { font-size: 13px; }
+  .it-k .ico { display: none; }
+  .it-th.y { font-size: 15px; }
+  .it-stamp { font-size: 20px; right: 2%; }
+  .it-teams { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .it-vs { font-size: 20px; text-align: center; }
+  .it-toks .token { width: 52px; height: 52px; }
+  .it-toks .token .token-name { display: none; }
+  .it-loop { width: min(280px, 100%); grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 0; justify-items: start; }
+  .it-loop::before { left: 33px; right: auto; top: 30px; bottom: 30px; border-top: 0; border-left: 1.5px solid var(--ink); }
+  .it-stop { grid-template-columns: auto auto; grid-template-rows: auto auto; justify-items: start; align-items: center; gap: 0 14px; text-align: left; }
+  .it-stop .pc-seal { grid-row: span 2; width: 66px; height: 66px; }
+  .it-stop b { margin: 0; align-self: end; }
+  .it-stop small { align-self: start; }
+  .it-back { position: static; height: auto; border: 0; justify-content: flex-start; padding-left: 20px; }
+  .it-back > * { top: 0; }
+  .it-nav .btn { min-width: 0; padding: 8px 12px; font-size: 14px; letter-spacing: .06em; }
+  .it-dot { width: 26px; height: 26px; font-size: 12px; }
+}
+
+/* 大屏：整體放大一號，別縮在屏幕中間一小塊 */
+@media (min-width: 1100px) and (min-height: 760px) {
+  .it-body { gap: 40px; }
+  .it-cmp { width: min(920px, 100%); }
+  .it-cmp > span { min-height: 60px; font-size: 17px; }
+  .it-k { font-size: 18px; }
+  .it-th { font-size: 16px; }
+  .it-th.y { font-size: 20px; }
+  .it-stamp { font-size: 34px; }
+  .it-stub { font-size: 15px; }
+  .it-facts { font-size: 18px; }
+  .it-facts b { font-size: 30px; }
+  .it-team h3 { font-size: 42px; }
+  .it-team small { font-size: 15px; }
+  .it-toks { gap: 12px; }
+  .it-toks .token { width: 86px; height: 86px; }
+  .it-toks .token .token-name { font-size: 13px; }
+  .it-win { font-size: 20px; }
+  .it-stop b { font-size: 26px; }
+  .it-stop small { font-size: 16px; }
+  .it-back b { font-size: 18px; }
+}
