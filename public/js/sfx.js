@@ -128,6 +128,8 @@ const SOUNDS = {
   unlock: () => { noise({ dur: 0.03, freq: 3800, vol: 0.3, type: 'highpass' }); tone(1500, { dur: 0.06, type: 'square', vol: 0.05 });
     noise({ at: 0.13, dur: 0.04, freq: 2600, vol: 0.3 }); tone(900, { at: 0.13, dur: 0.1, type: 'triangle', vol: 0.12, to: 600 }); },
   leaf: () => noise({ dur: 0.09, freq: 2200, to: 1000, vol: 0.14 }),
+  // 翻一頁書：紙擦過去一聲，落下時輕輕一拍
+  pageturn: () => { noise({ dur: 0.38, freq: 600, to: 2000, q: 0.6, vol: 0.13 }); noise({ at: 0.34, dur: 0.1, freq: 700, q: 0.7, vol: 0.14, type: 'lowpass' }); },
   // 廚師抽鼻子：兩下短促的吸氣
   sniff: () => [0, 0.12].forEach(a => noise({ at: a, dur: 0.08, freq: 3000, to: 5200, q: 1.4, vol: 0.13 })),
 };
