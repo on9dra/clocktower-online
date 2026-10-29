@@ -426,3 +426,52 @@ console.log('規則測試全部通過 ✔');
   assert.strictEqual(S(r, 'chef').dead, true);
   console.log('酒鬼僧侶 ✔');
 }
+// 技能演出事件：行動 / 信息帶上面板那一條的序號（演出播完才出現），信息帶答案；說書人魔典上一拍；信息類角色選人只演輕的
+{
+  const r = setup(['fortuneteller', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);
+  const ft = S(r, 'fortuneteller').id, po = S(r, 'poisoner').id, imp = S(r, 'imp').id, so = S(r, 'soldier').id;
+  const last = (aud, k) => r.fx.filter(e => e.aud === aud && e.k === k).at(-1);
+  startNight(r);
+  act(r, 'poisoner', [S(r, 'saint').id]);
+  assert.strictEqual(last(po, 'act').msg, r.chat.filter(m => m.to === po && m.k === 'act').at(-1).seq, '行動演出指向面板那一條');
+  act(r, 'imp', [S(r, 'chef').id]);
+  act(r, 'fortuneteller', [imp, so]);
+  assert.ok(last(ft, 'act').pick && !last(ft, 'act').msg, '信息類角色選人只演輕的');
+  ok(st(r, 'confirm', { fields: { yes: true } }));
+  const info = last(ft, 'info');
+  assert.strictEqual(info.msg, r.chat.filter(m => m.to === ft && m.info).at(-1).seq);
+  assert.strictEqual(info.yes, true);
+  assert.deepStrictEqual(info.ids.slice().sort(), [imp, so].sort());
+  const g = last('st', 'grim');
+  assert.ok(g.res === 'info' && g.src === 'fortuneteller' && g.seat === ft);
+  assert.ok(!viewFor(r, { pid: S(r, 'chef').pid }).fx.some(e => e.k === 'info'), '信息演出只給本人');
+}
+// 說書人給了隱士登記的信息：魔典上演「偽裝」，帶上登記的座位和角色
+{
+  const r = setup(['investigator', 'imp', 'poisoner', 'recluse', 'chef', 'saint']);
+  await runOnly(r, 'investigator');
+  ok(st(r, 'confirm', { fields: { a: S(r, 'recluse').id, b: S(r, 'chef').id, role: 'poisoner' } }));
+  const g = r.fx.filter(e => e.aud === 'st' && e.k === 'grim').at(-1);
+  assert.ok(g.res === 'reg' && g.reg === S(r, 'recluse').id && g.regRole === 'recluse' && g.as === 'poisoner');
+}
+// 接任惡魔：演出從原來的惡魔座位飛過來；聖徒被處決落敗先演一段再接勝負
+{
+  const r = setup(['scarletwoman', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);
+  const sw = S(r, 'scarletwoman').id, imp = S(r, 'imp').id;
+  startNight(r);
+  act(r, 'poisoner', [S(r, 'chef').id]);
+  act(r, 'imp', [imp]);
+  const d = r.fx.filter(e => e.aud === sw && e.k === 'demon').at(-1);
+  assert.ok(d && d.from === imp && d.was === 'scarletwoman' && d.why === 'scarletwoman', '紅唇女郎接任的演出');
+}
+{
+  const r = setup(['monk', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);
+  st(r, 'next');
+  const saint = S(r, 'saint').id;
+  const { execute } = await import('../lib/rules.js');
+  execute(r, S(r, 'saint'));
+  ok(st(r, 'rule', { work: true }));
+  const ks = r.fx.map(e => e.k);
+  assert.ok(ks.indexOf('saint') >= 0 && ks.indexOf('saint') < ks.indexOf('win') && r.fx.find(e => e.k === 'saint').seat === saint, '聖徒落敗在勝負之前');
+  console.log('技能演出事件 ✔');
+}

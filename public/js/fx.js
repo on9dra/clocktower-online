@@ -1,6 +1,6 @@
 // 氛圍與演出：常駐的背景場景（天空、星星、小鎮剪影）+ 按服務端演出事件（state.fx）排隊播放的演出。
 // 公共演出擋住操作，不能跳過，播完為止（只有頁面切到後台時直接跳到結尾，免得堆積）；例外是開局翻角色牌和「第 N 夜」紙牌（skippable），
-// 點一下（或按 Esc / 空格 / 回車）跳到結尾。說書人魔典上的夜晚結算和自己的行動不擋操作。
+// 點一下（或按 Esc / 空格 / 回車）跳到結尾。說書人魔典上的夜晚結算和自己的行動不擋操作（各角色的技能演出在 fx-ab.js）。
 // 演出還沒播到的死亡先讓座位顯示活著（held），播到那一下再蓋「亡」章。
 // 風格：平塗壓暗的桌面上一張米白紙牌，墨線印章蓋在牌上；不漸變、不發光。衝擊感靠節奏（一拍一拍砸下來）、印章和音效。
 // 震屏省著用：只給全桌一起看、一天最多幾次的定局時刻（上處決台、處決、反噬、射殺、天亮的死者、接任惡魔、邪惡獲勝），一個時刻只震一下；
@@ -11,6 +11,7 @@ import { play } from './sfx.js';
 import { ROLES, TEAMS } from './roles.js';
 import { burst, setBusy, setFireworks } from './fireworks.js';
 import { EGG } from './score.js';
+import { abilityFx } from './fx-ab.js';
 
 const recent = { died: new Map(), voted: new Map(), lock: new Map(), shot: new Map(), nom: 0, hud: 0, blkin: new Map(), blkret: new Map(),
   crown: 0, mvp: 0, egg: { at: 0, n: 0 } };
@@ -22,6 +23,10 @@ export const nomHeld = () => nomHold > 0;
 // 射空的演出還沒播完：射手座位上「射 N 號失敗」的標籤先不出，等「未中」章飛過去
 const shotHold = new Set();
 export const shotHeld = x => shotHold.has(x.from + '>' + x.to);
+// 技能演出還沒播完：這條信息 / 行動先不進左上角面板，座位上也先不標（演出的答案飛進面板的那一下才出現）。msgShownAt：放出來的時刻（面板按它閃一下）
+const msgHold = new Set(), msgShown = new Map();
+export const msgHeld = m => msgHold.has(m.seq);
+export const msgShownAt = m => msgShown.get(m.seq) || 0;
 // 翻角色牌的演出還沒播完：左上角面板空著（虛線圈），等中間的牌飛進去；落定後名字和能力淡入（hudFx）
 let roleHold = 0;
 export const roleHeld = () => roleHold > 0;
@@ -142,7 +147,8 @@ async function runQueue() {
   running = true;
   while (queue.length) {
     const sc = queue.shift();
-    cur = { skip: skipping || reduced() || document.hidden, waits: [], block: !!sc.block, skippable: !!sc.skippable };
+    // 說書人魔典上的一拍（lite）：排著的超過 3 段就不演了，免得一夜十幾個結算越積越多
+    cur = { skip: skipping || reduced() || document.hidden || (sc.lite && queue.length >= 3), waits: [], block: !!sc.block, skippable: !!sc.skippable };
     const st = getStage();
     st.className = sc.block ? 'block' + (sc.skippable ? ' skippable' : '') : '';
     if (sc.skippable && !cur.skip) st.append(h('div', { class: 'skip-hint' }, icon('skip'), '跳過'));
@@ -279,6 +285,7 @@ function release(id) {
   rerender();
 }
 
+const AB = abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping: () => !cur || cur.skip, ACT_ICONS: ACTS });
 // 座位上砸一枚大章，停一下縮成座位上的小章：座位自己的死因章接著落下（release）
 async function seatStamp(id, text, { power = 0, sound } = {}) {
   const p = seatAt(id), pad = h('div', { class: 'seat-pad', style: { left: p.x + 'px', top: p.y + 'px' } });
@@ -828,21 +835,30 @@ const SCENES = {
   },
 
   role: e => ({ block: true, skippable: true, run: () => revealRole(e.role, 'flip') }),
-  demon: e => ({ block: true, run: () => revealRole(e.role, 'demon') }),
+  // 接任惡魔：在桌上演（紅唇女郎的飛吻 / 傳過來的草叉），自己的牌翻成惡魔，不擋操作
+  demon: (e, s) => ({ run: () => AB.demon(e, s.myId) }),
+  // 聖徒被處決落敗、鎮長獲勝：全桌一起看，接著是勝負
+  saint: e => ({ block: true, run: () => AB.saint(e) }),
+  mayor: e => ({ block: true, run: () => AB.mayor(e) }),
 
-  // 自己的夜晚行動：棋子從自己座位飛到目標身上（不擋操作）
-  act: (e, s) => ({ run: async () => {
-    const me = seatAt(s.myId), look = ACT[e.src] || ACT.default;
-    const flown = await Promise.all(e.to.map(id => fly(look.ico(), me, seatAt(id), { tone: look.tone })));
-    sfx(look.sfx);
-    e.to.forEach(id => mark(id, look.tone, look.hard));
-    await wait(700);
-    flown.forEach(f => fadeOut(f.el, 300)); await wait(300);
-  } }),
+  // 自己的夜晚行動：有專門演出的角色在桌上演（fx-ab.js），其餘棋子從自己座位飛到目標身上（不擋操作）
+  act: (e, s) => ({ run: () => AB.act(e, s.myId) || actChips(e, s) }),
+  // 自己收到信息：答案落在桌心再收進面板（不擋操作）；沒有專門演出的角色不演
+  info: (e, s) => (AB.hasInfo(e.src) && !s.isSt ? { run: () => AB.info(e, s.myId) } : null),
 
-  // 說書人魔典上的夜晚結算（不擋操作）
-  grim: e => ({ holds: e.res === 'kill' || e.res === 'starpass' ? e.to : [], run: () => grimScene(e) }),
+  // 說書人魔典上的夜晚結算（不擋操作，排多了就跳過）
+  grim: e => ({ lite: true, holds: e.res === 'kill' || e.res === 'starpass' ? e.to : [], run: () => AB.grim(e) || grimScene(e) }),
 };
+
+// 自己的夜晚行動（沒有專門演出的角色）：棋子從自己座位飛到目標身上
+async function actChips(e, s) {
+  const me = seatAt(s.myId), look = ACT[e.src] || ACT.default;
+  const flown = await Promise.all(e.to.map(id => fly(look.ico(), me, seatAt(id), { tone: look.tone })));
+  sfx(look.sfx);
+  e.to.forEach(id => mark(id, look.tone, look.hard));
+  await wait(700);
+  flown.forEach(f => fadeOut(f.el, 300)); await wait(300);
+}
 
 // 各角色夜晚行動的棋子：圖標、顏色、落下的聲音；hard：落下時目標挨一下
 const ACT = {
@@ -984,6 +1000,10 @@ export function onState(s) {
       chain(sc, () => { shotHold.delete(key); recent.shot.set(e.from, Date.now()); rerender(); });
     }
     if (e.k === 'role' || e.k === 'demon') { roleHold++; chain(sc, () => { roleHold--; recent.hud = Date.now(); rerender(); }); }
+    if (e.msg) {
+      msgHold.add(e.msg);
+      chain(sc, () => { msgHold.delete(e.msg); msgShown.set(e.msg, Date.now()); rerender(); setTimeout(rerender, 3300); });
+    }
     if (e.k === 'curtain') { frozen ||= p; chain(sc, thaw); }
     if (e.k === 'night' || e.k === 'dawn') { skyHold++; chain(sc, () => { skyHold--; if (!skyHold) sky(lastState.phase); }); }
     if (e.k === 'win') {

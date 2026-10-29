@@ -111,3 +111,19 @@ export function infoMarks(form, f) {
     default: return [];
   }
 }
+
+// 信息的答案（給技能演出用，見 fx-ab.js）：兩名玩家 + 角色、數字、是否、一個角色、間諜看到的魔典
+export function infoAnswer(form, f) {
+  const x = form.extra || {};
+  switch (form.kind) {
+    case 'two': return f.none ? { none: true } : { a: f.a, b: f.b, role: f.role };
+    case 'number': return { n: f.n, ...(x.nbIds && { ids: x.nbIds }) };
+    case 'yesno': return { yes: !!f.yes, ...(x.ids && { ids: x.ids }) };
+    case 'role': return { role: f.role, ...(x.targetId && { id: x.targetId }) };
+    case 'dream': return { good: f.good, evil: f.evil, id: x.targetId };
+    case 'text': return form.grim ? { grim: Object.entries(form.grim) } : {};
+    default: return {};
+  }
+}
+// 答案牽涉到的座位
+export const answerSeats = a => [...new Set([a.a, a.b, ...(a.ids || []), a.id].filter(Boolean))];

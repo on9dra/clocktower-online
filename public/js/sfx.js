@@ -104,6 +104,32 @@ const SOUNDS = {
     for (let i = 0; i < 5; i++) noise({ at: 0.18 + Math.random() * 0.5, dur: 0.03, freq: 3000 + Math.random() * 3000, vol: 0.05, type: 'highpass' }); },
   // 皇冠落在頭上 / MVP 章：清脆的兩聲
   crown: () => [1047, 1568].forEach((f, i) => tone(f, { at: i * 0.09, dur: 0.5, type: 'triangle', vol: 0.12 })),
+  // 技能演出（fx-ab.js）的小聲音：衣夾、毒瓶、瓶塞、書頁、水晶球、鈴、飛吻、蛛網、裂開
+  clip: () => { noise({ dur: 0.03, freq: 4200, vol: 0.35, type: 'highpass' }); tone(1900, { dur: 0.05, type: 'square', vol: 0.05 }); tone(240, { at: 0.01, dur: 0.08, type: 'triangle', vol: 0.2, to: 160 }); },
+  rattle: () => { for (let i = 0; i < 7; i++) noise({ at: i * 0.04 + Math.random() * 0.02, dur: 0.025, freq: 1500 + Math.random() * 1500, vol: 0.2 }); },
+  cork: () => { tone(700, { dur: 0.1, type: 'triangle', vol: 0.25, to: 1500 }); noise({ dur: 0.05, freq: 2500, vol: 0.25 }); },
+  page: () => [0, 0.06, 0.12].forEach(a => noise({ at: a, dur: 0.07, freq: 1800, to: 900, vol: 0.18 })),
+  hum: () => { tone(220, { dur: 0.8, type: 'sine', vol: 0.13, to: 330, attack: 0.15 }); tone(331, { dur: 0.8, type: 'sine', vol: 0.07, to: 495, attack: 0.2 }); tone(110, { dur: 0.8, type: 'triangle', vol: 0.08, attack: 0.2 }); },
+  bell: () => bell(1320, 0, 0.22),
+  smack: () => { noise({ dur: 0.05, freq: 1800, q: 1.5, vol: 0.35 }); tone(560, { dur: 0.09, type: 'sine', vol: 0.16, to: 300 }); },
+  hiss: () => noise({ dur: 0.35, freq: 5000, vol: 0.16, type: 'highpass' }),
+  crack: () => { noise({ dur: 0.06, freq: 2500, vol: 0.4, type: 'highpass' }); tone(140, { dur: 0.2, vol: 0.3, to: 70 }); },
+  // 心跳「撲通撲通」、烏鴉叫、撲翅、鏟土、水花、火苗、鑰匙擰開、翻一頁
+  beat2: () => { tone(62, { dur: 0.18, vol: 0.55, to: 40 }); noise({ dur: 0.08, freq: 180, vol: 0.2, type: 'lowpass' });
+    tone(56, { at: 0.21, dur: 0.22, vol: 0.4, to: 36 }); noise({ at: 0.21, dur: 0.08, freq: 160, vol: 0.15, type: 'lowpass' }); },
+  caw: () => { tone(640, { dur: 0.17, type: 'sawtooth', vol: 0.07, to: 380 }); noise({ dur: 0.17, freq: 1400, q: 3, vol: 0.12 });
+    tone(580, { at: 0.22, dur: 0.2, type: 'sawtooth', vol: 0.06, to: 330 }); noise({ at: 0.22, dur: 0.19, freq: 1300, q: 3, vol: 0.1 }); },
+  flap: () => [0, 0.13, 0.26].forEach(a => noise({ at: a, dur: 0.09, freq: 520, to: 240, q: 0.7, vol: 0.18, type: 'lowpass' })),
+  dig: () => { noise({ dur: 0.18, freq: 700, to: 200, q: 0.8, vol: 0.35, type: 'lowpass' }); tone(95, { dur: 0.14, vol: 0.3, to: 60 });
+    for (let i = 0; i < 4; i++) noise({ at: 0.1 + i * 0.04, dur: 0.03, freq: 1200 + Math.random() * 800, vol: 0.1 }); },
+  splash: () => { noise({ dur: 0.32, freq: 1700, to: 600, q: 0.6, vol: 0.22 }); tone(420, { dur: 0.12, vol: 0.07, to: 900 }); },
+  fire: () => { noise({ dur: 0.7, freq: 500, to: 1200, q: 0.5, vol: 0.16, type: 'lowpass' });
+    for (let i = 0; i < 6; i++) noise({ at: Math.random() * 0.6, dur: 0.02, freq: 2500 + Math.random() * 2000, vol: 0.08, type: 'highpass' }); },
+  unlock: () => { noise({ dur: 0.03, freq: 3800, vol: 0.3, type: 'highpass' }); tone(1500, { dur: 0.06, type: 'square', vol: 0.05 });
+    noise({ at: 0.13, dur: 0.04, freq: 2600, vol: 0.3 }); tone(900, { at: 0.13, dur: 0.1, type: 'triangle', vol: 0.12, to: 600 }); },
+  leaf: () => noise({ dur: 0.09, freq: 2200, to: 1000, vol: 0.14 }),
+  // 廚師抽鼻子：兩下短促的吸氣
+  sniff: () => [0, 0.12].forEach(a => noise({ at: a, dur: 0.08, freq: 3000, to: 5200, q: 1.4, vol: 0.13 })),
 };
 
 // k：這一聲的音量倍數（煙花這種背景聲壓低）

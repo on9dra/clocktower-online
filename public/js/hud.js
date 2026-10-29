@@ -4,7 +4,7 @@
 import { h, roleToken, modal } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
 import { formula, formulaSeats, mini, w, icon, tag, ACTS } from './glyph.js';
-import { roleHeld, hudFx } from './fx.js';
+import { roleHeld, hudFx, msgHeld, msgShownAt } from './fx.js';
 
 const ui = { hover: null, pin: null, fresh: new Map(), openFor: null }; // fresh：消息 id -> 到達時間；openFor：選人時手動展開的那一步
 const MID = '(min-width: 861px) and (max-width: 1180px)'; // 和 hud.css 裏面板浮在桌面上的寬度一致
@@ -13,8 +13,11 @@ const FRESH_MS = 3200;
 const collapsed = ctx => ctx.ls.get('botc.hud') === 'min';
 const setCollapsed = (ctx, v) => { ctx.ls.set('botc.hud', v ? 'min' : ''); ctx.render(); };
 
-// 面板裏列出的消息：說書人給的信息、自己的夜晚行動、角色變化（開局發角色那條不列，牌就在面板頂上）
-export const hudRows = s => s.chat.filter(m => m.info && m.to === s.myId && !(m.k === 'role' && !m.f));
+// 面板裏列出的消息：說書人給的信息、自己的夜晚行動、角色變化（開局發角色那條不列，牌就在面板頂上）。
+// 技能演出還沒播完的那條先不列（演出的答案飛進面板的那一下才出現）；all：連還沒放出來的也算
+export const hudRows = (s, all) => s.chat.filter(m => m.info && m.to === s.myId && !(m.k === 'role' && !m.f) && (all || !msgHeld(m)));
+// 剛到的信息：從到達（演出播完放出來）算起閃一會兒
+const freshAt = m => Math.max(ui.fresh.get(m.id) || 0, msgShownAt(m));
 
 // 當前要在桌上高亮的座位：懸停 > 固定 > 剛到的信息
 export function hudLinked(s) {
@@ -22,7 +25,7 @@ export function hudLinked(s) {
   const rows = hudRows(s), byId = id => rows.find(m => m.id === id);
   const now = Date.now();
   const ids = [ui.hover, ui.pin].map(byId).filter(Boolean);
-  if (!ids.length) ids.push(...rows.filter(m => now - (ui.fresh.get(m.id) || 0) < FRESH_MS));
+  if (!ids.length) ids.push(...rows.filter(m => now - freshAt(m) < FRESH_MS));
   return new Set(ids.flatMap(m => (m.f ? formulaSeats(m.f) : (m.marks || []).map(k => k.seatId))));
 }
 
@@ -31,7 +34,7 @@ export function onInfo(ctx, s, render) {
   if (s.isSt || !s.myId) return;
   const key = `botc.seen.${s.code}.${s.gameId}.${s.myId}`;
   const seen = Number(ctx.ls.get(key) || 0);
-  const rows = hudRows(s).filter(m => m.seq > seen);
+  const rows = hudRows(s, true).filter(m => m.seq > seen);
   const all = s.chat.filter(m => m.info && m.to === s.myId);
   if (all.length) ctx.ls.set(key, all.at(-1).seq);
   if (!rows.length || s.peek) return;
@@ -42,10 +45,10 @@ export function onInfo(ctx, s, render) {
 }
 
 function rowView(ctx, m) {
-  const s = ctx.state, t = ui.fresh.get(m.id), el = t ? Date.now() - t : Infinity;
+  const s = ctx.state, t = freshAt(m), el = t ? Date.now() - t : Infinity;
   const on = ui.pin === m.id || ui.hover === m.id;
   return h('div', {
-    class: 'hud-row' + (on ? ' on' : '') + (el < FRESH_MS ? ' fresh' : '') + (m.k === 'act' ? ' act' : ''),
+    class: 'hud-row' + (on ? ' on' : '') + (el < FRESH_MS ? ' fresh' : '') + (m.k === 'act' ? ' act' : '') + (msgHeld(m) ? ' mk-held' : ''),
     'data-key': m.id, style: el < FRESH_MS ? { '--fx-delay': `-${el}ms` } : null,
     onmouseenter: () => { ui.hover = m.id; ctx.render(); },
     onmouseleave: () => { if (ui.hover === m.id) { ui.hover = null; ctx.render(); } },
@@ -72,7 +75,8 @@ export function renderHud(ctx) {
   const toggle = () => {
     if (pick && matchMedia(MID).matches) { ui.openFor = s.prompt.stepId; ctx.render(); } else setCollapsed(ctx, !min);
   };
-  const rows = hudRows(s);
+  // 演出還沒播完的那一行也排進去但看不見（mk-held）：演出把答案送到它的位置，落定時正好接上
+  const rows = hudRows(s, true);
   // 按夜晚分組，最新的一晚在最上面
   const groups = [];
   for (const m of rows) {

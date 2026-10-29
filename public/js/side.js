@@ -4,6 +4,7 @@ import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';
 import { renderGameLog } from './gamelog.js';
 import { seatBadge, mini, tag, w, icon, ACTS } from './glyph.js';
+import { msgHeld } from './fx.js';
 
 // 聊天狀態按視角分開（自己 / 說書人代入的某個玩家），代入時不會串到說書人自己的浮窗和未讀。
 // seen：每個頻道讀到的最後一條；base：進入這個視角時的最後一條（之前的舊消息不算未讀）
@@ -71,29 +72,42 @@ export function addNote(ctx, seatId) {
 }
 export function clearNotes(ctx, seatId) { const n = notes(ctx); delete n[seatId]; saveNotes(ctx, n); }
 // 說書人給我的信息裏帶的座位標記：{ seatId: [{ r, q, demon, t, text }] }（同樣的只留一個）
+// 技能演出還沒播完的那條：標記先畫出來但看不見（held），演出量著它的位置把答案送過去，落定時正好接上
+// 間諜每晚看一次魔典：只標最後一次看到的，之前的標記（含更早的信息）作廢
 export function infoMarksBySeat(s) {
-  const out = {}, seen = new Set();
+  let out = {}, seen = new Set();
   for (const m of s.chat) {
     if (!m.info || m.to !== s.myId) continue;
+    const held = msgHeld(m);
+    if ((m.f || []).some(t => t.grim)) { out = {}; seen = new Set(); }
     for (const k of m.marks || []) {
+      if (held && k.t) continue; // 陣營標記會把頭像換成陣營牌，等放出來再畫
       const key = [k.seatId, k.r, k.q, k.demon, k.t, k.text].join('|');
-      if (!seen.has(key)) { seen.add(key); (out[k.seatId] ||= []).push(k); }
+      if (!seen.has(key)) { seen.add(key); (out[k.seatId] ||= []).push(held ? { ...k, held } : k); }
     }
   }
   return out;
 }
 
 // 自己最近這一夜的行動落在誰身上（夜裏到第二天白天都標著，下一夜換新的）：{ seatId: [角色] }。只有自己看得到
+// 演出還沒播完的那條記成「~角色」：先畫出來但看不見，演出的章縮到它的位置上
 export function actMarksBySeat(s) {
   const out = {};
   if (s.isSt || !s.myId) return out;
   for (const m of s.chat) {
     if (m.k !== 'act' || m.to !== s.myId || m.night !== s.night || !ACTS[m.src]) continue;
-    for (const t of m.f || []) if (t.s && !(out[t.s] ||= []).includes(m.src)) out[t.s].push(m.src);
+    const v = msgHeld(m) ? '~' + m.src : m.src;
+    for (const t of m.f || []) {
+      const list = t.s && (out[t.s] ||= []);
+      if (list && !list.includes(m.src) && !list.includes('~' + m.src)) list.push(v);
+    }
   }
   return out;
 }
-export const actMarkView = src => h('span', { class: 'pmark act ' + ACTS[src].tone, title: '你今晚的行動' }, icon(ACTS[src].ico), ACTS[src].mark);
+export const actMarkView = v => {
+  const held = v[0] === '~', src = held ? v.slice(1) : v;
+  return h('span', { class: 'pmark act ' + ACTS[src].tone + (held ? ' mk-held' : ''), 'data-act': src, title: '你今晚的行動' }, icon(ACTS[src].ico), ACTS[src].mark);
+};
 
 export function pickGuess(ctx, seatId) {
   const roles = SCRIPTS[ctx.state.scriptId].roles;
@@ -265,9 +279,11 @@ export function renderChatWins(ctx) {
 }
 
 // 座位上的標記：說書人給的信息裏帶的（角色 / 是否惡魔 / 陣營），自己的角色猜測和備註
-export const markView = k => (k.r ? h('span', { class: 'pm' + (k.q ? ' q' : '') }, mini(k.r))
-  : k.demon != null ? h('span', { class: 'pmark auto' + (k.demon ? ' evil' : '') }, k.demon ? '有惡魔？' : '非惡魔')
-    : k.t ? h('span', { class: 'pm' }, tag(k.t)) : h('span', { class: 'pmark auto' }, k.text));
+// held：演出還沒播完，先佔位不顯示（技能演出按它的位置落點）
+const heldCls = k => (k.held ? ' mk-held' : '');
+export const markView = k => (k.r ? h('span', { class: 'pm' + (k.q ? ' q' : '') + heldCls(k), 'data-r': k.r }, mini(k.r))
+  : k.demon != null ? h('span', { class: 'pmark auto' + (k.demon ? ' evil' : '') + heldCls(k), 'data-demon': k.demon ? 1 : 0 }, k.demon ? '有惡魔？' : '非惡魔')
+    : k.t ? h('span', { class: 'pm' + heldCls(k) }, tag(k.t)) : h('span', { class: 'pmark auto' + heldCls(k) }, k.text));
 function seatMarks(ctx, id) {
   const s = ctx.state;
   if (s.isSt) return [];

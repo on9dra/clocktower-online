@@ -14,6 +14,7 @@ import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { onEggs } from './egg.js';
 import { EGG, MVP_DELAY, MVP_WINDOW } from './score.js';
 import { tr } from './lang.js';
+import { formatInfo, infoFormula, infoMarks, infoAnswer, answerSeats } from './infofmt.js';
 import { renderLobby } from './lobby.js';
 import { openInvite } from './invite.js';
 
@@ -42,7 +43,7 @@ function fresh() {
   for (const k of ['guess', 'note']) LS.set(`botc.${k}.DEMO.demo`, '{}');
   sys('遊戲開始，共 7 名玩家。請查看你的角色。', { k: 'start', n: 7 });
   sys('第 1 夜降臨，所有人閉眼。', { k: 'night', n: 1 });
-  say('st', ME, '2號阿強 和 6號大偉 之中有一位是【廚師】', { info: true, night: 1,
+  say('st', ME, '2號阿強 和 6號大偉 之中有一位是【廚師】', { info: true, night: 1, src: 'washerwoman',
     marks: [{ seatId: 's2', r: 'chef', q: true }, { seatId: 's6', r: 'chef', q: true }],
     f: [{ s: 's2' }, { w: '和' }, { s: 's6' }, { w: '之中有' }, { r: 'chef', named: true }] });
   sys('天亮了。昨晚是平安夜。', { k: 'dawn', deaths: [] });
@@ -223,13 +224,33 @@ setInterval(() => {
 }, 200);
 
 // ———— 夜晚、勝負 ————
-// 玩家選完人：自己的行動演出 + 面板裏記一條
+// 玩家選完人：面板裏記一條 + 自己的行動演出（和 lib/engine.js recordAct 一致：那一條等演出播完才出現）
 function pick(id, ids, chosen) {
   world.prompt = null;
   const role = seatOf(id).role;
-  if (ids.length) fx({ k: 'act', src: role, to: ids }, id);
   say('st', id, ids.length || chosen ? '你選擇了 ' + ids.map(label).join('、') + (chosen ? `【${ROLES[chosen].name}】` : '') : '你沒有使用能力',
     { info: true, night: world.night, k: 'act', src: role, f: [{ op: 'to' }, ...ids.map(x => ({ s: x })), ...(chosen ? [{ r: chosen, named: true }] : [])] });
+  if (ids.length) fx({ k: 'act', src: role, to: ids, msg: world.seq }, id);
+}
+// 說書人給自己一條信息（和 lib/engine.js confirmStep 一致）：面板裏的一行 + 答案落在桌上的演出
+function giveInfo(role, form, fields) {
+  form = { roleId: role, ...form };
+  say('st', ME, formatInfo(form, fields, label), { info: true, night: world.night, marks: infoMarks(form, fields), f: infoFormula(form, fields), src: role });
+  fx({ k: 'info', src: role, kind: form.kind, ...infoAnswer(form, fields), msg: world.seq }, ME);
+}
+// 說書人魔典上的一拍：給出的信息
+function grimInfo(role, seat, form, fields, extra = {}) {
+  const a = infoAnswer({ roleId: role, ...form }, fields);
+  fx({ k: 'grim', src: role, seat, to: answerSeats(a), kind: form.kind, ...a, res: 'info', ...extra }, 'st');
+}
+// 技能演出：把自己換成這個角色（其他座位照舊），玩家視角的第二夜
+function asMe(role, extra) {
+  setRoles(['washerwoman', 'chef', 'imp', 'empath', 'poisoner', 'monk', 'saint']);
+  world.seats.forEach(x => Object.assign(x, { dead: false, deathBy: null, fakeRole: null }));
+  seatOf(ME).role = role;
+  extra?.();
+  Object.assign(world, { phase: 'night', night: 2, day: 1, step: null, prompt: null, winner: null, winReason: '' });
+  view({ me: ME }); refresh();
 }
 // 開槍（規則和 lib/day.js 一致）：真獵手打中惡魔才死人；射空只有一支箭
 function slay(from, to) {
@@ -453,7 +474,7 @@ const SCENES = {
       ['傳刀', async () => {
         view({ st: true }); nightKill('s3'); grim('imp', 's3', 's3', 'starpass'); refresh(); await wait(1800);
         view({ me: ME }); seatOf(ME).role = 'imp';
-        fx({ k: 'demon', role: 'imp' }, ME);
+        fx({ k: 'demon', role: 'imp', was: 'poisoner', from: 's3', why: 'starpass' }, ME);
         say('st', ME, '惡魔死亡，你現在是【小惡魔】。', { info: true, night: world.night, k: 'role', src: 'imp', f: [{ op: 'become' }, { r: 'imp' }] });
       }],
       ['天亮', () => { view({ me: ME }); world.beat = null; world.step = null; dawn(); }],
@@ -462,6 +483,76 @@ const SCENES = {
         world.diedTonight.forEach(id => { seatOf(id).dead = false; });
         world.diedTonight = [];
         dawn();
+      }],
+    ],
+  },
+  // 暗流湧動的技能演出（fx-ab.js）：自己看到的（選人、收信息、接任）、說書人魔典上的被動、全桌的聖徒 / 鎮長
+  ability: {
+    title: '技能',
+    init() { asMe('washerwoman'); },
+    steps: [
+      ['洗衣婦', () => { asMe('washerwoman'); giveInfo('washerwoman', { kind: 'two', team: 'townsfolk' }, { a: 's2', b: 's6', role: 'chef' }); }],
+      ['圖書管理員', () => { asMe('librarian'); giveInfo('librarian', { kind: 'two', team: 'outsider' }, { a: 's3', b: 's7', role: 'saint' }); }],
+      ['沒有外來者', () => { asMe('librarian'); giveInfo('librarian', { kind: 'two', team: 'outsider', noneText: '場上沒有外來者' }, { none: true }); }],
+      ['調查員', () => { asMe('investigator'); giveInfo('investigator', { kind: 'two', team: 'minion' }, { a: 's5', b: 's4', role: 'poisoner' }); }],
+      ['廚師', () => { asMe('chef'); giveInfo('chef', { kind: 'number' }, { n: 1 }); }],
+      ['共情者', () => { asMe('empath'); giveInfo('empath', { kind: 'number', extra: { nb: '7號阿杰、2號阿強', nbIds: ['s7', 's2'] } }, { n: 1 }); }],
+      ['占卜師', async () => {
+        asMe('fortuneteller');
+        fx({ k: 'act', src: 'fortuneteller', to: ['s3', 's5'], pick: true }, ME); refresh(); await wait(1400);
+        giveInfo('fortuneteller', { kind: 'yesno', extra: { ids: ['s3', 's5'] } }, { yes: true });
+      }],
+      ['送葬者', () => { asMe('undertaker', () => { seatOf('s4').dead = true; }); giveInfo('undertaker', { kind: 'role', extra: { targetId: 's4' } }, { role: 'empath' }); }],
+      ['守鴉人', async () => {
+        asMe('ravenkeeper', () => { seatOf(ME).dead = true; });
+        fx({ k: 'act', src: 'ravenkeeper', to: ['s3'], pick: true }, ME); refresh(); await wait(1200);
+        giveInfo('ravenkeeper', { kind: 'role', extra: { target: '3號小紅', targetId: 's3' } }, { role: 'imp' });
+      }],
+      ['間諜', () => {
+        asMe('spy');
+        const grim = Object.fromEntries(world.seats.map(x => [x.id, x.role]));
+        giveInfo('spy', { kind: 'text', text: '魔典', grim, f: [{ grim: world.seats.map(x => [x.id, x.role, { dead: false, fake: null, tags: [] }]) }] }, {});
+      }],
+      ['投毒者', () => { asMe('poisoner'); pick(ME, ['s4']); }],
+      ['僧侶', () => { asMe('monk'); pick(ME, ['s2']); }],
+      ['管家', () => { asMe('butler'); pick(ME, ['s5']); }],
+      ['小惡魔', () => { asMe('imp'); pick(ME, ['s4']); }],
+      ['紅唇女郎', () => {
+        asMe('scarletwoman', () => { seatOf('s3').dead = true; });
+        seatOf(ME).role = 'imp';
+        say('st', ME, '惡魔死亡，紅唇女郎接任，你現在是【小惡魔】。', { info: true, night: world.night, k: 'role', src: 'imp', f: [{ op: 'become' }, { r: 'imp' }] });
+        fx({ k: 'demon', role: 'imp', was: 'scarletwoman', from: 's3', why: 'scarletwoman' }, ME);
+      }],
+      // 說書人魔典：給信息的一拍、士兵擋刀、刺向鎮長、隱士登記、酒鬼的信息
+      ['魔典·信息', async () => {
+        asMe('washerwoman'); view({ st: true });
+        grimInfo('washerwoman', 's1', { kind: 'two', team: 'townsfolk' }, { a: 's2', b: 's6', role: 'chef' }); refresh(); await wait(1300);
+        grimInfo('chef', 's2', { kind: 'number' }, { n: 1 });
+      }],
+      ['士兵', () => { asMe('washerwoman', () => { seatOf('s6').role = 'soldier'; }); view({ st: true }); grim('imp', 's3', 's6', 'blocked', { why: 'soldier' }); }],
+      ['鎮長', async () => {
+        asMe('washerwoman', () => { seatOf('s6').role = 'mayor'; }); view({ st: true });
+        grim('imp', 's3', 's6', 'mayor'); refresh(); await wait(1400);
+        nightKill('s4'); grim('imp', 's3', 's4', 'kill');
+      }],
+      ['隱士', () => {
+        asMe('investigator', () => { seatOf('s7').role = 'recluse'; }); view({ st: true });
+        grimInfo('investigator', 's1', { kind: 'two', team: 'minion' }, { a: 's7', b: 's2', role: 'poisoner' }, { res: 'reg', reg: 's7', regRole: 'recluse', as: 'poisoner' });
+      }],
+      ['酒鬼', () => {
+        asMe('washerwoman', () => { Object.assign(seatOf(ME), { role: 'drunk', fakeRole: 'washerwoman' }); }); view({ st: true });
+        grimInfo('washerwoman', 's1', { kind: 'two', team: 'townsfolk' }, { a: 's4', b: 's5', role: 'monk' }, { res: 'fail' });
+      }],
+      // 全桌：處決聖徒之後落敗；只剩三人無人處決，鎮長獲勝
+      ['聖徒', async () => {
+        asMe('washerwoman'); Object.assign(world, { phase: 'day', day: 2 }); refresh();
+        Object.assign(seatOf('s7'), { dead: true, deathBy: 'execute' }); fx({ k: 'execute', seat: 's7' }); refresh(); await wait(4400);
+        fx({ k: 'saint', seat: 's7' }); win('evil', '聖徒被處決');
+      }],
+      ['鎮長勝', () => {
+        asMe('washerwoman', () => { seatOf('s6').role = 'mayor'; for (const id of ['s2', 's3', 's4', 's7']) Object.assign(seatOf(id), { dead: true, deathBy: 'execute' }); });
+        Object.assign(world, { phase: 'day', day: 4 }); refresh();
+        fx({ k: 'mayor', seat: 's6' }); win('good', '僅剩三人且無人被處決，鎮長獲勝');
       }],
     ],
   },
@@ -560,7 +651,7 @@ const SCENES = {
     title: '截圖',
     hidden: true,
     steps: [
-      ['新信息', () => say('st', ME, '4號老王 和 7號阿杰 之中有一位是【共情者】', { info: true, night: 1,
+      ['新信息', () => say('st', ME, '4號老王 和 7號阿杰 之中有一位是【共情者】', { info: true, night: 1, src: 'washerwoman',
         marks: [{ seatId: 's4', r: 'empath', q: true }, { seatId: 's7', r: 'empath', q: true }],
         f: [{ s: 's4' }, { w: '和' }, { s: 's7' }, { w: '之中有' }, { r: 'empath', named: true }] })],
     ],

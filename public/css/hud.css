@@ -246,6 +246,56 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .fx-chip.evil { color: var(--evil); }
 .fx-chip.brass { color: var(--brass); }
 .fx-chip.dim { color: var(--muted); border-style: dashed; box-shadow: 0 8px 16px #2a262230; }
+/* 技能演出（fx-ab.js）：game-icons 線稿做的紙偶信物（墨線外框 → 紙色描邊 → 填色），虛線版是說書人看到的失效 */
+.stk { color: var(--c); }
+.stk > svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 8px #0007); }
+.stk .o path { fill: var(--ink); stroke: var(--ink); stroke-width: 48px; stroke-linejoin: round; }
+.stk .p path { fill: var(--card); stroke: var(--card); stroke-width: 30px; stroke-linejoin: round; }
+.stk .f path { fill: currentColor; }
+.stk.dash .o path { fill: none; stroke-dasharray: 26 18; }
+.stk.dash .f path { fill: none; stroke: currentColor; stroke-width: 10px; stroke-dasharray: 22 16; }
+.sp.ab > .token { width: 100%; height: 100%; }
+.sp.ab > i { display: block; width: 100%; height: 100%; }
+.sp.ab > svg { overflow: visible; }
+/* 壓暗是一層平塗；顯影時零件按網點印出來（只用在單個零件上） */
+@property --dv { syntax: '<length>'; inherits: false; initial-value: 99px; }
+.ab-wash { position: fixed; inset: 0; pointer-events: none; }
+.ab-dev { -webkit-mask: radial-gradient(circle, #000 var(--dv), #0000 calc(var(--dv) + .6px)) 50% 50% / var(--dg) var(--dg);
+  mask: radial-gradient(circle, #000 var(--dv), #0000 calc(var(--dv) + .6px)) 50% 50% / var(--dg) var(--dg); }
+.ab-ring { position: fixed; border-radius: 50%; border: 3px solid var(--c); pointer-events: none; }
+.ab-dot { position: fixed; border-radius: 50%; background: var(--c); pointer-events: none; }
+.ab-dot.o { box-shadow: 0 0 0 1.5px var(--card); }
+.ab-bubble { position: fixed; border-radius: 50%; border: 2px solid #3d8b3d; pointer-events: none; }
+.ab-fleck { position: fixed; background: var(--c); border: 1.5px solid var(--ink); border-radius: 1px; pointer-events: none; }
+.ab-line { position: fixed; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.ab-pad { position: fixed; width: 0; height: 0; z-index: 2; }
+/* 僧侶的念珠、送葬者的坑、圖書管理員翻過的書頁、從坑裏升起的墓碑（地面以下剪掉） */
+.ab-bead { border-radius: 50%; background: var(--brass); border: 2px solid var(--ink); box-shadow: 0 0 0 1.5px var(--card); box-sizing: border-box; }
+.ab-hole { border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ink); }
+.ab-leaf { position: fixed; background: var(--card); border: 1.5px solid var(--ink); border-radius: 2px 7px 7px 2px; transform-origin: 0 50%; pointer-events: none;
+  background: repeating-linear-gradient(#0000 0 14%, #2a26222e 14% 16%) 50% 50% / 76% 72% no-repeat, var(--card); box-sizing: border-box; }
+.ab-rise { clip-path: inset(-60% -60% 0 -60%); }
+.ab-box { position: relative; }
+/* 桌上的章：紙底 + 磨損的墨（印不實的小白點）+ 套色錯位的那一版（落定時才對準） */
+.ab-stamp { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-7deg); pointer-events: none;
+  padding: .08em; font: 900 28px/1.05 var(--serif); background: var(--card); border-radius: .16em; box-shadow: 0 .2em .4em #0006;
+  --worn: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M0 0H100V100H0ZM92.9 79.4a2.00 2.00 0 1 0 4.00 0a2.00 2.00 0 1 0 -4.00 0M83.8 37.3a2.90 2.90 0 1 0 5.80 0a2.90 2.90 0 1 0 -5.80 0M48.8 75.1a2.47 2.47 0 1 0 4.94 0a2.47 2.47 0 1 0 -4.94 0M69.3 14.3a2.78 2.78 0 1 0 5.56 0a2.78 2.78 0 1 0 -5.56 0M13.2 90.9a0.64 0.64 0 1 0 1.28 0a0.64 0.64 0 1 0 -1.28 0M26.2 40.4a1.39 1.39 0 1 0 2.78 0a1.39 1.39 0 1 0 -2.78 0M65.1 91.8a2.44 2.44 0 1 0 4.88 0a2.44 2.44 0 1 0 -4.88 0M48.5 62.5a2.06 2.06 0 1 0 4.12 0a2.06 2.06 0 1 0 -4.12 0M77.8 84.0a1.23 1.23 0 1 0 2.46 0a1.23 1.23 0 1 0 -2.46 0M12.6 90.9a0.54 0.54 0 1 0 1.08 0a0.54 0.54 0 1 0 -1.08 0M15.0 58.4a0.63 0.63 0 1 0 1.26 0a0.63 0.63 0 1 0 -1.26 0M91.8 75.9a1.42 1.42 0 1 0 2.84 0a1.42 1.42 0 1 0 -2.84 0M27.8 95.5a0.52 0.52 0 1 0 1.04 0a0.52 0.52 0 1 0 -1.04 0M77.8 79.4a0.97 0.97 0 1 0 1.94 0a0.97 0.97 0 1 0 -1.94 0M23.9 44.3a0.50 0.50 0 1 0 1.00 0a0.50 0.50 0 1 0 -1.00 0M1.9 33.4a0.84 0.84 0 1 0 1.68 0a0.84 0.84 0 1 0 -1.68 0M49.8 77.7a0.50 0.50 0 1 0 1.00 0a0.50 0.50 0 1 0 -1.00 0M86.3 29.2a2.93 2.93 0 1 0 5.86 0a2.93 2.93 0 1 0 -5.86 0M93.3 19.4a1.22 1.22 0 1 0 2.44 0a1.22 1.22 0 1 0 -2.44 0M66.0 38.4a2.87 2.87 0 1 0 5.74 0a2.87 2.87 0 1 0 -5.74 0M78.1 40.9a1.43 1.43 0 1 0 2.86 0a1.43 1.43 0 1 0 -2.86 0M11.1 70.0a0.58 0.58 0 1 0 1.16 0a0.58 0.58 0 1 0 -1.16 0M79.3 7.4a0.74 0.74 0 1 0 1.48 0a0.74 0.74 0 1 0 -1.48 0M64.9 17.1a0.57 0.57 0 1 0 1.14 0a0.57 0.57 0 1 0 -1.14 0M37.4 73.3a1.88 1.88 0 1 0 3.76 0a1.88 1.88 0 1 0 -3.76 0M25.1 35.7a1.55 1.55 0 1 0 3.10 0a1.55 1.55 0 1 0 -3.10 0M72.0 3.6a0.57 0.57 0 1 0 1.14 0a0.57 0.57 0 1 0 -1.14 0M41.8 63.5a0.85 0.85 0 1 0 1.70 0a0.85 0.85 0 1 0 -1.70 0M76.5 63.6a0.81 0.81 0 1 0 1.62 0a0.81 0.81 0 1 0 -1.62 0M45.6 4.9a0.64 0.64 0 1 0 1.28 0a0.64 0.64 0 1 0 -1.28 0M45.7 53.3a0.51 0.51 0 1 0 1.02 0a0.51 0.51 0 1 0 -1.02 0M11.0 66.7a0.99 0.99 0 1 0 1.98 0a0.99 0.99 0 1 0 -1.98 0M68.9 71.3a0.62 0.62 0 1 0 1.24 0a0.62 0.62 0 1 0 -1.24 0M32.6 93.0a0.53 0.53 0 1 0 1.06 0a0.53 0.53 0 1 0 -1.06 0M72.2 33.9a0.63 0.63 0 1 0 1.26 0a0.63 0.63 0 1 0 -1.26 0M46.3 65.3a1.03 1.03 0 1 0 2.06 0a1.03 1.03 0 1 0 -2.06 0M4.0 5.3a2.56 2.56 0 1 0 5.12 0a2.56 2.56 0 1 0 -5.12 0M66.8 0.1a1.37 1.37 0 1 0 2.74 0a1.37 1.37 0 1 0 -2.74 0M-2.2 86.6a3.06 3.06 0 1 0 6.12 0a3.06 3.06 0 1 0 -6.12 0M33.1 54.4a0.86 0.86 0 1 0 1.72 0a0.86 0.86 0 1 0 -1.72 0M51.0 15.7a2.36 2.36 0 1 0 4.72 0a2.36 2.36 0 1 0 -4.72 0M54.2 54.0a0.53 0.53 0 1 0 1.06 0a0.53 0.53 0 1 0 -1.06 0M31.2 26.2a0.59 0.59 0 1 0 1.18 0a0.59 0.59 0 1 0 -1.18 0M28.6 40.6a2.59 2.59 0 1 0 5.18 0a2.59 2.59 0 1 0 -5.18 0M64.0 43.7a0.71 0.71 0 1 0 1.42 0a0.71 0.71 0 1 0 -1.42 0M83.0 76.1a2.57 2.57 0 1 0 5.14 0a2.57 2.57 0 1 0 -5.14 0%22/%3E%3C/svg%3E"); }
+.ab-stamp > b { display: block; padding: .06em .28em .1em .46em; letter-spacing: .18em; white-space: nowrap; color: var(--c);
+  border: .07em solid currentColor; border-radius: .12em; box-shadow: inset 0 0 0 .035em var(--card), inset 0 0 0 .07em currentColor;
+  -webkit-mask: var(--worn) 0 0 / 2.6em 2.6em; mask: var(--worn) 0 0 / 2.6em 2.6em; }
+.ab-stamp > b.gh { position: absolute; inset: .08em; color: var(--g); opacity: 0; mix-blend-mode: multiply; }
+/* 技能演出還沒播完的座位標記和面板那一行：先佔位不顯示，演出按它的位置落點 */
+.mk-held { visibility: hidden !important; }
+/* 說書人魔典：座位下面的一枚小紙簽 */
+.ab-mk { position: fixed; transform: translateX(-50%) rotate(-5deg); padding: .05em .4em .05em .55em; font: 900 13px/1.25 var(--serif); letter-spacing: .1em;
+  color: var(--c); white-space: nowrap; background: var(--card); border: 2px solid currentColor; border-radius: 4px; box-shadow: 0 4px 10px #0006; pointer-events: none; }
+/* 占卜師的水晶球：球裏的墨、亮出來的答案 */
+.ab-in { position: absolute; display: grid; place-items: center; }
+.ab-in > svg { width: 100%; height: 100%; }
+.ab-disc { position: relative; width: 86%; height: 86%; padding: 12%; border-radius: 50%; background: var(--card); border: 3px solid currentColor; }
+.ab-disc > svg { width: 100%; height: 100%; display: block; }
+.ab-badge { position: absolute; right: -22%; bottom: -18%; display: grid; place-items: center; width: 58%; height: 58%; border-radius: 50%; color: #fff; border: 2px solid var(--card); }
+.ab-badge .ico { width: 64%; height: 64%; }
 .sc-center { position: fixed; left: 50%; top: 45%; translate: -50% -50%; display: grid; justify-items: center; gap: 10px; color: var(--ink); text-align: center; }
 /* 翻角色牌：背面是墨色圓牌 + 金色雙圈，正面是角色牌 */
 .sc-card { position: relative; width: clamp(130px, 28vmin, 180px); height: clamp(130px, 28vmin, 180px); transform-style: preserve-3d; }
