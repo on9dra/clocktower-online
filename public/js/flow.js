@@ -5,6 +5,7 @@ import { ROLES, TEAMS, SCRIPTS, teamCounts, changesSetup, outsiderShift } from '
 import { sel, stopSelect } from './town.js';
 import { openSetup } from './setup.js';
 import { seatBadge, mini, icon, actIcon, tag, named, w, ACTS } from './glyph.js';
+import { nightHeld } from './fx.js';
 
 export const B = (label, onclick, cls = '', hot = false) => h('button', { class: 'btn ' + cls, onclick, 'data-hot': hot || null }, label);
 export const voteCount = nom => Object.values(nom.votes).filter(Boolean).length;
@@ -238,7 +239,7 @@ export function playerCenter(ctx) {
   if (s.isSt || s.peek) return null;
   // 觀戰的人：準備階段有空位就能入座
   if (!me) return s.phase === 'lobby' && s.seats.length < 15 && !s.locked ? h('div', { class: 'cx' }, h('div', { class: 'row' }, B('入座', () => ctx.sit(), 'primary'))) : null;
-  if (s.prompt && sel.on) return turnPane(ctx);
+  if (s.prompt && sel.on && !nightHeld()) return turnPane(ctx);
   if (s.phase === 'lobby') return h('div', { class: 'cx' }, h('div', { class: 'row' }, B('離開房間', () => ctx.act('leave').then(() => ctx.leave()), 'ghost sm'),
     B('改名', () => prompt2('你的暱稱', me.name, name => { if (name) { ctx.ls.set('botc.name', name); ctx.act('rename', { name }); } }, { max: 12 }), 'sm')));
   if (s.phase === 'dawn' || (s.phase === 'day' && !s.nomination)) return h('div', { class: 'cx' }, lastNight(s), masterRow(s));

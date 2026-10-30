@@ -135,6 +135,7 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .pt-row { display: flex; align-items: center; gap: 6px; margin: 4px 0 10px; }
 .pt-moon { width: 18px; height: 18px; color: var(--brass); flex: none; }
 .pt-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.pt-off { display: flex; align-items: center; gap: 6px; margin-right: auto; cursor: pointer; }
 .pt-bar > i { display: block; height: 100%; background: var(--brass); transition: width .5s linear; }
 .token.xs.ghost { border-style: dashed; opacity: .6; }
 @keyframes bubble-in { from { scale: .92; rotate: -1.5deg; opacity: 0; } }

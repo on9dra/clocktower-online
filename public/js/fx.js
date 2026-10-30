@@ -35,6 +35,9 @@ export function hudFx() {
   return el < 600 ? { '--fx-delay': `-${el}ms` } : null;
 }
 // 終局演出還沒播完：贏家頭上的皇冠、MVP 投票先不出；MVP 演出還沒播完：座位上的 MVP 標記先不出。播完的那一下落下來
+// 入夜演出還沒播完：說書人的操作卡、玩家的選人牌先不出，等「第 N 夜」收起再落到桌上
+let nightHold = 0;
+export const nightHeld = () => nightHold > 0;
 let winHold = 0, mvpHold = 0;
 export const winHeld = () => winHold > 0;
 export const mvpHeld = () => mvpHold > 0;
@@ -1005,6 +1008,7 @@ export function onState(s) {
       chain(sc, () => { msgHold.delete(e.msg); msgShown.set(e.msg, Date.now()); rerender(); setTimeout(rerender, 3300); });
     }
     if (e.k === 'curtain') { frozen ||= p; chain(sc, thaw); }
+    if (e.k === 'night') { nightHold++; chain(sc, () => { nightHold--; rerender(); }); }
     if (e.k === 'night' || e.k === 'dawn') { skyHold++; chain(sc, () => { skyHold--; if (!skyHold) sky(lastState.phase); }); }
     if (e.k === 'win') {
       winHold++;

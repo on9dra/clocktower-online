@@ -35,7 +35,9 @@ function pretendCard(ctx, step) {
     h('div', { class: 'ic-head' }, step.roleId in GROUP ? w(GROUP[step.roleId], 'ink') : named(step.roleId), w(PRETEND[step.why], 'muted')),
     h('div', { class: 'pt-row' }, icon('moon', 'pt-moon'), w('假裝叫醒', 'ink'),
       h('i', { class: 'pt-bar' }, h('i', { style: { width: (left * 100).toFixed(1) + '%' } }))),
-    h('div', { class: 'row' }, B('繼續', () => ctx.st('pretend'), 'primary', true)));
+    h('div', { class: 'row' },
+      h('label', { class: 'pt-off' }, h('input', { type: 'checkbox', class: 'switch', onchange: () => ctx.st('pretend', { off: true }) }), w('本局不再假裝', 'muted')),
+      B('繼續', () => ctx.st('pretend'), 'primary', true)));
 }
 const GROUP = { minioninfo: '爪牙信息', demoninfo: '惡魔信息' };
 

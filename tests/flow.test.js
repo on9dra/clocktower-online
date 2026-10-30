@@ -182,47 +182,59 @@ import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
   ok(st(room, 'moveSeat', { seatId: room.seats[0].id, dir: 1 }));
   room.seats.forEach((s, i) => s.name !== '真人' && assert.strictEqual(s.name, `機器人${i + 1}`));
 }
-// A16 夜晚順序表：不在場、死了、一下子做完的角色都假裝叫醒一會兒；玩家的進度條只有劇本順序
+// A16 夜晚順序表：只有今晚第一格空著時假裝叫醒一分鐘，後面的空格直接跳過；勾了「本局不再假裝」之後都不假裝；玩家的進度條只有劇本順序
 {
   const { nightProgress, pretendTick, PRETEND_MS } = await import('../lib/engine.js');
   const { viewFor } = await import('../lib/view.js');
   const r = setup(['empath', 'monk', 'imp', 'poisoner', 'chef', 'saint', 'butler']);
   r.settings.pretend = true;
-  r.seats[0].dead = true; // 共情者死了，今晚不醒
+  r.seats[3].dead = true; // 投毒者死了，今晚不醒：第一格空著
   startNight(r); // 第 2 夜（setup 跳過了首夜）
   const order = r.g.order, step = () => r.g.step;
   assert.deepStrictEqual(order.slice(0, 4), ['poisoner', 'monk', 'imp', 'ravenkeeper'], '按官方順序，不在場的守鴉人也佔一格');
   assert.ok(!order.includes('washerwoman') && !order.includes('chef'), '只在首夜行動的不在第二夜的表裏');
-  act(r, 'poisoner', [S(r, 'chef').id]);
-  act(r, 'monk', [S(r, 'chef').id]);
-  act(r, 'imp', [S(r, 'saint').id]);
   assert.strictEqual(step().status, 'fake');
-  assert.strictEqual(step().roleId, 'ravenkeeper');
-  assert.strictEqual(step().why, 'absent');
+  assert.strictEqual(step().roleId, 'poisoner');
+  assert.strictEqual(step().why, 'idle');
   const d = step().due - Date.now();
-  assert.ok(d > PRETEND_MS[0] - 100 && d <= PRETEND_MS[1], '停幾秒，像有人在選');
-  assert.ok(pl(r, 'butler', 'pick', { ids: [S(r, 'chef').id] }), '假裝期間誰也不能行動');
-  // 玩家：只有角色順序，看不出守鴉人不在場；說書人：這一格標成假的
+  assert.ok(d > PRETEND_MS - 100 && d <= PRETEND_MS, '停一分鐘');
+  assert.ok(pl(r, 'monk', 'pick', { ids: [S(r, 'chef').id] }), '假裝期間誰也不能行動');
+  // 玩家：只有角色順序，看不出投毒者不醒；說書人：這一格標成假的
   const pv = viewFor(r, { pid: S(r, 'chef').pid }).prog, sv = viewFor(r, { st: true }).prog;
-  assert.deepStrictEqual(pv.order[3], { r: 'ravenkeeper' });
-  assert.strictEqual(pv.at, 3);
-  assert.ok(sv.order[3].fake && !sv.order[1].fake && sv.order[1].seats[0] === S(r, 'monk').id);
-  assert.ok(sv.order[order.indexOf('empath')].fake, '死了的共情者今晚不醒');
-  ok(st(r, 'pretend'));
-  assert.strictEqual(step().status, 'fake', '送葬者也不在場');
+  assert.deepStrictEqual(pv.order[0], { r: 'poisoner' });
+  assert.strictEqual(pv.at, 0);
+  assert.ok(sv.order[0].fake && !sv.order[1].fake && sv.order[1].seats[0] === S(r, 'monk').id);
+  assert.ok(sv.order[3].fake, '不在場的守鴉人');
   // 到點自動往下走
   step().due = Date.now() + 5;
-  const at = r.g.beat.roleId;
   await new Promise(res => pretendTick(r, () => res()));
-  assert.notStrictEqual(r.g.beat?.roleId, at, '到點自動繼續');
-  // 走完：每一格都停過
+  assert.strictEqual(step().roleId, 'monk', '到點自動繼續');
+  act(r, 'monk', [S(r, 'chef').id]);
+  act(r, 'imp', [S(r, 'saint').id]);
+  // 後面的空格（守鴉人、死了的共情者……）不再假裝
   for (let i = 0; i < 40 && !atReview(r); i++) {
-    if (step().status === 'fake') ok(st(r, 'pretend'));
-    else if (step().status === 'choose') act(r, r.seats.find(s => s.id === step().seatId).role, [S(r, 'monk').id]);
+    assert.notStrictEqual(step().status, 'fake', '只有第一格假裝');
+    if (step().status === 'choose') act(r, r.seats.find(s => s.id === step().seatId).role, [S(r, 'monk').id]);
     else ok(st(r, 'confirm', { fields: step().form.truth }));
   }
   assert.ok(atReview(r));
   assert.strictEqual(nightProgress(r, false).at, order.length);
+  // 「本局不再假裝」：這次直接繼續，之後的夜晚第一格空著也不假裝
+  ok(st(r, 'dawn'));
+  startNight(r);
+  assert.strictEqual(step().status, 'fake');
+  ok(st(r, 'pretend', { off: true }));
+  assert.notStrictEqual(step().status, 'fake');
+  for (let i = 0; i < 40 && !atReview(r); i++) {
+    const me = step().seatId, other = r.seats.find(s => s.id !== me && !s.dead);
+    if (step().status === 'choose') act(r, r.seats.find(s => s.id === me).role, [other.id]);
+    else if (step().status === 'decide') ok(st(r, 'decide', { choice: step().decide.options[0].id }));
+    else ok(st(r, 'confirm', { fields: step().form.truth }));
+  }
+  assert.ok(atReview(r));
+  ok(st(r, 'dawn'));
+  startNight(r);
+  assert.notStrictEqual(step().status, 'fake', '本局不再假裝');
 }
 // A17 首夜表：首夜不行動的角色（小惡魔、僧侶）不出現；爪牙 / 惡魔信息照發，但不佔格
 {

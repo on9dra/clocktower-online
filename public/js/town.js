@@ -2,7 +2,7 @@
 import { h, menu, roleToken, toast, seatLabel, ask, prompt2, modal, closeModal } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
 import { openChat, chatUnread, pickGuess, guesses, notes, addNote, clearNotes, infoMarksBySeat, markView, actMarksBySeat, actMarkView } from './side.js';
-import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs } from './fx.js';
+import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs, nightHeld } from './fx.js';
 import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './scores.js';
 import { mini, tag, icon, roleIcon, gallows, demonMark, w } from './glyph.js';
 import { hudLinked } from './hud.js';
@@ -149,7 +149,7 @@ export function renderTown(ctx) {
 function stBubble(ctx) {
   const s = ctx.state;
   // 天亮前確認在操作塢裏（flow.js reviewDock），不出卡
-  const step = s.isSt && s.phase === 'night' && s.st.step?.status !== 'review' && s.st.step;
+  const step = s.isSt && s.phase === 'night' && !nightHeld() && s.st.step?.status !== 'review' && s.st.step;
   const ruling = s.isSt && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
   const side = !!ruling && !s.st.ruling;
   return step ? { id: step.id, seatId: step.seatId, card: () => stepCard(ctx) }
