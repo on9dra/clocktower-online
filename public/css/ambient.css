@@ -46,9 +46,9 @@ body[data-phase="dusk"] #scene, body[data-phase="dawn"] #scene { --cloud: #5b607
 body:not([data-phase="night"]):not([data-phase="dusk"]):not([data-phase="dawn"]) .skyline-night .town-life *,
 body[data-phase="night"] .skyline-day .town-life * { animation-play-state: paused; }
 
-/* 大廳的房間旗：風吹著整根旗杆微微晃，定格 */
-.recent-room { --root: 9vh; transform-origin: 0 calc(100% + var(--root)); animation: flag-sway 6.4s steps(10) infinite alternate; }
-.recent-room:nth-child(even) { --root: 5vh; animation-duration: 5.2s; animation-delay: -2s; }
+/* 大廳的房間旗：先從屋頂上立起來（和表單同一個動作），然後風吹著整根旗杆微微晃，定格 */
+.recent-room { --root: 9vh; transform-origin: 0 calc(100% + var(--root)); animation: l-up .62s cubic-bezier(.2, .8, .3, 1) .62s backwards, flag-sway 6.4s steps(10) infinite alternate; }
+.recent-room:nth-child(even) { --root: 5vh; animation-duration: .62s, 5.2s; animation-delay: .76s, -2s; }
 @keyframes flag-sway { from { rotate: -.5deg; } to { rotate: 1.1deg; } }
 
 /* 太陽慢慢轉 */

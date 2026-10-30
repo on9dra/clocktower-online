@@ -100,6 +100,20 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 /* 小鎮：墊在整頁底下（新美術換成三層圖，見 art.css） */
 .lobby-town { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: 34vh; pointer-events: none;
   background: url(../img/skyline-day.svg) bottom center / cover no-repeat; }
+/* 登場：開屏揭開的那一刻接上——字標和小鎮本來就在，印章蓋下、標語浮現，表單和按鈕從紙上立起來（和開屏小鎮同一個動作），
+   旗子最後插上（ambient.css）。.pre 時都停在開頭，等開屏或介紹揭開；只回填開頭（backwards），演完不佔著 transform，懸停才傾斜得了 */
+.lobby .lobby-seal { animation: l-stamp .3s cubic-bezier(.5, 0, .7, 1) backwards; }
+.lobby .lobby-tag { animation: l-rise .45s ease .14s backwards; }
+.lobby .join { transform-origin: 50% 100%; animation: l-up .72s cubic-bezier(.2, .8, .3, 1) .24s backwards; }
+.lobby .st-line { transform-origin: 50% 100%; animation: l-up .6s cubic-bezier(.2, .8, .3, 1) .42s backwards; }
+.lobby .lang-lobby { animation: l-rise .4s ease .7s backwards; }
+.lobby.pre :is(.lobby-seal, .lobby-tag, .join, .st-line, .lang-lobby, .recent-room) { animation-play-state: paused; }
+@keyframes l-stamp { from { opacity: 0; scale: 2.6; } }
+@keyframes l-rise { from { opacity: 0; translate: 0 8px; } }
+@keyframes l-up { 0% { opacity: 0; transform: perspective(1400px) rotateX(78deg); } 25% { opacity: 1; } 72% { transform: perspective(1400px) rotateX(-7deg); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .lobby :is(.lobby-seal, .lobby-tag, .join, .st-line, .lang-lobby) { animation: none; } }
+/* 矮窗口別留那麼多底：大廳一滾動，小鎮就掉到屏幕外，還多一條滾動條 */
+@media (max-height: 760px) and (min-width: 861px) { .lobby { padding-bottom: 34vh; gap: 24px; } }
 @media (max-width: 860px) {
   .lobby { padding: 5vh 16px calc(20vh + 28px); gap: 22px; }
   .lobby-seal { left: calc(50% + 112px); font-size: 12px; }

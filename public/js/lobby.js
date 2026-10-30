@@ -22,7 +22,7 @@ export const langButton = cls => h('button', { class: cls, title: '切換繁體 
 // 房間現在走到哪：準備 / 夜 / 白天 / 已結束
 const PHASE = { lobby: [null, '準備中'], night: ['moon', '夜晚'], dawn: ['sun', '白天'], day: ['sun', '白天'], ended: ['trophy', '已結束'] };
 // 旗子沿小鎮均勻插開（--x）；手機上排成一行
-function recentList(rooms, onPick) {
+export function recentList(rooms, onPick) {
   if (!rooms.length) return null;
   return h('div', { class: 'recent' },
     rooms.map((r, i) => {

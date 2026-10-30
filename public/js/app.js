@@ -10,7 +10,7 @@ import { onState, ensureScene, setRender, heldView } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
 import { tr } from './lang.js';
 import { onEggs } from './egg.js';
-import { renderLobby, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
+import { renderLobby, recentList, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
 import { openInvite } from './invite.js';
 import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
@@ -125,18 +125,22 @@ function lobby(code = params.get('room') || '') {
     fresh = true;
     enter(r.code, true, r.inst);
   });
+  const pick = r => { session = { code: r.code, inst: r.inst }; resume(); };
   // 重畫時保留已經填了的房間號、暱稱
   const typed = i => document.querySelectorAll('.lobby-forms input')[i]?.value;
-  const draw = recent => document.getElementById('app').replaceChildren(renderLobby({
-    code: typed(0) ?? code, name: typed(1) ?? (LS.get('botc.name') || ''), recent,
+  document.getElementById('app').replaceChildren(renderLobby({
+    code: typed(0) ?? code, name: typed(1) ?? (LS.get('botc.name') || ''),
     // 從邀請鏈接來、第一次填暱稱：房間號沒改的話帶上鏈接裏的實例標識
     onJoin: (c, name) => joinPlayer(c, name, c === params.get('room') ? params.get('r') || '' : ''), onCreate: create,
-    onPick: r => { session = { code: r.code, inst: r.inst }; resume(); },
+    onPick: pick,
     onIntro: () => showIntro(LS),
     onAbout: () => openAbout(ctx),
   }));
-  draw([]);
-  if (!introSeen(LS)) showIntro(LS); // 第一次來：先看介紹
+  // 控件等開屏揭開才出來；第一次來先看介紹，介紹收起才出來
+  const page = document.querySelector('.lobby'), show = () => page.classList.remove('pre');
+  page.classList.add('pre');
+  if (introSeen(LS)) window.boot.out.then(show);
+  else showIntro(LS, { wait: window.boot.out, after: show });
   // 最近的房間：問服務器哪些還在、走到哪了；不在的從本機記錄裏去掉
   const mine = recentRooms(LS);
   if (mine.length) sock.emit('rooms:info', { list: mine }, r => {
@@ -145,7 +149,8 @@ function lobby(code = params.get('room') || '') {
     for (const x of mine) if (!alive.has(x.code)) forgetRoom(LS, x.code);
     // 是不是說書人看本機有沒有這個房間的密鑰
     const list = mine.filter(x => alive.has(x.code)).map(x => ({ ...x, ...alive.get(x.code), st: !!LS.get('botc.st.' + x.code) }));
-    if (list.length && document.querySelector('.lobby')) draw(list);
+    // 只把旗子插上去，別的不動：重畫整個大廳會打斷登場、重置雲和輸入框
+    if (list.length && page.isConnected) page.querySelector('.lobby-town').before(recentList(list, pick));
   });
   window.boot.ready();
 }

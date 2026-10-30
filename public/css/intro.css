@@ -8,6 +8,17 @@
 .it-skip { position: absolute; z-index: 3; top: max(14px, env(safe-area-inset-top)); right: 18px; padding: 4px 8px; background: none; border: 0;
   color: var(--muted); font: 600 14px var(--sans); letter-spacing: .1em; }
 .it-skip:hover { color: var(--ink); }
+.intro > .sky-life { z-index: -2; }
+/* 發牌：底下的先落、最上面的最後落，牌落定了才蓋章；翻頁條和跳過最後出來。.hold 時都停在開頭，等開屏揭開 */
+.it-page { animation: it-deal .62s cubic-bezier(.2, .85, .3, 1) backwards; }
+.it-page:nth-child(3) { --dr: -9deg; }
+.it-page:nth-child(2) { --dr: 7deg; animation-delay: .13s; }
+.it-page:nth-child(1) { --dr: -4deg; --deal: .62s; animation-delay: .26s; }
+.it-nav, .it-skip { animation: it-show .4s ease .7s backwards; }
+.intro.hold * { animation-play-state: paused; }
+@keyframes it-deal { from { translate: 0 115vh; rotate: var(--dr); } }
+@keyframes it-show { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .it-page, .it-nav, .it-skip { animation: none; } }
 
 /* 三張牌：位置都在 --x --y --r（js 按第幾張算），懸停傾斜在 --rx --ry，鼠標位置 --nx --ny（-1…1）帶動光和影。
    由下到上：紙板（厚度、陰影）→ 離紙邊留一圈白、印上去的框 → 字 → 壓印 → 磨損 → 光。光從左上來 */
@@ -117,12 +128,12 @@ body.art .it-n { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover lu
   padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); color: var(--ink); }
 .it-nav .btn { min-width: 132px; padding: 9px 18px; font: 700 15px var(--serif); letter-spacing: .14em; }
 .it-dots { display: flex; gap: 10px; }
-.it-dot { width: 30px; height: 30px; padding: 0; background: none; border: 1.5px solid var(--line-strong); color: var(--muted); font: 900 14px var(--serif); rotate: -4deg; }
+.it-dot { width: 30px; height: 30px; padding: 0; background: var(--card); border: 1.5px solid var(--line-strong); /* 墊底色：翻頁條壓在小鎮上 */ color: var(--muted); font: 900 14px var(--serif); rotate: -4deg; }
 .it-dot.on { background: var(--evil); border-color: var(--evil); color: var(--card); }
 
 /* 牌面是印好的；第一次翻到最上面時，印章當場蓋下去（.in 留著不摘，拿回來不重播） */
-.it-page.in .it-n { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) .2s both; }
-.it-page.in .it-stamp { animation: it-stamp .28s cubic-bezier(.5, 0, .7, 1) .46s both; }
+.it-page.in .it-n { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) calc(.2s + var(--deal, 0s)) both; }
+.it-page.in .it-stamp { animation: it-stamp .28s cubic-bezier(.5, 0, .7, 1) calc(.46s + var(--deal, 0s)) both; }
 .it-page.in .it-toks > span { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) both; animation-delay: calc(.34s + var(--i) * .1s); }
 .it-page.in .it-stop .pc-seal { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) both; animation-delay: calc(.32s + var(--i) * .14s); }
 @keyframes it-slam { from { opacity: 0; scale: 2.2; } }

@@ -3,7 +3,7 @@
 import { h, roleToken } from './ui.js';
 import { icon } from './glyph.js';
 import { tr } from './lang.js';
-import { skyLife } from './ambient.js';
+import { skyLife, townLife } from './ambient.js';
 
 const KEY = 'botc.intro';
 export const introSeen = ls => !!ls.get(KEY);
@@ -73,7 +73,8 @@ const THROW = 520, BACK = 500; // 丟出去、拿回來的時長
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const pose = (s, rx = 0, ry = 0) => `translate(${s.x}, ${s.y}) rotate(${s.r}deg) rotateX(${rx}deg) rotateY(${ry}deg)`;
 
-export function showIntro(ls) {
+// wait：等它兌現才開始發牌（第一次來要等開屏揭開）；after：收起時調（大廳的控件接著出來）
+export function showIntro(ls, { wait, after } = {}) {
   if (document.querySelector('.intro')) return;
   const pages = [cmpPage(), gamePage(), dayPage()];
   let at = 0, busy = false, want = null, x0 = null, slid = false, rx = 0, ry = 0;
@@ -83,8 +84,9 @@ export function showIntro(ls) {
   // 下一張；最後一張進大廳。牌還在飛時不算：連點兩下翻到最後一張，不能連最後一張都沒看到就關掉
   const ahead = () => { if (at < pages.length - 1) go(at + 1); else if (!busy) close(); };
   const next = h('button', { class: 'btn primary it-next', onclick: ahead });
-  const root = h('div', { class: 'intro', role: 'dialog', 'aria-modal': 'true', 'aria-label': tr('介紹') },
+  const root = h('div', { class: 'intro hold', role: 'dialog', 'aria-modal': 'true', 'aria-label': tr('介紹') },
     skyLife('night'),
+    h('div', { class: 'lobby-town', 'aria-hidden': 'true' }, townLife()), // 和大廳同一個小鎮：開屏接過來、收起時交回去都不換景
     h('button', { class: 'it-skip', onclick: close }, '跳過'),
     stage,
     h('nav', { class: 'it-nav' }, prev, h('span', { class: 'it-dots' }, dots), next));
@@ -175,6 +177,7 @@ export function showIntro(ls) {
     ls.set(KEY, '1');
     document.removeEventListener('keydown', key, true);
     root.classList.add('out');
+    after?.();
     setTimeout(() => root.remove(), 260);
   }
   function key(e) {
@@ -199,4 +202,5 @@ export function showIntro(ls) {
   pages[0].classList.add('in');
   nav(0);
   next.focus();
+  Promise.resolve(wait).then(() => root.classList.remove('hold'));
 }

@@ -6,11 +6,12 @@
   <title>血染鐘樓 · 線上魔典</title>
   <style>
     /* 開屏：跟著 HTML 一起到，不等任何外部文件。夜裏的小鎮，文件每到一個就多亮幾扇窗，全到了鐘響——
-       鏡頭拉遠、整層淡掉，同一片夜空、同一個位置的小鎮上多出大廳的表單。小鎮的基準尺寸同 .lobby-town（--w），字標同 .lobby .title */
+       鏡頭拉遠，和底下大廳的小鎮完全重合才揭開，同一片夜空、同一個小鎮上控件一個個出來。小鎮的基準尺寸同 .lobby-town（--w），字標同 .lobby .title */
     html { background: #141826; }
     #boot { --w: max(100vw, 102vh); --zoom: 1.35; position: fixed; inset: 0; z-index: 9999; overflow: hidden; background: linear-gradient(#141826 0%, #232a3f 60%, #2f3550 100%); transition: opacity 1.4s ease; }
     html[data-boot="quiet"] #boot { opacity: 0; transition: opacity .4s; }
     #boot.out { opacity: 0; pointer-events: none; }
+    #boot.flush { transition-duration: .35s; } /* 小鎮已經重合，揭開時看不出換了一層 */
     .b-stars { position: absolute; inset: 0; background: url(img/stars.svg) top center / cover; }
     .b-title { --tw: min(420px, 66vw); position: absolute; top: 9vh; left: 50%; width: var(--tw); aspect-ratio: 1461 / 337; transform: translateX(-50%); background: #f4eedf; opacity: 0; transition: opacity .6s;
       -webkit-mask: url(img/art/title-tc-plain.webp) center / contain no-repeat; mask: url(img/art/title-tc-plain.webp) center / contain no-repeat; }
@@ -33,17 +34,18 @@
     /* 窗戶：暗塊蓋住夜景圖裏亮著的窗，亮燈時閃一下暖色，再露出圖裏真的窗 */
     #b-win rect { fill: #1c2232; rx: 2px; transition: fill .16s, opacity .5s .16s; }
     #b-win rect.on { fill: #ffe9ad; opacity: 0; }
-    .b-hand { stroke: #2a2622; stroke-width: 3.5; stroke-linecap: round; transform-origin: 976.5px 594px; transition: transform .12s linear; }
+    .b-hand { stroke: #2a2622; stroke-width: 3; stroke-linecap: round; transform-origin: 976.5px 594px; transition: transform .12s linear; }
+    .b-hour { stroke-width: 4.5; }
     .b-bell { fill: none; stroke: #f4eedf; stroke-width: 2; vector-effect: non-scaling-stroke; opacity: 0; transform-origin: 976.5px 594px; }
     .strike .b-bell { animation: b-bell 1s ease-out both; }
     .strike .b-bell + .b-bell { animation-delay: .22s; }
     @keyframes b-bell { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(22); } }
     @media (max-width: 860px) { #boot { --w: max(100vw, 60vh); --zoom: 2.2; } .b-title { top: 5vh; } }
-    @media (prefers-reduced-motion: reduce) { .up .b-town img { animation: b-show .3s both; } }
+    @media (prefers-reduced-motion: reduce) { .up .b-town img { animation: b-show .3s both; } .b-town { transition: none; } }
   </style>
   <script>
-    // 來過的人第一幀就不畫開屏（放到 body 裏判斷會先閃一下夜景）
-    try { if (localStorage.getItem('botc.boot')) document.documentElement.dataset.boot = 'quiet'; } catch { /* 隱私模式 */ }
+    // 來過的人回房間（刷新、斷線重連）第一幀就不畫開屏，別耽誤對局；進大廳照常演（放到 body 裏判斷會先閃一下夜景）
+    try { if (localStorage.getItem('botc.boot') && /[?&]room=/.test(location.search)) document.documentElement.dataset.boot = 'quiet'; } catch { /* 隱私模式 */ }
   </script>
 </head>
 <body class="art">
@@ -57,14 +59,15 @@
       <img src="img/art/town-far-night.webp" alt="">
       <img src="img/art/town-mid-night.webp" alt="">
       <img src="img/art/town-near-night.webp" alt="">
-      <svg viewBox="0 0 2172 724"><g id="b-win"></g><line class="b-hand" x1="976.5" y1="594" x2="976.5" y2="574"/><circle class="b-bell" cx="976.5" cy="594" r="34"/><circle class="b-bell" cx="976.5" cy="594" r="34"/></svg>
+      <svg viewBox="0 0 2172 724"><g id="b-win"></g><line class="b-hand b-hour" x1="976.5" y1="594" x2="976.5" y2="579"/><line class="b-hand b-min" x1="976.5" y1="594" x2="976.5" y2="570"/><circle class="b-bell" cx="976.5" cy="594" r="34"/><circle class="b-bell" cx="976.5" cy="594" r="34"/></svg>
     </div>
   </div>
   <script>
     // 開屏：樣式表和對局要用的圖在這裏拉回來（app.js 等 boot.css），app 第一屏畫好時調 boot.ready()。
-    // 樣式表用 preload 拉，不擋第一次繪製，到了再生效。回訪的人文件都在緩存裏，一閃就過，不演開屏；2 秒還沒好才亮出來
+    // 樣式表用 preload 拉，不擋第一次繪製，到了再生效。回房間的老玩家文件都在緩存裏，不演開屏；2 秒還沒好才亮出來
+    // 開屏揭開時 boot.out 兌現，大廳的控件、介紹的牌等它才出來
     {
-      const root = document.documentElement, el = document.getElementById('boot'), hand = el.querySelector('.b-hand');
+      const root = document.documentElement, el = document.getElementById('boot'), minHand = el.querySelector('.b-min'), hourHand = el.querySelector('.b-hour');
       const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: k => { try { localStorage.setItem(k, '1'); } catch { /* 隱私模式 */ } } };
       const lang = store.get('botc.lang') || 'tc';
       root.dataset.lang = lang;
@@ -87,26 +90,51 @@
 
       const APP = 8; // 第一屏畫好抵幾個文件（要等 JS 下完、連上服務器）
       const all = CSS.length + MUST.length + 1 + APP;
-      let left = all - APP, app = false, art = false, lit = 0, quiet = !!root.dataset.boot;
+      const MIN = 1200; // 開屏至少演這麼久（從小鎮立起來算）：窗一扇扇亮完要這麼久，文件到得再快也不快進
+      // 鐘針轉到現在的時間，揭開時接上大廳小鎮上走著真時間的鐘針
+      const now = new Date(), toMin = 360 + now.getMinutes() * 6, toHour = 360 + now.getHours() % 12 * 30 + now.getMinutes() / 2;
+      let left = all - APP, app = false, art = false, t0 = 0, lit = 0, quiet = !!root.dataset.boot, handed;
+      const out = new Promise(ok => { handed = ok; });
       const got = () => { left--; };
       const load = (name, cb) => { const i = new Image(); i.onload = i.onerror = cb; i.src = `img/art/${name}.webp`; };
+      const start = () => { if (!art) { art = true; t0 = performance.now(); } };
       const end = () => {
         clearInterval(clock);
         store.set('botc.boot');
-        if (quiet) return el.remove();
+        if (quiet) { handed(); return el.remove(); }
         el.classList.add('strike');
-        setTimeout(() => el.classList.add('out'), 380);
-        setTimeout(() => el.remove(), 1900);
+        setTimeout(pull, 380);
+      };
+      // 鏡頭拉遠：落點量的是底下小鎮的實際位置和大小（窗口矮時大廳會滾動、多一條滾動條），拉到位兩層小鎮完全重合，這時揭開只多出控件。
+      // 直接進房間的底下沒有這個小鎮，慢慢淡掉
+      const pull = () => {
+        const goal = document.querySelector('.intro .lobby-town') || document.querySelector('.lobby .lobby-town'), town = el.querySelector('.b-town');
+        if (!goal) {
+          el.classList.add('out');
+          handed();
+          return setTimeout(() => el.remove(), 1500);
+        }
+        const r = goal.getBoundingClientRect(), s = Math.max(r.width, r.height * 3) / town.offsetWidth;
+        town.style.transform = `translate(calc(-50% + ${r.left + r.width / 2 - el.clientWidth / 2}px), ${r.bottom - el.clientHeight}px) scale(${s})`;
+        setTimeout(() => {
+          el.classList.add('flush', 'out');
+          handed();
+          setTimeout(() => el.remove(), 400);
+        }, document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1500);
       };
       const clock = setInterval(() => {
         const ready = left <= 0 && app;
         if (quiet) return ready && end();
-        const want = art ? Math.ceil(lamps.length * (ready ? 1 : (all - Math.max(left, 0) - (app ? 0 : APP)) / all)) : 0;
+        const played = art ? (performance.now() - t0) / MIN : 0;
+        const want = art ? Math.ceil(lamps.length * Math.min(played, ready ? 1 : (all - Math.max(left, 0) - (app ? 0 : APP)) / all)) : 0;
         for (let n = ready ? 4 : 1; n-- && lit < want;) lamps[lit++][1].classList.add('on');
-        hand.style.transform = `rotate(${lit / lamps.length * 360}deg)`;
-        if (ready && (lit === lamps.length || document.hidden)) end();
+        const p = lit / lamps.length;
+        minHand.style.transform = `rotate(${p * toMin}deg)`;
+        hourHand.style.transform = `rotate(${p * toHour}deg)`;
+        if (ready && (document.hidden || (played >= 1 && lit === lamps.length))) end();
       }, 18);
       window.boot = {
+        out,
         ready() { app = true; },
         css: Promise.all(CSS.map(n => new Promise(ok => {
           const l = document.createElement('link');
@@ -117,8 +145,8 @@
         }))),
       };
       if (quiet) setTimeout(() => { quiet = false; delete root.dataset.boot; }, 2000);
-      Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => {}))).then(() => { art = true; el.classList.add('up'); });
-      setTimeout(() => { art = true; }, 4000);
+      Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => {}))).then(() => { start(); el.classList.add('up'); });
+      setTimeout(start, 4000);
       setTimeout(() => { left = 0; }, 12000); // 圖片卡住也別一直攔著
       load(`title-${lang}-plain`, () => { got(); el.classList.add('named'); });
       Promise.all(MUST.map(n => new Promise(ok => load(n, () => { got(); ok(); })))).then(() => LATER.forEach(n => load(n)));
