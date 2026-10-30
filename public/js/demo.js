@@ -1,10 +1,10 @@
-// 演示頁：用真實的界面模塊（桌面、側欄、私聊浮窗、操作塢、演出）渲染一份模擬對局，頂欄按步驟觸發場景。
+// 演示頁：用真實的界面模塊（桌面、側欄、操作塢、演出）渲染一份模擬對局，頂欄按步驟觸發場景。
 // 不連服務器：world 是整局的真實數據，按當前視角（玩家 / 說書人 / 代入某個玩家）裁剪成和服務端一樣的狀態。
 // 只放對局裏不好撞上的東西（要好幾個人一起投票、特定角色和狀態、終局、新美術素材）；開一局就能看到的界面不放這裏。
 // 加場景：往 SCENES 裏加一項，打開 /demo.html?s=場景名
 import { h, toast, morph } from './ui.js';
 import { renderTown, stCard } from './town.js';
-import { renderSide, sideCollapsed, renderChatWins } from './side.js';
+import { renderSide, sideCollapsed } from './side.js';
 import { stFlow, playerFlow } from './flow.js';
 import { progressBar } from './progress.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
@@ -643,6 +643,14 @@ const SCENES = {
       ['鎖房', () => { screen = null; world.locked = true; view({ me: ME }); }],
       ['觀戰', () => { screen = null; world.locked = false; world.watchers = 2; view({}); }],
       ['開局觀戰', () => { screen = null; world.watchers = 2; view({}); startGame(); }],
+      ['來消息', () => {
+        screen = null; view({ me: ME });
+        say('s3', ME, '你昨晚看到什麼了？');
+        say('s6', 'all', '我覺得 5 號很可疑');
+        say('st', ME, '今晚記得先想好選誰');
+        say('s4', 'st', '說書人，我想問個規則');
+        say('s2', 's7', '等下投他');
+      }],
       ['被移出', () => { screen = 'lobby'; toast('你已被說書人移出房間', 5000); }],
     ],
   },
@@ -733,7 +741,7 @@ function render() {
     h('div', { class: 'demo-top' }, !bare && demoBar(), topbar(ctx)),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), town, renderChatWins(ctx), renderBluffs(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), dock, side, card);
+    renderHud(ctx), town, renderBluffs(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), dock, side, card);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
   app.querySelectorAll('[data-scroll]').forEach(el => {

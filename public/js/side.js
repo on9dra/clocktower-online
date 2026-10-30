@@ -1,58 +1,27 @@
-// 側欄：標籤頁（流程日誌、遊戲日誌、說書人私聊 / 私聊收件箱、角色表）。流程操作在底部操作塢（flow.js）
-import { h, roleToken, seatLabel, modal, closeModal, prompt2, toast } from './ui.js';
+// 側欄：標籤頁（流程日誌、遊戲日誌、聊天、角色表）。流程操作在底部操作塢（flow.js）
+import { h, roleToken, seatLabel, modal, closeModal, prompt2 } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';
 import { renderGameLog } from './gamelog.js';
-import { seatBadge, mini, tag, w, icon, ACTS } from './glyph.js';
+import { seatBadge, mini, tag, icon, ACTS } from './glyph.js';
 import { msgHeld } from './fx.js';
 
-// 聊天狀態按視角分開（自己 / 說書人代入的某個玩家），代入時不會串到說書人自己的浮窗和未讀。
+// 聊天狀態按視角分開（自己 / 說書人代入的某個玩家），代入時不會串到說書人自己的未讀。
 // seen：每個頻道讀到的最後一條；base：進入這個視角時的最後一條（之前的舊消息不算未讀）
-// wins：打開的私聊浮窗 [{ ch, min }]，按打開順序（順序不變，重繪時已有的浮窗不會重新彈一次）
+// chat：聊天標籤翻到的那一頁（頻道）；focus：畫完把光標放進輸入框；drafts：每一頁沒發出去的字
 // sheet：手機上側欄是底部抽屜，這裏記它開沒開（寬屏不用）
-const newView = () => ({ tab: null, seen: {}, base: null, wins: [], focus: null, sheet: false });
+const newView = () => ({ tab: null, chat: 'all', seen: {}, base: null, focus: false, drafts: {}, sheet: false });
 const views = {};
 let ui = newView();
 const viewKey = s => (s.peek ? 'peek:' + s.peek.seatId : s.isSt ? 'st' : 'me');
 const wide = () => window.matchMedia('(min-width: 861px)').matches;
-const FULL = '聊天窗已滿，請關閉部分聊天窗後再試。';
-// 浮窗放不放得下：桌面沿桌面寬度橫排；手機上展開的貼底佔滿寬，收起的小條每行並排三個
-function fits(wins) {
-  if (wide()) {
-    const room = (document.querySelector('.board')?.clientWidth || 900) - 20;
-    return wins.reduce((a, x) => a + (x.min ? 188 : 280), 0) <= room;
-  }
-  const mins = wins.filter(x => x.min).length;
-  return Math.ceil(mins / 3) * 40 + (wins.length - mins) * (innerHeight * 0.46 + 8) <= innerHeight * 0.8;
-}
 
-// 打開頻道：遊戲日誌、玩家和說書人的私聊在側欄標籤裏，其他私聊打開浮窗；放不下就提示，不自動關掉別的
+// 打開頻道：側欄翻到聊天標籤的那一頁（座位菜單、桌上的氣泡走這裏）
 export function openChat(ctx, ch) {
-  const tab = ch === 'all' ? 'log' : ch === 'st' ? 'st' : null;
-  if (tab) {
-    ui.tab = tab; ui.sheet = true; ctx.ls.set('botc.side', ''); ctx.render();
-    return;
-  }
-  const x = ui.wins.find(y => y.ch === ch);
-  if (!x || x.min) {
-    // 手機一次只展開一個，別的收成小條
-    const rest = wide() ? ui.wins : ui.wins.map(y => (y.min ? y : { ...y, min: true }));
-    const next = x ? rest.map(y => (y.ch === ch ? { ch, min: false } : y)) : [...rest, { ch, min: false }];
-    if (!fits(next)) return toast(FULL);
-    ui.wins = next;
-  }
-  ui.focus = ch;
-  if (!wide()) ui.sheet = false; // 手機：私聊浮窗貼底，先收起抽屜
-  ctx.render();
+  ui.tab = 'chat'; ui.chat = ch; ui.focus = wide(); ui.sheet = true;
+  ctx.ls.set('botc.side', ''); ctx.render();
 }
 const lastSeqOf = s => s.chat.at(-1)?.seq || 0;
-function closeWin(ctx, ch) { ui.wins = ui.wins.filter(x => x.ch !== ch); ui.seen[ch] = lastSeqOf(ctx.state); ctx.render(); }
-function toggleWin(ctx, ch) {
-  const x = ui.wins.find(y => y.ch === ch);
-  if (x.min) return openChat(ctx, ch);
-  x.min = true;
-  ctx.render();
-}
 
 // 玩家自己的猜測和備註只存在本機，按房間 + 局區分（新的一局自動清空）
 const key = (ctx, kind) => `botc.${kind}.${ctx.state.code}.${ctx.state.gameId}`;
@@ -141,13 +110,19 @@ export function chatUnread(s) {
 }
 
 // [鍵, 側欄標籤, 手機短標籤]
-const tabsOf = s => (s.isSt ? [['flow', '流程', '流程'], ['log', '遊戲日誌', '日誌'], ['dm', '私聊', '私聊'], ['sheet', '角色表', '角色']]
-  : s.myId ? [['log', '遊戲日誌', '日誌'], ['st', '說書人', '說書人'], ['sheet', '角色表', '角色']]
-    : [['log', '遊戲日誌', '日誌'], ['sheet', '角色表', '角色']]); // 觀戰的人不能私聊
-const unreadBadge = n => n > 0 && h('i', { class: 'count' }, n > 99 ? '99+' : n);
-// 標籤上的未讀：日誌算公告，說書人標籤算和說書人的私聊，私聊收件箱算所有私聊
-const tabUnread = (k, byCh) => (k === 'log' ? byCh.all?.n || 0 : k === 'st' ? byCh.st?.n || 0
-  : k === 'dm' ? Object.entries(byCh).reduce((a, [ch, x]) => a + (ch === 'all' ? 0 : x.n), 0) : 0);
+const tabsOf = s => [...(s.isSt ? [['flow', '流程', '流程']] : []), ['log', '遊戲日誌', '日誌'], ['chat', '聊天', '聊天'], ['sheet', '角色表', '角色']];
+// 紅點：數字一變就換一個節點，重新蓋章、慢慢閃
+const unreadBadge = n => n > 0 && h('i', { class: 'count', 'data-key': 'n' + n }, n > 99 ? '99+' : n);
+// 聊天標籤上的未讀：公共和私聊。玩家之間的私聊記錄只標在它自己的頁籤上，說書人不用回
+const tabUnread = (k, byCh) => (k === 'chat' ? Object.entries(byCh).reduce((a, [ch, x]) => a + (ch === 'whisper' ? 0 : x.n), 0) : 0);
+// 從別處點開聊天：翻到最新一條未讀的那一頁，沒有未讀就停在上次那頁
+function pickTab(s, k, showing) {
+  if (k === 'chat' && !showing) {
+    const [ch] = Object.entries(chatUnread(s)).filter(x => x[0] !== 'whisper').sort((a, b) => b[1].last.seq - a[1].last.seq)[0] || [];
+    if (ch) ui.chat = ch;
+  }
+  ui.tab = k;
+}
 
 // 手機頂欄上的標籤：點開底部抽屜，再點一次（或點遮罩、✕）收起
 export function sheetTabs(ctx) {
@@ -156,7 +131,7 @@ export function sheetTabs(ctx) {
   const byCh = chatUnread(s);
   return h('nav', { class: 'm-tabs' }, tabsOf(s).map(([k, , short]) => h('button', {
     class: 'btn sm' + (ui.sheet && ui.tab === k ? ' primary' : ''),
-    onclick: () => { const open = ui.sheet && ui.tab === k; ui.tab = k; ui.sheet = !open; ctx.render(); },
+    onclick: () => { const open = ui.sheet && ui.tab === k; pickTab(s, k, open); ui.sheet = !open; ctx.render(); },
   }, short, !(ui.sheet && ui.tab === k) && unreadBadge(tabUnread(k, byCh)))));
 }
 export function closeSheet(ctx) { if (!ui.sheet) return false; ui.sheet = false; ctx.render(); return true; }
@@ -166,24 +141,16 @@ export function renderSide(ctx) {
   ui = views[viewKey(s)] ||= newView();
   const tabs = tabsOf(s);
   if (!tabs.some(t => t[0] === ui.tab)) ui.tab = tabs[0][0];
+  if (!chatChans(s).includes(ui.chat)) ui.chat = 'all';
   const lastSeq = lastSeqOf(s);
   if (ui.base == null) ui.base = lastSeq;
-  // 新私聊：出現一個收起的浮窗慢慢閃（點開再看）；已經有浮窗的就在原處閃。
-  // 放不下就不加，座位旁的氣泡和私聊條上的數字照樣提示。代入視角時不彈
-  if (!s.peek) for (const ch of Object.keys(chatUnread(s))) {
-    if (ch === 'all' || ch === 'whisper' || ch === 'st' || ui.wins.some(x => x.ch === ch)) continue;
-    const next = [...ui.wins, { ch, min: true }];
-    if (fits(next)) ui.wins = next;
-  }
-  ui.wins = ui.wins.filter(x => x.ch === 'whisper' || s.seats.some(y => y.id === x.ch));
-  for (const x of ui.wins) if (!x.min) ui.seen[x.ch] = lastSeq;
   // 寬屏：收成豎條時不算已讀；手機：底部抽屜沒打開時不算已讀
   const hidden = wide() ? min : !ui.sheet;
-  if (!hidden && (ui.tab === 'log' || ui.tab === 'st')) ui.seen[ui.tab === 'log' ? 'all' : 'st'] = lastSeq;
+  if (!hidden && ui.tab === 'chat') ui.seen[ui.chat] = lastSeq;
   const byCh = chatUnread(s);
   const label = (k, text) => [text, !(ui.tab === k && !hidden) && unreadBadge(tabUnread(k, byCh))];
-  const go = k => { ui.tab = k; if (min) setCollapsed(ctx, false); else ctx.render(); };
-  const body = { flow: renderLog, log: renderPublic, st: renderStChat, dm: renderInbox, sheet: renderSheet }[ui.tab](ctx, byCh);
+  const go = k => { pickTab(s, k, ui.tab === k && !hidden); if (min) setCollapsed(ctx, false); else ctx.render(); };
+  const body = { flow: renderLog, log: renderPublic, chat: renderChat, sheet: renderSheet }[ui.tab](ctx, byCh);
   return h('aside', { class: 'side' + (ui.sheet ? ' open' : '') },
     h('div', { class: 'side-mask', onclick: () => closeSheet(ctx) }),
     h('nav', { class: 'side-rail' }, h('button', { class: 'rail-btn', title: '展開側欄', onclick: () => setCollapsed(ctx, false) }, '⇤'),
@@ -212,70 +179,53 @@ const msgView = (s, m) => {
     h('div', { class: 'pre' }, m.text));
 };
 const msgsOf = (s, ch) => s.chat.filter(m => channelOf(s, m) === ch && !(m.info && !s.isSt) && m.k !== 'act');
-// 輸入框：差量更新會保留頁面上已有的輸入框，所以發送時讀頁面上的那個
-function composer(ctx, ch, btn = '發送', hint = '說點什麼，回車發送') {
+// 輸入框：差量更新會保留頁面上已有的輸入框，所以發送時讀頁面上的那個。每一頁一個節點，翻頁時字不會帶到別的頻道
+function composer(ctx, ch, btn, hint) {
   const s = ctx.state, key = 'chat-' + ch;
   const send = () => {
     const el = document.querySelector(`[data-keep="${key}"]`), text = el?.value.trim();
     if (!text) return;
     (s.isSt ? ctx.st('chat', { to: ch, text }) : ctx.act('chat', { to: ch, text }));
-    el.value = '';
+    el.value = ''; ui.drafts[ch] = '';
   };
-  return h('div', { class: 'row composer' },
-    h('input', { 'data-keep': key, maxlength: 500, placeholder: hint,
+  return h('div', { class: 'row composer', 'data-key': key },
+    h('input', { 'data-keep': key, maxlength: 500, placeholder: hint, value: ui.drafts[ch] || '',
+      oninput: e => { ui.drafts[ch] = e.target.value; },
       onkeydown: e => { if (e.key === 'Enter' && !e.isComposing) send(); } }),
     h('button', { class: 'btn', onclick: send }, btn));
 }
-// 私聊對象：說書人看所有座位和玩家之間的私聊記錄；玩家看說書人和其他座位
-const privChans = s => (s.isSt ? [...s.seats.map(x => x.id), 'whisper'] : ['st', ...s.seats.filter(x => !x.mine).map(x => x.id)]);
-const chanFace = (s, ch) => (ch === 'st' ? w('說書人', 'ink') : ch === 'whisper' ? w('私聊記錄', 'muted') : seatBadge(s, ch));
-const chanTitle = (s, ch) => (ch === 'st' ? '說書人' : ch === 'whisper' ? '玩家之間的私聊' : s.seats.find(x => x.id === ch)?.name || '');
 
-// 遊戲日誌：只讀；說書人底下多一個發公告的輸入框
-const renderPublic = ctx => renderGameLog(ctx, msgsOf(ctx.state, 'all'),
+// 遊戲日誌：只讀，公開發生的事和說書人的公告；說書人底下多一個發公告的輸入框
+const renderPublic = ctx => renderGameLog(ctx, msgsOf(ctx.state, 'all').filter(m => m.from === 'sys' || m.from === 'st'),
   ctx.state.isSt && !ctx.state.peek && composer(ctx, 'all', '公告', '發給所有人的公告'));
 
-// 玩家：和說書人的私聊直接在標籤裏
-function renderStChat(ctx) {
-  const s = ctx.state, msgs = msgsOf(s, 'st');
-  return h('div', { class: 'tab-body chat' },
-    h('div', { class: 'msgs', 'data-scroll': 'st', 'data-stick': '1' }, msgs.length ? msgs.map(m => msgView(s, m)) : h('div', { class: 'log-empty' }, icon('quill'))),
-    !s.peek && composer(ctx, 'st'));
-}
+// 聊天的頁籤：公共在最前；說書人看每個座位和玩家之間的私聊記錄，玩家看說書人和其他座位，觀戰的人只有公共
+const chatChans = s => ['all', ...(s.isSt ? [...s.seats.map(x => x.id), 'whisper'] : s.myId ? ['st', ...s.seats.filter(x => !x.mine).map(x => x.id)] : [])];
+const CHAN = { all: '公共', st: '說書人', whisper: '私聊記錄' };
+const chanHint = (s, ch) => (ch === 'all' ? '對所有人說' : ch === 'st' ? '對說書人說' : `對 ${seatLabel(s, ch)} 說`);
 
-// 說書人：私聊收件箱，每個座位一行（最後一條 + 未讀），點開浮窗；有未讀的排前面，其次按最近
-function renderInbox(ctx, byCh) {
-  const s = ctx.state, last = {};
-  for (const m of s.chat) if (m.to !== 'all' && !m.info && m.k !== 'act') last[channelOf(s, m)] = m;
-  const order = privChans(s).sort((a, b) => (byCh[b] ? 1 : 0) - (byCh[a] ? 1 : 0) || (last[b]?.seq || 0) - (last[a]?.seq || 0));
-  return h('div', { class: 'tab-body inbox', 'data-scroll': 'inbox' }, order.map(ch => {
-    const m = last[ch], seat = s.seats.find(x => x.id === ch);
-    return h('button', { class: 'ib-row' + (byCh[ch] ? ' unread' : '') + (ui.wins.some(x => x.ch === ch && !x.min) ? ' open' : ''),
-      'data-key': 'ib-' + ch, onclick: () => openChat(ctx, ch) },
-    chanFace(s, ch), h('span', { class: 'ib-name' }, seat?.name || chanTitle(s, ch)),
-    h('span', { class: 'ib-last' }, !m ? '' : m.text == null ? `${m.fromName} → ${seatLabel(s, m.to)}` : (m.from === 'st' ? '你：' : '') + m.text),
-    byCh[ch] && h('i', { class: 'count' }, byCh[ch].n));
-  }));
-}
-
-// 私聊浮窗：桌面右下角並排（手機上貼底），標題欄點一下收起 / 展開
-export function renderChatWins(ctx) {
-  const s = ctx.state, byCh = chatUnread(s);
+// 聊天：左邊一列頁籤，選中哪頁就和誰聊；翻到座位那頁，頁頭帶上自己標的和說書人給的信息，免得認錯人
+function renderChat(ctx, byCh) {
+  const s = ctx.state, ch = ui.chat, chans = chatChans(s), seat = s.seats.find(x => x.id === ch);
+  const msgs = msgsOf(s, ch).filter(m => m.from !== 'sys');
   if (ui.focus) {
-    const key = 'chat-' + ui.focus; ui.focus = null;
-    setTimeout(() => document.querySelector(`[data-keep="${key}"]`)?.focus(), 0);
+    ui.focus = false;
+    setTimeout(() => document.querySelector(`[data-keep="chat-${ch}"]`)?.focus(), 0);
   }
-  return h('div', { class: 'chat-wins' }, ui.wins.map(({ ch, min }) => {
-    const seat = s.seats.find(x => x.id === ch), msgs = !min && msgsOf(s, ch), marks = !min && seat ? seatMarks(ctx, ch) : [];
-    return h('div', { class: 'cwin' + (min ? ' min' : '') + (byCh[ch] ? ' unread' : ''), 'data-key': 'cw-' + ch },
-      h('div', { class: 'cwin-head', onclick: () => toggleWin(ctx, ch) },
-        chanFace(s, ch), seat && h('span', { class: 'cwin-name' }, seat.name), s.isSt && seat?.role && mini(seat.role),
-        byCh[ch] && h('i', { class: 'count' }, byCh[ch].n),
-        h('button', { class: 'cwin-x', title: '關閉', onclick: e => { e.stopPropagation(); closeWin(ctx, ch); } }, '✕')),
-      marks.length > 0 && h('div', { class: 'cwin-marks' }, marks),
-      !min && h('div', { class: 'msgs', 'data-scroll': 'cw-' + ch, 'data-stick': '1' }, msgs.length ? msgs.map(m => msgView(s, m)) : h('p', { class: 'muted' }, '暫無消息')),
-      !min && ch !== 'whisper' && !s.peek && composer(ctx, ch));
-  }));
+  const flip = c => { ui.chat = c; ui.focus = wide(); ctx.render(); };
+  const tab = c => {
+    const i = s.seats.findIndex(x => x.id === c);
+    return h('button', { class: 'chan-tab' + (c === ch ? ' on' : ''), 'data-key': 'tab-' + c, title: s.seats[i]?.name, onclick: () => flip(c) },
+      i >= 0 && h('b', {}, i + 1), h('span', {}, s.seats[i]?.name ?? CHAN[c]), unreadBadge(byCh[c]?.n || 0));
+  };
+  return h('div', { class: 'tab-body chat chan' + (chans.length > 1 ? '' : ' solo') },
+    chans.length > 1 && h('nav', { class: 'chan-rail' }, chans.map(tab)),
+    h('div', { class: 'chan-page' },
+      seat && h('div', { class: 'chan-head', 'data-key': 'head-' + ch },
+        seatBadge(s, ch), h('b', {}, seat.name), s.isSt && seat.role && mini(seat.role), seatMarks(ctx, ch)),
+      h('div', { class: 'msgs', 'data-key': 'msgs', 'data-scroll': 'chan-' + ch, 'data-stick': '1' },
+        msgs.length ? msgs.map(m => msgView(s, m)) : h('div', { class: 'log-empty' }, icon('quill'))),
+      ch !== 'whisper' && !s.peek && (s.isSt || s.myId) && composer(ctx, ch, '發送', chanHint(s, ch))));
 }
 
 // 座位上的標記：說書人給的信息裏帶的（角色 / 是否惡魔 / 陣營），自己的角色猜測和備註

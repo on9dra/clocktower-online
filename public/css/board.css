@@ -93,6 +93,11 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .count { font-style: normal; display: inline-block; min-width: 17px; height: 17px; line-height: 17px; padding: 0 4px; margin-left: 4px; border-radius: 9px;
   background: var(--evil); color: #fff; font-size: 11px; font-weight: 700; text-align: center; letter-spacing: 0; vertical-align: 1px; }
 .rail-tab .count { writing-mode: horizontal-tb; margin: 4px 0 0; }
+/* 紅點：來新消息時蓋一下章，再紅墨交替慢閃三下 */
+.count { animation: dot-stamp .24s cubic-bezier(.2, 1.4, .4, 1), dot-blink 1.2s ease-in-out .24s 3; }
+@keyframes dot-stamp { from { transform: scale(1.9); opacity: 0; } }
+@keyframes dot-blink { 50% { background: var(--ink); } }
+@media (prefers-reduced-motion: reduce) { .count { animation: none; } }
 /* 私聊氣泡：座位右上方，尾巴指向頭像 */
 .chat-pop { position: absolute; left: 62%; bottom: 82%; z-index: 4; display: flex; align-items: center; gap: 4px; width: max-content; max-width: 200px;
   padding: 4px 9px; background: #fff; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 12px 12px 12px 3px;
@@ -102,6 +107,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .chat-pop .count { margin-left: 0; flex: none; }
 .chat-pop::before { content: ""; position: absolute; left: -1.5px; bottom: -7px; border: 4px solid transparent; border-left-color: var(--ink); border-top-color: var(--ink); }
 .chat-pop:hover { transform: translateY(-1px); }
+/* 公共消息的氣泡：虛線，冒幾秒自己淡掉 */
+.chat-pop.pub { border-style: dashed; animation: pop-in .25s ease-out, pop-fade .4s ease-in 6s forwards; }
+@keyframes pop-fade { to { opacity: 0; visibility: hidden; } }
 .center .chat-pop { position: relative; left: auto; bottom: auto; margin: 10px auto 0; max-width: 100%; border-radius: 12px; font-size: 17px; padding: 6px 14px; }
 .center .chat-pop::before { display: none; }
 @keyframes pop-in { from { transform: scale(.6) translateY(6px); opacity: 0; } }
@@ -256,18 +264,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .gl-win.evil { color: var(--evil); }
 .gl-st { margin: 4px 0; padding: 6px 10px; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--brass); border-radius: 0 4px 4px 0; font: 15px/1.5 var(--serif); }
 .gl-st-k { display: flex; align-items: center; gap: 4px; font: 700 11.5px var(--sans); color: var(--brass); letter-spacing: .1em; }
-.gl-say { font-size: 13px; padding: 1px 6px; }
-.gl-say-k { color: var(--muted); font-size: 12px; margin-right: 6px; }
 
-/* 說書人的私聊收件箱：每個座位一行，點開浮窗 */
-.inbox { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }
-.ib-row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; background: none; border: 0; border-radius: 6px; text-align: left; font-size: 15px; }
-.ib-row:hover { background: #2a26220d; }
-.ib-row.open { background: #efe7d4; }
-.ib-name { flex: none; font: 600 13px var(--sans); }
-.ib-last { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: var(--muted); }
-.ib-row.unread .ib-name, .ib-row.unread .ib-last { color: var(--ink); font-weight: 700; }
-.ib-row .count { margin: 0; flex: none; }
 .log { font-size: 13px; padding: 4px 0; border-bottom: 1px dotted var(--line); }
 .log-k { display: inline-block; min-width: 34px; font-size: 11.5px; color: var(--muted); margin-right: 6px; }
 .info { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--brass); border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; }
@@ -421,41 +418,24 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .vbtn.no.on { background: #4b5563; color: #fff; }
 .vbtn.disabled { opacity: .45; pointer-events: none; }
 
-/* 聊天：側欄頂部的私聊對象條；私聊浮窗（桌面右下角並排，手機貼底） */
-.chan-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 6px 0 4px; border-bottom: 1px dashed var(--line); }
-.chan-k { font-size: 12px; color: var(--muted); margin-right: 2px; }
-.chan-chip { position: relative; display: inline-flex; align-items: center; padding: 2px 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); cursor: pointer; font-size: 14px; }
-.chan-chip:hover { border-color: var(--ink); }
-.chan-chip.open { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-.chan-chip .count { position: absolute; top: -7px; right: -7px; margin: 0; }
+/* 聊天：左邊一列頁籤，一根墨線貫穿，選中的那張斷開線和右邊的紙連成一片 */
+.tab-body.chat.chan { flex-direction: row; }
+.chan-rail { flex: 0 0 90px; display: flex; flex-direction: column; gap: 1px; overflow-y: auto; scrollbar-width: none;
+  background: linear-gradient(var(--ink), var(--ink)) right / 1.5px 100% no-repeat local; }
+.chan-tab { flex: none; display: flex; align-items: center; gap: 4px; height: 30px; padding: 0 5px 0 7px; background: none; border: 0; color: var(--muted); font-size: 13px; text-align: left; cursor: pointer; }
+.chan-tab b { flex: none; font: 700 15px var(--serif); color: var(--ink); }
+.chan-tab span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chan-tab > span:first-child { color: var(--ink); font-weight: 600; }
+.chan-tab .count { flex: none; margin: 0; }
+.chan-tab:hover { color: var(--ink); background: linear-gradient(to left, transparent 1.5px, #2a26220d 1.5px); }
+.chan-tab.on { background: var(--card) url(../img/grain.svg); color: var(--ink); font-weight: 700; box-shadow: inset 0 1.5px var(--ink), inset 0 -1.5px var(--ink), inset 1.5px 0 var(--ink); }
+.chan-page { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); border-left: 0; }
+.chan.solo .chan-page { border-left: 1.5px solid var(--ink); }
+.chan-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 4px 8px; background: #efe7d4; border-bottom: 1px solid var(--line); font-size: 14px; }
+.chan-head .pm { font-size: 18px; }
+.chan-page .msgs { margin: 0; padding: 8px; }
+.chan-page .composer { margin: 0; padding: 6px; gap: 6px; flex-wrap: nowrap; border-top: 1px solid var(--line); }
 .composer input { flex: 1; min-width: 0; }
-.chat-wins { position: absolute; right: 10px; bottom: 10px; z-index: 20; display: flex; flex-direction: row-reverse; align-items: flex-end; gap: 8px; pointer-events: none; max-width: calc(100% - 20px); }
-.cwin { pointer-events: auto; width: 272px; height: 340px; max-height: calc(100vh - 200px); display: flex; flex-direction: column; overflow: hidden;
-  background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); border-radius: 10px; box-shadow: 0 10px 28px #2a262255; animation: cwin-in .22s ease-out; }
-.cwin.min { height: auto; width: auto; max-width: 180px; }
-.cwin.min.unread .cwin-head { background: var(--evil); animation: cwin-blink 1.2s ease-in-out 3; }
-.cwin-head { display: flex; align-items: center; gap: 6px; padding: 5px 6px 5px 8px; background: var(--ink); color: var(--card); cursor: pointer; font-size: 13px; font-weight: 600; }
-.cwin-head .w, .cwin-head .w.ink, .cwin-head .w.muted { color: var(--card); }
-.cwin-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cwin-head .count { margin: 0; }
-.cwin-x { background: none; border: 0; color: inherit; opacity: .7; padding: 0 4px; font-size: 13px; margin-left: auto; cursor: pointer; }
-.cwin-x:hover { opacity: 1; }
-.cwin .msgs { margin: 0; padding: 8px; }
-.cwin .composer { padding: 6px; border-top: 1px solid var(--line); gap: 6px; }
-/* 入場從底邊往上長：往下位移會越出頁面底部，閃出滾動條，整頁跟著左右一跳 */
-.cwin { transform-origin: 50% 100%; }
-@keyframes cwin-in { from { transform: scale(.94); opacity: 0; } }
-@keyframes cwin-blink { 0%, 100% { background: var(--evil); } 50% { background: var(--ink); } }
-.cwin-marks { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 4px 8px; background: #efe7d4; border-bottom: 1px solid var(--line); }
-.cwin-marks .pm { font-size: 18px; }
-@media (prefers-reduced-motion: reduce) { .cwin.min.unread .cwin-head { animation: none; background: var(--evil); } }
-@media (max-width: 860px) {
-  /* 手機：展開的浮窗佔滿寬貼底，收起的縮成小條在右下角並排，少擋座位 */
-  .chat-wins { position: fixed; left: 8px; right: 8px; bottom: 8px; flex-direction: row-reverse; flex-wrap: wrap-reverse; align-items: flex-end; gap: 6px; max-width: none; }
-  .cwin { width: 100%; height: 46vh; height: 46dvh; order: 1; }
-  .cwin.min { width: auto; max-width: 48%; border-radius: 16px; order: 0; }
-  .cwin.min .cwin-head { padding: 4px 6px 4px 8px; }
-}
 
 
 /* 審判牌（trial.js）：提名期間蓋在桌面上的一張紙牌。平塗、墨線、印章，和其他卡片一個風格 */

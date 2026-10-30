@@ -46,6 +46,12 @@ export function renderTown(ctx) {
     class: 'chat-pop', 'data-key': 'pop-' + ch, title: '私聊',
     onclick: e => { e.stopPropagation(); openChat(ctx, ch); },
   }, who && h('b', {}, who), h('span', {}, unread[ch].last.text ?? '…'), unread[ch].n > 1 && h('i', { class: 'count' }, unread[ch].n));
+  // 公共頻道：最新一條未讀在說話的人身旁冒幾秒（說書人的在圓桌中央），淡掉之後紅點還在
+  const said = unread.all?.last;
+  const pub = (id, who) => said?.from === id && h('div', {
+    class: 'chat-pop pub', 'data-key': 'pub-' + said.seq, title: '公共',
+    onclick: e => { e.stopPropagation(); openChat(ctx, 'all'); },
+  }, h('b', {}, who), h('span', {}, said.text));
 
   s.seats.forEach((seat, i) => {
     const ang = (i / Math.max(n, 1)) * Math.PI * 2 - Math.PI / 2;
@@ -92,7 +98,7 @@ export function renderTown(ctx) {
       nom && (nom.votes[seat.id] || nom.abstain?.[seat.id]) && h('span', {
         class: 'vmark ' + (nom.votes[seat.id] ? 'yes' : 'no') + (voted ? ' ' + voted.cls : ''), style: voted && voted.style,
         title: nom.votes[seat.id] ? '贊成' : '棄權' }, icon(nom.votes[seat.id] ? 'hand' : 'abstain')),
-      !seat.mine && pop(seat.id),
+      !seat.mine && (pop(seat.id) || pub(seat.id, '公共')),
       aim && !seat.mine && !dead && h('button', { class: 'aim-btn', title: '開槍', onclick: e => { e.stopPropagation(); aimAsk(ctx, seat); } }, icon('aim')),
       // 上一局的贏家頭上戴陣營皇冠；終局後的 MVP 投票：右上角的星星
       seatCrown(seat),
@@ -126,7 +132,7 @@ export function renderTown(ctx) {
   ring.append(h('div', { class: 'center' + (nom ? ' has-nom' : '') + (blk || execActive() ? ' has-blk' : '') },
     !blk && h('div', { class: 'phase-title' }, title),
     !blk && h('div', { class: 'phase-sub' }, sub),
-    !s.isSt && pop('st', '說書人'),
+    !s.isSt && (pop('st', '說書人') || pub('st', '公告')),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
     !blk && playerCenter(ctx),
     s.isSt && !s.peek && s.phase === 'lobby' && scriptPick(ctx),

@@ -40,9 +40,7 @@ function row(s, m) {
     return h('div', { class: 'gl-row gl-' + String(lv).replace('.', ''), title: m.text }, body);
   }
   // 說書人對所有人的公告：便條
-  if (m.from === 'st') return h('div', { class: 'gl-st' }, h('div', { class: 'gl-st-k' }, icon('sound'), '說書人'), h('div', { class: 'pre' }, m.text));
-  // 舊局裏玩家的公共發言
-  return h('div', { class: 'gl-say' }, h('span', { class: 'gl-say-k' }, m.fromName), h('span', { class: 'pre' }, m.text));
+  return h('div', { class: 'gl-st' }, h('div', { class: 'gl-st-k' }, icon('sound'), '說書人'), h('div', { class: 'pre' }, m.text));
 }
 
 export function renderGameLog(ctx, msgs, composer) {

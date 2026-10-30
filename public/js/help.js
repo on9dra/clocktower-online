@@ -371,7 +371,7 @@ const OPS = {
     steps(
       step(1, null, '你的牌', '角色、能力、每晚收到的信息'),
       step(2, scene('hp-pick', row(blank(2), blank(3, 'pick'), blank(4))), '輪到你', '點座位，再按圓桌中央的確認'),
-      step(3, null, '日誌、私聊、角色表'),
+      step(3, null, '日誌、聊天、角色表'),
       step(4, row(fake('規則與流程'), fake('⋯', 'ghost')), '頂欄', '「⋯」裏切繁簡、音效')),
     stub(memo(b('點別人的座位'), sm('扔雞蛋、私聊、標記猜測')),
       memo(h('span', { class: 'hp-skip' }, icon('skip'), '跳過'), sm('開局翻牌、第 N 夜')))],

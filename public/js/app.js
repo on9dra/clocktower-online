@@ -1,7 +1,7 @@
 // 入口：連接、身份持久化、大廳、整體渲染
 import { h, toast, closeModal, morph, closeMenu } from './ui.js';
 import { renderTown } from './town.js';
-import { renderSide, sideCollapsed, renderChatWins, closeSheet } from './side.js';
+import { renderSide, sideCollapsed, closeSheet } from './side.js';
 import { stFlow, playerFlow } from './flow.js';
 import { progressBar } from './progress.js';
 import { sel, stopSelect, stCard } from './town.js';
@@ -158,7 +158,7 @@ function render() {
     topbar(ctx),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), town, renderChatWins(ctx), renderBluffs(ctx)), progressBar(ctx), dock, side, card);
+    renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), dock, side, card);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
   // 聊天、日誌：原本停在底部的保持在底部，新打開的貼底列表直接滾到底
