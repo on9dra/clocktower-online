@@ -1,0 +1,62 @@
+/* 循環氛圍（js/ambient.js）：都很慢，能定格的就定格（steps），只動 transform / opacity；看不見的層暫停；減少動畫時全關。
+   一局要開一兩個小時，寧可少：不閃、不搶角色牌，也不蓋住字 */
+.sky-life { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.lobby > .sky-life { z-index: -2; }
+.sky-life.night { --cloud: #2a3250; --crow: #0d111d; }
+
+/* 雲：平塗的紙片，往右飄，和屋頂上的風向標同一個風向 */
+.cloud { position: absolute; left: 0; top: var(--y); width: calc(230px * var(--s)); color: var(--cloud, #e2d9c6); opacity: .8; will-change: transform;
+  transition: color 1.4s ease; animation: cloud-drift var(--t) linear var(--d) infinite; }
+.cloud svg { display: block; width: 100%; fill: currentColor; }
+body[data-phase="night"] #scene { --cloud: #2a3250; --crow: #0d111d; }
+body[data-phase="dusk"] #scene, body[data-phase="dawn"] #scene { --cloud: #5b6079; --crow: #1d2130; }
+@keyframes cloud-drift { from { transform: translateX(-34vw); } to { transform: translateX(112vw); } }
+
+/* 星星：三組輪流明暗，定格換 */
+.twinkle { position: absolute; left: 0; top: 0; width: 1px; height: 1px; border-radius: 50%; opacity: 0; }
+.sky-life.night .twinkle, body[data-phase="night"] #scene .twinkle { animation: twinkle 5.1s steps(4) var(--d) infinite alternate; }
+@keyframes twinkle { from { opacity: .08; } to { opacity: .95; } }
+
+/* 烏鴉：隔一會兒從鐘樓前飛過一次，翅膀兩幀 */
+.crow { position: absolute; left: 0; top: 13vh; width: 34px; color: var(--crow, #2a2622); animation: crow-path 76s linear infinite; }
+.crow svg { display: block; width: 100%; overflow: visible; fill: currentColor; }
+.crow .up, .crow .dn { animation: flap .44s steps(1) infinite; }
+.crow .dn { animation-delay: -.22s; }
+@keyframes flap { 50% { opacity: 0; } }
+@keyframes crow-path { 0% { transform: translate(112vw, 5vh); } 9% { transform: translate(86vw, 0); } 18% { transform: translate(62vw, 6vh); }
+  27% { transform: translate(38vw, 1vh); } 36% { transform: translate(14vw, 5vh); } 44%, 100% { transform: translate(-10vw, 2vh); } }
+
+/* 小鎮：svg 蓋在三層圖上 */
+.town-life { position: absolute; inset: 0; pointer-events: none; }
+.town-life svg { display: block; width: 100%; height: 100%; }
+/* 窗燈：暗塊蓋住圖裏亮著的窗，就是那戶人家關了燈 */
+.tl-lamps rect { fill: #1f2638; opacity: 0; animation: lamp var(--t) steps(1) var(--d) infinite; }
+.skyline-day .tl-lamps { display: none; }
+@keyframes lamp { 0%, 58% { opacity: 0; } 59%, 61% { opacity: .5; } 62%, 96% { opacity: .94; } 97%, 98% { opacity: .4; } 99%, 100% { opacity: 0; } }
+/* 炊煙：一團一團往上飄，定格 */
+.tl-smoke circle { fill: #c4b9a3; transform-box: fill-box; transform-origin: center; opacity: 0; animation: puff 8.4s steps(28) var(--d) infinite; }
+.lobby-town .tl-smoke circle, .skyline-night .tl-smoke circle { fill: #59617c; }
+@keyframes puff { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 14% { opacity: .55; } 100% { opacity: 0; transform: translate(34px, -86px) scale(2.3); } }
+/* 鐘針：走真實時間，分針一分鐘跳一格 */
+.tl-h, .tl-m { stroke: #2a2622; stroke-linecap: round; transform-origin: 976.5px 594px; }
+.tl-h { stroke-width: 4.5; animation: clock-turn 43200s linear var(--d) infinite; }
+.tl-m { stroke-width: 3; animation: clock-turn 3600s steps(60) var(--d) infinite; }
+@keyframes clock-turn { to { transform: rotate(360deg); } }
+/* 看不見的那一層不跑 */
+body:not([data-phase="night"]):not([data-phase="dusk"]):not([data-phase="dawn"]) .skyline-night .town-life *,
+body[data-phase="night"] .skyline-day .town-life * { animation-play-state: paused; }
+
+/* 大廳的房間旗：風吹著整根旗杆微微晃，定格 */
+.recent-room { --root: 9vh; transform-origin: 0 calc(100% + var(--root)); animation: flag-sway 6.4s steps(10) infinite alternate; }
+.recent-room:nth-child(even) { --root: 5vh; animation-duration: 5.2s; animation-delay: -2s; }
+@keyframes flag-sway { from { rotate: -.5deg; } to { rotate: 1.1deg; } }
+
+/* 太陽慢慢轉 */
+body.art #scene .sun-disk { background: none !important; }
+body.art #scene .sun-disk::after { display: block; inset: 0; border: 0; background: url(../img/art/sun.webp) center / contain no-repeat; animation: clock-turn 200s linear infinite; }
+
+@media (max-width: 640px) { .cloud { width: calc(130px * var(--s)); } .crow { width: 24px; } }
+@media (prefers-reduced-motion: reduce) {
+  .sky-life, .tl-lamps, .tl-smoke { display: none; }
+  .tl-h, .tl-m, .recent-room, body.art #scene .sun-disk::after { animation: none; }
+}

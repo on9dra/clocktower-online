@@ -1,10 +1,10 @@
 // 提名期間蓋在桌面上的「審判牌」（提名演出播完才出現）：
 // 上面是提名者 → 被提名者兩張大牌，中間一枚紅色「提名」印章；
 // 下面三欄：贊成的人在左、票數和需要的票格在中、棄權的人在右（只有自己和說書人看得到）；
-// 再下面是投票倒數（說書人可暫停 / 重置），最下面是未表態的人和計票進度。
+// 再下面是投票倒數（說書人可暫停 / 重置）、未表態的人和計票進度；說書人最下面一行是取消、結算、計票按鈕。
 import { h, roleToken } from './ui.js';
 import { seatBadge, icon } from './glyph.js';
-import { clockState, needVotes, voteButtons } from './flow.js';
+import { clockState, needVotes, voteButtons, trialButtons } from './flow.js';
 import { nomFx } from './fx.js';
 
 export function trialPanel(ctx) {
@@ -46,7 +46,8 @@ export function trialPanel(ctx) {
       ck && h('div', { class: 'tr-clock', title: '計票' }, icon('hand', 'tr-k-ico'),
         nom.clock.order.map((id, i) => h('span', {
           class: 'sb' + (i < ck.k ? ' past' : '') + (!ck.done && !ck.pending && i === ck.k ? ' now' : '') + (nom.votes[id] ? ' up' : ''), title: seatBadge(s, id).title,
-        }, num(id))))));
+        }, num(id))))),
+    trialButtons(ctx));
 }
 
 // 投票倒數：提名後 5 分鐘，到點按當前舉手結算。說書人可以暫停 / 繼續、重置；最後 30 秒變紅

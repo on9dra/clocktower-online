@@ -1,41 +1,74 @@
-/* 第一次打開的全屏介紹（js/intro.js）：整屏一張紙，三頁沿左邊翻；不套框，欄和行用細線分開，
-   頁碼是紅色方印，「自動」是黃銅印章。手機上一頁一屏，放不下時頁內滾動 */
-.intro { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-rows: minmax(0, 1fr) auto;
-  background: var(--paper) url(../img/grain.svg); color: var(--ink); animation: it-fade .3s ease both; }
+/* 第一次打開的全屏介紹（js/intro.js）：桌上疊著三張牌，往左丟、拿回來；牌面欄和行用細線分開，
+   頁碼是紅色方印，「自動」是黃銅印章。手機上一頁一屏，放不下時牌內滾動 */
+.intro { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden;
+  --face: #dfd6c3; /* 紙卡框的底色：壓在線上的字要墊同一個顏色 */
+  background: #dacdb4 url(../img/grain.svg); color: var(--ink); animation: it-fade .3s ease both; }
 .intro.out { animation: it-fade .26s ease reverse both; pointer-events: none; }
 @keyframes it-fade { from { opacity: 0; } }
 .it-skip { position: absolute; z-index: 3; top: max(14px, env(safe-area-inset-top)); right: 18px; padding: 4px 8px; background: none; border: 0;
   color: var(--muted); font: 600 14px var(--sans); letter-spacing: .1em; }
 .it-skip:hover { color: var(--ink); }
 
-/* 書頁：疊在一起，翻的那頁沿左邊轉走 */
-.it-stage { position: relative; perspective: 2400px; overflow: hidden; touch-action: pan-y; }
-.it-page { position: absolute; inset: 0; display: grid; place-items: center; padding: 56px 32px 20px; overflow: auto;
-  background: var(--paper) url(../img/grain.svg); transform-origin: left center; backface-visibility: hidden; }
-.it-page.leaf { z-index: 2; box-shadow: 18px 0 30px #2a262233; }
-.it-body { width: min(980px, 100%); display: grid; gap: clamp(20px, 3.4vh, 34px); justify-items: center; }
+/* 三張牌：位置都在 --x --y --r（js 按第幾張算），懸停傾斜在 --rx --ry，鼠標位置 --nx --ny（-1…1）帶動光和影。
+   由下到上：紙板（厚度、陰影）→ 離紙邊留一圈白、印上去的框 → 字 → 壓印 → 磨損 → 光。光從左上來 */
+.it-stage { position: relative; perspective: 1500px; touch-action: pan-y; }
+.it-page { --sx: calc(var(--nx) * -5px); --sy: calc(var(--ny) * -5px); --stock: 1px 1px 0 #ddd4c1, 2px 2px 0 #c2b69d, 3px 3px 1px #877a62;
+  /* 夜空上影子看不見，牌疊牌才看得見：影子落在下面那張牌上要夠深 */
+  --lie: var(--stock), calc(3px + var(--sx)) calc(5px + var(--sy)) calc(6px - var(--p) * 3px) #1a0f0480, calc(7px + var(--sx) * 2.4) calc(14px + var(--sy) * 2.4) calc(26px - var(--p) * 12px) #1a0f0466;
+  --air: var(--stock), 14px 30px 26px #0a0d1880, 34px 70px 70px #0a0d1866;
+  position: absolute; z-index: var(--z); inset: clamp(26px, 5vh, 60px) 0 clamp(4px, 1.4vh, 12px); width: min(1060px, 100% - 2 * clamp(14px, 7vw, 96px)); max-height: 780px; margin: auto;
+  background: #e8e0d0 url(../img/grain.svg); border-radius: 6px 5px 7px 4px; box-shadow: var(--lie); cursor: pointer; user-select: none;
+  transform: translate(var(--x), var(--y)) rotate(var(--r)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); scale: var(--s, 1);
+  transition: transform .42s cubic-bezier(.3, 1.3, .5, 1), scale .3s ease, translate .2s ease, --nx .42s ease, --ny .42s ease, --p .3s ease; }
+.it-page::before { content: ""; position: absolute; inset: 6px; border: 34px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 34px stretch; }
+.it-face { position: absolute; inset: 20px 20px 30px; display: grid; place-items: safe center; padding: clamp(2px, 1vh, 10px) clamp(6px, 1.6vw, 20px); overflow: hidden auto; scrollbar-width: none; }
+/* 壓印：印版壓進紙裏留下的一圈淺坑，上左背光、下右受光 */
+.it-plate { position: absolute; inset: 40px; pointer-events: none; box-shadow: inset 1px 1px 2px #3a2a1433, inset -1px -1px 1px #fff6, 1px 1px 0 #fff5, -1px -1px 1px #3a2a1414; }
+.it-wear { position: absolute; inset: 0; border: 40px solid transparent; border-image: url(../img/art/card-wear.webp) 48 fill / 40px stretch; clip-path: inset(0 round 5px); pointer-events: none; }
+/* 底邊的小字：牌組名、第幾張 */
+.it-no { position: absolute; left: 68px; right: 68px; bottom: 22px; display: flex; justify-content: space-between; font: 500 11px var(--sans); letter-spacing: .14em; color: #776b59; text-shadow: 0 1px 0 #fff6; pointer-events: none; }
+.it-page:nth-child(2) .it-wear { rotate: 180deg; }
+.it-page:nth-child(3) .it-wear { scale: -1 1; }
+/* 光：左上亮、右下暗，紙邊一道受光一道背光；按下去的那邊變暗，翹起來的那邊變亮 */
+.it-page::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 1px 1px 0 #fff7, inset -1px -1px 0 #6b4f2726, inset 0 0 34px #8a682f1f;
+  background:
+    linear-gradient(90deg, rgb(255 249 232 / calc(var(--nx) * .24)), #fff0 46%, #3a2a1400 54%, rgb(58 42 20 / calc(var(--nx) * .15))),
+    linear-gradient(270deg, rgb(255 249 232 / calc(var(--nx) * -.24)), #fff0 46%, #3a2a1400 54%, rgb(58 42 20 / calc(var(--nx) * -.15))),
+    linear-gradient(180deg, rgb(255 249 232 / calc(var(--ny) * .24)), #fff0 46%, #3a2a1400 54%, rgb(58 42 20 / calc(var(--ny) * .15))),
+    linear-gradient(0deg, rgb(255 249 232 / calc(var(--ny) * -.24)), #fff0 46%, #3a2a1400 54%, rgb(58 42 20 / calc(var(--ny) * -.15))),
+    linear-gradient(135deg, #fff3 0, #fff0 38%, #5a401c00 58%, #5a401c1c 100%); }
+.it-stage.back .it-page { transition-delay: .3s; } /* 拿回來時，被蓋住的牌等它落下才挪開 */
+.it-page.press { --p: 1; --s: .993; transition-duration: .14s, .14s, .2s, .14s, .14s, .14s; transition-timing-function: ease-out; }
+.it-page:active:not(.gone) { --p: 1.5; --s: .982; }
+.it-page.gone:hover { translate: 14px 0; }
+.it-page.fly { transition: none; }
+.it-body { width: min(980px, 100%); display: grid; gap: clamp(14px, 3vh, 34px); justify-items: center; }
 
 /* 標題：紅色方印頁碼 + 大字，下面一粗一細兩道線 */
-.it-h { display: flex; align-items: center; gap: 16px; padding-bottom: 12px; border-bottom: 3px double var(--ink); }
+.it-h { display: flex; align-items: center; gap: 16px; padding-bottom: 12px; border-bottom: 3px double var(--ink); box-shadow: 0 1px 0 #fff7; }
 .it-h h2 { margin: 0; font: 900 clamp(28px, 4.6vw, 50px)/1.15 var(--serif); letter-spacing: .14em; }
+/* 凸版印刷：字壓進紙裏，下沿帶一道受光的邊 */
+.it-h h2, .it-team h3, .it-stop b, .it-win b { text-shadow: 0 1px 0 #fff8, 0 -1px 1px #3a2a1426; }
+.it-k, .it-y, .it-o, .it-th, .it-facts, .it-stub, .it-stop small, .it-team small { text-shadow: 0 1px 0 #fff6; }
 .it-n { display: inline-grid; place-items: center; flex: none; width: 1.5em; height: 1.5em; color: var(--evil); border: .09em solid currentColor;
   box-shadow: inset 0 0 0 .07em var(--card), inset 0 0 0 .12em currentColor; font: 900 clamp(18px, 2.4vw, 26px)/1 var(--serif); rotate: -4deg; mix-blend-mode: multiply; }
 body.art .it-n { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
 
-/* 一 對照表：右邊「這本魔典」一欄墊紙卡、兩邊墨線，欄頭蓋「自動」章 */
-.it-cmp { width: min(820px, 100%); display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.2fr); }
-.it-cmp > span { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 8px clamp(10px, 2vw, 22px); border-bottom: 1px solid var(--line); }
+/* 一 對照表：右邊「這本魔典」一欄是貼上去的紙條，貼得略歪、帶自己的影子，欄頭蓋「自動」章 */
+.it-cmp { position: relative; isolation: isolate; width: min(820px, 100%); display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.2fr); }
+.it-cmp::before { content: ""; position: absolute; z-index: -1; grid-area: 1 / 3 / 8 / 4; inset: -4px -5px -5px -3px; background: var(--card) url(../img/grain.svg); border-radius: 2px;
+  box-shadow: inset 1px 1px 0 #fff8, 1px 1px 0 #c8bca5, 3px 4px 6px #3a2a1438, 1px 1px 2px #3a2a1433; rotate: -.3deg; }
+.it-cmp > span { display: flex; align-items: center; gap: 8px; min-height: clamp(42px, 6.6vh, 52px); padding: 6px clamp(10px, 2vw, 22px); border-bottom: 1px solid var(--line); }
 .it-th { border-bottom: 1.5px solid var(--ink) !important; font: 700 15px var(--serif); letter-spacing: .1em; }
 .it-th.o { color: var(--muted); }
 .it-th.y { position: relative; font-size: 18px; }
 .it-k { font: 700 16px var(--serif); letter-spacing: .06em; white-space: nowrap; }
 .it-k .ico { width: 20px; height: 20px; color: var(--brass); }
 .it-o { color: var(--muted); }
-.it-y, .it-th.y { background: var(--card); border-left: 1.5px solid var(--ink); border-right: 1.5px solid var(--ink); }
 .it-y { font-weight: 700; }
 .it-y .ico { width: 18px; height: 18px; flex: none; color: var(--good); }
-.it-th.y { border-top: 1.5px solid var(--ink); }
-.it-cmp > .it-y:last-child { border-bottom: 1.5px solid var(--ink); }
+.it-cmp > .it-y:last-child { border-bottom: 0; }
 .it-stamp { left: auto; right: 6%; top: 50%; font-size: 30px; }
 /* 底下的存根：撕線 + 幾個小項 */
 .it-stub { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 30px; padding-top: 14px; border-top: 2px dashed var(--line-strong); color: var(--muted); font-size: 14px; }
@@ -54,7 +87,7 @@ body.art .it-n { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover lu
 .it-team.evil h3 { color: var(--evil); }
 .it-team small { color: var(--muted); }
 .it-toks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0 6px; }
-.it-toks .token { width: 68px; height: 68px; cursor: default; }
+.it-toks .token { width: 68px; height: 68px; cursor: inherit; }
 .it-toks .token .token-name { font-size: 11px; }
 .it-win { display: flex; align-items: center; gap: 8px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line-strong); font: 700 17px var(--serif); }
 .it-win .ico { width: 22px; height: 22px; }
@@ -67,48 +100,48 @@ body.art .it-n { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover lu
 .it-loop { position: relative; width: min(900px, 100%); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 12px; padding-bottom: 66px; }
 .it-loop::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: clamp(34px, 7.5vmin, 52px); border-top: 1.5px solid var(--ink); }
 .it-stop { position: relative; display: grid; justify-items: center; gap: 6px; text-align: center; }
-.it-stop .pc-seal { background: var(--paper); }
+.it-stop .pc-seal { background: var(--face); }
 .it-stop b { font: 900 22px var(--serif); letter-spacing: .2em; padding-left: .2em; margin-top: 4px; }
 .it-stop small { color: var(--muted); font-size: 14px; }
 /* 回頭線：從最後一站下面折回第一站 */
 .it-back { position: absolute; left: 12.5%; right: 12.5%; bottom: 0; height: 30px; display: flex; align-items: flex-end; justify-content: center; gap: 6px;
   border: 1.5px solid var(--ink); border-top: 0; color: var(--ink); }
-.it-back > * { position: relative; top: 13px; background: var(--paper); padding: 0 4px; }
+.it-back > * { position: relative; top: 13px; background: var(--face); padding: 0 4px; }
 .it-back .ico { width: 20px; height: 20px; padding: 0; margin-right: -4px; color: var(--brass); }
 .it-back b { font: 700 16px var(--serif); letter-spacing: .1em; }
 .it-back small { color: var(--muted); }
 
-/* 翻頁條：上面一道雙線；頁碼是三個小方印，當前那個蓋實 */
-.it-nav { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; gap: clamp(14px, 4vw, 40px);
-  padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); background: var(--paper) url(../img/grain.svg); border-top: 3px double var(--ink); }
+/* 翻頁條：直接放在夜空上（背景見 night.css），所以換夜色那組變量；頁碼是三個小方印，當前那個蓋實 */
+.it-nav { --paper: #171c2b; --card: #1f2536; --ink: #ece5d3; --muted: #9fa5b8; --line: #39405a; --line-strong: #5b6380; --hover: #2c3348; --evil: #e0705f;
+  position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; gap: clamp(14px, 4vw, 40px);
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); color: var(--ink); }
 .it-nav .btn { min-width: 132px; padding: 9px 18px; font: 700 15px var(--serif); letter-spacing: .14em; }
 .it-dots { display: flex; gap: 10px; }
 .it-dot { width: 30px; height: 30px; padding: 0; background: none; border: 1.5px solid var(--line-strong); color: var(--muted); font: 900 14px var(--serif); rotate: -4deg; }
 .it-dot.on { background: var(--evil); border-color: var(--evil); color: var(--card); }
 
-/* 落下：標題先蓋，印章再按，表格一行一行出來 */
-.it-page.in .it-h { animation: it-drop .4s cubic-bezier(.3, 1.4, .5, 1) both; }
-.it-page.in .it-n { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) .18s both; }
-.it-page.in .it-stamp { animation: it-stamp .28s cubic-bezier(.5, 0, .7, 1) 1.05s both; }
-.it-page.in .it-cmp > span:not(.it-th) { animation: it-rise .35s ease both; animation-delay: calc(.3s + var(--i) * .1s); }
-.it-page.in .it-toks > span { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) both; animation-delay: calc(.35s + var(--i) * .1s); }
-.it-page.in .it-stop { animation: it-rise .4s ease both; animation-delay: calc(.3s + var(--i) * .16s); }
-.it-page.in .it-back { animation: it-rise .4s ease .95s both; }
-.it-page.in .it-stub, .it-page.in .it-facts { animation: it-rise .4s ease .25s both; }
-@keyframes it-drop { from { opacity: 0; transform: translateY(-14px); } }
-@keyframes it-rise { from { opacity: 0; transform: translateY(8px); } }
+/* 牌面是印好的；第一次翻到最上面時，印章當場蓋下去（.in 留著不摘，拿回來不重播） */
+.it-page.in .it-n { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) .2s both; }
+.it-page.in .it-stamp { animation: it-stamp .28s cubic-bezier(.5, 0, .7, 1) .46s both; }
+.it-page.in .it-toks > span { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) both; animation-delay: calc(.34s + var(--i) * .1s); }
+.it-page.in .it-stop .pc-seal { animation: it-slam .3s cubic-bezier(.5, 0, .7, 1) both; animation-delay: calc(.32s + var(--i) * .14s); }
 @keyframes it-slam { from { opacity: 0; scale: 2.2; } }
 @keyframes it-stamp { from { opacity: 0; transform: translate(-0%, -50%) rotate(-7deg) scale(2.4); } to { transform: translate(0, -50%) rotate(-7deg); } }
 .it-th.y .it-stamp { transform: translate(0, -50%) rotate(-7deg); }
 
 @media (max-width: 640px) {
-  .it-page { place-items: start center; padding: 50px 12px 16px; }
+  .it-page { top: 44px; width: calc(100% - 24px); }
+  .it-page::before { inset: 4px; border-width: 14px; border-image-width: 14px; }
+  .it-face { inset: 12px 12px 26px; place-items: safe start center; padding: 2px 0 6px; }
+  .it-plate { inset: 21px; }
+  .it-wear { border-width: 24px; border-image: url(../img/art/card-wear.webp) 48 / 24px stretch; } /* 豎長的牌上中間的斑會被壓成豎條，只留邊 */
+  .it-no { left: 26px; right: 26px; bottom: 9px; font-size: 10px; }
   .it-h { gap: 10px; }
   .it-cmp > span { min-height: 44px; padding: 6px 7px; font-size: 13px; gap: 5px; }
   .it-k { font-size: 13px; }
   .it-k .ico { display: none; }
   .it-th.y { font-size: 15px; }
-  .it-stamp { font-size: 20px; right: 2%; }
+  .it-stamp { font-size: 15px; right: 1%; }
   .it-teams { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .it-vs { font-size: 20px; text-align: center; }
   .it-toks .token { width: 52px; height: 52px; }
@@ -129,7 +162,7 @@ body.art .it-n { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover lu
 @media (min-width: 1100px) and (min-height: 760px) {
   .it-body { gap: 40px; }
   .it-cmp { width: min(920px, 100%); }
-  .it-cmp > span { min-height: 60px; font-size: 17px; }
+  .it-cmp > span { min-height: clamp(48px, 7vh, 60px); font-size: 17px; }
   .it-k { font-size: 18px; }
   .it-th { font-size: 16px; }
   .it-th.y { font-size: 20px; }

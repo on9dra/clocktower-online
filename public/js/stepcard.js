@@ -1,4 +1,4 @@
-// 說書人的夜晚操作卡（浮在行動者座位旁）；天亮前確認在操作塢裏（flow.js）
+// 說書人的夜晚操作卡：和玩家輪到自己時的牌一樣，在圓桌中央「第 N 夜」下面（town.js 放置）；天亮前核對是 flow.js reviewCard
 import { h, ask } from './ui.js';
 import { sel, startSelect } from './town.js';
 import { selectBar, selFrom, B, PRETEND } from './flow.js';
@@ -6,6 +6,17 @@ import { infoForm } from './infoform.js';
 import { seatBadge, mini, icon, named, w } from './glyph.js';
 
 const choices = {}; // stepId -> 說書人在裁定卡上選中的選項
+
+// 給 town.js：選項是座位的裁定（誰醉酒、替死、傳位……）可以直接點桌上的座位，和卡上的選項同步
+export function decidePicking(ctx, step) {
+  const d = step.decide;
+  if (!d || d.kind === 'ability') return null;
+  const ids = d.options.map(o => o.id).filter(id => ctx.state.seats.some(x => x.id === id));
+  if (!ids.length) return null;
+  const key = step.id + (d.role || d.kind);
+  return { can: new Set(ids), on: new Set(ids.includes(choices[key]) ? [choices[key]] : []), fixed: new Set(),
+    pick: id => { choices[key] = id; ctx.render(); } };
+}
 
 const head = (s, step, extra) => h('div', { class: 'ic-head' }, mini(step.roleId), step.seatId && seatBadge(s, step.seatId, 'lg'), extra);
 

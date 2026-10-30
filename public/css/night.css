@@ -1,0 +1,18 @@
+/* 夜色界面：大廳、頂欄、側欄是開屏那片夜色；紙牌、彈窗、角色牌這些桌上的東西還是紙（style.css :root 那組變量）。
+   做法是在這些區域裏換顏色變量，裏面的控件不用動 */
+.topbar, .side, .lobby, body[data-phase="night"] .center, body[data-phase="dawn"] .center {
+  --paper: #171c2b; --card: #1f2536; --ink: #ece5d3; --muted: #9fa5b8; --line: #39405a; --line-strong: #5b6380; --hover: #2c3348; --lit: #39405a;
+  --brass: #d6b462; --evil: #e0705f; --good: #84b4de;
+  color: var(--ink);
+}
+.join, .recent-room { color: var(--ink); }
+
+/* 大廳：和開屏同一片天、同一個小鎮，開屏淡掉時只多出表單；第一次來的介紹也鋪在這片天上，牌還是紙 */
+.lobby, .intro { background: url(../img/stars.svg) top center / cover, linear-gradient(#141826 0%, #232a3f 60%, #2f3550 100%); }
+.it-skip { color: #9fa5b8; }
+.it-skip:hover { color: #ece5d3; }
+.recent-room::after { border-left-color: #ece5d3; }
+
+/* 夜色裏的結構線不用滿格的墨色，換成細一檔的，才不搶內容 */
+.topbar, .side, .tabs { border-color: var(--line-strong); }
+.tab.on { box-shadow: inset 0 -3px var(--brass); }

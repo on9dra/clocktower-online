@@ -1,7 +1,9 @@
 // 血染鐘樓線上魔典 —— 服務端：房間管理 + 按身份過濾後的狀態同步
+import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import express from 'express';
+import compression from 'compression';
 import qrcode from 'qrcode-generator';
 import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
@@ -15,21 +17,26 @@ import { pretendTick } from './lib/engine.js';
 import { allow } from './lib/limit.js';
 
 const PORT = process.env.PORT || 3000;
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
+// 意見反饋（關於面板）：一條一行追加在這裏，服務器上 tail 著看
+const FEEDBACK = path.join(process.env.DATA_DIR || path.join(ROOT, 'data'), 'feedback.jsonl');
 // 頻率限制：[連續最多幾次, 之後每多少毫秒回一次]
 const LIMIT = {
   create: [5, 60 * 1000], // 每個 IP 建房：連建 5 個，之後每分鐘 1 個
   miss: [10, 3000], // 每個 IP 輸錯房號 / 密鑰 / 重連鏈接：連錯 10 次，之後每 3 秒 1 次（9000 個房號猜一遍要七八個小時）
   op: [40, 50], // 每個連接的操作：連發 40 個，之後每秒 20 個
   chat: [6, 2000], // 每個座位的聊天：連發 6 條，之後每 2 秒 1 條
+  feedback: [3, 10 * 60 * 1000], // 每個 IP 的反饋：連寄 3 封，之後每 10 分鐘 1 封
 };
 const SLOW = '操作太頻繁，請稍後再試';
 const PID = /^[\w-]{1,64}$/;
 
 const app = express();
-// 邀請二維碼：只畫本站房間鏈接這一種形狀，不當通用二維碼服務
+app.use(compression()); // 服務器帶寬只有 2Mbps 上下，JS、CSS 壓縮後剩四分之一
+// 二維碼：只畫本站首頁（分享）和房間鏈接（邀請、換設備）這兩種形狀，不當通用二維碼服務
 app.get('/qr.svg', (req, res) => {
   const u = String(req.query.u || '');
-  if (!/^https?:\/\/[^\s/?#]+\/\?room=\d{4}&r=[0-9a-f]{6}(&seat=[0-9a-f]{12})?$/.test(u)) return res.status(400).end();
+  if (!/^https?:\/\/[^\s/?#]+\/(\?room=\d{4}&r=[0-9a-f]{6}(&seat=[0-9a-f]{12})?)?$/.test(u)) return res.status(400).end();
   const qr = qrcode(0, 'M');
   qr.addData(u);
   qr.make();
@@ -40,7 +47,11 @@ app.get('/qr.svg', (req, res) => {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 ${m} ${m}" shape-rendering="crispEdges">`
     + `<rect x="-3" y="-3" width="${m}" height="${m}" fill="#fffdf3"/><path fill="#2a2622" d="${d}"/></svg>`);
 });
-app.use(express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), 'public')));
+// 圖片一天內不再問服務器，過期後先用舊的、後台更新；HTML、JS、CSS 每次都驗證，一部署就是新版
+const IMG = /\.(webp|svg)$/;
+app.use(express.static(path.join(ROOT, 'public'), { setHeaders: (res, file) => {
+  if (IMG.test(file)) res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=2592000');
+} }));
 const server = http.createServer(app);
 const io = new Server(server, { maxHttpBufferSize: 64 * 1024 }); // 單條消息最多 64KB
 
@@ -169,6 +180,17 @@ io.on('connection', socket => {
       return r && r.inst === x.inst ? { code: r.code, inst: r.inst, phase: r.phase, n: r.seats.length, scriptId: r.scriptId } : null;
     });
     reply(cb, { list: out.filter(Boolean) });
+  }));
+
+  // 意見反饋：不和房間綁定，大廳裏也能寄；帶上房號、繁簡、瀏覽器，方便對著查
+  socket.on('feedback', handle(({ text, contact, room, lang }, cb) => {
+    text = String(text || '').trim().slice(0, 1000);
+    if (!text) return reply(cb, '寫點什麼再寄出');
+    if (!allow('feedback:' + ip, LIMIT.feedback)) return reply(cb, '寄得太頻繁，請過一會兒再寄');
+    const line = JSON.stringify({ at: new Date().toISOString(), text, contact: String(contact || '').trim().slice(0, 60),
+      room: /^\d{4}$/.test(room) ? room : '', lang: lang === 'sc' ? 'sc' : 'tc', ua: String(socket.handshake.headers['user-agent'] || '').slice(0, 160) });
+    fs.mkdir(path.dirname(FEEDBACK), { recursive: true }, () =>
+      fs.appendFile(FEEDBACK, line + '\n', e => { if (e) console.error(e); reply(cb, e ? '寄出失敗，請稍後再試' : {}); }));
   }));
 
   socket.on('st:op', handle((op, cb) => {

@@ -43,7 +43,9 @@ for x0, y0, x1, y1 in [(420, 0, 604, 100), (420, H - 100, 604, H)]:  # 太陽、
     w = (wx * wy)[..., None]
     day[y0:y1, x0:x1] = day[y0:y1, x0:x1] * (1 - w) + fill * w
 day = Image.fromarray(np.clip(day, 0, 255).astype(np.uint8), 'RGBA')
-day.save(os.path.join(out, 'table-day.webp'), quality=88, method=6)
+soft = np.asarray(day).astype(np.float32)
+soft[..., :3] *= (.921, .922, .915)  # 紙色和 process.py 的 SOFT 同一層；夜晚版還是從原色染
+Image.fromarray(soft.astype(np.uint8), 'RGBA').save(os.path.join(out, 'table-day.webp'), quality=88, method=6)
 
 # 夜晚：紙色 → 深藍，墨線 → 灰藍，金線保留（略提亮）
 a = np.asarray(day).astype(np.float32)

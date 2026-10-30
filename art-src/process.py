@@ -1,5 +1,5 @@
 # 美術素材處理：綠底原圖 → 去背 → 裁切 / 縮放 → public/img/art/*.webp
-# 用法：python -I art-src/process.py art-src/batch1
+# 用法：python -I art-src/process.py art-src/batch1 [只跑這幾個輸出名…]
 # 每項：(原圖, 輸出名, 模式, 最長邊)
 #   circle  去綠，按外接框裁成正方（略扁的拉正），用於台面、圓牌
 #   trim    去綠，裁到內容外接框，四周留 2% 透明邊
@@ -43,6 +43,15 @@ JOBS = [
     ('B8/egg-splat-03-green.png', 'egg-splat-3', 'trim', 512),
 ]
 
+# 這幾張是紙：統一乘一層，和 style.css 的 --card、--paper 同一檔，夜色旁邊不刺眼（mat-plain.py 的 table-day 同理）
+PAPER = {'seat-empty', 'plate', 'plate-evil', 'card-frame'}
+SOFT = (.921, .922, .915)
+
+def soft(im):
+    a = np.asarray(im).astype(np.float32)
+    a[..., :3] *= SOFT
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8), 'RGBA')
+
 def key(im):
     a = np.asarray(im.convert('RGB')).astype(np.float32)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
@@ -60,9 +69,11 @@ def fit(im, n):
     s = n / max(im.size)
     return im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS) if s < 1 else im
 
-def run(src_root, out_root):
+def run(src_root, out_root, only=()):
     os.makedirs(out_root, exist_ok=True)
     for src, name, mode, n in JOBS:
+        if only and name not in only:
+            continue
         im = Image.open(os.path.join(src_root, src))
         if mode == 'opaque':
             out = fit(im.convert('RGB'), n)
@@ -76,10 +87,12 @@ def run(src_root, out_root):
                 x0, y0, x1, y1 = bbox(out); p = round(max(x1 - x0, y1 - y0) * .02)
                 out = out.crop((max(x0 - p, 0), max(y0 - p, 0), min(x1 + p, out.width), min(y1 + p, out.height)))
             out = fit(out, n)
+            if name in PAPER:
+                out = soft(out)
         path = os.path.join(out_root, name + '.webp')
         out.save(path, 'WEBP', quality=84, method=6)
         print(f'{name:16} {mode:7} {out.width}x{out.height}  {os.path.getsize(path) // 1024}KB')
 
 if __name__ == '__main__':
     here = os.path.dirname(os.path.abspath(__file__))
-    run(sys.argv[1], os.path.join(here, '..', 'public', 'img', 'art'))
+    run(sys.argv[1], os.path.join(here, '..', 'public', 'img', 'art'), sys.argv[2:])

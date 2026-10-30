@@ -1,11 +1,11 @@
-// 演示頁：用真實的界面模塊（桌面、側欄、操作塢、演出）渲染一份模擬對局，頂欄按步驟觸發場景。
+// 演示頁：用真實的界面模塊（桌面、側欄、演出）渲染一份模擬對局，頂欄按步驟觸發場景。
 // 不連服務器：world 是整局的真實數據，按當前視角（玩家 / 說書人 / 代入某個玩家）裁剪成和服務端一樣的狀態。
 // 只放對局裏不好撞上的東西（要好幾個人一起投票、特定角色和狀態、終局、新美術素材）；開一局就能看到的界面不放這裏。
 // 加場景：往 SCENES 裏加一項，打開 /demo.html?s=場景名
 import { h, toast, morph } from './ui.js';
-import { renderTown, stCard } from './town.js';
+import { renderTown, fitTableCard } from './town.js';
 import { renderSide, sideCollapsed } from './side.js';
-import { stFlow, playerFlow } from './flow.js';
+import { syncPrompt } from './flow.js';
 import { progressBar } from './progress.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
@@ -734,16 +734,17 @@ function render() {
   if (screen === 'lobby') return renderDemoLobby(app);
   const atBottom = {};
   app.querySelectorAll('[data-scroll]').forEach(el => { atBottom[el.dataset.scroll] = el.scrollHeight - el.scrollTop - el.clientHeight < 30; });
-  const dock = s.isSt ? stFlow(ctx) : playerFlow(ctx);
+  if (!s.isSt) syncPrompt(ctx);
   const side = renderSide(ctx);
-  const town = renderTown(ctx), card = stCard(ctx);
-  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (card ? ' has-card' : sideCollapsed(ctx) ? ' side-min' : '') },
+  const town = renderTown(ctx);
+  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (sideCollapsed(ctx) ? ' side-min' : '') },
     h('div', { class: 'demo-top' }, !bare && demoBar(), topbar(ctx)),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), town, renderBluffs(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), dock, side, card);
+    renderHud(ctx), town, renderBluffs(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), side);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
+  fitTableCard();
   app.querySelectorAll('[data-scroll]').forEach(el => {
     const b = atBottom[el.dataset.scroll];
     if (b || (b == null && el.dataset.stick)) el.scrollTop = el.scrollHeight;

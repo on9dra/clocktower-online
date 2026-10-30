@@ -14,7 +14,7 @@ body.art .skyline-day { background-image: url(../img/art/town-near-day.webp), ur
 body.art .skyline-night { background-image: url(../img/art/town-near-night.webp), url(../img/art/town-mid-night.webp), url(../img/art/town-far-night.webp); }
 
 /* A5 空座、A6 名牌 */
-body.art .token.blank { border: 0; box-shadow: none; background: url(../img/art/seat-empty.webp) center / 100% 100% no-repeat; }
+body.art .token.blank { border: 0; box-shadow: var(--coin); background: url(../img/art/seat-empty.webp) center / 100% 100% no-repeat; }
 body.art .plate { border: solid transparent; border-width: 3px 9px; border-radius: 0; padding: 0 1px;
   border-image: url(../img/art/plate.webp) 56 190 fill / 3px 9px stretch; background: none; }
 body.art .seat.onblock .plate { border-image-source: url(../img/art/plate-evil.webp); }
@@ -59,13 +59,14 @@ body.art .egg-splat:nth-of-type(3n+2) { background-image: url(../img/art/egg-spl
 body.art .egg-splat svg { visibility: hidden; }
 
 /* B1 大廳：字標圖替掉標題文字（文字留給讀屏）；只留四個字（art-src/mat-plain.py 去掉了日月、星星、花枝），標誌交給旁邊的紅印章。
-   不再鋪主視覺插畫（lobby.webp），大廳是紙面，底下墊對局裏的三層小鎮 */
-body.art .lobby .title { --tw: min(420px, 66vw); width: var(--tw); aspect-ratio: 1461 / 337; background: url(../img/art/title-tc-plain.webp) center / contain no-repeat; color: transparent; overflow: hidden; }
-html[data-lang="sc"] body.art .lobby .title { aspect-ratio: 1446 / 336; background-image: url(../img/art/title-sc-plain.webp); }
+   字標當蒙版用，夜空上是米色字；底下墊對局裏的三層夜景小鎮 */
+body.art .lobby .title { --tw: min(420px, 66vw); width: var(--tw); aspect-ratio: 1461 / 337; background: #f4eedf; color: transparent; overflow: hidden;
+  -webkit-mask: url(../img/art/title-tc-plain.webp) center / contain no-repeat; mask: url(../img/art/title-tc-plain.webp) center / contain no-repeat; }
+html[data-lang="sc"] body.art .lobby .title { aspect-ratio: 1446 / 336; -webkit-mask-image: url(../img/art/title-sc-plain.webp); mask-image: url(../img/art/title-sc-plain.webp); }
 body.art .lobby-seal { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
 body.art .lobby-seal { left: calc(50% + min(210px, 33vw) + 12px); }
-body.art .lobby-town { background: url(../img/art/town-near-day.webp) bottom center / cover no-repeat, url(../img/art/town-mid-day.webp) bottom center / cover no-repeat,
-  url(../img/art/town-far-day.webp) bottom center / cover no-repeat; }
+body.art .lobby-town { background: url(../img/art/town-near-night.webp) bottom center / cover no-repeat, url(../img/art/town-mid-night.webp) bottom center / cover no-repeat,
+  url(../img/art/town-far-night.webp) bottom center / cover no-repeat; }
 
 /* 彈窗套紙卡框 */
 body.art .modal { border: 30px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 30px stretch; border-radius: 0; background: none; }
@@ -74,7 +75,7 @@ body.art .modal-body { padding: 10px 4px 0; }
 
 /* B7 MVP 獎章（投 MVP 的按鈕）、勝利結算裏的獎盃 */
 body.art .mvp-btn { background: url(../img/art/mvp-medal.webp) center / 70% auto no-repeat var(--card); }
-body.art .mvp-btn.on { background-color: #fff3cf; }
+body.art .mvp-btn.on { background-color: var(--lit); }
 body.art .mvp-btn .ico { visibility: hidden; }
 body.art .pc-gain.trophy .ico { background: url(../img/art/trophy.webp) center / contain no-repeat; }
 body.art .pc-gain.trophy .ico > * { display: none; }

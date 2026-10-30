@@ -49,12 +49,12 @@ export function mvpPane(ctx) {
   if (m.done) {
     if (!m.winners.length) return null;
     return h('div', { class: 'cx mvp-pane done' }, h('span', { class: 'mvp-k' }, icon('star'), 'MVP'),
-      h('span', { class: 'dock-frm' }, m.winners.map(id => seatBadge(s, id)), w(`${m.tally?.[m.winners[0]] || 0} 票`)));
+      h('span', { class: 'frm-line' }, m.winners.map(id => seatBadge(s, id)), w(`${m.tally?.[m.winners[0]] || 0} 票`)));
   }
   const left = Math.max(0, Math.ceil((m.closesAt - ctx.now()) / 1000));
   return h('div', { class: 'cx mvp-pane' + (left <= 10 ? ' low' : '') },
     h('span', { class: 'mvp-k' }, icon('star'), 'MVP', h('b', { class: 'mvp-left' }, left)),
-    h('span', { class: 'dock-frm' }, w('已投'), h('b', { class: 'mvp-n' }, `${m.n}/${m.total}`),
+    h('span', { class: 'frm-line' }, w('已投'), h('b', { class: 'mvp-n' }, `${m.n}/${m.total}`),
       !s.peek && m.mine && [h('i', { class: 'op-sep' }), icon('star', 'brass'), seatBadge(s, m.mine)]));
 }
 

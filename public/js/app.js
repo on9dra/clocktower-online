@@ -2,9 +2,9 @@
 import { h, toast, closeModal, morph, closeMenu } from './ui.js';
 import { renderTown } from './town.js';
 import { renderSide, sideCollapsed, closeSheet } from './side.js';
-import { stFlow, playerFlow } from './flow.js';
+import { syncPrompt } from './flow.js';
 import { progressBar } from './progress.js';
-import { sel, stopSelect, stCard } from './town.js';
+import { sel, stopSelect, fitTableCard } from './town.js';
 import { topbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
@@ -13,6 +13,9 @@ import { onEggs } from './egg.js';
 import { renderLobby, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
 import { openInvite } from './invite.js';
 import { showIntro, introSeen } from './intro.js';
+import { openAbout } from './about.js';
+
+await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -51,6 +54,8 @@ export const ctx = {
   sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst),
   // 說書人解散房間
   close: () => ctx.st('close').then(r => r.ok && bye('closed')),
+  // 意見反饋（關於面板）：斷線時等 8 秒
+  feedback: d => new Promise(res => sock.timeout(8000).emit('feedback', d, (err, r) => res(err ? { ok: false, error: '網絡不通，請稍後再試' } : r))),
   render, leave,
 };
 
@@ -128,6 +133,7 @@ function lobby(code = params.get('room') || '') {
     onJoin: (c, name) => joinPlayer(c, name, c === params.get('room') ? params.get('r') || '' : ''), onCreate: create,
     onPick: r => { session = { code: r.code, inst: r.inst }; resume(); },
     onIntro: () => showIntro(LS),
+    onAbout: () => openAbout(ctx),
   }));
   draw([]);
   if (!introSeen(LS)) showIntro(LS); // 第一次來：先看介紹
@@ -141,6 +147,7 @@ function lobby(code = params.get('room') || '') {
     const list = mine.filter(x => alive.has(x.code)).map(x => ({ ...x, ...alive.get(x.code), st: !!LS.get('botc.st.' + x.code) }));
     if (list.length && document.querySelector('.lobby')) draw(list);
   });
+  window.boot.ready();
 }
 
 function render() {
@@ -151,16 +158,17 @@ function render() {
   const app = document.getElementById('app');
   const atBottom = {};
   app.querySelectorAll('[data-scroll]').forEach(el => { atBottom[el.dataset.scroll] = el.scrollHeight - el.scrollTop - el.clientHeight < 30; });
-  const dock = s.isSt ? stFlow(ctx) : playerFlow(ctx); // 先算操作塢：玩家的選人狀態在這裏建立，桌面要用到
+  if (!s.isSt) syncPrompt(ctx); // 先建立玩家的選人狀態，桌面要用到
   const side = renderSide(ctx);
-  const town = renderTown(ctx), card = stCard(ctx); // 說書人的操作卡：有卡時側欄展開放它（收起的側欄先讓位）
-  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (card ? ' has-card' : sideCollapsed(ctx) ? ' side-min' : '') },
+  const town = renderTown(ctx);
+  const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (sideCollapsed(ctx) ? ' side-min' : '') },
     topbar(ctx),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), dock, side, card);
+    renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), side);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
+  fitTableCard();
   // 聊天、日誌：原本停在底部的保持在底部，新打開的貼底列表直接滾到底
   app.querySelectorAll('[data-scroll]').forEach(el => {
     const b = atBottom[el.dataset.scroll];
@@ -180,6 +188,7 @@ sock.on('state', s => {
   onInfo(ctx, s, render); onState(s); ctx.live = s; render();
   if (fresh) { fresh = false; openInvite(ctx); } // 剛建好房間：先把房間號、二維碼亮出來
   onEggs(s); // 桌面畫好之後再扔，按座位現在的位置飛
+  window.boot.ready();
 });
 sock.on('connect', () => (session || params.get('room') ? resume() : lobby()));
 sock.on('disconnect', () => toast('連接斷開，正在重連…'));
@@ -194,9 +203,10 @@ setInterval(() => {
   if (k !== clockTick) { clockTick = k; if (k) render(); }
 }, 200);
 
-// 快捷鍵：回車 = 當前主操作（帶 data-hot 的按鈕，說書人的操作卡優先），確認框裏回車 = 確認；Esc 關閉菜單 / 彈窗 / 取消代選
+// 快捷鍵：回車 = 當前主操作（帶 data-hot 的按鈕：說書人的操作卡優先，再是圓桌中央、審判牌），確認框裏回車 = 確認；Esc 關閉菜單 / 彈窗 / 取消代選
 document.addEventListener('keydown', e => {
-  if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey || !ctx.state) return;
+  if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!ctx.state) { if (e.key === 'Escape') closeModal(); return; } // 大廳：Esc 關掉「關於」
   const t = e.target, typing = t.closest && t.closest('input, textarea, select, [contenteditable]');
   const open = document.querySelector('.backdrop');
   if (e.key === 'Escape') {
@@ -208,7 +218,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key !== 'Enter' || typing || document.querySelector('.popmenu')) return;
   const hot = open ? open.querySelector('.btn.primary:not(.disabled)')
-    : document.querySelector('.st-card [data-hot]:not(.disabled)') || document.querySelector('.dock [data-hot]:not(.disabled)');
+    : ['.st-card:not(.side)', '.center', '.trial'].map(k => document.querySelector(k + ' [data-hot]:not(.disabled)')).find(Boolean);
   // 焦點停在別的按鈕上時也走主操作，避免回車重複點到剛剛用鼠標點過的按鈕
   e.preventDefault();
   if (hot) hot.click();

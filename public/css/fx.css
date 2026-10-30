@@ -4,7 +4,7 @@
 #scene .layer { position: absolute; inset: 0; transition: opacity 1.4s ease; }
 body::after { content: ""; position: fixed; inset: 0; z-index: 2; pointer-events: none; background: url(../img/grain.svg); opacity: .55; mix-blend-mode: multiply; }
 
-.sky { background: linear-gradient(#efe5cc, #e5d5b0 70%); }
+.sky { background: linear-gradient(#d6ccb6, #c9bca1 70%); }
 .sky::before, .sky::after { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
 .sky::before { background: linear-gradient(#5d6787 0%, #c99a7c 62%, #e6c49a 100%); } /* 黎明 */
 .sky::after { background: linear-gradient(#141826 0%, #232a3f 60%, #2f3550 100%); }  /* 夜晚 */
@@ -26,7 +26,7 @@ body[data-phase="dusk"] #scene .sun-disk { transform: translate(4vw, 66vh); back
 body[data-phase="night"] #scene .sun-disk { transform: translate(4vw, 78vh); background-color: #df7f4c; opacity: 0; }
 body[data-phase="dawn"] #scene .sun-disk { transform: translate(-2vw, 50vh); background-color: #e99a5c; }
 #scene .sun { inset: auto; top: -18vh; left: -10vw; width: 60vh; height: 60vh; border-radius: 50%;
-  background: radial-gradient(circle, #fff3cf99, #fff3cf00 70%); }
+  background: radial-gradient(circle, #f0e3bf66, #f0e3bf00 70%); }
 #scene .skyline { inset: auto 0 0 0; height: 30vh; background-repeat: no-repeat; background-position: bottom center; background-size: cover; }
 .skyline-day { background-image: url(../img/skyline-day.svg); opacity: .9; }
 .skyline-night { background-image: url(../img/skyline-night.svg); opacity: 0; }
@@ -59,18 +59,17 @@ body.my-turn[data-phase="night"] .candle { opacity: 1; animation: flicker 2.6s e
 .ring::after { content: ""; position: absolute; inset: 14%; border: 1px dashed #2a26222b; border-radius: 50%; pointer-events: none; }
 body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { border-color: #8e95b055; background-color: #1b2132c4; box-shadow: inset 0 0 0 10px #ffffff08, inset 0 0 0 11px #8e95b033; }
 body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { border-color: #8e95b040; }
-.topbar, .side, .card, .dock, .modal, .popmenu, .mycard { background-image: url(../img/grain.svg); }
+.topbar, .side, .card, .modal, .popmenu, .mycard { background-image: url(../img/grain.svg); }
 
 /* 座位互動 */
-.seat .token { transition: transform .15s ease, box-shadow .2s ease; }
-.seat:hover .token { transform: translateY(-3px); }
+.seat .token { transition: box-shadow .2s ease; }
 .seat.selectable .token { animation: beckon 1.6s ease-in-out infinite; }
-.seat.selected .token { box-shadow: inset 0 0 0 3px #fff3cf, inset 0 0 0 4px var(--team); animation: picked .26s cubic-bezier(.5,0,.6,1.3); }
+.seat.selected .token { animation: picked .26s cubic-bezier(.5,0,.6,1.3); }
 @keyframes picked { from { scale: 1.25; } }
 .seat.nominee .token { animation: nominee 1.6s ease-in-out infinite; animation-delay: var(--fx-delay, 0s); }
-@keyframes beckon { 50% { transform: translateY(-3px); } }
-@keyframes nominee { 0%, 100% { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 0 #8a1c1c66; }
-  50% { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 12px #8a1c1c00; } }
+@keyframes beckon { 50% { translate: 0 -3px; } }
+@keyframes nominee { 0%, 100% { box-shadow: var(--bevel), var(--coin), 0 0 0 0 #8a1c1c66; }
+  50% { box-shadow: var(--bevel), var(--coin), 0 0 0 12px #8a1c1c00; } }
 
 /* 死亡：角色牌褪色，死因印章砸下、一圈墨線散開，死亡票隨後落到頭頂 */
 .seat.fx-died .token { animation: fade-out 1.2s ease forwards; animation-delay: var(--fx-delay, 0s); }
@@ -126,10 +125,17 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .pmark.act.brass { background: var(--brass); }
 @media (max-width: 860px) { .pmarks { max-width: 80px; } .pmark { font-size: 10px; padding: 0 3px; } }
 
-/* 說書人的操作卡：側欄頂上（手機在桌面和操作塢之間），不蓋座位；正在行動的座位外圈金線擴散 */
-.st-card { grid-area: card; z-index: 6; min-width: 0; max-height: 64vh; overflow: auto; padding: 10px 10px 2px; background: var(--paper); border-left: 1.5px solid var(--ink); }
-.st-card > .card { margin: 0; box-shadow: 0 6px 18px #2a262233; }
+/* 說書人的操作卡：和玩家輪到自己時的牌一樣，在圓桌中央「第 N 夜 / 天」下面，按圓桌大小限寬高（--rw 圓桌邊長，.town 是尺寸容器）；
+   放不下時整張縮小（town.js fitTableCard）。貞潔者小窗貼桌面左上角；提名期間的裁定卡蓋在審判牌上（.st-over）。正在行動的座位外圈金線擴散 */
+.st-card { --rw: min(100cqw, 100cqh); width: max-content; max-width: calc(var(--rw) * .58); max-height: calc(var(--rw) * .56); margin: 8px auto 0;
+  padding: 0 10px 14px; overflow: auto; scrollbar-width: thin; text-align: left; pointer-events: auto; }
+.center:has(> .st-card) { width: auto; }
+.st-card > .card { margin: 0; box-shadow: 0 12px 28px #0005; }
 .st-card.fresh > .card { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
+.ring > .st-card.side { position: absolute; left: 0; top: 0; z-index: 6; margin: 0; max-width: 30%; }
+.st-over { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; pointer-events: none; }
+.st-over > .st-card { margin: 0; }
+.seat.aimed .token { outline: 3px solid var(--brass); outline-offset: 3px; }
 /* 假裝叫醒：月亮 + 「假裝叫醒」+ 慢慢縮短的計時條（到點自動繼續） */
 .infocard.pretend .ic-head .rn .token { border-style: dashed; }
 .pt-row { display: flex; align-items: center; gap: 6px; margin: 4px 0 10px; }
@@ -139,27 +145,28 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .pt-bar > i { display: block; height: 100%; background: var(--brass); transition: width .5s linear; }
 .token.xs.ghost { border-style: dashed; opacity: .6; }
 @keyframes bubble-in { from { scale: .92; rotate: -1.5deg; opacity: 0; } }
-.game.has-card .side { padding-top: 6px; }
-.seat.acting .token { box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team), 0 0 0 3px var(--card), 0 0 0 6px var(--brass); }
+.seat.acting .token { box-shadow: var(--bevel), var(--coin), 0 0 0 3px var(--card), 0 0 0 6px var(--brass); }
 .seat.acting .seat-token::after { content: ""; position: absolute; inset: -6px; border: 2px solid var(--brass); border-radius: 50%; pointer-events: none;
   animation: acting 1.8s ease-out infinite; }
 @keyframes acting { from { transform: scale(1); opacity: .9; } 70%, to { transform: scale(1.45); opacity: 0; } }
 @media (max-width: 860px) {
-  .st-card { max-height: 46vh; max-height: 46dvh; padding: 6px 6px 0; border-left: 0; border-top: 1.5px solid var(--ink); background: var(--card); }
+  /* 手機上圓桌中間放不下標題和卡：有卡時只留卡（和玩家輪到自己時一樣） */
+  .st-card { --rw: min(92cqw, 100cqh); max-width: calc(var(--rw) * .64); max-height: calc(var(--rw) * .52); margin-top: 0; padding: 0 4px 8px; }
+  .center:has(> .st-card) .phase-title { display: none; }
 }
 
 /* 白天的裁定卡：金色雙框 + 標題；按規則應有的結果是主按鈕、帶 ✓。裁定的另一方座位紅色虛線圈 */
 .infocard.ruling { border-color: var(--brass); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px var(--brass); }
 .rule-k { display: flex; align-items: center; gap: 6px; font: 700 17px var(--serif); color: var(--brass); letter-spacing: .1em; }
 .rule-k .ico { width: 20px; height: 20px; }
-.infocard.ruling .dock-frm { font-size: 24px; }
+.infocard.ruling .frm-line { font-size: 24px; }
 .infocard.ruling .row { justify-content: flex-end; }
 .infocard.ruling .btn .ico { width: 15px; height: 15px; margin-right: 4px; }
 .seat.ruled .token { outline: 3px dashed var(--evil); outline-offset: 4px; }
 /* 貞潔者小窗：投票照常進行，卡片縮小、不帶計時圖標 */
 .infocard.ruling.side { padding: 10px 12px; gap: 6px; }
 .infocard.ruling.side .rule-k { font-size: 14px; }
-.infocard.ruling.side .dock-frm { font-size: 18px; }
+.infocard.ruling.side .frm-line { font-size: 18px; }
 .v-left { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; color: var(--evil); }
 .v-left .ico { width: 16px; height: 16px; }
 .v-left b { font: 800 20px var(--serif); min-width: 1.4em; text-align: right; }

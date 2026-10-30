@@ -11,6 +11,7 @@ import { openBoard } from './scores.js';
 import { openSettings } from './settings.js';
 import { SCRIPTS } from './roles.js';
 import { openInvite, hostUrl } from './invite.js';
+import { openAbout } from './about.js';
 
 export const copy = (text, msg) => navigator.clipboard.writeText(text).then(() => toast(msg, 3500), () => toast(text, 8000));
 
@@ -37,6 +38,7 @@ export function topbar(ctx) {
       onclick: () => copy(hostUrl(s, stKey), '說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家') },
     { label: getLang() === 'sc' ? '切換到繁體' : '切换到简体', onclick: () => { setLang(getLang() === 'sc' ? 'tc' : 'sc'); location.reload(); } },
     { label: [icon('gear', 'menu-ico'), '設置'], onclick: () => openSettings(ctx) },
+    { label: [icon('letter', 'menu-ico'), '反饋 · 關於'], onclick: () => openAbout(ctx, 'fb') },
     '-',
     { label: '離開房間', onclick: () => ask('離開房間？之後可以用同一個鏈接回來。', ctx.leave, '離開') },
     // 規則沒自動判到的勝負（呆瓜選中邪惡等）

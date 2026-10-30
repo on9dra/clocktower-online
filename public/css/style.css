@@ -1,17 +1,23 @@
-/* 紙質桌遊風：米白紙張、墨色細線、印章式角色牌。無漸變、無發光。 */
-:root {
-  --paper: #f4eedf;
-  --card: #fbf8f0;
+/* 紙質桌遊風：柔和的暖灰紙（夜色旁邊不刺眼）、墨色細線、印章式角色牌。無漸變、無發光。夜色區域見 night.css，這裏列出的元素在夜色區域裏也還是紙 */
+:root, .join, .recent-room, .token {
+  --paper: #dcd3c0;
+  --card: #e6dece;
   --ink: #2a2622;
-  --muted: #7d7365;
-  --line: #d3c7ae;
-  --line-strong: #a89a7d;
+  --muted: #635a4c;
+  --line: #c2b7a1;
+  --line-strong: #92866f;
   --good: #2f5d8a;
   --evil: #8a1c1c;
-  --brass: #9a7a2f;
+  --brass: #7f6320;
+  --hover: #d3c9b4;
+  --lit: #eddfb4; /* 選中、高亮 */
   --serif: "Songti TC", "Noto Serif TC", "Source Han Serif TC", "PMingLiU", "MingLiU", serif;
   --sans: "PingFang HK", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
 }
+/* 鼠標位置 --nx --ny（-1…1）、按下去的程度 --p：實體控件的傾斜、厚度、高光都由它們帶動，註冊過才能過渡 */
+@property --nx { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --ny { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --p { syntax: "<number>"; inherits: true; initial-value: 0; }
 /* 簡體：整套換成簡體字型，避免繁體字型缺字時混進別的字型（lang.js 設 data-lang） */
 :root[data-lang="sc"] {
   --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "STSong", "SimSun", serif;
@@ -21,7 +27,7 @@
 html, body { margin: 0; height: 100%; }
 /* 對局界面一屏放下：彈出的浮窗、氣泡越界也不出滾動條（滾動條一出一收整頁會跳） */
 body:has(.game) { overflow: hidden; }
-body { background: var(--paper); color: var(--ink); font: 14px/1.55 var(--sans); }
+body { background: #141826; color: var(--ink); font: 14px/1.55 var(--sans); }
 #app { height: 100%; }
 button { font: inherit; color: inherit; cursor: pointer; }
 input, select, textarea {
@@ -37,13 +43,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .grow { flex: 1; }
 
 .btn {
+  --wall: var(--line-strong);
   background: var(--card); border: 1.5px solid var(--ink); border-radius: 4px; padding: 7px 14px;
   font-weight: 600; white-space: nowrap;
+  box-shadow: calc(var(--nx) * -1.5px) calc(2.5px + var(--ny) * -1.5px - var(--p) * .6px) 0 var(--wall); /* 按鍵有厚度，按下去變薄 */
 }
-.btn:hover { background: #efe7d4; }
-.btn.primary { background: var(--ink); color: var(--card); }
-.btn.primary:hover { background: #45403a; }
-.btn.red { background: var(--evil); border-color: var(--evil); color: #fff; }
+.btn:hover { background: var(--hover); }
+.btn:active { translate: 0 1.5px; }
+.btn.primary { --wall: color-mix(in srgb, var(--ink) 58%, #000); background: var(--ink); color: var(--card); }
+.btn.primary:hover { background: color-mix(in srgb, var(--ink) 86%, var(--card)); }
+.btn.red { --wall: color-mix(in srgb, var(--evil) 62%, #000); background: var(--evil); border-color: var(--evil); color: #fff; }
 .btn.ghost { border-color: var(--line-strong); font-weight: 400; }
 .btn.disabled { opacity: .35; pointer-events: none; }
 .btn.sm { padding: 3px 10px; font-size: 13px; }
@@ -62,11 +71,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .lobby-head { position: relative; display: grid; justify-items: center; gap: 10px; }
 .lobby .title { margin: 0; font-family: var(--serif); font-size: 42px; font-weight: 700; letter-spacing: 10px; text-align: center; }
 .lobby-seal { position: absolute; left: calc(50% + 150px); top: 2px; transform: rotate(-8deg); padding: 2px 4px 3px 8px;
-  color: var(--evil); font: 900 15px/1.15 var(--serif); letter-spacing: .25em; writing-mode: vertical-rl;
-  border: 2px solid currentColor; border-radius: 3px; box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 3px currentColor; mix-blend-mode: multiply; }
+  color: #f4eedf; background: #a3271d; font: 900 15px/1.15 var(--serif); letter-spacing: .25em; writing-mode: vertical-rl; border-radius: 3px; }
 .lobby-tag { margin: 0; font: 700 16px var(--serif); letter-spacing: .24em; padding-left: .24em; }
 .lang-lobby { position: absolute; top: 12px; right: 16px; display: flex; gap: 2px; }
 .lang-lobby .btn { border: 0; background: none; color: var(--muted); font-weight: 400; }
+.lang-lobby .btn { box-shadow: none; }
 .lang-lobby .btn:hover { background: none; color: var(--ink); }
 /* 加入房間：一張方角紙條，下面再露一層紙邊 */
 .lobby-forms { width: min(780px, 100%); display: grid; gap: 18px; }
@@ -99,6 +108,17 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
   .lobby-town { height: 20vh; }
 }
 
+/* 實體感：tactile.js 給鼠標指著的控件加 .tilt，按在哪邊哪邊下陷，移開時回彈（.untilt）。--tl 最大傾角，--pv 透視距離：控件越大傾角越小 */
+.tilt { --p: 1; transform: perspective(var(--pv, 360px)) rotateX(calc(var(--ny) * var(--tl, 6) * -1deg)) rotateY(calc(var(--nx) * var(--tl, 6) * 1deg)); scale: calc(1 - var(--p) * .012);
+  transition: --nx .12s ease-out, --ny .12s ease-out, --p .12s ease-out, translate .2s ease, background-color .15s ease !important; }
+.tilt:active { --p: 2.5; }
+.tilt.untilt { --p: 0; transition: --nx .44s cubic-bezier(.3, 1.7, .5, 1), --ny .44s cubic-bezier(.3, 1.7, .5, 1), --p .3s ease, translate .2s ease !important; }
+.token.tilt { --tl: 17; }
+.btn.tilt, .vbtn.tilt { --tl: 9; }
+.mycard.tilt { --tl: 2.2; --pv: 1000px; }
+.join.tilt { --tl: 1.4; --pv: 1400px; }
+.recent-room.tilt { --tl: 5; --pv: 700px; }
+
 /* 彈窗與菜單 */
 .backdrop { position: fixed; inset: 0; background: #2a262266; display: grid; place-items: center; z-index: 50; padding: 16px; }
 .modal { background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; width: min(420px, 100%); max-height: 86vh; display: flex; flex-direction: column; }
@@ -109,26 +129,37 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .popmenu { position: fixed; z-index: 60; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 4px; min-width: 160px; display: flex; flex-direction: column; }
 .popmenu-title { padding: 5px 10px; font-family: var(--serif); font-weight: 700; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
 .popmenu button { background: none; border: 0; text-align: left; padding: 7px 10px; border-radius: 4px; }
-.popmenu button:hover { background: #efe7d4; }
+.popmenu button:hover { background: var(--hover); }
 .popmenu button.danger { color: var(--evil); }
 .popmenu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 99; background: var(--ink); color: var(--card); padding: 8px 16px; border-radius: 4px; max-width: 90vw; }
 
-/* 角色牌：雙圈印章 */
+/* 角色牌：一枚有厚度的銅幣。黃銅齒邊 + 陣營色內圈 + 紙面，側壁是一疊 box-shadow，往翹起來的那邊露出；高光跟著傾斜走。
+   --coin 是側壁和落影，--bevel 是幣面的凸邊：哪條規則改 box-shadow 都要帶上這兩個，不然幣就薄了；底色改 --face */
 .token {
-  --team: var(--ink);
+  --team: var(--ink); --face: var(--card); --k: 1;
+  --w1: #a8874a; --w2: #94743a; --w3: #7f6230; --w4: #6a5127; --w5: #56411f;
+  --wx: calc(var(--nx) * -1.1px * var(--k)); --wy: calc((.9px + var(--ny) * -.8px) * var(--k));
+  --coin: var(--wx) var(--wy) 0 var(--w1), calc(var(--wx) * 2) calc(var(--wy) * 2) 0 var(--w2), calc(var(--wx) * 3) calc(var(--wy) * 3) 0 var(--w3),
+    calc(var(--wx) * 4) calc(var(--wy) * 4) 0 var(--w4), calc(var(--wx) * 5) calc(var(--wy) * 5) 0 var(--w5), calc(var(--wx) * 6 + 1px) calc(var(--wy) * 6 + 3px) 5px #1a0f0466;
+  --bevel: inset 0 0 0 1px #f2dfae66, inset 0 -2px 3px #3a2a1455, inset 0 2px 2px #fff4d088;
   width: 96px; height: 96px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 1px; text-align: center; background: var(--card); border: 2px solid var(--team);
-  box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team);
+  gap: 1px; text-align: center; border: 1.5px solid #5e4720;
+  background:
+    radial-gradient(circle at calc(32% - var(--nx) * 22%) calc(24% - var(--ny) * 22%), #fff5 0, #fff0 46%),
+    radial-gradient(closest-side, var(--face) 82%, color-mix(in srgb, var(--face) 86%, #5a401c) 84.5%, var(--team) 85% 89%, #0000 89.5%),
+    repeating-conic-gradient(#c5a25a 0 5deg, #957637 5deg 10deg);
+  box-shadow: var(--bevel), var(--coin);
   color: var(--team); cursor: pointer; user-select: none; flex: none;
 }
 .token-icon { width: 52%; height: 52%; }
 .token .token-name { font-family: var(--serif); font-weight: 700; font-size: 14px; line-height: 1.1; padding: 0 6px; }
-.token.sm { width: 48px; height: 48px; border-width: 1.5px; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--team); }
+.token.sm { --k: .6; width: 48px; height: 48px; }
 .token.sm .token-icon { width: 62%; height: 62%; }
 .token.sm .token-name { display: none; }
-.token.blank { color: var(--muted); border: 1.5px dashed var(--line-strong); box-shadow: none; font-family: var(--serif); font-size: 24px; }
+.token.blank { --w1: #cfc4ad; --w2: #bdb199; --w3: #a89b82; --w4: #93866e; --w5: #7d7059; color: var(--muted); background: var(--card); border: 1.5px dashed var(--line-strong); box-shadow: var(--coin); font-family: var(--serif); font-size: 24px; }
 .token.empty { border-style: dashed; }
+@media (max-width: 860px) { .token { --k: .7; } }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 8px; }
 .chip { position: relative; background: var(--card); border: 1px solid var(--line-strong); border-radius: 3px; padding: 3px 9px; font-size: 13px; }
 .chip.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
@@ -143,7 +174,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .recent-room::before { content: ""; position: absolute; left: -6px; top: calc(100% + 9vh - 5px); width: 10px; height: 10px; border-radius: 50%; background: var(--evil); }
 .recent-room:nth-child(even)::after { height: 5vh; }
 .recent-room:nth-child(even)::before { top: calc(100% + 5vh - 5px); }
-.recent-room:hover { background: #efe7d4; translate: 0 -3px; }
+.recent-room:hover { background: var(--hover); translate: 0 -3px; }
 .rr-code { width: 100%; font: 700 24px var(--serif); letter-spacing: 3px; }
 .rr-phase { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; color: var(--muted); }
 .rr-phase.ph-night .ico { color: #5b6275; }

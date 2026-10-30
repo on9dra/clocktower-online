@@ -2,6 +2,7 @@
 import { h, toast } from './ui.js';
 import { icon } from './glyph.js';
 import { getLang, setLang } from './lang.js';
+import { skyLife, townLife } from './ambient.js';
 
 // 最近的房間記在本機（最多 5 個）：{ code, inst }
 const KEY = 'botc.recent';
@@ -49,8 +50,8 @@ function codeBox(input) {
   return h('label', { class: 'code-box' }, cells, input);
 }
 
-// recent：服務器確認還在的最近房間（帶 phase、n），onPick 回到它；onIntro 重新打開第一次來時的介紹
-export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreate, onPick, onIntro }) {
+// recent：服務器確認還在的最近房間（帶 phase、n），onPick 回到它；onIntro 重新打開第一次來時的介紹；onAbout 打開關於（投喂、反饋、分享、說明）
+export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreate, onPick, onIntro, onAbout }) {
   const codeIn = h('input', { value: code, inputmode: 'numeric', autocomplete: 'off', 'aria-label': '房間號' });
   const nameIn = h('input', { value: name, maxlength: 12 });
   const join = () => {
@@ -62,10 +63,12 @@ export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreat
   codeIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) (nameIn.value.trim() ? join() : nameIn.focus()); };
   nameIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) join(); };
   return h('div', { class: 'lobby' },
+    skyLife('night'),
     h('header', { class: 'lobby-head' },
       h('h1', { class: 'title' }, '血染鐘樓'), h('span', { class: 'lobby-seal' }, '線上魔典'),
       h('p', { class: 'lobby-tag' }, '快速、簡約、精美的線上魔典')),
-    h('nav', { class: 'lang-lobby' }, onIntro && h('button', { class: 'btn sm ghost', onclick: onIntro }, '介紹'), langButton('btn sm ghost')),
+    h('nav', { class: 'lang-lobby' }, onIntro && h('button', { class: 'btn sm ghost', onclick: onIntro }, '介紹'),
+      onAbout && h('button', { class: 'btn sm ghost', onclick: onAbout }, '關於'), langButton('btn sm ghost')),
     h('div', { class: 'lobby-forms' },
       h('div', { class: 'join' }, h('div', { class: 'join-k' }, '我是玩家'),
         h('div', { class: 'field' }, h('span', { class: 'field-k' }, '房間號'), codeBox(codeIn)),
@@ -73,5 +76,5 @@ export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreat
         h('button', { class: 'btn primary', onclick: join }, '加入房間')),
       h('div', { class: 'st-line' }, '我是說書人', h('button', { class: 'btn', onclick: onCreate }, '創建房間'))),
     recentList(recent, onPick),
-    h('div', { class: 'lobby-town', 'aria-hidden': 'true' }));
+    h('div', { class: 'lobby-town', 'aria-hidden': 'true' }, townLife()));
 }

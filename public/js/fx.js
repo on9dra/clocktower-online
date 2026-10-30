@@ -6,6 +6,8 @@
 // 震屏省著用：只給全桌一起看、一天最多幾次的定局時刻（上處決台、處決、反噬、射殺、天亮的死者、接任惡魔、邪惡獲勝），一個時刻只震一下；
 // 提名、平票、聊天、投票、計票、夜晚行動這些高頻或不擋操作的場合一律不震（shake 本身也只在擋操作的演出裏生效）
 import { h, roleToken } from './ui.js';
+import { skyLife, townLife } from './ambient.js';
+import { tactile } from './tactile.js';
 import { icon, roleIcon, seatBadge, gallows, ACTS } from './glyph.js';
 import { play } from './sfx.js';
 import { ROLES, TEAMS } from './roles.js';
@@ -59,7 +61,7 @@ function thaw() {
 }
 // 背景的日夜（body[data-phase]）：入夜 / 天亮的演出接管時先不跟著狀態變，演出按節拍切（黃昏 → 夜、黎明 → 白天），播完再對齊
 let skyHold = 0;
-const sky = v => { document.body.dataset.phase = v; };
+const sky = v => { document.body.dataset.phase = v === 'lobby' ? 'night' : v; }; // 開局前的房間也是夜色，和大廳接得上
 function instantSky(v) {
   document.body.classList.add('sky-instant');
   sky(v);
@@ -85,10 +87,11 @@ export const setRender = fn => { rerender = fn; };
 
 export function ensureScene() {
   if (document.getElementById('scene')) return;
-  const L = cls => h('div', { class: 'layer ' + cls });
+  const L = (cls, ...kids) => h('div', { class: 'layer ' + cls }, kids);
   document.body.prepend(h('div', { id: 'scene', 'aria-hidden': 'true' },
-    L('sky'), L('stars'), L('moon'), L('sun'), L('sun-disk'),
-    L('skyline skyline-day'), L('skyline skyline-night'), L('candle')));
+    L('sky'), L('stars'), L('moon'), L('sun'), L('sun-disk'), skyLife(),
+    L('skyline skyline-day', townLife()), L('skyline skyline-night', townLife()), L('candle')));
+  tactile();
 }
 
 // 讓座位上的動畫在重繪後接著播：返回 class 和負的 animation-delay
@@ -979,7 +982,7 @@ export function onState(s) {
   const p = prev, id = `${s.code}:${s.isSt ? 'st' : s.myId}:${s.peek?.seatId || ''}`;
   prev = s;
   lastState = s;
-  // 白天被動能力觸發、等說書人裁定：響一聲（裁定卡浮在座位旁）
+  // 白天被動能力觸發、等說書人裁定：響一聲（裁定卡在圓桌中央）
   if (s.isSt && s.st?.ruling && p?.isSt && !p.st?.ruling) play('turn');
   const evs = s.fx || [], top = evs.length ? evs.at(-1).seq : 0;
   if (!p || who !== id) { who = id; seen = Math.max(seen, top); if (!skyHold) instantSky(s.phase); return; }

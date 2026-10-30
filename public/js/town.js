@@ -8,8 +8,8 @@ import { mini, tag, icon, roleIcon, gallows, demonMark, w } from './glyph.js';
 import { hudLinked } from './hud.js';
 import { trialPanel } from './trial.js';
 import { seatPicking } from './infoform.js';
-import { stepCard } from './stepcard.js';
-import { clockState, blockLines, playerCenter, rulingCard, scriptPick } from './flow.js';
+import { stepCard, decidePicking } from './stepcard.js';
+import { clockState, blockLines, playerCenter, stCenter, rulingCard, reviewCard, scriptPick } from './flow.js';
 import { pickRole } from './setup.js';
 import { openSeatLink } from './invite.js';
 
@@ -39,7 +39,7 @@ export function renderTown(ctx) {
   const team = Object.fromEntries(Object.entries(auto).flatMap(([id, ks]) => ks.filter(k => k.t).slice(0, 1).map(k => [id, k.t])));
   const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), num = id => s.seats.findIndex(x => x.id === id) + 1;
   const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--n': n } }); // --n：按人數縮放頭像（board.css）
-  const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s);
+  const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s), aimed = stepTargets(s);
   const unread = chatUnread(s);
   // 私聊未讀：發送者身旁冒聊天氣泡，點開直接進那個頻道
   const pop = (ch, who) => unread[ch] && h('div', {
@@ -63,7 +63,7 @@ export function renderTown(ctx) {
       if (pk.fixed.has(seat.id)) cls.push('fixed-pick');
       else if (pk.on.has(seat.id)) cls.push('selected');
       else if (pk.can.has(seat.id)) cls.push('selectable');
-    }
+    } else if (aimed.has(seat.id)) cls.push('aimed');
     if (seat.mine) cls.push('mine');
     if (nom && nom.nomineeId === seat.id) cls.push('nominee');
     if (nom && nom.nominatorId === seat.id) cls.push('nominator');
@@ -120,24 +120,29 @@ export function renderTown(ctx) {
       (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t)))));
   });
 
-  // 說書人的操作卡在側欄頂上（stCard），桌上只圈出行動者；裁定的另一方（開槍的目標、提名貞潔者的人）紅虛線圈
-  const b = stBubble(ctx), ruling = b && b.ruling;
+  // 說書人的操作卡和玩家輪到自己時的牌一樣，放在圓桌中央「第 N 夜 / 天」下面；貞潔者小窗貼桌面左上角，不擋計票；
+  // 提名期間的裁定卡蓋在審判牌上。桌上圈出行動者，裁定的另一方（開槍的目標、提名貞潔者的人）紅虛線圈
+  const b = stBubble(ctx), ruling = b && b.ruling, showNom = nom && !nomHeld();
+  if (!b) lastBubble = null;
+  const mid = b && !b.side && !showNom;
   if (b) ring.children[s.seats.findIndex(x => x.id === b.seatId)]?.classList.add('acting');
   const other = ruling && (ruling.to || ruling.from);
   if (other) ring.children[s.seats.findIndex(x => x.id === other)]?.classList.add('ruled');
 
   const [title, sub] = PHASE(s);
   const blk = shownBlock(s);
-  // 台上有人、或正在演處決：中間讓給頭像，不寫「第 N 天」
-  ring.append(h('div', { class: 'center' + (nom ? ' has-nom' : '') + (blk || execActive() ? ' has-blk' : '') },
+  // 台上有人、或正在演處決：中間讓給頭像，不寫「第 N 天」；說書人的按鈕挪到絞刑架下面（有操作卡時卡片照常蓋在中間）
+  const hang = (blk || execActive()) && !mid;
+  ring.append(h('div', { class: 'center' + (nom ? ' has-nom' : '') + (hang ? ' has-blk' : '') },
     !blk && h('div', { class: 'phase-title' }, title),
-    !blk && h('div', { class: 'phase-sub' }, sub),
+    !blk && !mid && h('div', { class: 'phase-sub' }, sub),
     !s.isSt && (pop('st', '說書人') || pub('st', '公告')),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
-    !blk && playerCenter(ctx),
     s.isSt && !s.peek && s.phase === 'lobby' && scriptPick(ctx),
+    mid ? cardEl(b) : s.isSt ? stCenter(ctx) : !blk && playerCenter(ctx),
     s.phase === 'ended' && mvpPane(ctx),
   ));
+  if (b && b.side) ring.append(cardEl(b));
   if (blk) ring.append(blockSeat(ctx, blk));
   // 被擠下台 / 被平票擠下的人：從圓桌中間飛回自己的座位
   for (const seat of s.seats) {
@@ -146,28 +151,37 @@ export function renderTown(ctx) {
     const { x, y } = seatPos(s, seat.id);
     ring.append(h('div', { class: 'blk-ret ' + ret.cls, 'data-key': 'ret-' + seat.id, style: { left: x + '%', top: y + '%', ...ret.style } }, seatToken(ctx, seat)));
   }
-  const showNom = nom && !nomHeld();
   if (showNom) ring.append(nomLine(s, nom));
-  return h('div', { class: 'town' }, ring, showNom && trialPanel(ctx));
+  return h('div', { class: 'town' }, ring, showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)));
 }
 
-// 說書人：當前夜晚步驟的操作卡 / 白天的裁定卡。貞潔者小窗（side）不擋投票，有別的裁定時讓位
+// 說書人：當前夜晚步驟的操作卡（走完是天亮前核對）/ 白天的裁定卡。貞潔者小窗（side）不擋投票，有別的裁定時讓位
 function stBubble(ctx) {
   const s = ctx.state;
-  // 天亮前確認在操作塢裏（flow.js reviewDock），不出卡
-  const step = s.isSt && s.phase === 'night' && !nightHeld() && s.st.step?.status !== 'review' && s.st.step;
-  const ruling = s.isSt && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
+  const step = s.isSt && !s.peek && s.phase === 'night' && !nightHeld() && s.st.step;
+  const ruling = s.isSt && !s.peek && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
   const side = !!ruling && !s.st.ruling;
-  return step ? { id: step.id, seatId: step.seatId, card: () => stepCard(ctx) }
+  return step ? { id: step.id, seatId: step.seatId, card: () => (step.status === 'review' ? reviewCard(ctx) : stepCard(ctx)) }
     : ruling ? { id: `rule-${ruling.kind}-${ruling.seatId}`, seatId: ruling.seatId, ruling, side, card: () => (side ? rulingCard(ctx, ruling, 'virgin') : rulingCard(ctx)) } : null;
 }
-// 操作卡：寬屏放在側欄頂上，手機放在桌面和操作塢之間，都不蓋座位（點座位挑干擾項時桌面整個露出來）
-export function stCard(ctx) {
-  const b = stBubble(ctx);
-  if (!b) { lastBubble = null; return null; }
+// 圓桌中間放不下的卡（築夢師這種一整排角色牌）：整張縮小到放得下（最小 60%），再不行才滾動。畫完後調用
+export function fitTableCard() {
+  const el = document.querySelector('.st-card:not(.side)'), card = el && el.firstElementChild;
+  if (!card) return;
+  card.style.zoom = '';
+  const k = Math.min(el.clientHeight / el.scrollHeight, el.clientWidth / el.scrollWidth);
+  if (k < 1) card.style.zoom = Math.max(0.6, k * 0.98).toFixed(3);
+}
+function cardEl(b) {
   const fresh = lastBubble !== b.id; // 只在新步驟出現時播放展開動畫，重繪不重播
   lastBubble = b.id;
   return h('section', { class: 'st-card' + (b.side ? ' side' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id }, b.card());
+}
+// 當前步驟已經定下的目標（旅店老闆選的兩人、築夢師查的人……）：桌上金圈標出來
+function stepTargets(s) {
+  const step = s.isSt && s.phase === 'night' && s.st.step;
+  if (!step) return new Set();
+  return new Set([...(step.picks || []), step.form?.extra?.targetId, step.decide?.targetId].filter(Boolean));
 }
 
 // 死人頭像上的章：大家都看得到的死法有專門的字，其他（夜裏死的等）一律「死亡」
@@ -227,7 +241,8 @@ function nomLine(s, nom) {
 // 說書人給信息時可以直接點桌上的座位選人
 function pickingNow(ctx) {
   const s = ctx.state, step = s.isSt && s.phase === 'night' && s.st.step;
-  return step && step.status === 'confirm' && !sel.on ? seatPicking(ctx, step) : null;
+  if (!step || sel.on) return null;
+  return step.status === 'confirm' ? seatPicking(ctx, step) : step.status === 'decide' ? decidePicking(ctx, step) : null;
 }
 
 function onSeat(ctx, seat, anchor) {

@@ -1,4 +1,4 @@
-// 側欄：標籤頁（流程日誌、遊戲日誌、聊天、角色表）。流程操作在底部操作塢（flow.js）
+// 側欄：標籤頁（流程日誌、遊戲日誌、聊天、角色表）。流程操作在圓桌中央和審判牌上（flow.js）
 import { h, roleToken, seatLabel, modal, closeModal, prompt2 } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';

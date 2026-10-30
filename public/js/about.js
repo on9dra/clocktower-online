@@ -1,0 +1,123 @@
+// 關於：頂上是作者的名帖（紅名章、署名、社交賬號），下面四頁——投喂、反饋、分享、說明，換頁沿左邊翻（同介紹）。
+// 大廳右上角「關於」、對局裏「⋯ → 反饋 · 關於」打開；署名、賬號、收款碼在 author.js 填，空著的是虛線佔位
+import { h, modal, toast } from './ui.js';
+import { icon } from './glyph.js';
+import { tr, getLang } from './lang.js';
+import { play } from './sfx.js';
+import { copy } from './topbar.js';
+import { AUTHOR } from './author.js';
+
+const ext = (cls, href, ...kids) => h('a', { class: cls, href, target: '_blank', rel: 'noopener' }, ...kids);
+
+// 名帖：署名第一個字（或 seal）蓋成名章；賬號有鏈接的打開，只有號碼的點了複製
+function card() {
+  const a = AUTHOR, seal = a.seal || Array.from(a.name)[0] || '';
+  const link = l => l.url ? ext('ab-link', l.url, l.name, l.handle && h('i', {}, l.handle))
+    : l.handle ? h('button', { class: 'ab-link', onclick: () => copy(l.handle, `已複製 ${l.name}：${l.handle}`) }, l.name, h('i', {}, l.handle))
+    : h('span', { class: 'ab-link empty' }, l.name);
+  return h('div', { class: 'ab-card' },
+    h('span', { class: 'ab-seal' + (seal ? '' : ' empty') }, seal || '印'),
+    h('div', {},
+      h('div', { class: 'ab-by' }, h('b', { class: 'ab-name' + (a.name ? '' : ' empty') }, a.name || '署名'), h('small', {}, '製')),
+      h('div', { class: 'ab-links' }, a.links.map(link))));
+}
+
+// 投喂：一張小票，收款碼並排，撕線下一句謝謝
+const tipPage = () => h('div', { class: 'ab-slip' },
+  h('div', { class: 'ab-codes' }, AUTHOR.tip.map(t => t.url
+    ? ext('ab-code', t.url, h('span', { class: 'ab-qr go' }, icon('out')), h('b', {}, t.name))
+    : h('figure', { class: 'ab-code' },
+      t.img ? h('img', { class: 'ab-qr', src: t.img, alt: t.name }) : h('span', { class: 'ab-qr empty' }, '收款碼'),
+      h('figcaption', {}, t.name)))),
+  h('p', { class: 'ab-thanks' }, '謝謝投喂'));
+
+// 反饋：一頁信紙，寄出後蓋「已寄出」；切到別的頁再回來，沒寄的字還在
+function fbPage(ctx) {
+  const text = h('textarea', { maxlength: 1000, 'aria-label': '反饋內容' });
+  const contact = h('input', { maxlength: 60, placeholder: '選填' });
+  const letter = h('div', { class: 'ab-letter' }, h('div', { class: 'ab-to' }, '致作者：'), text,
+    h('label', { class: 'ab-from' }, h('span', {}, '聯繫方式'), contact),
+    h('b', { class: 'ink-stamp ab-stamp', 'aria-hidden': 'true' }, '已寄出'));
+  const send = h('button', { class: 'btn primary' }, icon('send'), '寄出');
+  const again = h('button', { class: 'btn' }, '再寫一封');
+  send.onclick = async () => {
+    const t = text.value.trim();
+    if (!t) { text.focus(); return toast('寫點什麼再寄出'); }
+    if (!ctx.feedback) return toast('演示頁不能寄出');
+    send.classList.add('disabled');
+    const r = await ctx.feedback({ text: t, contact: contact.value.trim(), room: ctx.state?.code || '', lang: getLang() });
+    send.classList.remove('disabled');
+    if (!r.ok) return toast(r.error);
+    letter.classList.add('sent');
+    text.readOnly = contact.readOnly = true;
+    play('gavel');
+    send.replaceWith(again);
+  };
+  again.onclick = () => {
+    letter.classList.remove('sent');
+    text.readOnly = contact.readOnly = false;
+    text.value = '';
+    again.replaceWith(send);
+    text.focus();
+  };
+  return h('div', { class: 'ab-fb' }, letter,
+    h('div', { class: 'ab-act' }, send, ext('ab-gh', AUTHOR.repo + '/issues', 'GitHub', icon('out'))));
+}
+
+// 分享：本站二維碼 + 網址；手機上多一個系統分享
+function sharePage() {
+  const url = location.origin + '/', tag = tr('快速、簡約、精美的線上魔典');
+  return h('div', { class: 'ab-share' },
+    h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURIComponent(url), alt: '二維碼', width: 168, height: 168 }),
+    h('b', { class: 'ab-url' }, location.host),
+    h('div', { class: 'ab-act' },
+      h('button', { class: 'btn primary', onclick: () => copy(`${tr('血染鐘樓')} · ${tag} ${url}`, '鏈接已複製') }, icon('send'), '複製鏈接'),
+      navigator.share && h('button', { class: 'btn', onclick: () => navigator.share({ title: document.title, text: tag, url }).catch(() => {}) }, icon('share'), '分享到…')));
+}
+
+// 說明：本站是什麼、不是什麼
+const NOTES = [
+  ['mask', '非官方', '粉絲自製，與 The Pandemonium Institute 無關，也未獲其認可。遊戲名、角色名和能力文字歸其所有，請勿商用。'],
+  ['book', '免費開源', ['代碼和原創美術以 MIT 許可發布，', ext('', AUTHOR.repo, 'GitHub')]],
+  ['unlock', '免註冊', '房間三天沒有動靜自動刪除，聊天記錄一起刪掉。'],
+  ['talk', '沒有語音', '請配合騰訊會議、微信語音等。'],
+];
+const notePage = () => h('div', { class: 'ab-notes' }, NOTES.map(([ico, k, v], i) => [
+  h('b', { class: 'ab-nk', style: { '--i': i } }, icon(ico), k),
+  h('span', { class: 'ab-nv', style: { '--i': i } }, v)]));
+
+const PAGES = [['tip', 'cup', '投喂', tipPage], ['fb', 'letter', '反饋', fbPage], ['share', 'share', '分享', sharePage], ['note', 'book', '說明', notePage]];
+
+// start：先翻到哪一頁（tip / fb / share / note）
+export function openAbout(ctx, start = 'tip') {
+  const pages = PAGES.map(([k, , , make]) => h('section', { class: 'ab-page ab-p-' + k }, make(ctx)));
+  let at = Math.max(0, PAGES.findIndex(p => p[0] === start)), busy = false, x0 = null;
+  const stage = h('div', { class: 'ab-stage' });
+  const tabs = PAGES.map(([, ico, name], i) => h('button', { class: 'ab-tab', onclick: () => go(i) }, icon(ico), name));
+  const mark = i => tabs.forEach((t, k) => t.classList.toggle('on', k === i));
+  // 這頁的內容依次出來（翻頁時就開始，翻完不再重播）
+  const enter = p => { p.classList.remove('in'); void p.offsetWidth; p.classList.add('in'); };
+  // 往後翻：當前頁沿左邊翻走，露出底下的；往前翻：那頁從左邊翻回來蓋上
+  function go(i) {
+    if (busy || i === at) return;
+    const fwd = i > at, cur = pages[at], nxt = pages[i], leaf = fwd ? cur : nxt;
+    busy = true;
+    mark(i);
+    enter(nxt);
+    stage.replaceChildren(...(fwd ? [nxt, cur] : [cur, nxt]));
+    leaf.classList.add('leaf');
+    const open = { transform: 'rotateY(0deg)', filter: 'brightness(1)' }, gone = { transform: 'rotateY(-96deg)', filter: 'brightness(.82)' };
+    const a = leaf.animate(fwd ? [open, gone] : [gone, open], { duration: 520, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'both' });
+    const done = () => { if (!busy) return; busy = false; a.cancel(); leaf.classList.remove('leaf'); stage.replaceChildren(nxt); at = i; };
+    a.onfinish = done;
+    setTimeout(done, 800); // 後台標籤頁不出幀時直接翻完
+  }
+  // 手機左右滑（在信紙裏劃字不算）
+  stage.onpointerdown = e => { x0 = e.target.closest('textarea, input') ? null : e.clientX; };
+  stage.onpointerup = e => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 50) go(Math.min(pages.length - 1, Math.max(0, at + (dx < 0 ? 1 : -1)))); };
+
+  modal(card(), h('div', { class: 'about' }, h('nav', { class: 'ab-tabs' }, tabs), stage), { cls: 'about-modal' });
+  stage.replaceChildren(pages[at]);
+  enter(pages[at]);
+  mark(at);
+}

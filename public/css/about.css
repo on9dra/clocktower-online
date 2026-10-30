@@ -1,0 +1,109 @@
+/* 關於（js/about.js）：頂上作者名帖——紅名章 + 署名 + 社交賬號，下面一道雙線；四頁沿左邊翻。
+   投喂是一張小票（底邊鋸齒），反饋是一頁橫線信紙（寄出蓋「已寄出」章），說明是細線分行的表。空著的署名、賬號、收款碼是虛線佔位 */
+.about-modal { width: min(500px, 100%); }
+.about-modal .modal-head { align-items: flex-start; padding-bottom: 12px; border-bottom: 3px double var(--ink); }
+body.art .about-modal .modal-head { padding: 0 4px 12px; }
+body.art .about-modal .modal-body { padding-top: 0; }
+.about-modal .modal-body { padding-top: 0; }
+
+/* 名帖 */
+.ab-card { display: flex; align-items: center; gap: 14px; }
+.ab-seal { display: inline-grid; place-items: center; flex: none; width: 48px; height: 48px; color: var(--evil); border: 2.5px solid currentColor;
+  box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3.5px currentColor; font: 900 20px/1 var(--serif); writing-mode: vertical-rl; rotate: -4deg; mix-blend-mode: multiply; }
+.ab-seal.empty { color: var(--line-strong); border: 1.5px dashed currentColor; box-shadow: none; font-weight: 400; }
+body.art .ab-seal:not(.empty) { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
+.ab-by { display: flex; align-items: baseline; gap: 6px; }
+.ab-name { font: 900 22px var(--serif); letter-spacing: .12em; }
+.ab-name.empty { color: var(--muted); font-weight: 400; letter-spacing: .3em; padding-right: 2.4em; border-bottom: 1.5px dashed var(--line-strong); }
+.ab-by small { color: var(--muted); font: 400 13px var(--serif); }
+.ab-links { display: flex; flex-wrap: wrap; gap: 5px 6px; margin-top: 6px; font: 400 12px/1.6 var(--sans); }
+.ab-link { display: inline-flex; gap: 5px; padding: 0 7px; color: var(--ink); background: none; border: 1px solid var(--ink); text-decoration: none; }
+.ab-link:hover { background: var(--hover); }
+.ab-link i { font-style: normal; color: var(--muted); }
+.ab-link.empty { color: var(--muted); border: 1px dashed var(--line-strong); }
+
+/* 頁籤：一排四格，當前那格墨底 */
+.ab-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1.5px solid var(--ink); }
+.ab-tab { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 2px 7px; background: none; border: 0; color: var(--muted);
+  font: 700 14px var(--serif); letter-spacing: .12em; }
+.ab-tab + .ab-tab { border-left: 1px solid var(--line); }
+.ab-tab .ico { width: 17px; height: 17px; }
+.ab-tab:hover { color: var(--ink); }
+.ab-tab.on { background: var(--ink); color: var(--card); }
+
+/* 頁：疊在一起，翻的那頁墊紙沿左邊轉走 */
+.ab-stage { position: relative; height: min(340px, 58vh); perspective: 1800px; overflow: hidden; touch-action: pan-y; }
+.ab-page { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px 2px 8px; overflow: auto; transform-origin: left center; backface-visibility: hidden; }
+.ab-page.leaf { z-index: 2; background: var(--card) url(../img/grain.svg); box-shadow: 14px 0 22px #2a262233; }
+
+/* 投喂：一張白小票從頁籤底下吐出來 */
+.ab-page.ab-p-tip { place-items: start center; padding-top: 0; }
+.ab-slip { --z: 7px; width: min(320px, 100%); display: grid; justify-items: center; gap: 12px; padding: 20px 16px calc(16px + var(--z));
+  background: var(--card); border: solid var(--line-strong); border-width: 0 1px;
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--z)) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--z) * 2) var(--z) repeat-x;
+  mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--z)) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--z) * 2) var(--z) repeat-x; }
+.ab-page.in .ab-slip { animation: ab-print .55s cubic-bezier(.3, .9, .4, 1) both; }
+@keyframes ab-print { from { clip-path: inset(0 0 100% 0); translate: 0 -30px; } to { clip-path: inset(0); } }
+.ab-codes { display: flex; justify-content: center; gap: 16px; }
+.ab-code { margin: 0; display: grid; justify-items: center; gap: 6px; color: var(--ink); text-decoration: none; font: 700 14px var(--serif); letter-spacing: .12em; }
+.ab-qr { display: grid; place-items: center; width: 124px; height: 124px; background: var(--card); border: 1px solid var(--line); object-fit: contain; }
+.ab-qr.empty { background: none; border: 1.5px dashed var(--line-strong); color: var(--muted); font: 400 12px var(--sans); letter-spacing: .1em; }
+.ab-qr.go .ico { width: 34px; height: 34px; color: var(--brass); }
+a.ab-code:hover .ab-qr { background: var(--hover); }
+.ab-thanks { width: 100%; margin: 0; padding: 10px 0 0 .45em; text-align: center; border-top: 1.5px dashed var(--line-strong); font: 900 16px var(--serif); letter-spacing: .45em; }
+
+/* 反饋：橫線信紙，字寫在線上 */
+.ab-fb { width: 100%; align-self: start; display: grid; gap: 10px; }
+.ab-letter { position: relative; padding: 10px 14px 12px; background: var(--paper) url(../img/grain.svg); border: 1px solid var(--line-strong); }
+.ab-letter:focus-within { border-color: var(--ink); }
+.ab-to { font: 700 15px var(--serif); letter-spacing: .1em; }
+.ab-letter textarea { --lh: 30px; display: block; height: calc(var(--lh) * 4 + 1px); padding: 0 2px; border: 0; border-radius: 0; resize: none;
+  background: repeating-linear-gradient(#0000 0 calc(var(--lh) - 1px), var(--line-strong) 0 var(--lh)) local; font: 15px/30px var(--serif); }
+.ab-letter textarea:focus, .ab-from input:focus { outline: 0; }
+.ab-from { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; color: var(--muted); font: 13px var(--serif); }
+.ab-from input { width: min(180px, 52%); padding: 2px 4px; background: none; border: 0; border-bottom: 1px solid var(--line-strong); border-radius: 0; }
+.ab-from input:focus { border-bottom-color: var(--ink); }
+.ab-letter .ab-stamp { left: 64%; top: 54%; font-size: 34px; opacity: 0; }
+.ab-letter.sent textarea, .ab-letter.sent .ab-from { opacity: .45; }
+.ab-letter.sent .ab-stamp { opacity: 1; animation: ab-slam .26s cubic-bezier(.5, 0, .7, 1) both; }
+@keyframes ab-slam { from { opacity: 0; transform: translate(-50%, -50%) rotate(-7deg) scale(2.6); } }
+.ab-act { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+.ab-fb .ab-act { justify-content: flex-start; }
+.ab-act .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px; font: 700 15px var(--serif); letter-spacing: .12em; }
+.ab-act .btn .ico { width: 16px; height: 16px; }
+.ab-gh { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; text-decoration: none; }
+.ab-gh:hover { color: var(--ink); }
+.ab-gh .ico { width: 13px; height: 13px; }
+
+/* 分享 */
+.ab-share { display: grid; justify-items: center; gap: 10px; }
+.ab-share .inv-qr { width: 168px; height: 168px; }
+.ab-url { font: 700 18px var(--serif); letter-spacing: .06em; }
+
+/* 說明：細線分行，左邊小標題 */
+.ab-notes { width: 100%; align-self: start; display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.ab-notes > * { padding: 10px 4px; border-bottom: 1px solid var(--line); }
+.ab-nk { display: flex; align-items: center; gap: 6px; padding-right: 14px; font: 700 15px var(--serif); letter-spacing: .08em; white-space: nowrap; }
+.ab-nk .ico { width: 18px; height: 18px; color: var(--brass); }
+.ab-nv { color: var(--muted); font-size: 13px; }
+.ab-nv a { color: var(--ink); }
+
+/* 換頁時內容依次出來 */
+.ab-page.in .ab-notes > *, .ab-page.in .ab-share > *, .ab-page.in .ab-fb > * { animation: ab-rise .32s ease both; animation-delay: calc(.12s + var(--i, 0) * .07s); }
+.ab-page.in .ab-share > :nth-child(2), .ab-page.in .ab-fb > :nth-child(2) { --i: 1; }
+.ab-page.in .ab-share > :nth-child(3) { --i: 2; }
+@keyframes ab-rise { from { opacity: 0; transform: translateY(8px); } }
+
+@media (max-width: 520px) {
+  .ab-card { gap: 10px; }
+  .ab-seal { width: 42px; height: 42px; font-size: 17px; }
+  .ab-name { font-size: 19px; }
+  .ab-tab { gap: 3px; font-size: 13px; letter-spacing: .04em; }
+  .ab-tab .ico { width: 15px; height: 15px; }
+  .ab-stage { height: min(360px, 60vh); }
+  .ab-slip { padding-inline: 10px; }
+  .ab-codes { gap: 10px; }
+  .ab-qr { width: 104px; height: 104px; }
+  .ab-share .inv-qr { width: 150px; height: 150px; }
+  .ab-nk { padding-right: 8px; font-size: 14px; }
+}
