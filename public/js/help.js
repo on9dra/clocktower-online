@@ -3,7 +3,7 @@
 // 版式（css/help.css）：雙線版框；講「在哪」的章畫主桌面示意圖，要點的地方用朱筆圈出、蓋紅色圓印編號，右欄按編號一行一步；
 // 補充說明撕成存根。書口貼索引籤，翻過去的章的籤在左邊
 import { h, modal, closeModal, roleToken } from './ui.js';
-import { icon, seatBadge, mini, tag, w, named, formula } from './glyph.js';
+import { icon, seatBadge, mini, tag, w, formula } from './glyph.js';
 import { crownSvg } from './scores.js';
 import { ROLES, TEAMS } from './roles.js';
 import { EGG, MVP_WINDOW } from './score.js';
@@ -64,31 +64,28 @@ const mkOn = (el, n, cls = '') => { el.classList.add('mkd', ...cls.split(' ').fi
 // 圓桌上的位置：dx、dy 是離圓桌中心多遠，單位是圓桌所在區域短邊的百分之一（cqmin）。
 // 寬屏的桌面在左邊四分之三、手機的佔滿寬度，都按圓桌中心排，同一份座標兩種屏幕都對
 const at = (dx, dy, ...kids) => h('div', { class: 'sk-at', style: { left: `calc(50% + ${dx}cqmin)`, top: `calc(50% + ${dy}cqmin)` } }, kids);
-const atFoot = (...kids) => h('div', { class: 'sk-at foot' }, kids);
 // 灰條：頂欄、側欄裏按屏幕寬（cqw），桌上按圓桌區域（cqmin）
 const ph = (wd, cls = '') => h('i', { class: 'sk-ph ' + cls, style: { width: wd + 'cqw' } });
 const tph = wd => h('i', { class: 'sk-ph', style: { width: wd + 'cqmin' } });
 const skBtn = (text, cls = '') => h('span', { class: 'sk-btn ' + cls }, text);
-// 座位：圍著圓桌一圈；lit 亮金圈（litMark：再圈上朱筆、編號），picked 是選中的
-const skSeats = (lit, picked, litMark) => [1, 2, 3, 4, 5, 6, 7].map(n => {
-  const el = h('i', { class: 'sk-seat' + (n === lit ? ' lit' : '') + (n === picked ? ' pick' : ''), style: { '--a': (n - 1) / 7 * 360 + 'deg' } }, String(n));
-  return n === lit && litMark ? mkOn(el, litMark, 'tight r') : el;
+// 座位：圍著圓桌一圈；lit 亮金圈，picked 是選中的（pickMark：再圈上朱筆、編號）
+const skSeats = (lit, picked, pickMark) => [1, 2, 3, 4, 5, 6, 7].map(n => {
+  const el = h('i', { class: 'sk-seat' + (lit.includes(n) ? ' lit' : '') + (n === picked ? ' pick' : ''), style: { '--a': (n - 1) / 7 * 360 + 'deg' } }, String(n));
+  return n === picked && pickMark ? mkOn(el, pickMark, 'tight r') : el;
 });
 // 寬屏、手機各一套的東西（頂欄的內容不一樣）
 const pc = (...kids) => h('span', { class: 'sk-pc' }, kids);
 const mo = (...kids) => h('span', { class: 'sk-mo' }, kids);
 // 主桌面示意圖：寬屏橫着、手機豎着（help.css 按 .bk.one 換排法）。
-// top：頂欄右邊 { pc, mo }；side：放進側欄的；hud：左上角「你的牌」；zoom：局部放大，虛線框（at: 'hud' 框「你的牌」，否則 box 是圓桌上的範圍）+ 下面放大畫出來
+// zoom：局部放大，虛線框（box 是圓桌上的範圍）+ 下面放大畫出來
 function sketch(kind, opts, ...kids) {
-  const { lit, litMark, picked, top, side, hud, zoom } = opts;
-  const box = zoom && (zoom.at === 'hud' ? h('i', { class: 'sk-box full' })
-    : h('i', { class: 'sk-box', style: { left: `calc(50% + ${zoom.box[0]}cqmin)`, top: `calc(50% + ${zoom.box[1]}cqmin)`, width: zoom.box[2] + 'cqmin', height: zoom.box[3] + 'cqmin' } }));
-  const scr = h('div', { class: 'sk-scr' + (hud ? ' has-hud' : '') },
+  const { lit = [], picked, pickMark, zoom } = opts;
+  const box = zoom && h('i', { class: 'sk-box', style: { left: `calc(50% + ${zoom.box[0]}cqmin)`, top: `calc(50% + ${zoom.box[1]}cqmin)`, width: zoom.box[2] + 'cqmin', height: zoom.box[3] + 'cqmin' } });
+  const scr = h('div', { class: 'sk-scr' },
     h('div', { class: 'sk-top' }, pc(ph(9, 'dark'), ph(5)), mo(ph(12, 'dark')), h('span', { class: 'grow' }),
-      top ? [pc(top.pc), mo(top.mo)] : [pc(ph(3), ph(3), ph(6), ph(3)), mo(ph(8), ph(8), ph(8), ph(4))]),
-    h('div', { class: 'sk-side' }, h('div', { class: 'sk-tabs' }, ph(4), ph(4), ph(4), ph(4)), ph(14), ph(11), ph(16), side),
-    hud && h('div', { class: 'sk-hudz' }, hud, zoom?.at === 'hud' && box),
-    h('div', { class: 'sk-table' }, h('i', { class: 'sk-ring' }), skSeats(lit, picked, litMark), kids, zoom?.at !== 'hud' && box));
+      pc(ph(3), ph(3), ph(6), ph(3)), mo(ph(8), ph(8), ph(8), ph(4))),
+    h('div', { class: 'sk-side' }, h('div', { class: 'sk-tabs' }, ph(4), ph(4), ph(4), ph(4)), ph(14), ph(11), ph(16)),
+    h('div', { class: 'sk-table' }, h('i', { class: 'sk-ring' }), skSeats(lit, picked, pickMark), kids, box));
   if (!zoom) return h('figure', { class: 'sk sk-' + kind }, scr);
   // 引線在翻到這頁時量出位置畫上（leads）
   return h('figure', { class: 'sk zoomed sk-' + kind }, scr, h('div', { class: 'sk-detail' }, zoom.detail), svg('sk-lead', '0 0 100 100', '<path/>'));
@@ -133,57 +130,34 @@ const PREP = {
       at(0, 26, skBtn('隨機抽取', 'pri')))],
   b: () => [
     steps(
-      step(1, null, '選劇本', '換劇本會清掉角色配置'),
+      step(1, null, '選劇本', '暫時只支持 3 種官方劇本'),
       step(2, scene('hp-rules', nth(0, ruleBtn('baron', 'rand', '隨機')), nth(1, ruleBtn('baron', 'lock', '必選')), nth(2, ruleBtn('baron', 'ban', '排除'))), '角色配置', '點角色切換'),
-      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局')),
-    stub(memo(fake('複製邀請鏈接', '', 'send'), sm('頂欄')),
-      memo(icon('key', 'bad'), b('說書人鏈接'), sm('「⋯」裏，別發給玩家')),
-      memo(fake('加入機器人'), sm('人不夠時')))],
+      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局'))],
 };
 
-const WAKE = ['poisoner', 'monk', 'imp', 'ravenkeeper', 'empath'];
+const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && h('i', { class: 'tm' }, '真'));
 const NIGHT = {
   key: 'night', nav: '夜晚', title: '夜晚',
   ico: 'moon',
   a: () => [sketch('night', {
-      lit: 1, litMark: 2,
-      zoom: { box: [-22, -28, 44, 56], detail: h('div', { class: 'skd-col' },
-        h('b', { class: 'skd-t' }, '第 1 夜'),
-        mk(1, h('div', { class: 'skd-card' }, row(tok('librarian'), sb(1)), gray(110), fake('發送', 'primary', 'send')))) },
+      lit: [1, 3], picked: 5, pickMark: 2,
+      zoom: { box: [-20, -12, 40, 34], detail: h('div', { class: 'skd-card' },
+        h('span', { class: 'skd-row' }, tok('librarian'), sb(1)),
+        mk(1, h('span', { class: 'opt-tile fixed' }, sb(3), w('是'), mini('butler'))),
+        mk(2, h('span', { class: 'opt-row' }, [2, 4, 5, 6, 7].map(n => opt(n, n === 5)))),
+        h('span', { class: 'ic-preview good' }, frm(3, '和', 5, '之中有', { r: 'butler', named: true })),
+        mk(3, fake('發送', 'primary', 'send'))) },
     },
       at(0, -21, h('b', { class: 'sk-t' }, '第 1 夜')),
       at(0, 5, skCard(h('i', { class: 'sk-tok' }), tph(16), tph(21), skBtn('發送', 'pri'))),
-      atFoot(mk(3, h('span', { class: 'sk-strip' }, [0, 1, 2, 3, 4, 5, 6, 7].map(i => h('i', { class: i === 2 ? 'on' : i === 5 ? 'fake' : '' }))))))],
+      h('div', { class: 'sk-at sk-prog' }, h('span', { class: 'sk-strip' }, [0, 1, 2, 3, 4, 5, 6, 7].map(i => h('i', { class: i === 2 ? 'on' : i === 5 ? 'fake' : '' })))))],
   b: () => [
     steps(
-      step(1, h('span', { class: 'hp-col2' }, fake('發送', 'primary', 'send'), fake('天亮，公佈死訊', 'primary', 'sun')), '中央的卡', '一步一張，最後一張是天亮'),
-      step(2, h('span', { class: 'hp-wake' }, nth(0, h('span', { class: 'hp-w cur' }, tok('ravenkeeper')))), '被叫醒的座位', '外圈亮金線'),
-      step(3, scene('hp-strip', WAKE.map((r, i) => nth(i, h('span', { class: 'hp-w' + (i < 2 ? ' done' : i === 2 ? ' cur' : '') + (i === 3 ? ' fake' : '') }, tok(r))))), '今晚的順序', '虛線的是假裝叫醒')),
-    stub(memo(mini('ravenkeeper', 'ghost'), b('不在場的角色'), sm('也假裝叫醒，玩家看不出')),
-      memo(b('玩家離線'), sm('你代為選擇或跳過')),
-      memo(mini('imp'), b('小惡魔'), sm('替死、傳位由你選')))],
-};
-
-const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && h('i', { class: 'tm' }, '真'));
-const INFO = {
-  key: 'info', nav: '信息', title: '給信息',
-  ico: 'send',
-  a: () => [h('div', { class: 'hp-ic' },
-      h('div', { class: 'hp-ic-h' }, named('washerwoman')),
-      h('div', { class: 'hp-ic-r' }, h('span', { class: 'hp-ic-k' }, icon('lock'), '真相'), mk(1, frm(3, { op: 'eq' }, { r: 'chef' }), 'r')),
-      h('div', { class: 'hp-ic-r' }, h('span', { class: 'hp-ic-k' }, '干擾項'), mk(2, h('span', { class: 'opt-row' }, opt(1), opt(5, true), opt(6)), 'r')),
-      h('div', { class: 'hp-ic-r see' }, h('span', { class: 'hp-ic-k' }, icon('eye'), '玩家看到'), mk(3, frm(3, '和', 5, '之中有', { r: 'chef', named: true }), 'r')),
-      h('div', { class: 'hp-ic-f' }, fake('發送', 'primary', 'send'))),
-    line(big('check'), '能力正常時', '只能給合規的信息')],
-  b: () => [
-    steps(
-      step(1, null, '真相鎖定', '按規則算好，改不了'),
-      step(2, null, '挑干擾項', '也可以直接點桌上的座位'),
-      step(3, null, '玩家看到的', '發送後飛進他的信息欄')),
+      step(1, null, '系統已留好可選項', '只列合規的信息，真相已鎖定'),
+      step(2, null, '挑干擾項', '點卡上的選項，或直接點桌上的座位'),
+      step(3, null, '發送', '玩家收到卡上這一句，接著自動到下一張')),
     block('poison', h('h4', {}, icon('drop', 'poison'), '中毒 / 酒鬼時'),
-      h('span', { class: 'opt-row' }, opt(1), opt(3, false, true), opt(5), opt(6)), sm('全部選項解鎖，「真」是真實答案')),
-    stub(memo(b('魔典記錯了'), sm('點座位「設為中毒」')),
-      memo(h('span', { class: 'tags hp-tagrow' }, h('span', { class: 'tag bad' }, '中毒'), h('span', { class: 'tag' }, '紅鯡魚')), sm('座位下的小標籤')))],
+      h('span', { class: 'opt-row' }, opt(1), opt(3, false, true), opt(5), opt(6)), sm('全部選項解鎖，「真」是真實答案'))],
 };
 
 const SDAY = {
@@ -201,9 +175,9 @@ const SDAY = {
   b: () => [
     steps(
       step(0, frm(2, { op: 'to' }, 5), '玩家自己提名'),
-      step(0, h('span', { class: 'hp-timer' }, icon('timer'), '5:00'), '倒數 5 分鐘', '到點按舉著的手結算'),
-      step(1, fake('立即計票', 'primary'), '立即計票', '順時針數票，數完自動結算'),
-      step(2, h('span', { class: 'hp-gal' }, icon('noose'), fake('處決5號，入夜', 'primary')), '結束白天', '掛在處決台下面')),
+      step(0, h('span', { class: 'hp-timer' }, icon('timer'), '5:00'), '倒數 5 分鐘', '到點按舉著的手結算；說書人可隨時暫停或重新計時'),
+      step(1, fake('立即計票', 'primary'), '立即計票', '說書人強制玩家發起投票，玩家按順序在短時間內必須投票，數完自動結算'),
+      step(2, h('span', { class: 'hp-gal' }, icon('noose'), fake('處決5號，入夜', 'primary')), '結束白天', '處決台上的角色將死亡')),
     stub(memo(fake('取消提名', 'ghost'), sm('雙方今天可以重新提名')),
       memo(fake('按當前舉手結算'), sm('不數票直接結算')))],
 };
@@ -255,6 +229,8 @@ const team = (k, name, sub, roles, win) => h('div', { class: 'hp-team ' + k },
 // 邪惡的勝利：一排座位一個個倒下，只剩兩個
 const dwindle = (n, left) => h('span', { class: 'hp-dots' }, Array.from({ length: n }, (_, i) =>
   i < n - left ? nth(i, h('i', { class: 'gone' }, icon('cross'))) : h('i', {})));
+// 惡魔得知的三個身份每局隨機，不畫具體角色
+const unknown = () => h('span', { class: 'tt q' }, '?');
 const GOAL = {
   key: 'goal', nav: '目標', title: '誰會贏？', vs: true,
   ico: 'trophy',
@@ -262,7 +238,7 @@ const GOAL = {
     line(big('mask'), '角色是秘密', '可以說真話，也可以說謊')],
   b: () => [team('evil', '邪惡', '爪牙和惡魔', ['poisoner', 'spy', 'imp'], row(dwindle(7, 2), b('只剩 2 人存活'))),
     stub(memo(b('7 人以上首夜'), row(tag('minion'), w('互認'), tag('demon'))),
-      memo(row(tag('demon'), w('還得知'), mini('mayor'), mini('virgin'), mini('slayer')), sm('不在場，可偽裝')))],
+      memo(row(tag('demon'), w('還得知'), unknown(), unknown(), unknown()), sm('不在場，可偽裝成他們')))],
 };
 
 // 一天：一條環線，四站，亮點沿線走一圈
@@ -278,7 +254,7 @@ const DAY = {
     h('div', { class: 'hp-dead' },
       h('div', { class: 'hp-dead-r' }, h('span', { class: 'hp-yn yes' }, icon('check')), b('能說話')),
       h('div', { class: 'hp-dead-r' }, h('span', { class: 'hp-yn no' }, icon('cross')), b('不能提名')),
-      h('div', { class: 'hp-dead-r' }, h('span', { class: 'hp-ticket' }, icon('ticket')), h('div', { class: 'hp-say' }, b('一張死亡票'), sm('投出去就沒了'))))],
+      h('div', { class: 'hp-dead-r' }, h('span', { class: 'hp-ticket' }, icon('ticket')), h('div', { class: 'hp-say' }, b('一張死亡票'), sm('留待信息齊全，投下關鍵一票！'))))],
 };
 
 // 計票時鐘：7 人圍一圈，5 號被提名；指針從 6 號順時針數到 5 號，數到舉手的人就按下一票，滿 4 票蓋章
@@ -311,8 +287,8 @@ const VOTE = {
         h('span', { class: 'sk-line' }, skBtn('贊成', 'yes'), tph(7), tph(10)), tph(28))))],
   b: () => [
     steps(
-      step(1, null, '提名', '每天提名 1 次、被提名 1 次'),
-      step(2, null, '舉手', '按「贊成」；倒數結束時舉著的才算'),
+      step(1, null, '提名', '每天最多提名 1 次，最多被提名 1 次'),
+      step(2, null, '舉手', '贊同處決，舉手時所有人可見，在倒計時結束前可隨時取消'),
       step(3, tally(), '計票', '7 人存活要 4 票：一半，向上取整'),
       step(4, h('span', { class: 'hp-col2' }, row(sb(5), hands(4), w('比'), sb(2), hands(3)), row(sb(5), hands(4), w('和'), sb(2), hands(4))),
         '最高票上台', '白天結束時處決；平票就沒人處決')),
@@ -321,11 +297,15 @@ const VOTE = {
 
 const regAs = (roleId, tags) => block('reg', h('h4', {}, ROLES[roleId].name), scene('hp-reg', tok(roleId, 'md'),
   h('span', { class: 'hp-as' }, w('可能被當作'), h('span', { class: 'hp-tags' }, tags.map(([t, l], i) => nth(i, teamTag(t, l)))))));
+const neighbour = roleId => h('span', { class: 'hp-nb' }, tok(roleId, 'md'), teamTag('demon', '邪惡'));
 const WINS = [['saint', '被處決：善良落敗'], ['mayor', '只剩 3 人且無人處決：善良獲勝'], ['scarletwoman', '5 人以上時惡魔死亡：她接任']];
 const TRAP = {
   key: 'trap', nav: '陷阱', title: '小心陷阱',
   ico: 'drop',
-  a: () => [block('big', h('h4', {}, '中毒 / 醉酒'), scene('hp-poison', h('span', { class: 'hp-drip' }, icon('drop')), tok('chef', 'md')), sm('能力失效，信息可能是錯的，他自己不知道')),
+  a: () => [block('big', h('h4', {}, '中毒 / 醉酒'), scene('hp-poison',
+        h('span', { class: 'hp-nbs' }, neighbour('imp'), h('span', { class: 'hp-me' }, h('span', { class: 'hp-drip' }, icon('drop')), tok('empath', 'md')), neighbour('poisoner')),
+        h('span', { class: 'hp-said' }, frm('鄰座中邪惡', { n: 0 }, '名'))),
+      sm('能力失效，信息可能是錯的，他自己不知道')),
     block('big', h('h4', {}, '酒鬼'), scene('hp-flip', h('span', { class: 'hp-flip-in' }, h('span', { class: 'f' }, tok('washerwoman', 'md')), h('span', { class: 'b' }, tok('drunk', 'md'))),
       h('span', { class: 'hp-thinks' }, w('以為是'), mini('washerwoman'))), sm('以為自己是鎮民，能力無效'))],
   b: () => [
@@ -353,32 +333,7 @@ const EGGS = {
     stub(memo(b('積分榜'), sm('點頂欄的雞蛋數')))],
 };
 
-const OPS = {
-  key: 'ops', nav: '操作', title: '網頁怎麼用',
-  ico: 'tap',
-  a: () => [sketch('player', {
-      picked: 3,
-      // 寬屏：日誌那些在右側欄，規則和「⋯」在頂欄；手機：都在頂欄
-      top: { pc: mk(4, h('span', { class: 'sk-line' }, ph(3), skBtn('規則'), skBtn('⋯')), 'tight'),
-        mo: [mk(3, h('span', { class: 'sk-line' }, skBtn('日誌'), skBtn('說書人'), skBtn('角色')), 'tight'), mk(4, skBtn('⋯'), 'tight r')] },
-      side: mk(3, h('i', { class: 'sk-sidebox' }), 'tight'),
-      hud: h('span', { class: 'sk-hud' }, h('i', { class: 'sk-tok' }), h('span', { class: 'sk-bars' }, ph(6), ph(9))),
-      zoom: { at: 'hud', detail: h('div', { class: 'skd-col' }, mk(1, h('div', { class: 'skd-hud' },
-        h('div', { class: 'skd-row' }, tok('washerwoman'), h('div', { class: 'hp-say' }, b('洗衣婦'), gray(120), gray(90))),
-        h('div', { class: 'skd-row info' }, h('b', {}, '第 1 夜'), frm(2, '和', 6, '之中有', { r: 'chef', named: true }))), 't big')) },
-    },
-      at(0, 10, mk(2, skBtn('確認', 'pri'))))],
-  b: () => [
-    steps(
-      step(1, null, '你的牌', '角色、能力、每晚收到的信息'),
-      step(2, scene('hp-pick', row(blank(2), blank(3, 'pick'), blank(4))), '輪到你', '點座位，再按圓桌中央的確認'),
-      step(3, null, '日誌、聊天、角色表'),
-      step(4, row(fake('規則與流程'), fake('⋯', 'ghost')), '頂欄', '「⋯」裏切繁簡、音效')),
-    stub(memo(b('點別人的座位'), sm('扔雞蛋、私聊、標記猜測')),
-      memo(h('span', { class: 'hp-skip' }, icon('skip'), '跳過'), sm('開局翻牌、第 N 夜')))],
-};
-
-const BOOKS = { st: ['說書人指南', [PREP, NIGHT, INFO, SDAY, AUTO_SEC, FIX]], rules: ['遊戲規則', [GOAL, DAY, VOTE, TRAP, EGGS, OPS]] };
+const BOOKS = { st: ['說書人指南', [PREP, NIGHT, SDAY, AUTO_SEC, FIX]], rules: ['遊戲規則', [GOAL, DAY, VOTE, TRAP, EGGS]] };
 const lastSec = { st: 0, rules: 0 }; // 再打開時翻回上次看的那節
 
 // 一頁紙一章：版框（章標題 + 兩欄：左邊插圖、右邊一步一行；手機上下排）佔滿一頁，地方都留給內容；
