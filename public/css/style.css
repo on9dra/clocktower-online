@@ -165,3 +165,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .inv-qr { width: 200px; height: 200px; image-rendering: pixelated; border: 1px solid var(--line); }
 .inv-host { display: flex; align-items: center; gap: 8px; width: 100%; padding-top: 10px; border-top: 1px dashed var(--line-strong); font-size: 13px; color: var(--muted); }
 .inv-host .ico { width: 16px; height: 16px; color: var(--brass); }
+
+/* 彈窗收進按鈕時（ui.js closeModal 的 away），按鈕上冒的一圈：黃銅平塗線，不發光 */
+.land-ring { position: fixed; z-index: 70; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 2.5px solid var(--brass); border-radius: 50%;
+  pointer-events: none; animation: land-ring .6s ease-out forwards; }
+@keyframes land-ring { from { scale: .4; opacity: 1; } to { scale: 1.7; opacity: 0; } }
+/* 手機頂欄：說書人準備階段放不下，「⋯」會被擠出屏幕。分享在房間號和「⋯ → 分享房間」裏都有，單獨的分享按鈕收掉，側欄標籤收窄一點 */
+@media (max-width: 860px) {
+  .topbar .invite { display: none; }
+  .topbar .m-tabs { gap: 2px; }
+  .topbar .m-tabs .btn.sm { padding-left: 5px; padding-right: 5px; }
+}

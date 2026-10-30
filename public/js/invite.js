@@ -8,16 +8,17 @@ export const inviteUrl = s => `${location.origin}/?room=${s.code}&r=${s.inst}`;
 export const hostUrl = (s, key) => `${inviteUrl(s)}&st=${key}`;
 const qr = url => h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURIComponent(url), alt: '二維碼', width: 200, height: 200 });
 
-export function openInvite(ctx) {
+// 分享房間：建好房間時自動彈一次，之後在「⋯」裏（或點頂欄的房間號）再打開；關掉時收進「⋯」。from：從哪個按鈕彈出來
+export function openInvite(ctx, from = null) {
   const s = ctx.state, key = s.isSt && ctx.ls.get('botc.st.' + s.code);
-  modal('邀請', h('div', { class: 'invite' },
+  modal('分享房間', h('div', { class: 'invite' },
     h('div', { class: 'inv-code' }, s.code.split('').map(c => h('b', {}, c))),
     qr(inviteUrl(s)),
     h('button', { class: 'btn primary', onclick: () => copy(inviteUrl(s), '邀請鏈接已複製') }, icon('send'), '複製邀請鏈接'),
     // 說書人自己換設備繼續主持用；帶著密鑰，不能發給玩家
     key && h('div', { class: 'inv-host' }, icon('key'), h('span', { class: 'grow' }, '換設備主持'),
       h('button', { class: 'btn sm', onclick: () => copy(hostUrl(s, key), '說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家') }, '複製'))),
-  { cls: 'invite-modal' });
+  { cls: 'invite-modal', from, away: () => document.querySelector('.topbar .more') });
 }
 
 // 說書人給某個座位發的鏈接：新設備打開（或掃碼）就接過這個座位，原設備退出

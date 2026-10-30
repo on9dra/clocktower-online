@@ -60,18 +60,52 @@ export function toast(msg, ms = 2200) {
 }
 
 let openModal = null;
-export function modal(title, body, { wide = false, cls = '' } = {}) {
-  closeModal();
+const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+// 彈窗中心飛到按鈕中心要走的位移和縮放
+const toward = (box, el) => {
+  const a = box.getBoundingClientRect(), b = el.getBoundingClientRect();
+  return `translate(${b.left + b.width / 2 - a.left - a.width / 2}px, ${b.top + b.height / 2 - a.top - a.height / 2}px) scale(${Math.max(b.width / a.width, 0.04)})`;
+};
+// from：從這個按鈕裏彈出來；away()：關掉時收進它返回的按鈕（讓人知道下次去哪裏打開）
+export function modal(title, body, { wide = false, cls = '', from = null, away = null } = {}) {
+  dropModal();
   const box = h('div', { class: 'modal' + (wide ? ' wide' : '') + (cls ? ' ' + cls : '') },
     h('div', { class: 'modal-head' }, h('span', {}, title),
       h('button', { class: 'icon-btn', onclick: closeModal, title: '關閉' }, '✕')),
     h('div', { class: 'modal-body' }, body));
   const back = h('div', { class: 'backdrop', onclick: e => { if (e.target === back) closeModal(); } }, box);
+  back.away = away;
   document.body.append(back);
   openModal = back;
+  if (from?.isConnected && !still()) box.animate([{ transform: toward(box, from) + ' rotate(-8deg)', opacity: .3 }, { transform: 'none', opacity: 1 }],
+    { duration: 380, easing: 'cubic-bezier(.2, .8, .3, 1)' });
   return box;
 }
-export function closeModal() { if (openModal) { openModal.remove(); openModal = null; } }
+const dropModal = () => { if (openModal) { openModal.remove(); openModal = null; } };
+export function closeModal() {
+  const back = openModal, to = back?.away?.();
+  if (!to?.isConnected || !to.offsetParent || still()) return dropModal();
+  openModal = null;
+  intoButton(back, to);
+}
+// 收進按鈕：彈窗縮小、斜著飛進按鈕，遮罩同時淡掉；落進去時按鈕彈一下、冒一圈黃銅線
+function intoButton(back, to) {
+  const box = back.firstElementChild, ms = 480;
+  back.style.pointerEvents = 'none';
+  box.animate([{ transform: 'none', opacity: 1 }, { transform: toward(box, to) + ' rotate(-10deg)', opacity: .35 }],
+    { duration: ms, easing: 'cubic-bezier(.55, 0, .8, .25)', fill: 'forwards' });
+  back.animate([{ backgroundColor: getComputedStyle(back).backgroundColor }, { backgroundColor: 'transparent' }], { duration: ms, fill: 'forwards' });
+  // 用定時器收尾：後台標籤頁不出幀時動畫的 finish 不會來
+  setTimeout(() => {
+    back.remove();
+    if (!to.isConnected) return;
+    to.animate([{ scale: 1 }, { scale: 1.35 }, { scale: 1 }], { duration: 360, easing: 'ease-out' });
+    const r = to.getBoundingClientRect();
+    const ring = h('i', { class: 'land-ring', style: { left: r.left + r.width / 2 + 'px', top: r.top + r.height / 2 + 'px' } });
+    document.body.append(ring);
+    setTimeout(() => ring.remove(), 700);
+  }, ms);
+}
 
 let openMenu = null;
 // items: [{label, onclick, danger}]，'-' 為分隔線，假值會被忽略

@@ -10,7 +10,7 @@ import { shownEggs, eggGainFx } from './fx.js';
 import { openBoard } from './scores.js';
 import { openSettings } from './settings.js';
 import { SCRIPTS } from './roles.js';
-import { openInvite, inviteUrl, hostUrl } from './invite.js';
+import { openInvite, hostUrl } from './invite.js';
 
 export const copy = (text, msg) => navigator.clipboard.writeText(text).then(() => toast(msg, 3500), () => toast(text, 8000));
 
@@ -31,7 +31,8 @@ export function topbar(ctx) {
   const more = e => menu(e.currentTarget, narrow() ? SCRIPTS[s.scriptId]?.name : null, [
     narrow() && { label: '規則與流程', onclick: help },
     narrow() && { label: [icon(muted() ? 'sound' : 'mute', 'menu-ico'), muted() ? '打開音效' : '靜音'], onclick: sound },
-    { label: '複製邀請鏈接', onclick: () => copy(inviteUrl(s), '邀請鏈接已複製') },
+    // 分享房間的卡從「⋯」裏彈出來，關掉時再收回「⋯」
+    { label: [icon('send', 'menu-ico'), '分享房間'], onclick: () => openInvite(ctx, document.querySelector('.topbar .more')) },
     stKey && { label: '複製說書人鏈接（換設備主持用）',
       onclick: () => copy(hostUrl(s, stKey), '說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家') },
     { label: getLang() === 'sc' ? '切換到繁體' : '切换到简体', onclick: () => { setLang(getLang() === 'sc' ? 'tc' : 'sc'); location.reload(); } },
@@ -52,10 +53,10 @@ export function topbar(ctx) {
     : s.locked && h('span', { class: 'lock-tag', title: '已鎖房' }, icon('lock'));
   return h('header', { class: 'topbar' },
     h('span', { class: 'brand' }, '血染鐘樓'),
-    h('button', { class: 'room', title: '邀請', onclick: invite }, h('i', {}, '房間 '), h('b', {}, s.code)),
+    h('button', { class: 'room', title: '分享房間', onclick: invite }, h('i', {}, '房間 '), h('b', {}, s.code)),
     lock,
     h('span', { class: 'script-name' }, SCRIPTS[s.scriptId]?.name),
-    s.phase === 'lobby' && h('button', { class: 'btn sm invite', onclick: invite }, h('span', { class: 'long' }, '複製邀請鏈接'), h('span', { class: 'short' }, '邀請')),
+    s.phase === 'lobby' && h('button', { class: 'btn sm invite', onclick: invite }, h('span', { class: 'long' }, '分享房間'), h('span', { class: 'short' }, '分享')),
     h('span', { class: 'grow' }),
     !s.isSt && !s.peek && !s.stOnline && h('span', { class: 'warn' }, '說書人離線'),
     !watching && s.watchers > 0 && h('span', { class: 'watchers', title: `${s.watchers} 人觀戰` }, icon('eye'), h('b', {}, s.watchers)),
