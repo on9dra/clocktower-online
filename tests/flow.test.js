@@ -219,11 +219,17 @@ import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
   }
   assert.ok(atReview(r));
   assert.strictEqual(nightProgress(r, false).at, order.length);
-  // 「本局不再假裝」：這次直接繼續，之後的夜晚第一格空著也不假裝
+  // 「本局不再假裝」只是開關：這次的假裝照走（可以關回去），點繼續才往下；之後的夜晚第一格空著也不假裝
   ok(st(r, 'dawn'));
   startNight(r);
   assert.strictEqual(step().status, 'fake');
-  ok(st(r, 'pretend', { off: true }));
+  ok(st(r, 'noPretend', { on: true }));
+  assert.strictEqual(step().status, 'fake', '開關不結束這一次的假裝');
+  assert.strictEqual(viewFor(r, { st: true }).st.noPretend, true);
+  ok(st(r, 'noPretend', { on: false }));
+  assert.strictEqual(viewFor(r, { st: true }).st.noPretend, false);
+  ok(st(r, 'noPretend', { on: true }));
+  ok(st(r, 'pretend'));
   assert.notStrictEqual(step().status, 'fake');
   for (let i = 0; i < 40 && !atReview(r); i++) {
     const me = step().seatId, other = r.seats.find(s => s.id !== me && !s.dead);

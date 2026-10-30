@@ -175,15 +175,19 @@ function lobbyPane(ctx, next) {
   // 可能抽到、會改變外來者數量的角色（男爵 7 人以下隨機不出現）
   const shifts = !st.draft && SCRIPTS[s.scriptId].roles.filter(id => changesSetup(id) && !rules[id] && !(id === 'baron' && n < 7));
   const delta = id => { const x = ROLES[id].setup.outsider; return Array.isArray(x) ? '±1' : (x > 0 ? '+' : '') + x; };
+  // 桌面上兩塊連著放在圓桌中央；手機上圓桌裏放不下，lp-top 放圓桌上方，lp-act 放圓桌下方（board.css）
   return h('div', { class: 'cx lobby-pane' },
-    c && row(Object.keys(TEAMS).map(t => h('span', { class: 'team-n', style: { '--team': TEAMS[t].color } }, h('i'), c[t])),
-      n >= 5 && shifts && shifts.map(id => h('span', { class: 'maybe' }, mini(id), delta(id)))),
-    (locked.length > 0 || banned.length > 0) && row(locked.map(id => h('span', { class: 'rule lock' }, mini(id))), banned.map(id => h('span', { class: 'rule ban' }, mini(id), icon('cross', 'rule-x')))),
-    st.draft && row(tag('bluff'), st.bluffs.map(id => named(id))),
-    botConfig(ctx),
-    st.draft ? btns(B('取消預覽', () => ctx.st('undraft'), 'ghost'), B('重新抽取', () => ctx.st('draft')), next('確認角色並開局'))
-      : btns(n > 1 && B('打亂座位', () => ctx.st('shuffleSeats'), 'ghost'), B('角色配置', () => openSetup(ctx)),
-        n >= 5 && B('先抽角色預覽', () => ctx.st('draft')), n >= 5 && next('一鍵開局')));
+    h('div', { class: 'lp-top' },
+      c && row(Object.keys(TEAMS).map(t => h('span', { class: 'team-n', style: { '--team': TEAMS[t].color } }, h('i'), c[t])),
+        n >= 5 && shifts && shifts.map(id => h('span', { class: 'maybe' }, mini(id), delta(id)))),
+      (locked.length > 0 || banned.length > 0) && row(locked.map(id => h('span', { class: 'rule lock' }, mini(id))), banned.map(id => h('span', { class: 'rule ban' }, mini(id), icon('cross', 'rule-x')))),
+      botConfig(ctx)),
+    h('div', { class: 'lp-act' },
+      // 這一排抽沒抽都在原位、不換字（人不夠時置灰不隱藏），說書人的手不用重新找按鈕；抽完只在下面多出來，位置預先留好，圓桌中央的居中不會把這排頂走
+      btns(B('打亂座位', () => ctx.st('shuffleSeats'), 'ghost' + (n > 1 ? '' : ' disabled')), B('角色配置', () => openSetup(ctx)),
+        B('隨機抽取', () => ctx.st('draft'), 'primary' + (n >= 5 ? '' : ' disabled'))),
+      h('div', { class: 'lobby-after' }, st.draft && [row(tag('bluff'), st.bluffs.map(id => named(id))),
+        btns(B('取消', () => ctx.st('undraft'), 'ghost'), next('確認開局'))])));
 }
 
 // 測試用：加機器人補位。機器人夜晚自動選人、投票時隨機舉手

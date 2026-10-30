@@ -8,6 +8,7 @@ import { crownSvg } from './scores.js';
 import { ROLES, TEAMS } from './roles.js';
 import { EGG, MVP_WINDOW } from './score.js';
 import { play } from './sfx.js';
+import { inkFilters } from './press.js';
 
 // 插圖裏的座位：7 人局，只有號碼
 const S = { seats: Array.from({ length: 7 }, (_, i) => ({ id: 'h' + (i + 1), name: '' })) };
@@ -123,18 +124,18 @@ const PREP = {
         mk(1, scripts(), 't-one'),
         gray(150),
         mk(2, fake('角色配置')),
-        mk(3, h('span', { class: 'btn primary' }, '一鍵開局'))) },
+        mk(3, h('span', { class: 'btn primary' }, '隨機抽取'))) },
     },
       at(0, -24, h('b', { class: 'sk-t' }, '準備')),
       at(0, -13, scripts()),
       at(0, -3, tph(24)), at(0, 4.5, tph(31)),
       at(0, 14, h('span', { class: 'sk-line' }, tph(12), skBtn('角色配置'), tph(16))),
-      at(0, 26, skBtn('一鍵開局', 'pri')))],
+      at(0, 26, skBtn('隨機抽取', 'pri')))],
   b: () => [
     steps(
       step(1, null, '選劇本', '換劇本會清掉角色配置'),
       step(2, scene('hp-rules', nth(0, ruleBtn('baron', 'rand', '隨機')), nth(1, ruleBtn('baron', 'lock', '必選')), nth(2, ruleBtn('baron', 'ban', '排除'))), '角色配置', '點角色切換'),
-      step(3, [h('span', { class: 'btn primary' }, '一鍵開局'), row(w('或'), fake('先抽角色預覽', 'ghost'))], '開局')),
+      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局')),
     stub(memo(fake('複製邀請鏈接', '', 'send'), sm('頂欄')),
       memo(icon('key', 'bad'), b('說書人鏈接'), sm('「⋯」裏，別發給玩家')),
       memo(fake('加入機器人'), sm('人不夠時')))],
@@ -380,12 +381,12 @@ const OPS = {
 const BOOKS = { st: ['說書人指南', [PREP, NIGHT, INFO, SDAY, AUTO_SEC, FIX]], rules: ['遊戲規則', [GOAL, DAY, VOTE, TRAP, EGGS, OPS]] };
 const lastSec = { st: 0, rules: 0 }; // 再打開時翻回上次看的那節
 
-// 一頁紙一章：頁眉（書名、章名）、雙線版框（章標題 + 兩欄：左邊插圖、右邊一步一行；手機上下排）、頁碼
-const paper = (part, sec, n) => h('div', { class: 'pp', 'data-sec': sec.key },
-  h('div', { class: 'pp-head' }, h('span', {}, part), h('span', {}, sec.title)),
+// 一頁紙一章：版框（章標題 + 兩欄：左邊插圖、右邊一步一行；手機上下排）佔滿一頁，地方都留給內容；
+// 書腳：書名和第幾帖、頁碼、下一章的提示字，舊書翻頁前看一眼書腳就知道下一頁講什麼
+const paper = (part, sec, n, sig, next) => h('div', { class: 'pp', 'data-sec': sec.key },
   h('div', { class: 'pp-frame' }, h('div', { class: 'pp-body' }, title(sec.ico, sec.title),
     h('div', { class: 'pp-cols' + (sec.vs ? ' vs' : '') }, h('div', { class: 'pp-a' }, sec.a()), h('div', { class: 'pp-b' }, sec.b())))),
-  h('span', { class: 'pp-folio' }, num(n)));
+  h('footer', { class: 'pp-foot' }, h('span', {}, `${part} · ${sig}`), h('span', { class: 'pp-folio' }, `第${num(n)}頁`), h('span', { class: 'pp-catch' }, next)));
 
 // ———— 翻頁 ————
 // 把要翻的那頁沿摺線剪開：摺線是書角原位 C 和書角現位 P 的中垂線。剪下的部分換成翻起來那一面——
@@ -456,9 +457,10 @@ function prime(p) {
 }
 
 export function showHelp(isSt) {
+  inkFilters();
   const parts = isSt ? ['st', 'rules'] : ['rules'], who = parts[0];
-  const secs = parts.flatMap(k => BOOKS[k][1].map(sec => ({ part: BOOKS[k][0], k, sec })));
-  const pages = secs.map(({ part, sec }, i) => paper(part, sec, i + 1));
+  const secs = parts.flatMap((k, b) => BOOKS[k][1].map((sec, i) => ({ part: BOOKS[k][0], k, sec, sig: '甲乙'[b] + num(i + 1) })));
+  const pages = secs.map(({ part, sec, sig }, i) => paper(part, sec, i + 1, sig, secs[i + 1]?.sec.nav));
   const ear = h('i', { class: 'bk-ear' });
   const spread = h('div', { class: 'bk-spread' }, ear);
   const tabs = h('nav', { class: 'bk-tabs' }, secs.map(({ k, sec }, i) => h('button', { class: 'bk-tab ' + k, style: { '--k': i }, title: sec.title, onclick: () => jump(i) }, h('span', {}, sec.nav))));
@@ -470,15 +472,15 @@ export function showHelp(isSt) {
   const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // cur：當前那頁所在的格子。fl：正在翻的那頁（mode：peek 懸停掀起、drag 拖著、turn 翻過去、back 落回）
-  let one = false, W = 960, H = 700, view = 0, cur = null, fl = null, raf = 0, timer = 0, g = null, queued = 0;
+  let one = false, W = 1010, H = 750, view = 0, cur = null, fl = null, raf = 0, timer = 0, g = null, queued = 0;
   const can = dir => view + dir >= 0 && view + dir < pages.length;
 
   // 寬屏一頁橫着兩欄，手機一頁豎着一欄；整本書按窗口大小縮放
   function fit() {
     one = innerWidth < 760;
     book.classList.toggle('one', one);
-    W = one ? 400 : 960; H = one ? 740 : 700;
-    book.style.zoom = Math.min(one ? 1 : 1.1, (innerWidth - (one ? 8 : 70)) / (W + (one ? 8 : 60)), (innerHeight - (one ? 8 : 40)) / (H + (one ? 48 : 40)));
+    W = one ? 400 : 1010; H = one ? 740 : 750;
+    book.style.zoom = Math.min(one ? 1 : 1.4, (innerWidth - (one ? 8 : 70)) / (W + (one ? 8 : 56)), (innerHeight - (one ? 8 : 40)) / (H + (one ? 48 : 46)));
   }
   // 當前頁定下來：只換掉當前頁那一格，別的不動；索引籤、書口厚度跟著變
   function settle(slot) {

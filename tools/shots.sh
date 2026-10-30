@@ -10,7 +10,7 @@ shot() { # 名字 演示參數 等多久（毫秒，虛擬時間）
   "$CHROME" --headless=new --disable-gpu --hide-scrollbars --user-data-dir="$TMP/prof" --window-size=1280,800 \
     --virtual-time-budget="$3" --screenshot="$TMP/$1.png" "$URL/demo.html?bare&$2" >/dev/null 2>&1
 }
-shot start 's=scripts' 4000         # 說書人準備：劇本、一鍵開局
+shot start 's=scripts' 4000         # 說書人準備：劇本、隨機抽取
 shot info 's=info&run=1' 6000       # 玩家收到信息：面板 + 座位上的標記（演示條上不顯示的截圖場景）
 shot vote 's=vote&run=1,2,7' 14000  # 提名、大家舉手、計票時鐘數到一半
 python -I - "$TMP" public/img/shots <<'PY'

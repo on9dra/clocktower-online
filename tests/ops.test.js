@@ -66,6 +66,18 @@ const room = n => { const r = createRoom(); for (let i = 0; i < n; i++) joinPlay
   st(r3, 'draft');
   joinPlayer(r3, 'late', 'late');
   assert.ok(!r3.draft && r3.seats.every(s => !s.role), '加人後預覽作廢');
+  const r4 = room(6);
+  st(r4, 'draft');
+  ok(st(r4, 'roleRule', { roleId: 'baron', rule: 'lock' }));
+  assert.ok(!r4.draft && r4.seats.every(s => !s.role), '改角色配置後預覽作廢');
+  st(r4, 'draft');
+  ok(st(r4, 'clearRules'));
+  assert.ok(!r4.draft, '清空角色配置後預覽作廢');
+  const r5 = room(6);
+  st(r5, 'draft');
+  const roles5 = new Map(r5.seats.map(s => [s.id, s.role]));
+  ok(st(r5, 'shuffleSeats'));
+  assert.ok(r5.draft && r5.seats.every(s => s.role === roles5.get(s.id)), '打亂座位不影響抽好的角色');
 }
 // C3 說書人糾錯：設中毒、補發信息、直接處決、更換角色會通知玩家
 {

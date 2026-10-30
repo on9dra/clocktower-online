@@ -36,10 +36,7 @@
     #b-win rect.on { fill: #ffe9ad; opacity: 0; }
     .b-hand { stroke: #2a2622; stroke-width: 3; stroke-linecap: round; transform-origin: 976.5px 594px; transition: transform .12s linear; }
     .b-hour { stroke-width: 4.5; }
-    .b-bell { fill: none; stroke: #f4eedf; stroke-width: 2; vector-effect: non-scaling-stroke; opacity: 0; transform-origin: 976.5px 594px; }
-    .strike .b-bell { animation: b-bell 1s ease-out both; }
-    .strike .b-bell + .b-bell { animation-delay: .22s; }
-    @keyframes b-bell { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(22); } }
+    .b-bell { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
     @media (max-width: 860px) { #boot { --w: max(100vw, 60vh); --zoom: 2.2; } .b-title { top: 5vh; } }
     @media (prefers-reduced-motion: reduce) { .up .b-town img { animation: b-show .3s both; } .b-town { transition: none; } }
   </style>
@@ -59,7 +56,7 @@
       <img src="img/art/town-far-night.webp" alt="">
       <img src="img/art/town-mid-night.webp" alt="">
       <img src="img/art/town-near-night.webp" alt="">
-      <svg viewBox="0 0 2172 724"><g id="b-win"></g><line class="b-hand b-hour" x1="976.5" y1="594" x2="976.5" y2="579"/><line class="b-hand b-min" x1="976.5" y1="594" x2="976.5" y2="570"/><circle class="b-bell" cx="976.5" cy="594" r="34"/><circle class="b-bell" cx="976.5" cy="594" r="34"/></svg>
+      <svg viewBox="0 0 2172 724"><g id="b-win"></g><line class="b-hand b-hour" x1="976.5" y1="594" x2="976.5" y2="579"/><line class="b-hand b-min" x1="976.5" y1="594" x2="976.5" y2="570"/></svg>
     </div>
   </div>
   <script>
@@ -72,9 +69,9 @@
       const lang = store.get('botc.lang') || 'tc';
       root.dataset.lang = lang;
       if (lang === 'sc') el.querySelector('.b-wait').textContent = '连接中…';
-      const CSS = ['style', 'board', 'fx', 'hud', 'party', 'help', 'intro', 'about', 'art', 'night', 'ambient'];
+      const CSS = ['style', 'board', 'fx', 'hud', 'party', 'help', 'intro', 'print', 'about', 'art', 'night', 'ambient'];
       const MUST = ['table-day', 'table-night', 'card-frame', 'seat-empty', 'plate', 'plate-evil', 'stamp-mask', 'town-near-day', 'town-mid-day', 'town-far-day'];
-      const LATER = ['card-wear', 'curtain-drape', 'curtain-valance', 'card-back', 'sun', 'moon', 'gallows-wood', 'gallows-noose', 'crown-good', 'crown-evil', 'egg', 'egg-splat-1', 'egg-splat-2', 'egg-splat-3', 'mvp-medal', 'trophy'];
+      const LATER = ['curtain-drape', 'curtain-valance', 'card-back', 'sun', 'moon', 'gallows-wood', 'gallows-noose', 'crown-good', 'crown-evil', 'egg', 'egg-splat-1', 'egg-splat-2', 'egg-splat-3', 'mvp-medal', 'trophy', ...['paper', 'frame', 'block', 'rule-thin', 'rule-mid', 'rule-wenwu', 'rule-thin-v', 'rule-dash', 'perf'].map(n => `../print/${n}`)];
       // 窗戶 x, y, 寬, 高（art-src/boot-town.py 從夜景圖算出來的），從鐘樓往兩邊亮
       const WINDOWS = [20,641,9,12,36,665,7,13,81,675,7,13,90,641,4,13,97,677,7,12,119,676,7,11,146,626,8,12,166,655,10,15,217,640,4,10,220,673,6,10,263,673,5,10,271,651,4,12,280,672,4,9,303,624,6,14,333,672,8,12,347,647,9,10,363,672,9,13,364,695,4,11,406,681,5,12,419,682,4,11,430,680,7,8,458,631,8,14,475,656,5,9,515,669,10,14,531,629,7,15,542,668,10,15,593,655,5,15,608,628,8,14,656,679,7,12,672,676,5,11,675,608,7,9,697,609,6,7,730,644,10,14,773,650,10,19,788,616,10,15,808,650,12,21,863,662,8,13,869,624,7,14,883,664,5,10,901,663,6,13,961,639,7,26,972,685,13,20,974,636,8,29,988,640,7,25,1073,680,9,13,1105,680,10,13,1112,641,9,13,1151,680,11,12,1203,641,11,14,1267,677,5,9,1269,644,5,11,1288,677,4,9,1355,666,7,18,1369,641,6,13,1384,666,8,11,1411,618,9,13,1433,649,7,17,1477,659,9,16,1481,620,13,15,1503,659,9,16,1536,674,4,12,1547,651,8,12,1562,675,7,13,1581,615,5,9,1605,685,11,12,1635,685,5,8,1645,611,7,14,1666,612,4,13,1678,682,6,13,1737,656,13,16,1760,671,6,9,1800,651,9,13,1800,683,7,11,1828,683,6,11,1838,624,9,13,1897,662,6,11,1910,663,5,8,1946,666,5,9,1955,646,7,11,1978,644,9,15,1991,668,9,15,2038,678,10,10,2071,643,10,21,2073,597,8,13,2117,648,4,11,2155,655,5,16];
       // 放大後跑出屏幕的窗戶直接算亮的（天亮拉遠時已經亮著），進度只看屏幕裏的
@@ -96,14 +93,119 @@
       let left = all - APP, app = false, art = false, t0 = 0, lit = 0, quiet = !!root.dataset.boot, handed;
       const out = new Promise(ok => { handed = ok; });
       const got = () => { left--; };
-      const load = (name, cb) => { const i = new Image(); i.onload = i.onerror = cb; i.src = `img/art/${name}.webp`; };
+      const load = (name, cb) => { const i = new Image(); i.onload = i.onerror = cb; i.src = `img/art/${name}.webp`; return i; };
       const start = () => { if (!art) { art = true; t0 = performance.now(); } };
       const end = () => {
         clearInterval(clock);
         store.set('botc.boot');
         if (quiet) { handed(); return el.remove(); }
-        el.classList.add('strike');
-        setTimeout(pull, 380);
+        if (!document.hidden && !matchMedia('(prefers-reduced-motion: reduce)').matches) bell?.();
+        setTimeout(pull, 520);
+      };
+      // 鐘聲：不畫圈。透明的聲波從鐘樓掃過去，波經過的地方夜空、小鎮、字標被折射（按位移重新取樣），只帶一點點亮邊；
+      // 波以外的畫布全透明，看到的就是底下真的畫面。拉鏡頭時每幀量小鎮的實際位置，折射出來的小鎮和底下對得上。
+      // 小鎮立起來時先把著色器和小鎮貼圖備好，鐘響那一刻不卡；夜空到鐘響才畫（要等字標）
+      const FRAG = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+        precision highp float;
+        #else
+        precision mediump float;
+        #endif
+        uniform sampler2D sky, town; uniform vec2 S, C; uniform vec4 B; uniform vec3 R, A, W; uniform float T; varying vec2 v;
+        vec3 at(vec2 p) { vec4 t = texture2D(town, (p - B.xy) / B.zw); return t.rgb + texture2D(sky, p / S).rgb * (1. - t.a); }
+        // 一道波：一鼓一縮，前沿陡、身後緩。x 是位移，y 是極淡的明暗
+        vec2 wave(float d, float r, float w, float a) { float x = (d - r) / w, e = x > 0. ? exp(-x * x * 3.) : exp(x * 1.5); return a * e * vec2(sin(x * 3.6), cos(x * 3.6)); }
+        void main() {
+          vec2 p = v * S, o = p - C;
+          float d = length(o), th = atan(o.y, o.x), dd = d * (1. + .02 * sin(th * 3. + 1.) + .012 * sin(th * 7. - T * 2.));
+          // 波前不是一整圈：有的方向強、有的方向幾乎沒有，看不出圓環
+          float side = max(0., .62 + .26 * sin(th * 3. + 1.3 + d * .004) + .18 * sin(th * 5. - .7 - d * .006) + .12 * sin(th * 11. + T * 1.7));
+          vec2 f = (wave(dd, R.x, W.x, A.x) + wave(dd, R.y, W.y, A.y) + wave(dd, R.z, W.z, A.z)) * side;
+          // 波過去之後空氣還顫一會兒
+          float air = smoothstep(0., 160., R.x - dd) * 2. * exp(-T * 1.7);
+          float m = max(smoothstep(0., .7, length(f)), smoothstep(0., .5, air));
+          if (m < .004) discard;
+          vec2 q = o / max(d, 1.) * f.x + air * vec2(sin(p.y * .043 + T * 7.) + sin(p.x * .019 - T * 4.), sin(p.x * .037 - T * 6.) + sin(p.y * .023 + T * 3.)) * .5;
+          // 沿位移方向取五次，紅藍散開一點：星星被拉成細絲，不是重影
+          vec3 c = (at(p - q * .78) * vec3(.42, .08, 0.) + at(p - q * .89) * vec3(.38, .24, .06) + at(p - q) * vec3(.16, .36, .16)
+            + at(p - q * 1.11) * vec3(.04, .24, .38) + at(p - q * 1.22) * vec3(0., .08, .4)) + f.y * side / (1. + abs(f.y) * .14) * vec3(.003, .0032, .004);
+          gl_FragColor = vec4(c * m, m);
+        }`;
+      const WAVES = [[0, 1], [.34, .62], [.74, .36]]; // 第幾秒出發、力度：一記鐘的餘韻
+      let bell;
+      const arm = () => {
+        const cv = document.createElement('canvas'), gl = cv.getContext('webgl', { antialias: false, depth: false, stencil: false });
+        if (!gl) return;
+        cv.className = 'b-bell';
+        const prog = gl.createProgram();
+        [[gl.VERTEX_SHADER, 'attribute vec2 a; varying vec2 v; void main() { v = vec2(a.x * .5 + .5, .5 - a.y * .5); gl_Position = vec4(a, 0., 1.); }'], [gl.FRAGMENT_SHADER, FRAG]].forEach(([type, src]) => {
+          const s = gl.createShader(type);
+          gl.shaderSource(s, src); gl.compileShader(s); gl.attachShader(prog, s);
+        });
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        const U = n => gl.getUniformLocation(prog, n);
+        const tex = (unit, src) => {
+          gl.activeTexture(gl.TEXTURE0 + unit);
+          gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+          gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
+          [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]].forEach(([k, x]) => gl.texParameteri(gl.TEXTURE_2D, k, x));
+          gl.uniform1i(U(unit ? 'sky' : 'town'), unit);
+        };
+        const paper = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+        // 小鎮：三層夜景 + 鐘針（已經走到現在的時間）
+        const [tc, t] = paper(2172, 724);
+        el.querySelectorAll('.b-town img').forEach(i => t.drawImage(i, 0, 0, 2172, 724));
+        t.strokeStyle = '#2a2622'; t.lineCap = 'round'; t.translate(976.5, 594);
+        [[toMin, 24, 3], [toHour, 15, 4.5]].forEach(([deg, len, wid]) => {
+          t.save(); t.rotate(deg * Math.PI / 180); t.lineWidth = wid; t.beginPath(); t.moveTo(0, 0); t.lineTo(0, -len); t.stroke(); t.restore();
+        });
+        tex(0, tc);
+        gl.drawArrays(gl.TRIANGLES, 0, 3); // 先畫一次：有的顯卡驅動第一次畫才真正編譯著色器
+        const stars = new Image();
+        stars.src = 'img/stars.svg';
+        bell = () => {
+          const W = el.clientWidth, H = el.clientHeight, k = Math.min(devicePixelRatio || 1, 2), town = el.querySelector('.b-town');
+          cv.width = W * k; cv.height = H * k;
+          gl.viewport(0, 0, cv.width, cv.height);
+          // 夜空：漸變 + 星星（cover，靠上居中）+ 字標，和底下一樣的位置
+          const [sc, s] = paper(cv.width, cv.height), g = s.createLinearGradient(0, 0, 0, cv.height), box = el.querySelector('.b-title').getBoundingClientRect();
+          [[0, '#141826'], [.6, '#232a3f'], [1, '#2f3550']].forEach(([at, c]) => g.addColorStop(at, c));
+          s.fillStyle = g; s.fillRect(0, 0, cv.width, cv.height);
+          if (stars.naturalWidth) { const z = Math.max(cv.width / 1600, cv.height / 700); s.drawImage(stars, (cv.width - 1600 * z) / 2, 0, 1600 * z, 700 * z); }
+          if (title.naturalWidth) {
+            const [nc, n] = paper(title.naturalWidth, title.naturalHeight);
+            n.drawImage(title, 0, 0); n.globalCompositeOperation = 'source-in'; n.fillStyle = '#f4eedf'; n.fillRect(0, 0, nc.width, nc.height);
+            s.drawImage(nc, box.left * k, box.top * k, box.width * k, box.height * k);
+          }
+          tex(1, sc);
+          gl.uniform2f(U('S'), W, H);
+          const uB = U('B'), uC = U('C'), uR = U('R'), uA = U('A'), uW = U('W'), uT = U('T'), far = Math.hypot(W, H), big = Math.min(1, far / 1400) * 26, at0 = performance.now();
+          el.append(cv);
+          const frame = now => {
+            const T = Math.max(0, now - at0) / 1000;
+            if (T > 2.6 || !el.isConnected) return cv.remove();
+            const b = town.getBoundingClientRect(), r = [], a = [], w = [];
+            WAVES.forEach(([from, power]) => {
+              const dt = T - from, rad = dt > 0 ? 26 + far * .62 * dt : -500;
+              r.push(rad); w.push(60 + rad * .1);
+              a.push(dt > 0 ? power * big * Math.min(1, dt * 7) * Math.exp(-dt * 1.1) / Math.sqrt(1 + rad / 320) : 0);
+            });
+            gl.uniform4f(uB, b.left, b.top, b.width, b.height);
+            gl.uniform2f(uC, b.left + b.width * 976.5 / 2172, b.top + b.height * 594 / 724);
+            gl.uniform3fv(uR, r); gl.uniform3fv(uA, a); gl.uniform3fv(uW, w);
+            gl.uniform1f(uT, T);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            requestAnimationFrame(frame);
+          };
+          frame(at0);
+        };
       };
       // 鏡頭拉遠：落點量的是底下小鎮的實際位置和大小（窗口矮時大廳會滾動、多一條滾動條），拉到位兩層小鎮完全重合，這時揭開只多出控件。
       // 直接進房間的底下沒有這個小鎮，慢慢淡掉
@@ -145,10 +247,10 @@
         }))),
       };
       if (quiet) setTimeout(() => { quiet = false; delete root.dataset.boot; }, 2000);
-      Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => {}))).then(() => { start(); el.classList.add('up'); });
+      Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => {}))).then(() => { start(); el.classList.add('up'); if (!quiet) arm(); });
       setTimeout(start, 4000);
       setTimeout(() => { left = 0; }, 12000); // 圖片卡住也別一直攔著
-      load(`title-${lang}-plain`, () => { got(); el.classList.add('named'); });
+      const title = load(`title-${lang}-plain`, () => { got(); el.classList.add('named'); });
       Promise.all(MUST.map(n => new Promise(ok => load(n, () => { got(); ok(); })))).then(() => LATER.forEach(n => load(n)));
     }
   </script>

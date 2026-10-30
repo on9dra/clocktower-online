@@ -2,22 +2,27 @@
 // 看過就記在本機不再自動彈；大廳右上角「介紹」可以再打開
 import { h, roleToken } from './ui.js';
 import { icon } from './glyph.js';
-import { tr } from './lang.js';
+import { tr, getLang } from './lang.js';
 import { skyLife, townLife } from './ambient.js';
+import { inkFilters } from './press.js';
 
 const KEY = 'botc.intro';
 export const introSeen = ls => !!ls.get(KEY);
 
-const NUM = '一二三';
-const seal = n => h('span', { class: 'it-n' }, NUM[n]);
+const NUM = '一二三', BIG = '壹貳參';
+const seal = n => h('span', { class: 'it-n' }, BIG[n]);
 const head = (n, text) => h('header', { class: 'it-h' }, seal(n), h('h2', {}, text));
 const tok = id => roleToken(id, { size: 'md' });
 const sm = text => h('small', {}, text);
-// 一張牌：紙板本身是 it-page（厚度、陰影、光都在它身上），字印在 it-face 上，壓印和磨損蓋在上面，底邊是牌的編號
+// 牌的四個角：左上、右下是角標（第幾張 + 這一張的花色），右上是打號機打的編號，一位一位高低不齊，左下是牌組名
+const PIP = ['mask', 'skull', 'moon'];
+const corner = (n, cls = '') => h('span', { class: 'it-corner ' + cls }, h('b', {}, BIG[n]), icon(PIP[n]));
+const serial = n => h('span', { class: 'it-serial' }, 'Nº', [...`073${n + 1}`].map((c, i) => h('i', { style: { '--d': [0, 1, -1, .5][(i + n) % 4] + 'px' } }, c)));
+// 一張牌：紙板本身是 it-page（厚度、陰影、光都在它身上），字印在 it-face 上，版痕蓋在上面
 const card = (n, ...kids) => h('section', { class: 'it-page' },
   h('div', { class: 'it-face' }, h('div', { class: 'it-body' }, kids)),
-  h('i', { class: 'it-plate' }), h('i', { class: 'it-wear' }),
-  h('footer', { class: 'it-no' }, h('span', {}, '血染鐘樓 · 線上魔典'), h('span', {}, `${n + 1} / 3`)));
+  h('i', { class: 'it-plate' }),
+  corner(n), corner(n, 'r'), serial(n), h('span', { class: 'it-imprint' }, '血染鐘樓 · 線上魔典'));
 
 // 一 這本魔典：一行一件事，左邊是說書人自己做，右邊是這裏自動做的
 const DIFF = [
@@ -69,6 +74,7 @@ const MESS = [[-.5, -3, -1], [1.7, 10, 4], [-2.4, -9, 8]];
 const PILE = [[-8, 16], [-4.5, -10]];
 const PILE_X = 'calc(-50vw - 50% + min(27vw - 27%, 90px))';
 const TILT = 3; // 懸停按壓的最大傾角
+const INK = ['paper', 'frame', 'block', 'rule-wenwu', 'rule-thin', 'rule-mid', 'perf']; // 牌面的印刷件
 const THROW = 520, BACK = 500; // 丟出去、拿回來的時長
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const pose = (s, rx = 0, ry = 0) => `translate(${s.x}, ${s.y}) rotate(${s.r}deg) rotateX(${rx}deg) rotateY(${ry}deg)`;
@@ -76,6 +82,7 @@ const pose = (s, rx = 0, ry = 0) => `translate(${s.x}, ${s.y}) rotate(${s.r}deg)
 // wait：等它兌現才開始發牌（第一次來要等開屏揭開）；after：收起時調（大廳的控件接著出來）
 export function showIntro(ls, { wait, after } = {}) {
   if (document.querySelector('.intro')) return;
+  inkFilters();
   const pages = [cmpPage(), gamePage(), dayPage()];
   let at = 0, busy = false, want = null, x0 = null, slid = false, rx = 0, ry = 0;
   const stage = h('div', { class: 'it-stage' });
@@ -202,5 +209,7 @@ export function showIntro(ls, { wait, after } = {}) {
   pages[0].classList.add('in');
   nav(0);
   next.focus();
-  Promise.resolve(wait).then(() => root.classList.remove('hold'));
+  // 印刷件和字體到了才發牌，不然版框會在牌落定之後才冒出來；網絡慢時最多等 1.5 秒
+  const printed = Promise.all([document.fonts.load(`900 1em "Press ${getLang().toUpperCase()}"`), ...INK.map(n => { const i = new Image(); i.src = `img/print/${n}.webp`; return i.decode(); })]).catch(() => {});
+  Promise.all([wait, Promise.race([printed, new Promise(ok => setTimeout(ok, 1500))])]).then(() => root.classList.remove('hold'));
 }

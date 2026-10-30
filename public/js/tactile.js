@@ -1,6 +1,6 @@
 // 實體感：鼠標指著的控件當成一塊實物，按在哪邊哪邊下陷，厚度和高光跟著轉（樣式見 style.css .tilt）。
 // 全站一個委托，只改指著的那一個節點的變量；重繪換掉節點也沒關係，下一次移動會找到新節點
-const PICK = '.token, .btn, .vbtn, .opt-tile, .hud-row, .setup-role, .chip, .mycard, .join, .recent-room, .tr-tbtn, .aim-btn, .mvp-btn, .it-dot';
+const PICK = '.btn, .vbtn, .opt-tile, .tb-role, .hud-row, .setup-role, .chip, .mycard, .join, .recent-room, .tr-tbtn, .aim-btn, .mvp-btn, .it-dot';
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = v => Math.max(-1, Math.min(1, v));
 let on = null, box = null, raf = 0, last = null;

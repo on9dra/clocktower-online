@@ -14,7 +14,7 @@ body.art .skyline-day { background-image: url(../img/art/town-near-day.webp), ur
 body.art .skyline-night { background-image: url(../img/art/town-near-night.webp), url(../img/art/town-mid-night.webp), url(../img/art/town-far-night.webp); }
 
 /* A5 空座、A6 名牌 */
-body.art .token.blank { border: 0; box-shadow: var(--coin); background: url(../img/art/seat-empty.webp) center / 100% 100% no-repeat; }
+body.art .token.blank { border: 0; box-shadow: none; background: url(../img/art/seat-empty.webp) center / 100% 100% no-repeat; }
 body.art .plate { border: solid transparent; border-width: 3px 9px; border-radius: 0; padding: 0 1px;
   border-image: url(../img/art/plate.webp) 56 190 fill / 3px 9px stretch; background: none; }
 body.art .seat.onblock .plate { border-image-source: url(../img/art/plate-evil.webp); }
@@ -71,7 +71,10 @@ body.art .lobby-town { background: url(../img/art/town-near-night.webp) bottom c
 /* 彈窗套紙卡框 */
 body.art .modal { border: 30px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 30px stretch; border-radius: 0; background: none; }
 body.art .modal-head { padding: 0 4px 8px; }
-body.art .modal-body { padding: 10px 4px 0; }
+body.art .modal-body { padding: 10px 4px 6px; } /* 底部留白：按鈕的厚度和傾斜不能頂出滾動區，否則一指就冒滾動條 */
+
+/* 寬屏的豎條進度：和彈窗同一張紙卡框 */
+@media (min-width: 1000px) { body.art .pg::before { border: 18px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 18px stretch; background: none; filter: drop-shadow(0 8px 12px #0006); } }
 
 /* B7 MVP 獎章（投 MVP 的按鈕）、勝利結算裏的獎盃 */
 body.art .mvp-btn { background: url(../img/art/mvp-medal.webp) center / 70% auto no-repeat var(--card); }

@@ -93,6 +93,8 @@ export function renderTown(ctx) {
     h('div', { class: 'seat-token' }, token,
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
       s.isSt && seat.fakeRole && fakeBadge(seat.fakeRole),
+      // 說書人給信息：當前角色真正的持有者「真」，能被當作這個角色的「登」
+      pk?.marks?.[seat.id] && h('i', { class: 'tm' + (pk.marks[seat.id] === 1 ? ' alt' : '') }, pk.marks[seat.id] === 1 ? '登' : '真'),
       dead && h('span', { class: 'dead-stamp' }, DEATH[seat.deathBy] || '死亡'),
       dead && !seat.voteUsed && h('span', { class: 'ghost-vote', title: '還有一張死亡票' }, icon('ticket')),
       nom && (nom.votes[seat.id] || nom.abstain?.[seat.id]) && h('span', {
@@ -169,6 +171,7 @@ export function fitTableCard() {
   const el = document.querySelector('.st-card:not(.side)'), card = el && el.firstElementChild;
   if (!card) return;
   card.style.zoom = '';
+  if (getComputedStyle(el).overflowY === 'visible') return; // 手機上角色牌和紙條在圓桌外面（hud.css），不用縮
   const k = Math.min(el.clientHeight / el.scrollHeight, el.clientWidth / el.scrollWidth);
   if (k < 1) card.style.zoom = Math.max(0.6, k * 0.98).toFixed(3);
 }

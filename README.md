@@ -1,6 +1,6 @@
 # 血染钟楼 · 线上魔典（自动推进版）
 
-说书人一键开局，系统自动分配角色、按夜晚顺序唤醒玩家、结算能力；给信息时系统列出选项并标出真实答案，由说书人挑选并确认。语音请配合腾讯会议等。
+说书人随机抽取角色、确认开局，系统按夜晚顺序唤醒玩家、结算能力；给信息时系统列出选项并标出真实答案，由说书人挑选并确认。语音请配合腾讯会议等。
 
 **在线试玩：https://tianheile.cc**（创建房间，把房间号发给朋友）
 
@@ -12,7 +12,7 @@
 <details>
 <summary>English</summary>
 
-An unofficial, browser-based grimoire for *Blood on the Clocktower* (Chinese UI, Simplified / Traditional). The storyteller starts a game with one click; the server deals roles, wakes players in night order, resolves abilities, and offers the storyteller legal answers for information roles. Players join from their phones with a 4-digit room code. Supports Trouble Brewing, Bad Moon Rising and Sects & Violets. Voice chat is not included — use any call app.
+An unofficial, browser-based grimoire for *Blood on the Clocktower* (Chinese UI, Simplified / Traditional). The storyteller draws roles at random and confirms; the server then wakes players in night order, resolves abilities, and offers the storyteller legal answers for information roles. Players join from their phones with a 4-digit room code. Supports Trouble Brewing, Bad Moon Rising and Sects & Violets. Voice chat is not included — use any call app.
 
 ```bash
 npm install && npm start   # http://localhost:3000
@@ -36,7 +36,7 @@ npm start
 1. **准备**：玩家输入房间号和昵称即自动入座（按加入顺序，说书人可前移/后移或打乱）。说书人在圆桌中央选剧本：暗流涌动、黯月初升、梦殒春宵（顶栏显示当前剧本；换剧本会清空角色配置和预览）。
 2. **开局**：按官方人数配比发角色（酒鬼伪装成不在场镇民，自动选恶魔伪装；有占卜师时才分配红鲱鱼，局中途变出占卜师时补上），每人收到自己的角色。
    - 「角色配置」：点角色切换 随机 → 必选 → 排除。男爵随机时只在 7 人及以上出现，设为必选则任何人数都会出现。
-   - 「先抽角色预览」：角色先摆到座位上（只有说书人看得到），可点座位更换角色、指定红鲱鱼，满意后再开局；「一键开局」则直接抽好开始。
+   - 「随机抽取」：角色摆到座位上（只有说书人看得到），可点座位更换角色、指定红鲱鱼，也可以再点一次重抽；抽好后下方才出现「确认开局」。之后再改角色配置或有人加入，已抽的角色作废，要重新抽取。
 3. **夜晚**：按官方夜晚顺序依次处理，操作卡和玩家轮到自己时的牌一样，放在圆桌中央「第 N 夜」下面（放不下时整张缩小），被唤醒的座位外圈亮金线；选项是座位的（谁醉酒、替死、传位……）直接点桌上的座位，已定的目标座位带金圈。夜晚走完，天亮前核对也是圆桌中央的一张卡。顺序表是剧本上今晚行动的角色（首夜表只有首夜行动的，只在首夜行动的不进其他夜晚的表）：不在场、死了或今晚不醒的角色也占一格；今晚第一格是空的时候，说书人「假装叫醒」一分钟（到点自动继续，也可以直接点继续），后面的空格直接跳过；卡上勾「本局不再假装」后，这一局之后都不再假装叫醒。7 人以上首夜的爪牙 / 恶魔互认在入夜时直接发出，不占进度条的格子。需要选人的角色在自己手机上点选；信息类角色停在「给信息」卡片：
    - 能力正常时只出现合规答案：真相锁定，只挑干扰项（也可直接点桌上的座位），唯一答案时只剩发送；隐士 / 间谍可被当作的身份旁带他们的角色小牌。卡片底部是玩家将看到的式子。
    - 行动者中毒 / 是酒鬼时卡片解锁全部选项，真实答案带「真」；服务端也会拒绝健康角色的错误信息。
@@ -147,6 +147,7 @@ GPT 生成的美术素材放在 `public/img/art/`，样式集中在 `public/css/
 
 - 演示：`/demo.html?s=art`（「素材」看对局里看不到的单件素材，「舊/新」切换新旧美术）
 - 原图和处理脚本在 `art-src/`：`process.py` 抠绿底并压成 webp，`soften.py` 把过艳的红色压柔和；提示词见 `docs/美术资源-GPT提示词.md`
+- 规则书和介绍卡是印刷品：`art-src/print-kit.py` 生成 `public/img/print/`（手刻的线、版框、纸），`art-src/print-font.py` 从思源宋体里取用到的字生成 `public/fonts/`。改了 `help.js`、`intro.js` 的文字要重跑后者
 
 ## 许可
 
