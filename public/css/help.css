@@ -8,7 +8,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .modal.help .modal-body { padding: 0; overflow: visible; }
 
 .bk { --W: 1010px; --H: 750px; --pg: #e7e0d0; --pg2: #dcd3c0; --ink2: #2f2620; --cloth: #3a2822; --step: min(56px, calc((var(--H) - 40px) / var(--n, 12)));
-  position: relative; padding: 14px 20px 24px 36px; background: var(--cloth) url(../img/print/cloth.webp) 0 0 / 160px; border-radius: 3px 6px 6px 3px;
+  position: relative; padding: 14px 20px 24px 36px; background: var(--cloth) url(../img/press/cloth.webp) 0 0 / 160px; border-radius: 3px 6px 6px 3px;
   /* 布包硬板：板邊受光，底下看得到板厚，影子落在桌上 */
   box-shadow: inset 1px 1px 0 #ffffff2e, inset -1px -1px 0 #0000009c, 0 1px 0 #2a1c17, 0 2px 0 #241814, 0 3px 0 #1d1310, 0 4px 0 #170f0d, 0 5px 0 #120b0a, 1px 7px 4px #000b, 0 44px 70px -14px #000d; }
 /* 書脊和封面相接的那道槽：布料繃進去，左邊是圓起來的書背 */
@@ -21,11 +21,11 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .bk-spread { position: relative; width: var(--W); height: var(--H); overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .bk-spread.grab { cursor: grabbing !important; }
 /* 書口：一層層紙邊，翻過去的越多左邊越厚；一帖一帖的分界看得見，影子落在封面上 */
-.bk-stack { position: absolute; top: 3px; bottom: -10px; width: calc(3px + var(--n, .5) * 13px); background: url(../img/print/fore.webp) 0 0 / 28px 160px; box-shadow: 0 2px 5px #0009; }
+.bk-stack { position: absolute; top: 3px; bottom: -10px; width: calc(3px + var(--n, .5) * 13px); background: url(../img/press/fore.webp) 0 0 / 28px 160px; box-shadow: 0 2px 5px #0009; }
 .bk-stack.l { right: 100%; scale: -1 1; }
 .bk-stack.r { left: 100%; }
 .bk-stack::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #3a281855, #3a281800 40%, #fff2 90%, #3a281830); }
-.bk-block::after { content: ""; position: absolute; left: 3px; right: -2px; top: 100%; height: 10px; background: url(../img/print/fore-h.webp) 0 0 / 160px 28px; box-shadow: 0 3px 5px #0009, inset 0 3px 3px #3a281844; }
+.bk-block::after { content: ""; position: absolute; left: 3px; right: -2px; top: 100%; height: 10px; background: url(../img/press/fore-h.webp) 0 0 / 160px 28px; box-shadow: 0 3px 5px #0009, inset 0 3px 3px #3a281844; }
 
 /* 書頁的各層：平放的、底下的、要翻的（沿摺線剪掉一塊）、翻起來那面（帶投影） */
 .bk-slot { position: absolute; top: 0; width: var(--W); height: var(--H); }
@@ -44,7 +44,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 /* 頁面的彎度：書脊那邊沉下去、離書脊一掌寬的地方最高，書口那邊又微微落下。墊在字底下，字不會被蓋髒 */
 .pp::before { content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg, #3a261270 0, #3a261230 14px, #3a261210 46px, #fff6e000 88px, #fff6e01a 150px, #fff6e000 300px, #3a261200 74%, #3a261214 100%); }
-.pp-frame { position: absolute; top: 12px; bottom: 30px; left: var(--pi); right: var(--po); border: 20px solid transparent; border-image: url(../img/print/frame.webp) 40 / 20px round; }
+.pp-frame { position: absolute; top: 12px; bottom: 30px; left: var(--pi); right: var(--po); border: 20px solid transparent; border-image: url(../img/press/frame.webp) 40 / 20px round; }
 .pp-body { position: absolute; inset: 5px; display: flex; flex-direction: column; gap: 10px; padding: 6px 14px 8px; overflow: hidden; }
 .pp-body > * { flex-shrink: 0; }
 /* 書腳：書名和第幾帖、頁碼、下一章的提示字 */
@@ -59,10 +59,10 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .pp-cols { position: relative; flex: 1 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .pp-a, .pp-b { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .pp-a { padding-right: 26px; }
-.pp-b { padding-left: 26px; background: var(--r-v) 0 0 / 7px 1200px repeat-y; }
+.pp-b { padding-left: 26px; background: var(--r-v) 0 0 / 7px 600px repeat-y; }
 .pp-a > *, .pp-b > * { flex-shrink: 0; }
 .pp-cols.vs::before { content: "VS"; position: absolute; left: 50%; top: 92px; z-index: 1; display: grid; place-items: center; width: 52px; height: 52px; translate: -50% 0; rotate: -3deg;
-  background: url(../img/print/block.webp) center / 100%; color: #efe6d4; font: 900 16px/1 var(--serif); }
+  background: url(../img/press/block.webp) center / 100%; color: #efe6d4; font: 900 16px/1 var(--serif); }
 
 /* 書角：沒翻的時候摺起一個小角，懸停時換成真的掀起來；翻頁時收起 */
 .bk-ear { position: absolute; right: 0; bottom: 0; z-index: 5; width: 30px; height: 30px; pointer-events: none; filter: drop-shadow(-1px -1px 1.5px #2a1d1240); }
@@ -114,7 +114,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .bk.one .hp-price > div { grid-template-columns: minmax(0, 1fr) 100px 92px; padding: 12px 2px; }
 .bk.one .pp-cols { grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .bk.one .pp-a { padding-right: 0; }
-.bk.one .pp-b { padding: 16px 0 0; background: var(--r-thin) 0 0 / 1200px 7px repeat-x; }
+.bk.one .pp-b { padding: 16px 0 0; background: var(--r-thin) 0 0 / 600px 7px repeat-x; }
 .bk.one .pp-cols.vs::before { display: none; }
 .bk.one .bk-tab, .bk.one .bk-tab.past { top: 4px; left: calc(4px + var(--k) * (var(--W) - 40px) / var(--n)); right: auto; width: calc((var(--W) - 40px) / var(--n) - 2px); height: 46px;
   align-items: flex-start; justify-content: center; padding: 8px 0 0; filter: none; clip-path: polygon(0 4px, 4px 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%); }
@@ -126,14 +126,14 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 
 /* ———— 頁面上的零件 ———— */
 /* 章標題：圓章 + 大字，下面一粗一細 */
-.pp-title { position: relative; flex: none; display: flex; align-items: center; gap: 14px; min-height: 58px; padding-bottom: 13px; background: var(--r-wenwu) 0 100% / 1200px 13px repeat-x; }
+.pp-title { position: relative; flex: none; display: flex; align-items: center; gap: 14px; min-height: 58px; padding-bottom: 13px; background: var(--r-wenwu) 0 100% / 600px 13px repeat-x; }
 /* 版頭：小鎮刻成橫線，從右邊長出來，壓在標題那道線上 */
-.pp-title::before { content: ""; position: absolute; right: 0; bottom: 10px; width: 100%; height: 56px; pointer-events: none; background: url(../img/print/head.webp) right bottom / 684px 56px no-repeat; }
+.pp-title::before { content: ""; position: absolute; right: 0; bottom: 10px; width: 100%; height: 56px; pointer-events: none; background: url(../img/press/head.webp) right bottom / 684px 56px no-repeat; }
 .pp-title h2 { position: relative; margin: 0; font: 900 38px/1.1 var(--serif); letter-spacing: .14em; color: #2a241e; text-shadow: 0 1px 0 #fff9, 0 -1px 1px #3a2a1433; }
 .pp-title + * { margin-top: 2px; }
-.hp-h4 { margin: 0; padding-bottom: 8px; background: var(--r-thin) 0 100% / 1200px 7px repeat-x; font: 900 21px/1.2 var(--serif); letter-spacing: .1em; }
+.hp-h4 { margin: 0; padding-bottom: 8px; background: var(--r-thin) 0 100% / 600px 7px repeat-x; font: 900 21px/1.2 var(--serif); letter-spacing: .1em; }
 /* 章的印記：一塊紅色木刻方塊，圖標反白 */
-.hp-seal { position: relative; display: grid; place-items: center; width: 52px; height: 52px; flex: none; color: #efe6d4; background: url(../img/print/block.webp) center / 100%; rotate: -2.5deg; mix-blend-mode: multiply; }
+.hp-seal { position: relative; display: grid; place-items: center; width: 52px; height: 52px; flex: none; color: #efe6d4; background: url(../img/press/block.webp) center / 100%; rotate: -2.5deg; mix-blend-mode: multiply; }
 .hp-seal .ico { width: 46%; height: 46%; }
 .pp.in .hp-seal { animation: hp-slam .42s cubic-bezier(.5,0,.6,1.3) .1s both; }
 @keyframes hp-slam { from { transform: scale(2.4) rotate(-25deg); opacity: 0; } 60% { opacity: 1; } }
@@ -158,7 +158,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .sk { --skl: #3a2f2880; --skf: #3a2f2833; --scr: #e0d7c4; margin: 0; flex: none; display: grid; gap: 6px; }
 /* 插圖：四周鴨嘴筆畫的框，角上出頭 */
 .sk-scr { position: relative; aspect-ratio: 16 / 10; container-type: inline-size; background: var(--scr); color: var(--ink); }
-.sk-scr::after, .sk-detail::after { content: ""; position: absolute; inset: -20px; z-index: 3; pointer-events: none; border: 40px solid transparent; border-image: url(../img/print/box.webp) 80 / 40px round; }
+.sk-scr::after, .sk-detail::after { content: ""; position: absolute; inset: -20px; z-index: 3; pointer-events: none; border: 40px solid transparent; border-image: url(../img/press/box.webp) 80 / 40px round; }
 .sk-top { position: absolute; left: 0; right: 0; top: 0; height: 8%; display: flex; align-items: center; gap: 1.4cqw; padding: 0 1.8cqw; border-bottom: 1px solid var(--skl); }
 .sk-top .grow { flex: 1; }
 .sk-pc { display: contents; }
@@ -223,7 +223,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .bk.one .sk-detail > * { zoom: .66; }
 /* 夜晚的桌面是深色的 */
 .sk-night { --scr: #39415c; --skl: #e8e2d266; --skf: #e8e2d226; }
-.sk-night .sk-scr, .sk-night .sk-detail { background: url(../img/print/hatch-dark.webp) 0 0 / 120px, var(--scr); }
+.sk-night .sk-scr, .sk-night .sk-detail { background: url(../img/press/hatch-dark.webp) 0 0 / 120px, var(--scr); }
 /* 深色桌面上：朱筆換亮一點的橘紅，方印不疊色 */
 .sk-night .sk-scr .mk-o, .sk-night .sk-detail .mk-o { stroke: #f0785f; }
 .sk-night .sk-scr .hp-n, .sk-night .sk-detail .hp-n { background: #d4523c; box-shadow: inset 0 0 0 .11em #d4523c, inset 0 0 0 .17em #fbf3e499; }
@@ -290,8 +290,8 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 
 /* 一步一行：時刻表式，上面一道粗線，行間細線；編號一欄和內容之間一道豎線 */
 .rws { display: grid; grid-template-columns: 36px auto minmax(110px, 1fr); column-gap: 18px; padding-top: 2px;
-  background: var(--r-mid) 0 0 / 1200px 8px repeat-x, var(--r-v) 42px 0 / 7px 1200px repeat-y; }
-.rw { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; padding: 12px 0; background: var(--r-thin) calc(var(--o, 0) * -1px) 100% / 1200px 7px repeat-x; }
+  background: var(--r-mid) 0 0 / 600px 8px repeat-x, var(--r-v) 42px 0 / 7px 600px repeat-y; }
+.rw { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; padding: 12px 0; background: var(--r-thin) calc(var(--o, 0) * -1px) 100% / 600px 7px repeat-x; }
 .rw:nth-child(2) { --o: 230; }
 .rw:nth-child(3) { --o: 470; }
 .rw:nth-child(4) { --o: 710; }
@@ -310,7 +310,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 
 /* 一塊：小標題 + 插圖 + 一行小字 */
 .hp-blk { display: grid; justify-items: center; gap: 10px; text-align: center; }
-.hp-blk > h4 { justify-self: stretch; display: flex; align-items: center; gap: 8px; margin: 0; padding-bottom: 8px; background: var(--r-thin) 0 100% / 1200px 7px repeat-x;
+.hp-blk > h4 { justify-self: stretch; display: flex; align-items: center; gap: 8px; margin: 0; padding-bottom: 8px; background: var(--r-thin) 0 100% / 600px 7px repeat-x;
   font: 900 21px/1.2 var(--serif); letter-spacing: .1em; text-align: left; }
 .hp-blk > h4 .ico { width: 20px; height: 20px; }
 .hp-blk > h4 .ico.poison { color: #3d8b3d; }
@@ -318,7 +318,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .hp-blk.big .hp-scene { min-height: 110px; }
 
 /* 次一級：一行 */
-.hp-line { display: flex; align-items: center; gap: 16px; padding-top: 14px; background: var(--r-thin) -300px 0 / 1200px 7px repeat-x; }
+.hp-line { display: flex; align-items: center; gap: 16px; padding-top: 14px; background: var(--r-thin) -300px 0 / 600px 7px repeat-x; }
 .hp-say { display: grid; gap: 4px; min-width: 0; }
 .hp-say > b { font: 700 19px/1.35 var(--serif); }
 .hp-say > small { font-size: 15.5px; line-height: 1.5; color: #5a5144; }
@@ -326,7 +326,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .hp-big-ico .ico { width: 24px; height: 24px; }
 
 /* 存根：頁底一道撕線，「附」字印，下面每條一行 */
-.hp-stub { margin-top: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px; padding-top: 13px; background: var(--r-dash) 0 0 / 1200px 7px repeat-x; }
+.hp-stub { margin-top: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px; padding-top: 13px; background: var(--r-dash) 0 0 / 600px 7px repeat-x; }
 .hp-stub > .hp-n { font-size: 19px; }
 .hp-memos { display: grid; gap: 8px; }
 .hp-memo { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; min-width: 0; font-size: 18px; line-height: 1.3; }
@@ -417,7 +417,7 @@ body.art .hp-stamp { -webkit-mask: url(../img/art/stamp-mask.webp) center / cove
 .hp-toks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .hp-drop { display: inline-block; }
 .hp-toks .token.md { width: 84px; height: 84px; }
-.hp-win { display: grid; justify-items: center; gap: 10px; width: 100%; padding-top: 14px; background: var(--r-mid) 0 0 / 1200px 8px repeat-x; }
+.hp-win { display: grid; justify-items: center; gap: 10px; width: 100%; padding-top: 14px; background: var(--r-mid) 0 0 / 600px 8px repeat-x; }
 .hp-win-k { font: 700 14px var(--serif); letter-spacing: .3em; padding-left: .3em; color: #5a5144; }
 .hp-win .hp-row { font-size: 28px; }
 .hp-win .hp-row b { font: 900 24px var(--serif); color: var(--c); letter-spacing: .06em; }
@@ -461,7 +461,7 @@ body.art .hp-stamp { -webkit-mask: url(../img/art/stamp-mask.webp) center / cove
 
 /* 死了以後：三行大字，底下淡淡一個骷髏 */
 .hp-dead { display: grid; gap: 4px; }
-.hp-dead-r { display: flex; align-items: center; gap: 18px; padding: 16px 4px; background: var(--r-thin) 0 100% / 1200px 7px repeat-x; }
+.hp-dead-r { display: flex; align-items: center; gap: 18px; padding: 16px 4px; background: var(--r-thin) 0 100% / 600px 7px repeat-x; }
 .hp-dead-r:nth-child(2) { background-position-x: -390px; }
 .hp-dead-r:nth-child(3) { background-position-x: -770px; }
 .hp-dead-r b, .hp-dead-r .hp-say > b { font: 900 27px/1.2 var(--serif); letter-spacing: .06em; }
@@ -518,7 +518,7 @@ body.art .hp-stamp { -webkit-mask: url(../img/art/stamp-mask.webp) center / cove
 .hp-flip-in .b { transform: rotateY(180deg); }
 .hp-flip.play .hp-flip-in { animation: hp-flip 1.5s cubic-bezier(.5,0,.3,1.25) .5s both; }
 @keyframes hp-flip { 0%, 50% { transform: none; } }
-.hp-thinks { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 7px; background: var(--r-dash) 0 100% / 1200px 7px repeat-x; font-size: 22px; }
+.hp-thinks { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 7px; background: var(--r-dash) 0 100% / 600px 7px repeat-x; font-size: 22px; }
 .hp-thinks .token { border-style: dashed; opacity: .75; }
 .hp-flip.play .hp-thinks { animation: hp-pop .3s cubic-bezier(.5,0,.6,1.3) 1.6s both; }
 .hp-reg { display: flex; justify-content: center; align-items: center; gap: 18px; min-height: 104px; }
@@ -531,8 +531,8 @@ body.art .hp-stamp { -webkit-mask: url(../img/art/stamp-mask.webp) center / cove
 .hp-blk.reg > h4 { font-size: 16px; color: var(--muted); }
 
 /* 獎勵：價目表 */
-.hp-price { display: grid; margin-top: 4px; background: var(--r-mid) 0 0 / 1200px 8px repeat-x; }
-.hp-price > div { display: grid; grid-template-columns: minmax(0, 1fr) 112px 100px; align-items: center; gap: 8px; padding: 16px 4px; background: var(--r-thin) calc(var(--i, 0) * -210px) 100% / 1200px 7px repeat-x; }
+.hp-price { display: grid; margin-top: 4px; background: var(--r-mid) 0 0 / 600px 8px repeat-x; }
+.hp-price > div { display: grid; grid-template-columns: minmax(0, 1fr) 112px 100px; align-items: center; gap: 8px; padding: 16px 4px; background: var(--r-thin) calc(var(--i, 0) * -210px) 100% / 600px 7px repeat-x; }
 .hp-price > div:nth-child(2) { --i: 1; }
 .hp-price > div:nth-child(3) { --i: 2; }
 .hp-price > div:nth-child(4) { --i: 3; }

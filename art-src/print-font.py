@@ -1,5 +1,6 @@
 # 規則書和介紹卡內嵌的宋體：從 Noto Serif（SIL OFL，可以子集化後分發）裏只取這兩處用到的字，繁簡各一份。
 # 不內嵌的話，沒裝思源宋體的 Windows 會回退到細瘦的中易宋體，再好的版面也印不出來。
+# 介紹卡是新訪客第一眼，單獨切一份只有它用到的字（card-*），不用等規則書那一整份（serif-*）。
 # 改了 help.js / intro.js 的文字就重跑：python -I art-src/print-font.py
 import re
 from fontTools.ttLib import TTFont
@@ -18,7 +19,13 @@ sc = {pairs.get(c, c) for c in tc}
 ascii_ = {chr(c) for c in range(32, 127)}
 print('字數', len(tc), len(sc), '對照', len(pairs))
 
-for lang, chars in (('tc', tc), ('sc', sc)):
+# 介紹卡：intro.js 的字 + 牌上那六個角色的名字
+shown = ''.join(re.findall(r"'[^'\n]*'|`[^`]*`", re.sub(r'^\s*//.*$| // .*$', '', read('public/js/intro.js'), flags=re.M)))  # 只要字符串裏的字，注釋不算
+card_tc = set(re.findall(r'[\u3400-\u9fff\uff00-\uffef\u3000-\u303f·…—「」『』]', shown + '洗衣婦共情者僧侶聖徒投毒者小惡魔'))
+card_sc = {pairs.get(c, c) for c in card_tc}
+print('介紹卡字數', len(card_tc))
+
+for name, lang, chars in (('serif-tc', 'tc', tc), ('serif-sc', 'sc', sc), ('card-tc', 'tc', card_tc), ('card-sc', 'sc', card_sc)):
     f = TTFont(SRC[lang])
     instancer.instantiateVariableFont(f, {'wght': (500, 900)}, inplace=True)
     o = Options()
@@ -28,4 +35,4 @@ for lang, chars in (('tc', tc), ('sc', sc)):
     s.populate(unicodes=[ord(c) for c in chars | ascii_])
     s.subset(f)
     f.flavor = 'woff2'
-    f.save(f'public/fonts/serif-{lang}.woff2')
+    f.save(f'public/fonts/{name}.woff2')

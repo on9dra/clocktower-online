@@ -30,7 +30,7 @@ JOBS = [
     ('B3/curtain-valance-green.png', 'curtain-valance', 'trim', 2172),
     ('B4/sun-green.png', 'sun', 'trim', 384),
     ('B4/moon-green.png', 'moon', 'trim', 384),
-    ('B5/stamp-mask.png', 'stamp-mask', 'mask', 1024),
+    ('B5/stamp-mask.png', 'stamp-mask', 'mask', 640),
     ('B6/gallows-wood-green.png', 'gallows-wood', 'canvas', 1178),
     ('B6/gallows-noose-green.png', 'gallows-noose', 'trim', 1024),
     ('B7/crown-good-green.png', 'crown-good', 'trim', 384),

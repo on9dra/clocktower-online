@@ -195,7 +195,13 @@ sock.on('state', s => {
   onEggs(s); // 桌面畫好之後再扔，按座位現在的位置飛
   window.boot.ready();
 });
-sock.on('connect', () => (session || params.get('room') ? resume() : lobby()));
+// 大廳畫出來不用等連上服務器（連接要好幾個往返），點按鈕發的請求 socket.io 會存著，連上再發；邀請鏈接、回房間才要等
+let early = !params.get('room');
+if (early) lobby();
+sock.on('connect', () => {
+  if (early) { early = false; return; }
+  (session || params.get('room') ? resume() : lobby());
+});
 sock.on('disconnect', () => toast('連接斷開，正在重連…'));
 sock.on('bye', bye);
 setRender(render);

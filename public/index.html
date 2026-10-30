@@ -70,8 +70,10 @@
       root.dataset.lang = lang;
       if (lang === 'sc') el.querySelector('.b-wait').textContent = '连接中…';
       const CSS = ['style', 'board', 'fx', 'hud', 'party', 'help', 'intro', 'print', 'about', 'art', 'night', 'ambient'];
-      const MUST = ['table-day', 'table-night', 'card-frame', 'seat-empty', 'plate', 'plate-evil', 'stamp-mask', 'town-near-day', 'town-mid-day', 'town-far-day'];
-      const LATER = ['curtain-drape', 'curtain-valance', 'card-back', 'sun', 'moon', 'gallows-wood', 'gallows-noose', 'crown-good', 'crown-evil', 'egg', 'egg-splat-1', 'egg-splat-2', 'egg-splat-3', 'mvp-medal', 'trophy', ...['paper', 'frame', 'block', 'rule-thin', 'rule-mid', 'rule-wenwu', 'rule-thin-v', 'rule-dash', 'perf'].map(n => `../print/${n}`)];
+      // 服務器只有 2Mbps 上下，開屏只等第一屏用得到的：進大廳不用等桌面的圖；點邀請鏈接直接進房間才等
+      const LOBBY = ['stamp-mask'], GAME = ['table-day', 'table-night', 'card-frame', 'seat-empty', 'plate', 'plate-evil', 'town-near-day', 'town-mid-day', 'town-far-day'];
+      const inRoom = /[?&]room=/.test(location.search), MUST = inRoom ? [...LOBBY, ...GAME] : LOBBY;
+      const LATER = ['curtain-drape', 'curtain-valance', 'card-back', 'sun', 'moon', 'gallows-wood', 'gallows-noose', 'crown-good', 'crown-evil', 'egg', 'egg-splat-1', 'egg-splat-2', 'egg-splat-3', 'mvp-medal', 'trophy', ...['paper', 'frame', 'block', 'rule-thin', 'rule-mid', 'rule-wenwu', 'rule-thin-v', 'rule-dash', 'perf'].map(n => `../press/${n}`)];
       // 窗戶 x, y, 寬, 高（art-src/boot-town.py 從夜景圖算出來的），從鐘樓往兩邊亮
       const WINDOWS = [20,641,9,12,36,665,7,13,81,675,7,13,90,641,4,13,97,677,7,12,119,676,7,11,146,626,8,12,166,655,10,15,217,640,4,10,220,673,6,10,263,673,5,10,271,651,4,12,280,672,4,9,303,624,6,14,333,672,8,12,347,647,9,10,363,672,9,13,364,695,4,11,406,681,5,12,419,682,4,11,430,680,7,8,458,631,8,14,475,656,5,9,515,669,10,14,531,629,7,15,542,668,10,15,593,655,5,15,608,628,8,14,656,679,7,12,672,676,5,11,675,608,7,9,697,609,6,7,730,644,10,14,773,650,10,19,788,616,10,15,808,650,12,21,863,662,8,13,869,624,7,14,883,664,5,10,901,663,6,13,961,639,7,26,972,685,13,20,974,636,8,29,988,640,7,25,1073,680,9,13,1105,680,10,13,1112,641,9,13,1151,680,11,12,1203,641,11,14,1267,677,5,9,1269,644,5,11,1288,677,4,9,1355,666,7,18,1369,641,6,13,1384,666,8,11,1411,618,9,13,1433,649,7,17,1477,659,9,16,1481,620,13,15,1503,659,9,16,1536,674,4,12,1547,651,8,12,1562,675,7,13,1581,615,5,9,1605,685,11,12,1635,685,5,8,1645,611,7,14,1666,612,4,13,1678,682,6,13,1737,656,13,16,1760,671,6,9,1800,651,9,13,1800,683,7,11,1828,683,6,11,1838,624,9,13,1897,662,6,11,1910,663,5,8,1946,666,5,9,1955,646,7,11,1978,644,9,15,1991,668,9,15,2038,678,10,10,2071,643,10,21,2073,597,8,13,2117,648,4,11,2155,655,5,16];
       // 放大後跑出屏幕的窗戶直接算亮的（天亮拉遠時已經亮著），進度只看屏幕裏的
@@ -94,6 +96,11 @@
       const out = new Promise(ok => { handed = ok; });
       const got = () => { left--; };
       const load = (name, cb) => { const i = new Image(); i.onload = i.onerror = cb; i.src = `img/art/${name}.webp`; return i; };
+      // 小鎮和字標到了之後，JS 一次全列出來並行拉，不用一層層解析 import：香港線路一個往返 270ms，七層就是兩秒。
+      // 等它們到了再拉：不搶開屏第一眼那幾張圖的帶寬。名單由 tests/preload.test.js 對著 import 核對
+      let pulled = false, first = 2;
+      const pullJs = () => { if (pulled) return; pulled = true; for (const n of 'app ui roles icons lang t2s town side log glyph gamelog fx ambient tactile sfx fireworks score scores hud trial flow setup infoform infofmt stepcard invite topbar settings about author progress egg lobby intro press'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
+      const firstArt = () => { if (!--first) pullJs(); };
       const start = () => { if (!art) { art = true; t0 = performance.now(); } };
       const end = () => {
         clearInterval(clock);
@@ -247,11 +254,14 @@
         }))),
       };
       if (quiet) setTimeout(() => { quiet = false; delete root.dataset.boot; }, 2000);
-      Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => {}))).then(() => { start(); el.classList.add('up'); if (!quiet) arm(); });
-      setTimeout(start, 4000);
+      Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => {}))).then(() => { start(); el.classList.add('up'); if (!quiet) arm(); firstArt(); });
+      setTimeout(() => { start(); pullJs(); }, 4000);
       setTimeout(() => { left = 0; }, 12000); // 圖片卡住也別一直攔著
-      const title = load(`title-${lang}-plain`, () => { got(); el.classList.add('named'); });
-      Promise.all(MUST.map(n => new Promise(ok => load(n, () => { got(); ok(); })))).then(() => LATER.forEach(n => load(n)));
+      const title = load(`title-${lang}-plain`, () => { got(); el.classList.add('named'); firstArt(); });
+      MUST.forEach(n => load(n, got));
+      // 剩下的等開屏揭開才在後台補齊，兩張兩張來，不和第一屏搶那點帶寬
+      const rest = inRoom ? LATER : [...GAME, ...LATER];
+      out.then(() => { let i = 0; const next = () => { if (i < rest.length) load(rest[i++], next); }; next(); next(); });
     }
   </script>
   <script defer src="/socket.io/socket.io.min.js"></script>

@@ -1,7 +1,6 @@
 // 頂欄：房間號、規則、身份；其餘收進 ⋯ 菜單（放棄本局放最後並標紅）。手機上側欄的標籤也放在這裏（點開底部抽屜），
 // 劇本名、音效、規則收進 ⋯，⋯ 永遠在屏幕裏
 import { h, toast, ask, menu } from './ui.js';
-import { showHelp } from './help.js';
 import { muted, setMuted } from './sfx.js';
 import { icon } from './glyph.js';
 import { getLang, setLang } from './lang.js';
@@ -27,7 +26,7 @@ export function topbar(ctx) {
   const invite = () => openInvite(ctx);
   const watching = !s.isSt && !s.myId; // 觀戰：沒有座位
   const inGame = s.phase !== 'lobby' && s.phase !== 'ended';
-  const help = () => showHelp(s.isSt || !!s.peek), sound = () => { setMuted(!muted()); ctx.render(); };
+  const help = () => import('./help.js').then(m => m.showHelp(s.isSt || !!s.peek)), sound = () => { setMuted(!muted()); ctx.render(); };
   const narrow = () => matchMedia('(max-width: 860px)').matches;
   const more = e => menu(e.currentTarget, narrow() ? SCRIPTS[s.scriptId]?.name : null, [
     narrow() && { label: '規則與流程', onclick: help },

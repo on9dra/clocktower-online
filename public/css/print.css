@@ -2,21 +2,26 @@
    兩處都是印在紙上的東西，所以線不用 border，都換成 --r-* 這幾條手刻的線；不做舊，舊只體現在紙張本身 */
 @font-face { font-family: "Press TC"; src: url(../fonts/serif-tc.woff2) format("woff2"); font-weight: 500 900; font-display: swap; }
 @font-face { font-family: "Press SC"; src: url(../fonts/serif-sc.woff2) format("woff2"); font-weight: 500 900; font-display: swap; }
+/* 介紹卡只用這一小份，規則書打開時才拉上面那份 */
+@font-face { font-family: "Card TC"; src: url(../fonts/card-tc.woff2) format("woff2"); font-weight: 500 900; font-display: swap; }
+@font-face { font-family: "Card SC"; src: url(../fonts/card-sc.woff2) format("woff2"); font-weight: 500 900; font-display: swap; }
 
 :root {
-  --paper-tex: url(../img/print/paper.webp);
-  --r-thin: url(../img/print/rule-thin.webp);
-  --r-mid: url(../img/print/rule-mid.webp);
-  --r-wenwu: url(../img/print/rule-wenwu.webp);
-  --r-dash: url(../img/print/rule-dash.webp);
-  --r-v: url(../img/print/rule-thin-v.webp);
-  --press: "Press TC";
+  --paper-tex: url(../img/press/paper.webp);
+  --r-thin: url(../img/press/rule-thin.webp);
+  --r-mid: url(../img/press/rule-mid.webp);
+  --r-wenwu: url(../img/press/rule-wenwu.webp);
+  --r-dash: url(../img/press/rule-dash.webp);
+  --r-v: url(../img/press/rule-thin-v.webp);
+  --press: "Press TC"; --press-card: "Card TC";
+  --song: "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
 }
-:root[data-lang="sc"] { --press: "Press SC"; }
+:root[data-lang="sc"] { --press: "Press SC"; --press-card: "Card SC"; --song: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif; }
 
 /* 印刷品裏沒有黑體 */
-.pp, .it-page { --serif: var(--press), "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif; --sans: var(--serif); font-family: var(--serif); font-weight: 500; font-feature-settings: "palt" 0; }
-:root[data-lang="sc"] :is(.pp, .it-page) { --serif: var(--press), "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif; }
+.pp { --serif: var(--press), var(--song); }
+.it-page { --serif: var(--press-card), var(--song); }
+.pp, .it-page { --sans: var(--serif); font-family: var(--serif); font-weight: 500; font-feature-settings: "palt" 0; }
 
 /* 大字的墨邊。只給大字：小字一過濾鏡就糊，大面積的東西放進來，翻頁第一幀要算很久 */
 .pp-title h2, .hp-team-h b, .hp-dead-r b, .it-h h2, .it-team h3 { filter: url(#inked); }

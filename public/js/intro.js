@@ -210,6 +210,6 @@ export function showIntro(ls, { wait, after } = {}) {
   nav(0);
   next.focus();
   // 印刷件和字體到了才發牌，不然版框會在牌落定之後才冒出來；網絡慢時最多等 1.5 秒
-  const printed = Promise.all([document.fonts.load(`900 1em "Press ${getLang().toUpperCase()}"`), ...INK.map(n => { const i = new Image(); i.src = `img/print/${n}.webp`; return i.decode(); })]).catch(() => {});
+  const printed = Promise.all([document.fonts.load(`900 1em "Card ${getLang().toUpperCase()}"`), ...INK.map(n => { const i = new Image(); i.src = `img/press/${n}.webp`; return i.decode(); })]).catch(() => {});
   Promise.all([wait, Promise.race([printed, new Promise(ok => setTimeout(ok, 1500))])]).then(() => root.classList.remove('hold'));
 }

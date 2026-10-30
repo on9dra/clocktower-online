@@ -13,7 +13,6 @@ import { play } from './sfx.js';
 import { ROLES, TEAMS } from './roles.js';
 import { burst, setBusy, setFireworks } from './fireworks.js';
 import { EGG } from './score.js';
-import { abilityFx } from './fx-ab.js';
 
 const recent = { died: new Map(), voted: new Map(), lock: new Map(), shot: new Map(), nom: 0, hud: 0, blkin: new Map(), blkret: new Map(),
   crown: 0, mvp: 0, egg: { at: 0, n: 0 } };
@@ -291,7 +290,11 @@ function release(id) {
   rerender();
 }
 
-const AB = abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping: () => !cur || cur.skip, ACT_ICONS: ACTS });
+// 技能演出連著信物圖形有 50KB，大廳用不到：收到第一份對局狀態時才拉，拉到之前走通用演出
+let AB = { act: () => null, grim: () => null, hasInfo: () => false, demon: () => {}, saint: () => {}, mayor: () => {} }, abPull = null;
+function pullAb() {
+  abPull ||= import('./fx-ab.js').then(m => { AB = m.abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping: () => !cur || cur.skip, ACT_ICONS: ACTS }); }, () => { abPull = null; });
+}
 // 座位上砸一枚大章，停一下縮成座位上的小章：座位自己的死因章接著落下（release）
 async function seatStamp(id, text, { power = 0, sound } = {}) {
   const p = seatAt(id), pad = h('div', { class: 'seat-pad', style: { left: p.x + 'px', top: p.y + 'px' } });
@@ -976,6 +979,7 @@ const turnScene = s => ({ block: true, run: async () => {
 // 演出播完後要做的事一個接一個掛上（場景自己的 after 先做）
 const chain = (sc, fn) => { const a = sc.after; sc.after = () => { a?.(); fn(); }; };
 export function onState(s) {
+  pullAb();
   ensureScene();
   document.body.classList.toggle('my-turn', !!s.prompt);
   setFireworks(s.fireworks || null);

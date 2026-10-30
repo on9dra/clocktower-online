@@ -78,5 +78,7 @@ for name in ['title-tc', 'title-sc']:
     band = band[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
     im = Image.fromarray(band, 'RGBA')
     im = im.resize((900, round(900 * im.height / im.width)), Image.LANCZOS)  # 大廳最寬顯示 420px，兩倍屏夠用
-    im.save(os.path.join(out, name + '-plain.webp'), quality=90, method=6)
+    # 只當遮罩用，顏色抹平省一半體積
+    im = Image.merge('RGBA', (*[Image.new('L', im.size, 255)] * 3, im.getchannel('A')))
+    im.save(os.path.join(out, name + '-plain.webp'), quality=90, alpha_quality=92, method=6)
 print('titles ok')

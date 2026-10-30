@@ -147,7 +147,7 @@ GPT 生成的美术素材放在 `public/img/art/`，样式集中在 `public/css/
 
 - 演示：`/demo.html?s=art`（「素材」看对局里看不到的单件素材，「舊/新」切换新旧美术）
 - 原图和处理脚本在 `art-src/`：`process.py` 抠绿底并压成 webp，`soften.py` 把过艳的红色压柔和；提示词见 `docs/美术资源-GPT提示词.md`
-- 规则书和介绍卡是印刷品：`art-src/print-kit.py` 生成 `public/img/print/`（手刻的线、版框、纸），`art-src/print-font.py` 从思源宋体里取用到的字生成 `public/fonts/`。改了 `help.js`、`intro.js` 的文字要重跑后者
+- 规则书和介绍卡是印刷品：`art-src/print-kit.py` 生成 `public/img/press/`（手刻的线、版框、纸），`art-src/print-font.py` 从思源宋体里取用到的字生成 `public/fonts/`（规则书一份，介绍卡单独一份小的）。改了 `help.js`、`intro.js` 的文字要重跑后者
 
 ## 许可
 

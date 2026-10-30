@@ -1,4 +1,4 @@
-# 規則書和介紹卡的印刷素材 public/img/print/*：全程序生成，跑一遍即可：python -I art-src/print-kit.py [名字…]
+# 規則書和介紹卡的印刷素材 public/img/press/*：全程序生成，跑一遍即可：python -I art-src/print-kit.py [名字…]
 # 所有線都不是畫出來的：先在大圖上畫版（覆蓋圖 m），再過 press()「印」一遍——邊緣吃進紙裏、尖角變圓、
 # 實地中間淡邊上濃；線條帶壓痕（上左暗、下右亮）。橫向素材用週期噪聲，repeat-x 看不出接縫。
 # 不做舊：污漬、漏墨蓋在內容上會妨礙閱讀，而且不跟著紙走，舊只體現在紙張本身
@@ -7,7 +7,7 @@ import math
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-OUT = 'public/img/print'
+OUT = 'public/img/press'
 K = 2   # 成品每 CSS 像素幾個圖像像素
 SS = 2  # 再超採樣幾倍
 U = K * SS
@@ -160,7 +160,7 @@ def paper():
 
 
 # ———— 線 ————
-def strip(name, h, draw, L=1200, bite=1.):
+def strip(name, h, draw, L=600, bite=1.):
     im, d = canvas(L, h)
     draw(d, L)
     m = arr(im)
@@ -169,10 +169,10 @@ def strip(name, h, draw, L=1200, bite=1.):
 
 def rules():
     y = lambda h: h / 2
-    strip('rule-thin', 7, lambda d, L: (rule(d, 0, 3.5, L, 3.5, 1.15, .5), nicks(d, 0, 3.5, L, 3.5, 2, 1.5)))
-    strip('rule-mid', 8, lambda d, L: (rule(d, 0, 4, L, 4, 2.1, .55), nicks(d, 0, 4, L, 4, 2, 2)))
+    strip('rule-thin', 7, lambda d, L: (rule(d, 0, 3.5, L, 3.5, 1.15, .5), nicks(d, 0, 3.5, L, 3.5, 1, 1.5)))
+    strip('rule-mid', 8, lambda d, L: (rule(d, 0, 4, L, 4, 2.1, .55), nicks(d, 0, 4, L, 4, 1, 2)))
     # 文武線：一粗一細
-    strip('rule-wenwu', 13, lambda d, L: (rule(d, 0, 4, L, 4, 3.6, .55), rule(d, 0, 9.5, L, 9.5, 1.15, .5), nicks(d, 0, 4, L, 4, 2, 2.6), nicks(d, 0, 9.5, L, 9.5, 2, 1.5)))
+    strip('rule-wenwu', 13, lambda d, L: (rule(d, 0, 4, L, 4, 3.6, .55), rule(d, 0, 9.5, L, 9.5, 1.15, .5), nicks(d, 0, 4, L, 4, 1, 2.6), nicks(d, 0, 9.5, L, 9.5, 1, 1.5)))
 
     def dash(d, L):  # 撕線：一段段手排的短劃，長短不勻
         x = 0.
@@ -190,7 +190,7 @@ def rules():
 
 def perf():
     """打孔撕線：一排穿透的圓孔，孔裏是暗的，孔沿上受光"""
-    L, h, step = 1200, 14, 12
+    L, h, step = 240, 14, 12
     im = Image.new('RGBA', (L * K, h * K), (0, 0, 0, 0))
     a = np.zeros((h * U, L * U, 4))
     y, x = np.mgrid[0:h * U, 0:L * U]
@@ -212,22 +212,27 @@ def perf():
 
 # ———— 版框 ————
 def frame():
-    """一頁的版框：外面一道粗線，中間磚紅的車花帶，裏面一道細線，一共 20px 寬，把地方留給內容；四角木刻方塊。九宮格用"""
-    W, H = 900, 650
+    """一頁的版框：外面一道粗線，中間磚紅的車花帶，裏面一道細線，一共 20px 寬；四角木刻方塊。
+    九宮格 + round：只畫一小張，中間 260px 是可以重複的一節，線和車花都按這個週期畫，首尾接得上"""
+    C, T = 20, 260  # 角寬、重複節的長度
+    W = H = T + 2 * C
     im, d = canvas(W, H)
     br, bd = canvas(W, H)
-    o, g = 2.4, 17.6
-    for x0, y0, x1, y1 in ((o - 1, o, W - o + 2, o), (o - 2, H - o, W - o + 1, H - o), (o, o - 2, o, H - o + 1), (W - o, o - 1, W - o, H - o + 2)):
-        rule(d, x0, y0, x1, y1, 3.2, .4)
-        nicks(d, x0, y0, x1, y1, 2, 2.4)
-    for x0, y0, x1, y1 in ((g, g, W - g, g), (g, H - g, W - g, H - g), (g, g, g, H - g), (W - g, g, W - g, H - g)):
-        rule(d, x0, y0, x1, y1, 1, .3)
-        nicks(d, x0, y0, x1, y1, 2, 1.3)
-    c = 10
-    cable(bd, 22, W - 22, c, 3, 14, 3, .5)
-    cable(bd, 22, W - 22, H - c, 3, 14, 3, .5)
-    cable(bd, 22, H - 22, c, 3, 14, 3, .5, vert=True)
-    cable(bd, 22, H - 22, W - c, 3, 14, 3, .5, vert=True)
+    o, g, c = 2.4, 17.6, 10
+    for y in (o, H - o):
+        rule(d, C, y, C + T, y, 3.2, .4)
+        nicks(d, C, y, C + T, y, 1, 2.4)
+    for x in (o, W - o):
+        rule(d, x, C, x, C + T, 3.2, .4)
+        nicks(d, x, C, x, C + T, 1, 2.4)
+    for y in (g, H - g):
+        rule(d, C, y, C + T, y, 1, .3)
+    for x in (g, W - g):
+        rule(d, x, C, x, C + T, 1, .3)
+    for y in (c, H - c):
+        cable(bd, C, C + T, y, 3, 13, 3, .5)
+    for x in (c, W - c):
+        cable(bd, C, C + T, x, 3, 13, 3, .5, vert=True)
     # 四角：實心方塊上刻出一朵車花
     for cx, cy in ((c, c), (W - c, c), (c, H - c), (W - c, H - c)):
         d.rectangle(((cx - 9.5) * U, (cy - 9.5) * U, (cx + 9.5) * U, (cy + 9.5) * U), fill=255)
@@ -260,7 +265,7 @@ def block():
 
 def head():
     """版頭：小鎮天際線刻成一道道粗細不一的橫線。線的粗細就是明暗，右邊最實，往左淡出好讓位給標題"""
-    W, H = 880, 72
+    W, H = 684, 56
     t = Image.open('public/img/art/town-near-day.webp').convert('RGBA')
     bg = Image.new('RGBA', t.size, (255, 255, 255, 255))
     bg.alpha_composite(t)
@@ -270,7 +275,7 @@ def head():
     g = g[-H * U:] if g.shape[0] > H * U else np.pad(g, ((H * U - g.shape[0], 0), (0, 0)))
     y, x = np.mgrid[0:H * U, 0:W * U]
     warp = noise(g.shape, 30) * 1.2 * U / 4
-    wave = .5 + .5 * np.sin((y + warp) * 2 * np.pi / (2.5 * U))
+    wave = .5 + .5 * np.sin((y + warp) * 2 * np.pi / (2 * U))
     fade = np.clip((x / (W * U) - .34) / .22, 0, 1)
     m = ((np.clip(g * 1.08, 0, 1) ** .8) * fade > wave + .02).astype(float)
     m = blur(m, .6) > .5
