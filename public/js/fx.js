@@ -67,6 +67,13 @@ function instantSky(v) {
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('sky-instant')));
 }
 
+// 第一份狀態：直接是當前的天色。從大廳來的先接上大廳的夜色，再慢慢轉到房間現在的天色
+function firstSky(v) {
+  const dark = !!document.querySelector('.lobby');
+  instantSky(dark ? 'night' : v);
+  if (dark) setTimeout(() => { if (!skyHold && lastState) sky(lastState.phase); }, 320);
+}
+
 // 處決台：台上的人坐到圓桌中間掛上絞刑架。台上的人變了：舊的飛回座位、新的飛到中間。
 // 計票結果 / 處決演出還在播的時候，桌上先保持原樣（blkOverride），播完再換；處決演出期間中間不畫、座位空著（execId）
 let blkOverride, execId = null, lastState = null;
@@ -139,7 +146,7 @@ function getStage() {
 // 可以跳過的演出（翻角色牌、「第 N 夜」）：點舞台或按 Esc / 空格 / 回車，直接跳到這一幕的結尾（後面排著的照常播）
 function skipScene() {
   if (!cur?.skippable || cur.skip) return false;
-  cur.skip = true;
+  cur.skip = cur.cut = true;
   cur.waits.splice(0).forEach(f => f());
   getStage().querySelector('.skip-hint')?.remove();
   return true;
@@ -160,6 +167,11 @@ async function runQueue() {
     try { await sc.run(); } catch (e) { console.error(e); }
     (sc.holds || []).forEach(release);
     sc.after?.();
+    // 點了跳過：牌和底色淡掉，不是一下子沒了
+    if (cur.cut && !reduced() && !document.hidden) {
+      st.animate([{ opacity: getComputedStyle(st).opacity }, { opacity: 0 }], { duration: 220, fill: 'forwards' });
+      await new Promise(r => setTimeout(r, 220));
+    }
     st.getAnimations().forEach(a => a.cancel()); // fill: forwards 的淡出會一直留在舞台上
     st.replaceChildren();
     st.className = '';
@@ -963,6 +975,21 @@ async function revealRole(roleId, kind) {
   await wait(180);
 }
 
+// 回到準備階段（下一局前、放棄本局）：牌一張張翻過去，翻到側面時桌面換成準備階段，再翻回來，牌面就空了。不是一下子全換掉
+const resetScene = () => ({ block: true, run: async () => {
+  const tokens = () => [...document.querySelectorAll('.ring > .seat .seat-token > .token')];
+  const flip = (from, to, easing) => tokens().forEach((t, i) => anim(t, [{ transform: from }, { transform: to }], { duration: 180, delay: i * 24, easing, fill: 'both' }));
+  const clear = () => tokens().forEach(t => t.getAnimations().forEach(a => a.cancel()));
+  const ms = 180 + tokens().length * 24;
+  flip('none', 'perspective(400px) rotateY(90deg)', 'ease-in');
+  await wait(ms);
+  thaw();
+  clear();
+  flip('perspective(400px) rotateY(-90deg)', 'none', 'ease-out');
+  await wait(ms);
+  clear();
+} });
+
 // 輪到自己行動：自己的牌落在紙牌上，蓋一枚金色「輪到你」
 const turnScene = s => ({ block: true, run: async () => {
   veil(WASH.ink, 220);
@@ -989,7 +1016,9 @@ export function onState(s) {
   // 白天被動能力觸發、等說書人裁定：響一聲（裁定卡在圓桌中央）
   if (s.isSt && s.st?.ruling && p?.isSt && !p.st?.ruling) play('turn');
   const evs = s.fx || [], top = evs.length ? evs.at(-1).seq : 0;
-  if (!p || who !== id) { who = id; seen = Math.max(seen, top); if (!skyHold) instantSky(s.phase); return; }
+  // 說書人代入視角、換回來：桌面內容整個換了，淡進來
+  if (p && who !== id && !reduced()) requestAnimationFrame(() => document.querySelector('.town')?.animate({ opacity: [0, 1] }, 260));
+  if (!p || who !== id) { who = id; seen = Math.max(seen, top); if (!skyHold) firstSky(s.phase); return; }
   const now = Date.now();
   const wasDead = new Set(p.seats.filter(x => x.dead).map(x => x.id));
   const newlyDead = new Set(s.seats.filter(x => x.dead && !wasDead.has(x.id)).map(x => x.id));
@@ -1026,6 +1055,7 @@ export function onState(s) {
     enqueue(sc);
   }
   newlyDead.forEach(x => recent.died.set(x, now));
+  if (p.phase !== 'lobby' && s.phase === 'lobby') { frozen ||= p; const sc = resetScene(); chain(sc, thaw); enqueue(sc); }
   if (!skyHold) sky(s.phase);
   if (shownBefore !== liveBlock(s)) {
     if (!blkScene) { blkOverride = undefined; moveBlock(shownBefore, liveBlock(s)); } else {
@@ -1034,11 +1064,130 @@ export function onState(s) {
       blkScene.after = () => { prevAfter?.(); const cur = blkOverride; blkOverride = undefined; moveBlock(cur, liveBlock(lastState)); rerender(); };
     }
   }
-  if (s.prompt && !p.prompt && !s.peek) enqueue(turnScene(s));
+  // 「輪到你」演完，選人牌才落到桌上
+  if (s.prompt && !p.prompt && !s.peek) { const sc = turnScene(s); nightHold++; chain(sc, () => { nightHold--; rerender(); }); enqueue(sc); }
 
   const pv = p.nomination?.votes || {};
   for (const [k, up] of Object.entries(s.nomination?.votes || {})) if (up && !pv[k]) { recent.voted.set(k, now); play('pop'); }
   const pa = p.nomination?.abstain || {};
   for (const k of Object.keys(s.nomination?.abstain || {})) if (!pa[k]) { recent.voted.set(k, now); play('pop'); }
   if (s.nomination && s.nomination.at !== p.nomination?.at) recent.nom = now;
+}
+
+// ———— 大廳和房間換班 ————
+// 兩邊是同一片夜空、同一個小鎮（#scene 和大廳的背景對得上），不換景，只換控件。
+// 進房：大廳的控件倒回紙上，桌布鋪開，座位從桌心一張張發出去，頂欄、側欄從屏幕外滑進來，月亮升起來。離開反過來，大廳的控件再立起來
+const calm = () => document.hidden || reduced();
+const pause = ms => new Promise(r => setTimeout(r, ms));
+const body = document.body;
+// 各件東西進場時的樣子：[選擇器, 開頭, 延遲, 時長]。退場倒著放（K 倍速）
+const PARTS = [
+  ['.topbar', { translate: '0 -100%' }, 160, 440],
+  ['.side', { translate: '100% 0' }, 220, 480],
+  ['.town > :not(.ring), .board > :not(.town)', { opacity: 0, translate: '-28px 0' }, 640, 380],
+  ['.center', { opacity: 0, translate: '0 10px' }, 760, 340],
+  ['.prog', { opacity: 0, translate: '0 14px' }, 800, 340],
+], MAT = { opacity: 0, scale: .72, rotate: '-24deg' }, K = .6;
+
+function dealRoom(game, back = false) {
+  const ring = game.querySelector('.ring'), box = ring.getBoundingClientRect(), seats = [...ring.querySelectorAll(':scope > .seat')];
+  const step = Math.min(46, 460 / (seats.length || 1)), T = Math.max(460 + seats.length * step + 420, 1160);
+  const go = (el, from, delay, ms, pseudoElement) => el.animate([{ ...from, offset: 0 }], { duration: back ? ms * K : ms, delay: back ? (T - delay - ms) * K : delay, pseudoElement,
+    easing: 'cubic-bezier(.2, .8, .3, 1)', fill: back ? 'forwards' : 'backwards', direction: back ? 'reverse' : 'normal' });
+  PARTS.forEach(([q, from, delay, ms]) => game.querySelectorAll(q).forEach(el => go(el, from, delay, ms)));
+  ['::before', '::after'].forEach(p => go(ring, MAT, 280, 560, p));
+  seats.forEach((el, i) => {
+    const r = el.getBoundingClientRect();
+    go(el, { translate: `${box.left + box.width / 2 - r.left - r.width / 2}px ${box.top + box.height / 2 - r.top - r.height / 2}px`, scale: .45, rotate: (i % 2 ? 16 : -16) + 'deg', opacity: 0 },
+      460 + i * step, 420);
+  });
+  return pause(back ? T * K : T);
+}
+// 把 to 裏的循環動畫（雲、烏鴉、窗燈、炊煙、鐘針）對齊到 from：兩邊是同一份 skyLife / townLife，節點一一對應，換層時看不出來
+function align(from, to) {
+  const A = [...from.querySelectorAll('*')], B = [...to.querySelectorAll('*')];
+  A.forEach((el, i) => B[i]?.getAnimations().forEach(x => {
+    const y = x.animationName && el.getAnimations().find(a => a.animationName === x.animationName);
+    if (y) x.currentTime = y.currentTime;
+  }));
+}
+const scenePair = page => {
+  const scene = document.getElementById('scene');
+  return [[page.querySelector(':scope > .sky-life'), scene.querySelector('.sky-life')], [page.querySelector('.lobby-town .town-life'), scene.querySelector('.skyline-night .town-life')]];
+};
+const moonDown = on => body.classList.toggle('moon-down', on);
+
+// 第一次畫出房間。page：還在的大廳
+export function intoRoom(app, game) {
+  artWatch();
+  app.querySelector(':scope > .game')?.remove(); // 剛離開又進來，上一個桌面還沒退完
+  const page = app.querySelector(':scope > .lobby');
+  if (!page) {
+    app.replaceChildren(game);
+    // 回房間（刷新）開屏不演，桌面直接淡進來，別耽誤對局；邀請鏈接第一次進來，開屏揭開時才發牌
+    if (document.documentElement.dataset.boot || calm()) return Promise.resolve();
+    return window.boot.out.then(() => dealRoom(game));
+  }
+  app.append(game);
+  if (calm()) { page.remove(); return Promise.resolve(); }
+  page.style.top = -scrollY + 'px';
+  moonDown(true);
+  page.classList.add('off', 'clear'); // 大廳變透明，露出底下對齊好的 #scene
+  scenePair(page).forEach(([a, b]) => align(a, b));
+  setTimeout(() => moonDown(false), 260); // 等天色定下來（instantSky）才升，不然看不到過渡
+  setTimeout(() => page.remove(), 900);
+  return dealRoom(game);
+}
+
+// 回大廳：桌面退掉，控件立起來；天色還沒黑的（白天離開）等黑下來，再換回大廳自己的背景
+export function backToLobby(app, page, show) {
+  const game = app.querySelector(':scope > .game');
+  const swap = () => {
+    game.remove();
+    if (page.classList.contains('off')) return; // 又進了別的房間
+    scenePair(page).forEach(([a, b]) => align(b, a));
+    page.classList.remove('clear');
+    moonDown(false);
+    body.dataset.phase = 'lobby';
+  };
+  page.classList.add('clear');
+  app.prepend(page);
+  if (calm()) { swap(); return show(); }
+  const dark = body.dataset.phase === 'night';
+  sky('night');
+  moonDown(true);
+  game.classList.add('gone');
+  game.inert = true;
+  setTimeout(show, 340);
+  Promise.all([dealRoom(game, true), pause(dark ? 500 : 1500)]).then(swap);
+}
+
+// 離開房間不刷新頁面：這一局記著的東西都清掉。排著的演出快進跑完（它們掛著的計數要對上），正在演的淡掉
+export function resetFx() {
+  const st = document.getElementById('stage');
+  if (st?.childElementCount && !calm()) {
+    const ghost = st.cloneNode(true);
+    ghost.removeAttribute('id');
+    ghost.className = 'stage-ghost';
+    body.append(ghost);
+    ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
+    setTimeout(() => ghost.remove(), 240);
+  }
+  if (running) skipAll();
+  prev = who = null; seen = 0; frozen = null; blkOverride = undefined; execId = null;
+  lastState = { phase: 'lobby' };
+  setFireworks(null);
+  body.classList.remove('my-turn');
+}
+
+// 異步到達的圖：CSS 背景圖到了沒有事件。進房間時看一眼桌面要用的圖，還沒到的給 body 加 wait-名字（art.css 先藏著），解碼完摘掉，淡入
+const ART = { 'table-day': ['table-day'], 'table-night': ['table-night'], 'seat-empty': ['seat-empty'], plate: ['plate'], moon: ['moon'], sun: ['sun'],
+  'town-day': ['town-far-day', 'town-mid-day', 'town-near-day'] };
+function artWatch() {
+  for (const [k, names] of Object.entries(ART)) {
+    const imgs = names.map(n => Object.assign(new Image(), { src: `img/art/${n}.webp` }));
+    if (imgs.every(i => i.complete)) continue;
+    body.classList.add('wait-' + k);
+    Promise.all(imgs.map(i => i.decode().catch(() => {}))).then(() => body.classList.remove('wait-' + k));
+  }
 }

@@ -16,18 +16,19 @@ body:has(.game.side-min) { --side-w: 44px; }
 body:not(:has(.game)) { --side-w: 0px; }
 #scene .moon { inset: auto; top: 8vh; right: calc(var(--side-w) + 15vw); width: 76px; height: 76px; border-radius: 50%; opacity: 0;
   background: #f6ecd0; border: 2px solid #d9c79a; box-shadow: inset -13px -5px 0 #e6d5a9;
-  transform: translate(5vw, 74vh); transition: transform 1.9s cubic-bezier(.3,.6,.35,1), opacity 1.2s ease; }
+  transform: translate(5vw, 74vh); transition: transform 1.9s cubic-bezier(.3,.6,.35,1), opacity 1.2s ease, right .32s cubic-bezier(.3,.7,.3,1); }
 body[data-phase="night"] #scene .moon { opacity: 1; transform: none; }
+body.moon-down #scene .moon { opacity: 0; transform: translate(5vw, 74vh); } /* 進房時升起來、離開時沉下去（fx.js） */
 #scene .sun-disk { inset: auto; top: 12vh; right: calc(var(--side-w) + 6vw); width: 70px; height: 70px; border-radius: 50%;
   background: #f0c869; border: 2px solid var(--brass);
-  transition: transform 1.9s cubic-bezier(.45,0,.55,1), background-color 1.6s ease, opacity 1.2s ease; }
+  transition: transform 1.9s cubic-bezier(.45,0,.55,1), background-color 1.6s ease, opacity 1.2s ease, right .32s cubic-bezier(.3,.7,.3,1); }
 #scene .sun-disk::after { content: ""; position: absolute; inset: -13px; border-radius: 50%; border: 4px dashed #d9ad4f; }
 body[data-phase="dusk"] #scene .sun-disk { transform: translate(4vw, 66vh); background-color: #df7f4c; }
 body[data-phase="night"] #scene .sun-disk { transform: translate(4vw, 78vh); background-color: #df7f4c; opacity: 0; }
 body[data-phase="dawn"] #scene .sun-disk { transform: translate(-2vw, 50vh); background-color: #e99a5c; }
 #scene .sun { inset: auto; top: -18vh; left: -10vw; width: 60vh; height: 60vh; border-radius: 50%;
   background: radial-gradient(circle, #f0e3bf66, #f0e3bf00 70%); }
-#scene .skyline { inset: auto 0 0 0; height: 30vh; background-repeat: no-repeat; background-position: bottom center; background-size: cover; }
+#scene .skyline { inset: auto 0 0 0; height: 34vh; background-repeat: no-repeat; background-position: bottom center; background-size: cover; }
 .skyline-day { background-image: url(../img/skyline-day.svg); opacity: .9; }
 .skyline-night { background-image: url(../img/skyline-night.svg); opacity: 0; }
 .candle { opacity: 0; background: radial-gradient(ellipse at 38% 55%, #ffc76a33 0, #ffb04a1a 30%, transparent 60%); }
@@ -44,8 +45,8 @@ body[data-phase="dusk"] .stars { opacity: .12; }
 body[data-phase="dusk"] .skyline-day { opacity: .55; }
 body[data-phase="dusk"] .skyline-night { opacity: .35; }
 body[data-phase="dusk"] .ring::before { background-color: #d79c7488; }
-/* 大廳只有紙面，不放天空和小鎮 */
-body:has(.lobby) #scene { display: none; }
+/* 大廳自己畫天空和小鎮，和場景對得上（高度同 .lobby-town）。和房間換班時大廳變透明（.clear），露出場景（fx.js） */
+body:has(.lobby:not(.clear)) #scene { display: none; }
 /* 首次載入 / 換視角時直接是當前的天色，不播過渡 */
 body.sky-instant *, body.sky-instant *::before, body.sky-instant *::after { transition: none !important; }
 body.my-turn[data-phase="night"] .candle { opacity: 1; animation: flicker 2.6s ease-in-out infinite; }
@@ -92,20 +93,34 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 /* 計票時鐘指到的人：牌外一圈金線散開 */
 .seat.clock .seat-token::after { content: ""; position: absolute; inset: -6px; border: 2.5px solid var(--brass); border-radius: 50%; pointer-events: none;
   animation: ink-ring .5s ease-out both; }
-/* 彈窗：像一張紙落到桌上，略歪一下再擺正；提示條從下面滑上來；按鈕按下去一點 */
+/* 彈窗：像一張紙落到桌上，略歪一下再擺正，關掉時抬起來；遮罩跟著淡入淡出。規則書有分量，從下面托上來、落回去；提示條從下面滑上來、滑回去；按鈕按下去一點 */
+.backdrop { animation: back-in .24s ease; }
+.backdrop.leaving { pointer-events: none; animation: back-out .2s ease forwards; }
 .modal { animation: paper-drop .3s cubic-bezier(.2,.9,.3,1.2); }
+.leaving > .modal { animation: paper-lift .2s ease-in forwards; }
+.modal.help { animation: book-in .42s cubic-bezier(.2,.8,.3,1); }
+.leaving > .modal.help { animation: book-out .22s ease-in forwards; }
+@keyframes back-in { from { background-color: transparent; } }
+@keyframes back-out { to { background-color: transparent; } }
 @keyframes paper-drop { from { transform: translateY(-18px) rotate(-1.5deg); opacity: 0; } 70% { transform: translateY(2px) rotate(.3deg); opacity: 1; } }
+@keyframes paper-lift { to { transform: translateY(-16px) rotate(1deg); opacity: 0; } }
+@keyframes book-in { from { transform: translateY(46vh) rotate(2deg); opacity: 0; } 40% { opacity: 1; } }
+@keyframes book-out { to { transform: translateY(40vh) rotate(1.5deg); opacity: 0; } }
 .toast { animation: slip-in .24s cubic-bezier(.2,1.2,.4,1); }
+.toast.leaving { animation: slip-out .2s ease-in forwards; }
 @keyframes slip-in { from { translate: 0 18px; opacity: 0; } }
+@keyframes slip-out { to { translate: 0 18px; opacity: 0; } }
 .btn:active, .vbtn:active, .opt-tile:active { translate: 0 1px; }
 .popmenu { animation: unfold .15s ease-out; transform-origin: top center; }
+.popmenu.leaving { pointer-events: none; animation: fold .12s ease-in forwards; }
 @keyframes unfold { from { transform: translateY(6px) scale(.97); opacity: 0; } }
+@keyframes fold { to { transform: translateY(6px) scale(.97); opacity: 0; } }
 
 @media (max-width: 860px) {
   #scene .moon { width: 52px; height: 52px; right: 22vw; }
   #scene .sun-disk { width: 46px; height: 46px; right: 8vw; }
   #scene .sun-disk::after { inset: -9px; border-width: 3px; }
-  #scene .skyline { height: 18vh; }
+  #scene .skyline { height: 20vh; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

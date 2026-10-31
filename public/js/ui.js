@@ -42,7 +42,10 @@ export function morph(a, b) {
   const kids = [...b.childNodes];
   // 帶 data-key 的子節點先刪掉新樹裏已經沒有的，後面的才能對上號（中間關掉一個浮窗，其他的不重建、不重播動畫）
   const keys = new Set(kids.map(k => k.nodeType === 1 && k.getAttribute('data-key')).filter(Boolean));
-  for (const n of [...a.childNodes]) if (n.nodeType === 1 && n.hasAttribute('data-key') && !keys.has(n.getAttribute('data-key'))) n.remove();
+  // 正在退場的不參加比對，比完放回去
+  const out = [...a.children].filter(n => n.classList.contains('leaving'));
+  for (const n of [...a.childNodes]) if (n.nodeType === 1 && n.hasAttribute('data-key') && !keys.has(n.getAttribute('data-key'))) { if (exit(n)) out.push(n); n.remove(); }
+  out.forEach(n => n.remove());
   // 新樹在中間插進一個帶 key 的節點：直接插進去，後面已有的節點不重建（不重播入場動畫）
   kids.forEach((k, i) => {
     const old = a.childNodes[i], ok = old?.nodeType === 1 && old.getAttribute('data-key');
@@ -51,16 +54,42 @@ export function morph(a, b) {
     else a.append(k);
   });
   while (a.childNodes.length > kids.length) a.lastChild.remove();
+  a.append(...out);
+  // 父元素按內容居中的話（圓桌中央），少了這張牌它會挪位：把牌擺回屏幕上原來的地方
+  for (const n of out) if (n.was) {
+    const r = n.getBoundingClientRect();
+    n.style.left = parseFloat(n.style.left) + n.was.left - r.left + 'px';
+    n.style.top = parseFloat(n.style.top) + n.was.top - r.top + 'px';
+    n.was = null;
+  }
+}
+// 帶 data-exit 的牌、面板從桌上拿掉時不是一下子沒了：原地定住、不再佔位，淡掉再摘
+function exit(n) {
+  if (!n.hasAttribute('data-exit') || still() || document.hidden) return false;
+  const { offsetLeft: l, offsetTop: t, offsetWidth: w, offsetHeight: ht } = n;
+  n.was = n.getBoundingClientRect();
+  Object.assign(n.style, { position: 'absolute', inset: 'auto', left: l + 'px', top: t + 'px', width: w + 'px', height: ht + 'px', margin: 0, pointerEvents: 'none' });
+  n.classList.add('leaving');
+  n.animate([{ opacity: 1 }, { opacity: 0, translate: '0 12px' }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
+  setTimeout(() => n.remove(), 200);
+  return true;
 }
 
 export function toast(msg, ms = 2200) {
   const el = h('div', { class: 'toast' }, msg);
   document.body.append(el);
+  setTimeout(() => leaveDom(el, 200), ms);
+}
+
+const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+// 退場：加 .leaving 交給樣式演完再摘掉。用定時器收尾：後台標籤頁不出幀時動畫的 finish 不會來
+function leaveDom(el, ms) {
+  if (still() || document.hidden) return el.remove();
+  el.classList.add('leaving');
   setTimeout(() => el.remove(), ms);
 }
 
 let openModal = null;
-const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // 彈窗中心飛到按鈕中心要走的位移和縮放
 const toward = (box, el) => {
   const a = box.getBoundingClientRect(), b = el.getBoundingClientRect();
@@ -81,7 +110,8 @@ export function modal(title, body, { wide = false, cls = '', from = null, away =
     { duration: 380, easing: 'cubic-bezier(.2, .8, .3, 1)' });
   return box;
 }
-const dropModal = () => { if (openModal) { openModal.remove(); openModal = null; } };
+// 紙抬起來淡掉，遮罩跟著退（fx.css）。換一張彈窗時舊的照樣這麼走，新的同時落下來
+const dropModal = () => { if (openModal) { leaveDom(openModal, 220); openModal = null; } };
 export function closeModal() {
   const back = openModal, to = back?.away?.();
   if (!to?.isConnected || !to.offsetParent || still()) return dropModal();
@@ -131,7 +161,7 @@ export function menu(anchor, title, items) {
 function outside(e) { if (openMenu && !openMenu.contains(e.target)) closeMenu(); }
 export function closeMenu() {
   document.removeEventListener('pointerdown', outside);
-  if (openMenu) { openMenu.remove(); openMenu = null; }
+  if (openMenu) { leaveDom(openMenu, 130); openMenu = null; }
 }
 
 // 畫角色圖標：內置角色是圖，上傳的劇本裏的角色取名字的第一個字，和角色牌一樣的印章（名字是別人寫的，不能進 innerHTML）

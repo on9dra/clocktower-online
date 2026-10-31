@@ -27,7 +27,7 @@ const tipPage = () => h('div', { class: 'ab-slip' },
   h('div', { class: 'ab-codes' }, AUTHOR.tip.map(t => t.url
     ? ext('ab-code', t.url, h('span', { class: 'ab-qr go' }, icon('out')), h('b', {}, t.name))
     : h('figure', { class: 'ab-code' },
-      t.img ? h('img', { class: 'ab-qr', src: t.img, alt: t.name }) : h('span', { class: 'ab-qr empty' }, '收款碼'),
+      t.img ? h('img', { class: 'ab-qr', src: t.img, alt: t.name, onload: e => e.target.classList.add('in') }) : h('span', { class: 'ab-qr empty' }, '收款碼'),
       h('figcaption', {}, t.name)))),
   h('p', { class: 'ab-thanks' }, '謝謝投喂'));
 
@@ -68,7 +68,7 @@ function fbPage(ctx) {
 function sharePage() {
   const url = location.origin + '/', tag = tr('快速、簡約、精美的線上魔典');
   return h('div', { class: 'ab-share' },
-    h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURIComponent(url), alt: '二維碼', width: 168, height: 168 }),
+    h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURIComponent(url), alt: '二維碼', width: 168, height: 168, onload: e => e.target.classList.add('in') }),
     h('b', { class: 'ab-url' }, location.host),
     h('div', { class: 'ab-act' },
       h('button', { class: 'btn primary', onclick: () => copy(`${tr('血染鐘樓')} · ${tag} ${url}`, '鏈接已複製') }, icon('send'), '複製鏈接'),

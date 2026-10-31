@@ -44,7 +44,7 @@ export function renderTown(ctx) {
   const unread = chatUnread(s);
   // 私聊未讀：發送者身旁冒聊天氣泡，點開直接進那個頻道
   const pop = (ch, who) => unread[ch] && h('div', {
-    class: 'chat-pop', 'data-key': 'pop-' + ch, title: '私聊',
+    class: 'chat-pop', 'data-key': 'pop-' + ch, 'data-exit': true, title: '私聊',
     onclick: e => { e.stopPropagation(); openChat(ctx, ch); },
   }, who && h('b', {}, who), h('span', {}, unread[ch].last.text ?? '…'), unread[ch].n > 1 && h('i', { class: 'count' }, unread[ch].n));
   // 公共頻道：最新一條未讀在說話的人身旁冒幾秒（說書人的在圓桌中央），淡掉之後紅點還在
@@ -160,7 +160,7 @@ export function renderTown(ctx) {
   }
   if (showNom) ring.append(nomLine(s, nom));
   const picking = s.isSt && !s.peek && s.phase === 'lobby';
-  return h('div', { class: 'town' + (picking ? ' picking' : '') }, ring, picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)), b && b.side && cardEl(b));
+  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)), b && b.side && cardEl(b));
 }
 
 // 說書人：當前夜晚步驟的操作卡（走完是天亮前核對）/ 白天的裁定卡。貞潔者小窗（side）不擋投票，有別的裁定時讓位
@@ -185,7 +185,7 @@ export function fitTableCard() {
 function cardEl(b) {
   const fresh = lastBubble !== b.id; // 只在新步驟出現時播放展開動畫，重繪不重播
   lastBubble = b.id;
-  return h('section', { class: 'st-card' + (b.side ? ' corner' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id }, b.card());
+  return h('section', { class: 'st-card' + (b.side ? ' corner' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id, 'data-exit': true }, b.card());
 }
 // 當前步驟已經定下的目標（旅店老闆選的兩人、築夢師查的人……）：桌上金圈標出來
 function stepTargets(s) {

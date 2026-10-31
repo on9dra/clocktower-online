@@ -249,7 +249,7 @@ function turnPane(ctx) {
   // 這一步的角色（理髮師死後惡魔替他選人時是理髮師）
   const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = !s.prompt.manual && ACTS[rid]; // 手動局的牌是說書人寫的，不用角色自己的說法
   const say = a?.say || [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
-  return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : '') },
+  return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : ''), 'data-key': 'turn', 'data-exit': true },
     h('div', { class: 'tp-head' }, rid && roleToken(rid), rid && h('span', { class: 'tp-ico' }, actIcon(rid))),
     h('div', { class: 'tp-say' }, say.map((t, i) => (i % 2 ? h('b', {}, `「${t}」`) : t))),
     h('div', { class: 'row tp-picks' }, slots(ctx), roleSlot(ctx)),

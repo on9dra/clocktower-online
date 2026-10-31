@@ -4,8 +4,9 @@
 .intro { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden;
   --face: #e8e0d0; /* 紙的顏色：壓在線上的字要墊同一個顏色 */
   background: #dacdb4 url(../img/grain.svg); color: var(--ink); animation: it-fade .3s ease both; }
-.intro.out { animation: it-fade .26s ease reverse both; pointer-events: none; }
+.intro.out { animation: it-gone .26s ease both; pointer-events: none; } /* 不能用 it-fade 倒放：同名動畫改方向會直接跳到結尾 */
 @keyframes it-fade { from { opacity: 0; } }
+@keyframes it-gone { to { opacity: 0; } }
 .it-skip { position: absolute; z-index: 3; top: max(14px, env(safe-area-inset-top)); right: 18px; padding: 4px 8px; background: none; border: 0;
   color: var(--muted); font: 600 14px var(--sans); letter-spacing: .1em; }
 .it-skip:hover { color: var(--ink); }

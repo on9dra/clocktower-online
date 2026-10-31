@@ -116,6 +116,19 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 @keyframes l-rise { from { opacity: 0; translate: 0 8px; } }
 @keyframes l-up { 0% { opacity: 0; transform: perspective(1400px) rotateX(78deg); } 25% { opacity: 1; } 72% { transform: perspective(1400px) rotateX(-7deg); } 100% { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .lobby :is(.lobby-seal, .lobby-tag, .join, .st-line, .lang-lobby) { animation: none; } }
+/* 和房間換班（fx.js）：.clear 時大廳只剩控件，疊在場景上，退到桌面後面；.off 是要走了，控件倒回紙上。回來時字標跟著控件出來，登場同上 */
+.lobby.clear { z-index: -1; background: none; }
+.lobby.clear .lobby-town { visibility: hidden; }
+.lobby.clear > .sky-life { opacity: 0; }
+.lobby.clear .title { animation: l-rise .45s ease backwards; }
+.lobby.pre .title { animation-play-state: paused; }
+.lobby.off { position: fixed; left: 0; right: 0; pointer-events: none; }
+.lobby.off > .sky-life { transition: opacity .8s ease; }
+.lobby.off :is(.join, .st-line, .recent-room) { transform-origin: 50% 100%; animation: l-down .4s cubic-bezier(.5, 0, .8, .4) both; }
+.lobby.off .st-line { animation-delay: .06s; }
+.lobby.off :is(.title, .lobby-seal, .lobby-tag, .lang-lobby) { animation: l-sink .32s ease-in forwards; }
+@keyframes l-down { 60% { opacity: 1; } to { opacity: 0; transform: perspective(1400px) rotateX(78deg); } }
+@keyframes l-sink { to { opacity: 0; translate: 0 -8px; } }
 /* 矮窗口別留那麼多底：大廳一滾動，小鎮就掉到屏幕外，還多一條滾動條 */
 @media (max-height: 760px) and (min-width: 861px) { .lobby { padding-bottom: 34vh; gap: 24px; } }
 @media (max-width: 860px) {

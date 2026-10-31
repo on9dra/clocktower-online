@@ -31,7 +31,7 @@ export function trialPanel(ctx) {
     vb ? h('div', { class: 'tr-k' }, vb[k](list.length)) : h('div', { class: 'tr-k' }, icon(ico), label, h('i', {}, list.length)),
     k === 'no' && h('div', { class: 'tr-priv' }, icon('hidden'), s.isSt ? '僅本人與說書人可見' : '僅你與說書人可見'),
     h('div', { class: 'tr-chips' }, list.map(chip)));
-  return h('div', { class: 'trial' + (nomFx() ? ' fx-pop' : ''), style: nomFx(), 'data-key': 'trial' },
+  return h('div', { class: 'trial' + (nomFx() ? ' fx-pop' : ''), style: nomFx(), 'data-key': 'trial', 'data-exit': true },
     h('div', { class: 'tr-head' }, who(nom.nominatorId, 'from'),
       h('div', { class: 'tr-verb' }, h('span', { class: 'tr-stamp' }, '提名'), icon('to')), who(nom.nomineeId, 'to')),
     h('div', { class: 'tr-body' },

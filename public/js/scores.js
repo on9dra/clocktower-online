@@ -48,11 +48,11 @@ export function mvpPane(ctx) {
   if (!m || s.phase !== 'ended' || winHeld() || mvpHeld()) return null;
   if (m.done) {
     if (!m.winners.length) return null;
-    return h('div', { class: 'cx mvp-pane done' }, h('span', { class: 'mvp-k' }, icon('star'), 'MVP'),
+    return h('div', { class: 'cx mvp-pane done', 'data-key': 'mvp', 'data-exit': true }, h('span', { class: 'mvp-k' }, icon('star'), 'MVP'),
       h('span', { class: 'frm-line' }, m.winners.map(id => seatBadge(s, id)), w(`${m.tally?.[m.winners[0]] || 0} 票`)));
   }
   const left = Math.max(0, Math.ceil((m.closesAt - ctx.now()) / 1000));
-  return h('div', { class: 'cx mvp-pane' + (left <= 10 ? ' low' : '') },
+  return h('div', { class: 'cx mvp-pane' + (left <= 10 ? ' low' : ''), 'data-key': 'mvp', 'data-exit': true },
     h('span', { class: 'mvp-k' }, icon('star'), 'MVP', h('b', { class: 'mvp-left' }, left)),
     h('span', { class: 'frm-line' }, w('已投'), h('b', { class: 'mvp-n' }, `${m.n}/${m.total}`),
       !s.peek && m.mine && [h('i', { class: 'op-sep' }), icon('star', 'brass'), seatBadge(s, m.mine)]));

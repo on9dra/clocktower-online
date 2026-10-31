@@ -9,6 +9,13 @@ body.art .ring::before { z-index: -2; background-image: url(../img/art/table-day
 body.art .ring::after { z-index: -1; background-image: url(../img/art/table-night.webp); opacity: 0; transition: opacity 1.4s ease; }
 body.art[data-phase="night"] .ring::after { opacity: .85; }
 
+/* 異步到達的圖：沒到之前先藏著，到了淡入（fx.js artWatch 加減 wait-名字），不要到了就啪地出現 */
+body.art .ring::before { transition: opacity .6s ease; }
+body.art .token.blank { transition: opacity .4s ease, transform .15s ease; }
+body.art .plate { transition: opacity .4s ease; }
+body.wait-table-day .ring::before, body.wait-table-night .ring::after, body.wait-seat-empty .token.blank, body.wait-plate .plate,
+body.wait-moon #scene .moon, body.wait-sun #scene .sun-disk, body.wait-town-day #scene .skyline-day { opacity: 0 !important; }
+
 /* A3 / A4 遠景小鎮：遠、中、近三層疊在一起，晝夜兩組照舊淡入淡出 */
 body.art .skyline-day { background-image: url(../img/art/town-near-day.webp), url(../img/art/town-mid-day.webp), url(../img/art/town-far-day.webp); opacity: 1; }
 body.art .skyline-night { background-image: url(../img/art/town-near-night.webp), url(../img/art/town-mid-night.webp), url(../img/art/town-far-night.webp); }
