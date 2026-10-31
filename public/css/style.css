@@ -11,6 +11,8 @@
   --brass: #7f6320;
   --hover: #d3c9b4;
   --lit: #eddfb4; /* 選中、高亮 */
+}
+:root {
   --serif: "Songti TC", "Noto Serif TC", "Source Han Serif TC", "PMingLiU", "MingLiU", serif;
   --sans: "PingFang HK", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
 }
@@ -36,6 +38,8 @@ input, select, textarea {
 }
 textarea { resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
+/* 手機瀏覽器聚焦 16px 以下的輸入框會把整頁放大，還不縮回來；不鎖 viewport，雙指縮放照常能用 */
+@media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
 .muted { color: var(--muted); }
 .warn { color: var(--evil); }
 .pre { white-space: pre-wrap; word-break: break-word; }
@@ -144,6 +148,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .popmenu button { background: none; border: 0; text-align: left; padding: 7px 10px; border-radius: 4px; }
 .popmenu button:hover { background: var(--hover); }
 .popmenu button.danger { color: var(--evil); }
+.popmenu button.off { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; color: var(--muted); white-space: nowrap; cursor: default; }
+.popmenu button.off:hover { background: none; }
+.popmenu button.off s { text-decoration: line-through 1.5px var(--evil); }
+.popmenu button.off small { color: var(--evil); }
 .popmenu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 99; background: var(--ink); color: var(--card); padding: 8px 16px; border-radius: 4px; max-width: 90vw; }
 

@@ -117,7 +117,8 @@ export function menu(anchor, title, items) {
   const el = h('div', { class: 'popmenu' },
     title && h('div', { class: 'popmenu-title' }, title),
     items.map(it => it === '-' ? h('hr') : h('button', {
-      class: it.danger ? 'danger' : '',
+      class: it.danger ? 'danger' : it.off ? 'off' : '',
+      disabled: !!it.off,
       onclick: () => { closeMenu(); it.onclick(); },
     }, it.label)));
   document.body.append(el);
@@ -133,6 +134,16 @@ export function closeMenu() {
   if (openMenu) { openMenu.remove(); openMenu = null; }
 }
 
+// 畫角色圖標：內置角色是圖，上傳的劇本裏的角色取名字的第一個字，和角色牌一樣的印章（名字是別人寫的，不能進 innerHTML）
+export function fillIcon(el, roleId) {
+  if (ICONS[roleId]) { el.innerHTML = ICONS[roleId]; return; }
+  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t.textContent = tr(Array.from(ROLES[roleId]?.name || '')[0] || '');
+  t.setAttribute('x', 256); t.setAttribute('y', 256);
+  t.setAttribute('class', 'token-char');
+  el.append(t);
+}
+
 // 角色圓形標記（不使用官方圖片，按陣營配色）
 export function roleToken(roleId, { size = 'md', onclick } = {}) {
   const role = ROLES[roleId];
@@ -140,7 +151,7 @@ export function roleToken(roleId, { size = 'md', onclick } = {}) {
   const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   icon.setAttribute('viewBox', ICON_VIEWBOX);
   icon.setAttribute('class', 'token-icon');
-  icon.innerHTML = ICONS[roleId] || '';
+  fillIcon(icon, roleId);
   return h('div', {
     class: `token ${size} team-${role.team}`, onclick, title: `${role.name}：${role.ability}`,
     style: { '--team': TEAMS[role.team].color },

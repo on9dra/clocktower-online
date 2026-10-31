@@ -19,9 +19,7 @@ body.art .plate { border: solid transparent; border-width: 3px 9px; border-radiu
   border-image: url(../img/art/plate.webp) 56 190 fill / 3px 9px stretch; background: none; }
 body.art .seat.onblock .plate { border-image-source: url(../img/art/plate-evil.webp); }
 
-/* A7 紙卡框（九宮格），A8 牌背 */
-body.art .pc { border: 34px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 34px stretch; border-radius: 0; background: none;
-  padding: clamp(0px, 1vw, 10px) clamp(4px, 2vw, 16px); }
+/* A8 牌背 */
 body.art .sc-back { border: 0; box-shadow: none; background: url(../img/art/card-back.webp) center / cover; }
 body.art .sc-back .ico { display: none; }
 
@@ -67,14 +65,6 @@ body.art .lobby-seal { -webkit-mask: url(../img/art/stamp-mask.webp) center / co
 body.art .lobby-seal { left: calc(50% + min(210px, 33vw) + 12px); }
 body.art .lobby-town { background: url(../img/art/town-near-night.webp) bottom center / cover no-repeat, url(../img/art/town-mid-night.webp) bottom center / cover no-repeat,
   url(../img/art/town-far-night.webp) bottom center / cover no-repeat; }
-
-/* 彈窗套紙卡框 */
-body.art .modal { border: 30px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 30px stretch; border-radius: 0; background: none; }
-body.art .modal-head { padding: 0 4px 8px; }
-body.art .modal-body { padding: 10px 4px 6px; } /* 底部留白：按鈕的厚度和傾斜不能頂出滾動區，否則一指就冒滾動條 */
-
-/* 寬屏的豎條進度：和彈窗同一張紙卡框 */
-@media (min-width: 1000px) { body.art .pg::before { border: 18px solid transparent; border-image: url(../img/art/card-frame.webp) 150 fill / 18px stretch; background: none; filter: drop-shadow(0 8px 12px #0006); } }
 
 /* B7 MVP 獎章（投 MVP 的按鈕）、勝利結算裏的獎盃 */
 body.art .mvp-btn { background: url(../img/art/mvp-medal.webp) center / 70% auto no-repeat var(--card); }

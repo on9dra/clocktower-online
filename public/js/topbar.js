@@ -28,7 +28,7 @@ export function topbar(ctx) {
   const inGame = s.phase !== 'lobby' && s.phase !== 'ended';
   const help = () => import('./help.js').then(m => m.showHelp(s.isSt || !!s.peek)), sound = () => { setMuted(!muted()); ctx.render(); };
   const narrow = () => matchMedia('(max-width: 860px)').matches;
-  const more = e => menu(e.currentTarget, narrow() ? SCRIPTS[s.scriptId]?.name : null, [
+  const more = e => menu(e.currentTarget, narrow() ? SCRIPTS[s.scriptId]?.name + (s.mode === 'manual' ? ' · 手動' : '') : null, [
     narrow() && { label: '規則與流程', onclick: help },
     narrow() && { label: [icon(muted() ? 'sound' : 'mute', 'menu-ico'), muted() ? '打開音效' : '靜音'], onclick: sound },
     // 分享房間的卡從「⋯」裏彈出來，關掉時再收回「⋯」
@@ -41,8 +41,8 @@ export function topbar(ctx) {
     '-',
     { label: '離開房間', onclick: () => ask('離開房間？之後可以用同一個鏈接回來。', ctx.leave, '離開') },
     // 規則沒自動判到的勝負（呆瓜選中邪惡等）
-    s.isSt && inGame && { label: '判定善良獲勝…', onclick: () => ask('直接判定善良陣營獲勝，結束本局？', () => ctx.st('win', { team: 'good' }), '善良獲勝') },
-    s.isSt && inGame && { label: '判定邪惡獲勝…', onclick: () => ask('直接判定邪惡陣營獲勝，結束本局？', () => ctx.st('win', { team: 'evil' }), '邪惡獲勝') },
+    s.isSt && inGame && !s.manual && { label: '判定善良獲勝…', onclick: () => ask('直接判定善良陣營獲勝，結束本局？', () => ctx.st('win', { team: 'good' }), '善良獲勝') },
+    s.isSt && inGame && !s.manual && { label: '判定邪惡獲勝…', onclick: () => ask('直接判定邪惡陣營獲勝，結束本局？', () => ctx.st('win', { team: 'evil' }), '邪惡獲勝') },
     s.isSt && s.st?.banned > 0 && { label: `讓移出的人回來（${s.st.banned}）`, onclick: () => ctx.st('unban') },
     s.isSt && s.phase !== 'lobby' && { label: '放棄本局…', danger: true, onclick: () => ask('放棄本局？所有角色和進度會清空，玩家留在座位上。', () => ctx.st('abandon'), '放棄本局') },
     s.isSt && { label: '解散房間…', danger: true, onclick: () => ask('解散房間？所有人退回大廳，房間和聊天記錄都會刪掉。', ctx.close, '解散') },
@@ -57,6 +57,7 @@ export function topbar(ctx) {
     h('button', { class: 'room', title: '分享房間', onclick: invite }, h('i', {}, '房間 '), h('b', {}, s.code)),
     lock,
     h('span', { class: 'script-name' }, SCRIPTS[s.scriptId]?.name),
+    s.mode === 'manual' && h('span', { class: 'mode-tag' }, '手動'),
     s.phase === 'lobby' && h('button', { class: 'btn sm invite', onclick: invite }, h('span', { class: 'long' }, '分享房間'), h('span', { class: 'short' }, '分享')),
     h('span', { class: 'grow' }),
     !s.isSt && !s.peek && !s.stOnline && h('span', { class: 'warn' }, '說書人離線'),

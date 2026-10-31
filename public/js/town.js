@@ -10,7 +10,8 @@ import { trialPanel } from './trial.js';
 import { seatPicking } from './infoform.js';
 import { stepCard, decidePicking } from './stepcard.js';
 import { clockState, blockLines, playerCenter, stCenter, rulingCard, reviewCard, scriptPick } from './flow.js';
-import { pickRole } from './setup.js';
+import { pickRole, pickShown } from './setup.js';
+import { handBubble, composePicking, startCompose, openCard, openReminders } from './manual.js';
 import { openSeatLink } from './invite.js';
 
 // 當前的選人狀態：{ count, notSelfId, ids, key }
@@ -24,7 +25,7 @@ const PHASE = s => ({
   lobby: ['準備', s.seats.length < 5 ? `來了 ${s.seats.length} 位，至少要 5 位` : `來了 ${s.seats.length} 位，人齊就開局`],
   night: [`第 ${s.night} 夜`, !s.isSt ? (s.myId ? '閉上眼，輪到你時我會叫你' : '大家都閉上了眼') : s.st?.step?.status === 'review' ? '天快亮了，核對一下今晚' : '按順序叫醒他們'],
   dawn: ['天亮了', s.isSt ? '準備好就開始白天' : '睜開眼，聽聽昨晚發生了什麼'],
-  day: [`第 ${s.day} 天`, s.dayOver ? '今天已經處決過人了' : s.isSt || s.myId ? '說說你知道的，想好了就提名' : '大家在討論、提名'],
+  day: [`第 ${s.day} 天`, s.dayOver ? '今天已經處決過人了' : '討論時間'],
   ended: [s.winner === 'good' ? '善良獲勝' : '邪惡獲勝', s.winReason],
 }[s.phase]);
 
@@ -65,6 +66,7 @@ export function renderTown(ctx) {
       else if (pk.can.has(seat.id)) cls.push('selectable');
     } else if (aimed.has(seat.id)) cls.push('aimed');
     if (seat.mine) cls.push('mine');
+    if (s.st?.hand?.cards.some(c => c.seatId === seat.id && !c.done)) cls.push('acting');
     if (nom && nom.nomineeId === seat.id) cls.push('nominee');
     if (nom && nom.nominatorId === seat.id) cls.push('nominator');
     if (liveBlock(s) === seat.id) cls.push('onblock');
@@ -93,6 +95,7 @@ export function renderTown(ctx) {
     h('div', { class: 'seat-token' }, token,
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
       s.isSt && seat.fakeRole && fakeBadge(seat.fakeRole),
+      s.phase === 'lobby' && seat.pinned && h('i', { class: 'pin-mark', title: '指定' }, icon('quill')),
       // 說書人給信息：當前角色真正的持有者「真」，能被當作這個角色的「登」
       pk?.marks?.[seat.id] && h('i', { class: 'tm' + (pk.marks[seat.id] === 1 ? ' alt' : '') }, pk.marks[seat.id] === 1 ? '登' : '真'),
       dead && h('span', { class: 'dead-stamp' }, DEATH[seat.deathBy] || '死亡'),
@@ -112,7 +115,11 @@ export function renderTown(ctx) {
     (nominated || nominee) && h('div', { class: 'daytags' },
       nominated && h('span', { title: '今天已經提名過' }, '已提名'), nominee && h('span', { title: '今天已經被提名過' }, '已被提名')),
     s.isSt && seat.tags && seat.tags.length > 0 && h('div', { class: 'tags' },
-      seat.tags.map(t => h('span', { class: 'tag' + (t === '中毒' ? ' bad' : '') }, t))),
+      seat.tags.map(t => {
+        // 手動局自己貼的標記：點一下取下
+        const mine = s.st?.hand?.marks[seat.id]?.includes(t);
+        return h('span', { class: 'tag' + (t === '中毒' ? ' bad' : '') + (mine ? ' pick' : ''), onclick: mine ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: t, on: false }); } : null }, t);
+      })),
     (missed.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
       missed.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot' + (fxFor('shot', seat.id, 600) ? ' fx-shot' : ''), title: '宣稱獵手開槍，沒有打中' },
         icon('aim'), `射${num(x.to)}號失敗`)),
@@ -140,7 +147,6 @@ export function renderTown(ctx) {
     !blk && !mid && h('div', { class: 'phase-sub' }, sub),
     !s.isSt && (pop('st', '說書人') || pub('st', '公告')),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
-    s.isSt && !s.peek && s.phase === 'lobby' && scriptPick(ctx),
     mid ? cardEl(b) : s.isSt ? stCenter(ctx) : !blk && playerCenter(ctx),
     s.phase === 'ended' && mvpPane(ctx),
   ));
@@ -154,12 +160,14 @@ export function renderTown(ctx) {
     ring.append(h('div', { class: 'blk-ret ' + ret.cls, 'data-key': 'ret-' + seat.id, style: { left: x + '%', top: y + '%', ...ret.style } }, seatToken(ctx, seat)));
   }
   if (showNom) ring.append(nomLine(s, nom));
-  return h('div', { class: 'town' }, ring, showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)));
+  const picking = s.isSt && !s.peek && s.phase === 'lobby';
+  return h('div', { class: 'town' + (picking ? ' picking' : '') }, ring, picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)));
 }
 
 // 說書人：當前夜晚步驟的操作卡（走完是天亮前核對）/ 白天的裁定卡。貞潔者小窗（side）不擋投票，有別的裁定時讓位
 function stBubble(ctx) {
   const s = ctx.state;
+  if (s.manual && s.isSt && !s.peek) { const hand = handBubble(ctx); if (hand) return hand; }
   const step = s.isSt && !s.peek && s.phase === 'night' && !nightHeld() && s.st.step;
   const ruling = s.isSt && !s.peek && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
   const side = !!ruling && !s.st.ruling;
@@ -244,6 +252,7 @@ function nomLine(s, nom) {
 // 說書人給信息時可以直接點桌上的座位選人
 function pickingNow(ctx) {
   const s = ctx.state, step = s.isSt && s.phase === 'night' && s.st.step;
+  if (s.manual && s.isSt && !s.peek) return composePicking(ctx);
   if (!step || sel.on) return null;
   return step.status === 'confirm' ? seatPicking(ctx, step) : step.status === 'decide' ? decidePicking(ctx, step) : null;
 }
@@ -273,7 +282,8 @@ function onSeat(ctx, seat, anchor) {
     me && !seat.mine && { label: [icon('egg', 'menu-ico'), '扔雞蛋', h('b', { class: 'menu-n' + (eggs ? '' : ' none') }, eggs)],
       onclick: () => (eggs ? ctx.act('egg', { targetId: seat.id }) : toast('雞蛋用完了')) },
     canNominate && { label: '提名他', onclick: () => ctx.act('nominate', { targetId: seat.id }) },
-    day && !seat.mine && { label: '宣稱獵手：向他開槍', onclick: () => (s.myRole === 'slayer' ? aimAsk(ctx, seat)
+    day && s.dayOver && { label: [h('s', {}, '提名他'), h('small', {}, '今日已執行處決')], off: true },
+    day && !seat.mine && !s.manual && { label: '宣稱獵手：向他開槍', onclick: () => (s.myRole === 'slayer' ? aimAsk(ctx, seat)
       : ask(`公開宣稱自己是獵手，向 ${title} 開槍？`, () => ctx.act('slay', { targetId: seat.id }), '開槍')) },
     me && s.phase !== 'lobby' && !seat.mine && { label: '私聊', onclick: () => openChat(ctx, seat.id) },
     !s.peek && s.phase !== 'lobby' && !seat.mine && { label: '標記角色猜測', onclick: () => pickGuess(ctx, seat.id) },
@@ -285,7 +295,7 @@ function onSeat(ctx, seat, anchor) {
 // 自己是獵手（含以為自己是獵手的酒鬼）、活著、白天、還沒開過槍、沒在投票：其他活著的人頭上有瞄準鈕
 function canAim(s) {
   const me = s.seats.find(x => x.mine);
-  return !s.isSt && !s.peek && !!me && !me.dead && s.myRole === 'slayer' && s.phase === 'day' && !s.slayerUsed && !s.nomination;
+  return !s.isSt && !s.peek && !s.manual && !!me && !me.dead && s.myRole === 'slayer' && s.phase === 'day' && !s.slayerUsed && !s.nomination;
 }
 // 瞄準鈕：先講清楚獵手的規則再開槍
 function aimAsk(ctx, seat) {
@@ -310,16 +320,37 @@ function stMenu(ctx, seat, title) {
   // 換設備 / 換人頂替 / 真人接手機器人：新設備打開鏈接就接過這個座位
   const relink = { label: [icon('key', 'menu-ico'), seat.bot ? '真人頂替' : '換設備'],
     onclick: () => ctx.st('seatLink', { seatId: seat.id }).then(r => r.ok && openSeatLink(ctx, seat, title, r.token)) };
+  const shown = seat.role && s.mode === 'manual' && { label: '玩家看到的角色', onclick: () => pickShown(ctx, seat) };
   if (s.phase === 'lobby') return [
-    st.draft && { label: '更換角色', onclick: () => pickRole(ctx, seat) },
-    st.draft && herring,
-    st.draft && '-',
+    { label: '指定角色', onclick: () => pickRole(ctx, seat) },
+    seat.pinned && { label: '恢復隨機', onclick: () => ctx.st('unpin', { seatId: seat.id }) },
+    shown,
+    st.draft && s.mode !== 'manual' && herring,
+    '-',
     { label: '← 前移', onclick: () => ctx.st('moveSeat', { seatId: seat.id, dir: -1 }) },
     { label: '後移 →', onclick: () => ctx.st('moveSeat', { seatId: seat.id, dir: 1 }) },
     relink,
     { label: '移出房間', danger: true, onclick: () => ask(seat.bot ? `把 ${title} 移出房間？` : `把 ${title} 移出房間？他不能再進來。`, () => ctx.st('kick', { seatId: seat.id }), '移出') },
   ];
   const live = s.phase !== 'ended', poisoned = st.poisoned === seat.id;
+  if (s.manual) {
+    const evil = seat.align ? seat.align === 'evil' : !good;
+    return [
+      live && { label: '叫醒', onclick: () => openCard(ctx, seat) },
+      live && { label: '給信息', onclick: () => startCompose(ctx, seat) },
+      live && { label: '貼標記', onclick: () => openReminders(ctx, seat) },
+      live && '-',
+      { label: '代入他的視角', onclick: () => ctx.peek(seat.id) },
+      { label: '私聊', onclick: () => openChat(ctx, seat.id) },
+      relink,
+      live && '-',
+      live && { label: '更換角色', onclick: () => pickRole(ctx, seat) },
+      live && shown,
+      live && { label: evil ? '改為善良' : '改為邪惡', onclick: () => ctx.st('setAlign', { seatId: seat.id, align: evil ? 'good' : 'evil' }) },
+      live && { label: seat.dead ? '復活' : '標記死亡', onclick: () => ctx.st('setDead', { seatId: seat.id, dead: !seat.dead }) },
+      live && s.phase === 'day' && !s.dayOver && { label: '立即處決', danger: true, onclick: () => ask(`立即處決 ${title}？今天不能再處決別人。`, () => ctx.st('execute', { seatId: seat.id }), '處決') },
+    ];
+  }
   return [
     { label: '代入他的視角', onclick: () => ctx.peek(seat.id) },
     { label: '私聊', onclick: () => openChat(ctx, seat.id) },

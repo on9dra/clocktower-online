@@ -1,5 +1,5 @@
-/* 規則書和介紹卡共用的印刷件：素材由 art-src/print-kit.py 生成，字體由 art-src/print-font.py 生成。
-   兩處都是印在紙上的東西，所以線不用 border，都換成 --r-* 這幾條手刻的線；不做舊，舊只體現在紙張本身 */
+/* 印刷件：規則書、介紹卡和遊戲裏所有卡片共用。素材由 art-src/print-kit.py 生成，字體由 art-src/print-font.py 生成。
+   都是印在紙上的東西，所以線不用 border，都換成 --r-* 這幾條手刻的線；不做舊，舊只體現在紙張本身 */
 @font-face { font-family: "Press TC"; src: url(../fonts/serif-tc.woff2) format("woff2"); font-weight: 500 900; font-display: swap; }
 @font-face { font-family: "Press SC"; src: url(../fonts/serif-sc.woff2) format("woff2"); font-weight: 500 900; font-display: swap; }
 /* 介紹卡只用這一小份，規則書打開時才拉上面那份 */
@@ -13,6 +13,9 @@
   --r-wenwu: url(../img/press/rule-wenwu.webp);
   --r-dash: url(../img/press/rule-dash.webp);
   --r-v: url(../img/press/rule-thin-v.webp);
+  /* 紙板的側面：面紙、灰板芯、底紙 */
+  --card-edge: 1px 1px 0 #d6ccb7, 2px 2px 0 #a59a84, 3px 3px 0 #8b8270, 4px 4px 0 #80786a, 5px 5px 0 #8b8270, 6px 6px 0 #bdb29b, 7px 7px .5px #6e6250;
+  --card-edge-s: 1px 1px 0 #d6ccb7, 2px 2px 0 #8b8270, 3px 3px 0 #80786a, 4px 4px .5px #6e6250;
   --press: "Press TC"; --press-card: "Card TC";
   --song: "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
 }
@@ -24,4 +27,66 @@
 .pp, .it-page { --sans: var(--serif); font-family: var(--serif); font-weight: 500; font-feature-settings: "palt" 0; }
 
 /* 大字的墨邊。只給大字：小字一過濾鏡就糊，大面積的東西放進來，翻頁第一幀要算很久 */
-.pp-title h2, .hp-team-h b, .hp-dead-r b, .it-h h2, .it-team h3 { filter: url(#inked); }
+.pp-title h2, .hp-team-h b, .hp-dead-r b, .it-h h2, .it-feat h3 { filter: url(#inked); }
+
+/* ———— 遊戲裏的卡片：和介紹卡同一張厚紙板 ————
+   紙紋、版框（整張圖貼在 border 上，紙邊是透明的，底下的紙透出來）、側面的板厚、模切圓角、宋體。
+   --fw 是版框寬（滿幅 28px），小卡片縮一號；--mark 是版框裏面一圈語義色的線（毒綠、查驗藍、陣營色），原來的彩色邊框換成它。
+   夜裏桌面中央換了一組深色變量（night.css），紙牌不跟：紙永遠是紙，所以這裏把顏色變量蓋回紙色 */
+body.art :is(.pc, .modal:not(.help), .trial, .turn-pane, .card:not(.on-table), .hud, .bluffs, .mvp-pane, .join, .script-card) {
+  --paper: #dcd3c0; --card: #e8e0d0; --ink: #2a2622; --muted: #635a4c; --line: #c2b7a1; --line-strong: #92866f; --hover: #d3c9b4; --lit: #eddfb4; --good: #2f5d8a; --evil: #8a1c1c; --brass: #7f6320;
+  --sans: var(--serif); --fw: 20px; color: var(--ink); font-family: var(--serif);
+  background: var(--card) var(--paper-tex) 0 0 / 320px; border: var(--fw) solid transparent; border-image: url(../img/press/card.webp) 56 / var(--fw) round; border-radius: 10px;
+  box-shadow: inset 0 0 0 2px var(--mark, #0000), var(--card-edge-s), 6px 12px 24px #0a0d1866; }
+/* 大卡片：滿幅版框、厚板 */
+body.art :is(.pc, .modal:not(.help)) { --fw: 28px; border-radius: 13px; box-shadow: var(--card-edge), 12px 22px 40px #0a0d1880; }
+body.art .pc { padding: clamp(0px, 1vw, 10px) clamp(4px, 2vw, 16px); }
+body.art .modal-head { padding: 0 4px 13px; border-bottom: 0; background: var(--r-wenwu) 0 100% / 600px 13px repeat-x; font: 900 20px var(--serif); letter-spacing: .1em; }
+body.art .modal-body { padding: 10px 4px 6px; } /* 底部留白：按鈕的厚度和傾斜不能頂出滾動區，否則一指就冒滾動條 */
+body.art .trial { --fw: 24px; padding: 4px 6px 2px; }
+body.art .turn-pane { --fw: 24px; --mark: var(--tone); padding: 6px 8px 8px; }
+body.art .card:not(.on-table) { padding: 2px 4px 4px; }
+body.art .infocard.ruling { --mark: var(--brass); }
+body.art .infocard.ruling.side { padding: 0 2px; }
+body.art .hud { --mark: var(--team); padding: 3px 4px; }
+body.art .bluffs { --mark: var(--evil); padding: 1px 3px 3px; }
+body.art .board:has(> .bluffs:not(.min)) > .hud:not(.min) { --bl-h: 158px; } /* 帶版框的偽裝卡高一點，HUD 要讓出這麼多 */
+body.art .mvp-pane { --mark: var(--brass); padding: 1px 8px 3px; }
+body.art .join { --fw: 24px; padding: 5px 8px 9px; }
+body.art .town .script-card { --fw: 14px; padding: 2px; border-radius: 6px; } /* 窄卡，和右邊的豎條進度一樣細的版框 */
+/* 收成角色牌的圓片不是卡片 */
+body.art .hud.min { padding: 5px; background: var(--card); border: 0; border-image: none; border-radius: 50%; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
+body.art .bluffs.min { padding: 6px 10px; background: var(--card); border: 1.5px solid var(--evil); border-image: none; border-radius: 999px; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
+@media (min-width: 861px) and (max-width: 1180px) {
+  body.art .hud.pick { padding: 5px; background: var(--card); border: 0; border-image: none; border-radius: 50%; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
+  body.art .bluffs.pick { padding: 6px 10px; background: var(--card); border: 1.5px solid var(--evil); border-image: none; border-radius: 999px; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
+}
+/* 卡片裏的分隔線 */
+body.art .tr-body { border-top: 0; background: var(--r-thin) 0 0 / 600px 7px repeat-x; }
+body.art :is(.tr-foot, .tr-acts) { border-top: 0; background: var(--r-dash) 0 0 / 600px 7px repeat-x; }
+body.art .hud-list { border-top: 0; background: var(--r-thin) -210px 0 / 600px 7px repeat-x; }
+body.art .pc-winners { border-top: 0; background: var(--r-thin) 0 0 / 600px 7px repeat-x; }
+body.art .set-row { border-bottom: 0; background: var(--r-thin) 0 100% / 600px 7px repeat-x; }
+body.art .set-row:last-child { background: none; }
+body.art .score-tbl th { border-bottom: 0; background: var(--r-mid) 0 100% / 600px 8px repeat-x; }
+body.art .score-tbl td { border-bottom: 0; background: var(--r-dash) 0 100% / 600px 7px repeat-x; }
+/* 寬屏的豎條進度：窄，版框縮到最小 */
+@media (min-width: 1000px) {
+  body.art .pg::before { --fw: 14px; background: #e8e0d0 var(--paper-tex) 0 0 / 320px; border: var(--fw) solid transparent; border-image: url(../img/press/card.webp) 56 / var(--fw) round; border-radius: 6px; box-shadow: var(--card-edge-s), 5px 10px 20px #0a0d1866; }
+}
+/* 矮手機：圓桌上方的空白要留給人數和機器人，劇本卡去掉版框 */
+@media (max-width: 640px) and (max-height: 700px) {
+  body.art .town .script-card { padding: 1px; border: 1.5px solid var(--ink); border-image: none; border-radius: 3px; }
+}
+@media (max-width: 640px) {
+  body.art :is(.pc, .modal:not(.help)) { --fw: 20px; border-radius: 10px; box-shadow: var(--card-edge-s), 6px 14px 26px #0a0d1880; }
+  body.art :is(.trial, .turn-pane, .card:not(.on-table), .hud, .bluffs, .mvp-pane, .join) { --fw: 15px; border-radius: 8px; }
+  body.art .trial { padding: 2px 3px; }
+  body.art .hud { padding: 1px 2px; }
+  body.art .bluffs { padding: 0 2px; }
+  body.art .mvp-pane { padding: 0 4px; }
+  body.art .turn-pane { padding: 2px 4px 4px; }
+  body.art .join { padding: 3px 4px 5px; }
+}
+/* 手機上「收起」貼著角，別壓到能力說明 */
+body.art .hud-x { right: 0; top: 0; }

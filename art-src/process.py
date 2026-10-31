@@ -21,7 +21,6 @@ JOBS = [
     ('A5/seat-empty-green.png', 'seat-empty', 'circle', 384),
     ('A6/plate-green.png', 'plate', 'trim', 960),
     ('A6/plate-evil-green.png', 'plate-evil', 'trim', 960),
-    ('A7/card-frame-green.png', 'card-frame', 'trim', 1024),
     ('A8/card-back-green.png', 'card-back', 'circle', 768),
     ('B1/title-traditional-green.png', 'title-tc', 'trim', 1600),
     ('B1/title-simplified-green.png', 'title-sc', 'trim', 1600),
@@ -44,7 +43,7 @@ JOBS = [
 ]
 
 # 這幾張是紙：統一乘一層，和 style.css 的 --card、--paper 同一檔，夜色旁邊不刺眼（mat-plain.py 的 table-day 同理）
-PAPER = {'seat-empty', 'plate', 'plate-evil', 'card-frame'}
+PAPER = {'seat-empty', 'plate', 'plate-evil'}
 SOFT = (.921, .922, .915)
 
 def soft(im):

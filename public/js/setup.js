@@ -1,6 +1,6 @@
 // 說書人開局配置：角色「必選 / 排除」；給某個座位更換角色（預覽時和遊戲中都可以）
 import { h, modal, closeModal, roleToken, seatLabel } from './ui.js';
-import { ROLES, TEAMS, SCRIPTS, teamCounts, changesSetup } from './roles.js';
+import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup } from './roles.js';
 import { tr } from './lang.js';
 
 const RULE_TEXT = { lock: '必選', ban: '排除' };
@@ -18,7 +18,7 @@ function statusLine(n, rules) {
     const c = countsOf(n, rules);
     text.textContent = tr(`${n} 人：鎮民 ${c.townsfolk}、外來者 ${c.outsider}、爪牙 ${c.minion}、惡魔 ${c.demon}`);
     const count = t => Object.keys(rules).filter(id => rules[id] === 'lock' && ROLES[id].team === t).length;
-    const over = Object.keys(TEAMS).filter(t => count(t) > c[t]).map(t => `${TEAMS[t].name} ${count(t)}/${c[t]}`).join('、');
+    const over = CORE.filter(t => count(t) > c[t]).map(t => `${TEAMS[t].name} ${count(t)}/${c[t]}`).join('、');
     const was = warn.textContent;
     if (over) warn.textContent = tr(`必選超額 ${over}`); // 沒超額時字留著，淡出時不會一下子空掉
     warn.classList.toggle('on', !!over);
@@ -53,13 +53,32 @@ export function openSetup(ctx) {
   modal('角色配置', h('div', {},
     h('p', { class: 'muted', style: { marginTop: 0 } }, '點角色切換：隨機（默認）→ 必選 → 排除。' + (s.scriptId === 'tb' ? '男爵隨機時只在 7 人及以上出現。' : '')),
     status,
-    Object.keys(TEAMS).map(team => [
+    CORE.map(team => [
       h('div', { class: 'sheet-team', style: { color: TEAMS[team].color } }, TEAMS[team].name),
       h('div', { class: 'setup-grid' }, roles.filter(id => ROLES[id].team === team).map(tile)),
     ]),
     h('div', { class: 'row', style: { justifyContent: 'space-between' } },
       h('button', { class: 'btn ghost', onclick: reset }, '全部恢復隨機'),
-      h('button', { class: 'btn primary', onclick: closeModal }, '完成'))), { wide: true });
+      h('button', { class: 'btn primary', onclick: closeModal }, '完成'))), { wide: true, cls: 'setup-modal' });
+}
+
+const roleGrid = (ids, onPick) => h('div', { class: 'guess-grid' }, ids.map(id =>
+  h('div', { class: 'guess-pick', onclick: () => onPick(id) }, roleToken(id, { size: 'sm' }), ROLES[id].name)));
+
+// 指定一格惡魔偽裝：智能推進只列不在場的善良角色，手動局列全部
+export function pickBluff(ctx, i) {
+  const s = ctx.state, pins = s.st.bluffPins, manual = s.mode === 'manual', used = new Set(s.seats.flatMap(x => [x.role, x.fakeRole]));
+  const ok = id => !pins.includes(id) && (manual || (['townsfolk', 'outsider'].includes(ROLES[id].team) && id !== 'drunk' && !used.has(id)));
+  const set = roleId => { closeModal(); ctx.st('setBluff', { i, roleId }); };
+  modal('惡魔偽裝', h('div', {}, roleGrid(SCRIPTS[s.scriptId].roles.filter(ok), set),
+    pins[i] && h('button', { class: 'btn ghost', onclick: () => set(null) }, '恢復隨機')), { wide: true });
+}
+
+// 手動局：玩家看到的角色，可以和魔典上的不一樣
+export function pickShown(ctx, seat) {
+  const s = ctx.state, set = roleId => { closeModal(); ctx.st('setShown', { seatId: seat.id, roleId }); };
+  modal(`${seatLabel(s, seat.id)} 看到的角色`, h('div', {}, roleGrid(SCRIPTS[s.scriptId].roles, set),
+    seat.fakeRole && h('button', { class: 'btn ghost', onclick: () => set(null) }, '和魔典一樣')), { wide: true });
 }
 
 // 選一個新角色；選酒鬼 / 瘋子時再選他以為自己是哪個鎮民 / 惡魔

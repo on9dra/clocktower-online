@@ -212,13 +212,14 @@ def perf():
 
 # ———— 版框 ————
 def frame():
-    """一頁的版框：外面一道粗線，中間磚紅的車花帶，裏面一道細線，一共 20px 寬；四角木刻方塊。
-    九宮格 + round：只畫一小張，中間 260px 是可以重複的一節，線和車花都按這個週期畫，首尾接得上"""
-    C, T = 20, 260  # 角寬、重複節的長度
+    """卡片的版框 card.webp：外面留 8px 紙邊，一道粗線、磚紅的車花帶、一道細線，一共 28px 寬；四角木刻方塊。
+    九宮格 + round（56 / 28px）：只畫一小張，中間 260px 是可以重複的一節，線和車花都按這個週期畫，首尾接得上。
+    紙邊是透明的：整張圖貼在 border 上，底下的紙透出來，所以任何卡片加上 border-image 就有版框"""
+    M, C, T = 8, 28, 260  # 紙邊、角寬、重複節的長度
     W = H = T + 2 * C
     im, d = canvas(W, H)
     br, bd = canvas(W, H)
-    o, g, c = 2.4, 17.6, 10
+    o, g, c = M + 2.4, M + 17.6, M + 10
     for y in (o, H - o):
         rule(d, C, y, C + T, y, 3.2, .4)
         nicks(d, C, y, C + T, y, 1, 2.4)
@@ -242,7 +243,7 @@ def frame():
         cd.ellipse(((cx - 1.2) * U, (cy - 1.2) * U, (cx + 1.2) * U, (cy + 1.2) * U), fill=255)
     m = np.clip(arr(im) - arr(cut), 0, 1)
     b = arr(br)
-    save('frame', rgba([(press(b, rough=.05, squeeze=.1, gain=3), BRICK), (press(m), INK)], np.maximum(m, b * .4)), 66)
+    save('card', rgba([(press(b, rough=.05, squeeze=.1, gain=3), BRICK), (press(m), INK)], np.maximum(m, b * .4)), 66)
 
 
 def block():

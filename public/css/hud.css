@@ -473,11 +473,24 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .fx-blade polygon.core { fill: var(--ink); stroke: none; }
 .fx-flash { position: fixed; inset: 0; background: var(--card); pointer-events: none; }
 
-/* 劇本選擇（準備階段圓桌中央）：三個劇本名，當前的墨底反白 */
-.script-pick { display: inline-flex; gap: 0; border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; }
+/* 劇本卡（準備階段，說書人）：桌面左上角的窄紙卡，當前劇本墨底反白，虛線格是還沒做的 DLC（和沒選角色的虛線格同一個意思）。手機豎屏左邊沒地方，橫著放桌面頂上 */
+.script-card { position: absolute; left: 8px; top: 8px; z-index: 3; display: grid; gap: 2px; width: 112px; background: var(--card); border: 1.5px solid var(--ink); animation: script-card-in .42s cubic-bezier(.2, .8, .3, 1) backwards; }
+.script-card b { padding: 1px 0 6px .3em; font: 900 14px/1 var(--serif); letter-spacing: .3em; text-align: center; }
+.script-card .chip { padding: 5px 0; border: 0; border-radius: 2px; background: none; font: 700 14px var(--serif); white-space: nowrap; }
+.script-card .chip.on { background: var(--ink); color: var(--card); }
+.script-card .soon { margin-top: 4px; outline: 1px dashed var(--line-strong); outline-offset: -1px; color: var(--muted); font-weight: 500; pointer-events: none; }
+@keyframes script-card-in { from { translate: -24px 0; opacity: 0; } }
+@media (max-width: 640px) and (orientation: portrait) {
+  .script-card { left: 50%; top: 2px; width: max-content; translate: -50% 0; grid-auto-flow: column; animation: none; }
+  .script-card b { display: none; }
+  .script-card .chip { padding: 3px 8px; font-size: 13px; }
+  .script-card .soon { margin: 0 0 0 3px; }
+}
+/* 規則書示意圖裏的劇本卡：格子之間的縫露出墨底，就是分隔線，橫豎排都一樣 */
+.script-pick { display: inline-grid; gap: 1.5px; background: var(--ink); border: 1.5px solid var(--ink); border-radius: 4px; overflow: hidden; }
 .script-pick .chip { border: 0; background: var(--card); padding: 3px 10px; font: 700 13px var(--serif); }
-.script-pick .chip + .chip { border-left: 1.5px solid var(--ink); }
 .script-pick .chip.on { background: var(--ink); color: var(--card); }
+.script-pick .soon { color: var(--muted); font-weight: 500; }
 .script-name { font: 700 13px var(--serif); color: var(--muted); border: 1px solid var(--line-strong); border-radius: 3px; padding: 0 6px; white-space: nowrap; }
 /* 選角色的格子：沒選時是虛線圈 +「角色」，選中後是角色牌 + 名字 */
 .role-slot { display: inline-flex; align-items: center; gap: 4px; background: none; border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 2px 8px 2px 4px; font-size: 15px; }
@@ -488,6 +501,68 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .tp-picks { justify-content: center; margin-top: 0; }
 /* 渦流在場：真實答案不能選 */
 .opt-tile.off { opacity: .35; pointer-events: none; }
-.center .script-pick { margin-top: 10px; pointer-events: auto; }
-.center .script-pick .chip { padding: 5px 14px; font-size: 15px; white-space: nowrap; }
-.ring.crowded .center .script-pick .chip { padding: 4px 8px; font-size: 13px; }
+
+/* 上傳劇本和模式：都在劇本卡裏。上傳是虛線格，和「還沒有的東西」同一個意思；名字長的自製劇本截斷 */
+.script-card .sc-group { display: grid; gap: 2px; min-width: 0; }
+.script-card .sc-mode { grid-template-columns: auto auto; margin-top: 4px; padding-top: 5px; border-top: 1px solid var(--line-strong); }
+.script-card .sc-mode .chip { overflow: visible; padding-inline: 1px; font-size: 12.5px; }
+.script-card .chip { overflow: hidden; padding-inline: 5px; text-overflow: ellipsis; }
+.script-card .chip.up { margin-top: 4px; outline: 1px dashed var(--ink); outline-offset: -1px; font-weight: 500; }
+.script-card .chip:disabled:not(.soon) { color: var(--muted); opacity: .55; }
+.script-card .chip:not(.soon, .on, :disabled):hover { background: var(--hover); }
+@media (max-width: 640px) and (orientation: portrait) {
+  .script-card { justify-items: center; grid-auto-flow: row; gap: 3px; max-width: 98vw; }
+  .script-card .sc-group { grid-auto-flow: column; }
+  .script-card .sc-mode { grid-template-columns: none; margin: 0; padding: 0; border: 0; }
+  .script-card .chip { max-width: 5.4em; padding-inline: 3px; font-size: 12.5px; }
+  .script-card .chip.up { margin: 0 0 0 3px; }
+  .script-card .soon { display: none; }
+  .script-card .sc-mode .chip { padding-inline: 10px; }
+}
+/* 配比對不上的陣營：虛線圈標出來，不攔 */
+.team-n.off { outline: 1.5px dashed var(--evil); outline-offset: 2px; border-radius: 3px; }
+/* 說書人指定的座位和偽裝：小鵝毛筆章 */
+.pin-mark { position: absolute; left: -3px; top: -3px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--brass); color: var(--card); pointer-events: none; }
+.pin-mark .ico { width: 12px; height: 12px; }
+.bluff-pick { padding: 1px 4px; border: 1px dashed transparent; border-radius: 3px; background: none; color: inherit; cursor: pointer; font: inherit; }
+.bluff-pick:hover { border-color: var(--line-strong); background: var(--hover); }
+.bluff-pick.pinned { border-color: var(--brass); }
+/* 沒有內置圖標的角色：名字的第一個字 */
+.token-char { dominant-baseline: central; fill: currentColor; font: 900 310px var(--serif); text-anchor: middle; }
+/* 頂欄的手動局標記：手機上放不下，和劇本名一樣收進「⋯」的標題 */
+.mode-tag { flex: none; padding: 0 6px; border-radius: 3px; background: var(--ink); color: var(--card); font: 700 13px var(--serif); white-space: nowrap; }
+@media (max-width: 860px) {
+  .topbar .mode-tag { display: none; }
+  .topbar .m-tabs { flex: 0 1 auto; min-width: 0; margin: -8px -8px -8px 0; padding: 8px 8px 8px 0; overflow-x: auto; scrollbar-width: none; } /* 多留的邊給未讀紅點，不然會被裁掉 */
+  .topbar .m-tabs .btn { flex: none; }
+  .topbar .more { flex: none; }
+  .game:not(.phase-lobby) .topbar:has(.m-tabs .btn:nth-child(5)) .lock { display: none; } /* 手動局多一個標籤：開局後鎖房用不上 */
+}
+/* 手動局：叫醒、貼標記的表單 */
+.hand-form { display: grid; gap: 12px; }
+.hand-form input { width: 100%; }
+.hand-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.hand-row .chip { min-width: 2.2em; padding: 4px 10px; font: 700 14px var(--serif); }
+.hand-row .chip.on { background: var(--ink); border-color: var(--ink); color: var(--card); }
+/* 發出去的牌 */
+.hand-cards { display: grid; gap: 3px; max-height: 132px; overflow-y: auto; }
+.hand-card { flex-wrap: nowrap; justify-content: center; gap: 5px; font-size: 14px; }
+.hand-card .waiting { margin-left: 0; }
+.hand-win { justify-content: center; margin-top: 2px; }
+.hand-win .btn { color: var(--muted); }
+/* 拼信息：點式子裏的一項就去掉 */
+.cp-term { display: inline-flex; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; font: inherit; }
+.cp-term:hover { opacity: .45; }
+.cp-tools input { flex: 1; min-width: 96px; }
+/* 夜晚順序參考：勾掉叫過的 */
+.ref-row { display: grid; grid-template-columns: 20px auto 1fr auto; align-items: center; gap: 2px 7px; width: 100%; padding: 5px 4px; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; cursor: pointer; font: inherit; text-align: left; }
+.ref-row:hover { background: var(--hover); }
+.ref-row > b { min-width: 0; overflow: hidden; font: 700 14px var(--serif); text-overflow: ellipsis; white-space: nowrap; }
+.ref-row > small { grid-column: 3 / -1; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.ref-row.absent { opacity: .5; }
+.ref-row.done > b { text-decoration: line-through; }
+.ref-row.done > small { display: none; }
+.ref-box { display: grid; place-items: center; width: 16px; height: 16px; border: 1.5px solid var(--ink); border-radius: 2px; }
+.ref-box .ico { width: 12px; height: 12px; }
+.tag.pick { cursor: pointer; }
+.tag.pick:hover { text-decoration: line-through; }

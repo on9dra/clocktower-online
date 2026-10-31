@@ -38,10 +38,11 @@ export function townLife() {
     const [x, y, w, H] = LAMPS.slice(i, i + 4);
     lamps.push(`<rect x="${x}" y="${y}" width="${w}" height="${H}" rx="2" style="--t:${(36 + r() * 60).toFixed(0)}s;--d:-${(r() * 90).toFixed(0)}s"/>`);
   }
-  // 延遲都是一格定格（.3s）的整數倍：所有煙團同一拍換格，svg 一秒只重繪三次
-  const puffs = CHIMNEY.flatMap(([x, y], i) => [0, 1, 2].map(k => `<circle cx="${x}" cy="${y}" r="7" style="--d:-${(k * 2.7 + i * 1.2).toFixed(1)}s"/>`));
-  root.innerHTML = `<svg viewBox="0 0 2172 724" preserveAspectRatio="xMidYMax slice"><g class="tl-lamps">${lamps.join('')}</g><g class="tl-smoke">${puffs.join('')}</g>`
+  // 煙不放進 svg：svg 裏的東西一動就要重繪整張圖，獨立的圓片只動 transform / opacity，交給顯卡跑滿幀
+  const puffs = CHIMNEY.flatMap(([x, y], i) => [0, 1, 2].map(k => `<i style="--x:${x};--y:${y};--d:-${(k * 2.8 + i * 1.2).toFixed(1)}s"></i>`));
+  root.innerHTML = `<svg viewBox="0 0 2172 724" preserveAspectRatio="xMidYMax slice"><g class="tl-lamps">${lamps.join('')}</g>`
     + `<line class="tl-h" x1="${CLOCK[0]}" y1="${CLOCK[1]}" x2="${CLOCK[0]}" y2="${CLOCK[1] - 15}" style="--d:-${hour}s"/>`
-    + `<line class="tl-m" x1="${CLOCK[0]}" y1="${CLOCK[1]}" x2="${CLOCK[0]}" y2="${CLOCK[1] - 24}" style="--d:-${min}s"/></svg>`;
+    + `<line class="tl-m" x1="${CLOCK[0]}" y1="${CLOCK[1]}" x2="${CLOCK[0]}" y2="${CLOCK[1] - 24}" style="--d:-${min}s"/></svg>`
+    + `<div class="tl-smoke">${puffs.join('')}</div>`;
   return root;
 }

@@ -91,33 +91,31 @@ const PAGES = [['tip', 'cup', '投喂', tipPage], ['fb', 'letter', '反饋', fbP
 // start：先翻到哪一頁（tip / fb / share / note）
 export function openAbout(ctx, start = 'tip') {
   const pages = PAGES.map(([k, , , make]) => h('section', { class: 'ab-page ab-p-' + k }, make(ctx)));
-  let at = Math.max(0, PAGES.findIndex(p => p[0] === start)), busy = false, x0 = null;
+  let at = Math.max(0, PAGES.findIndex(p => p[0] === start)), land = null, x0 = null; // land：讓正在翻的那頁立刻落地
   const stage = h('div', { class: 'ab-stage' });
   const tabs = PAGES.map(([, ico, name], i) => h('button', { class: 'ab-tab', onclick: () => go(i) }, icon(ico), name));
   const mark = i => tabs.forEach((t, k) => t.classList.toggle('on', k === i));
-  // 這頁的內容依次出來（翻頁時就開始，翻完不再重播）
-  const enter = p => { p.classList.remove('in'); void p.offsetWidth; p.classList.add('in'); };
-  // 往後翻：當前頁沿左邊翻走，露出底下的；往前翻：那頁從左邊翻回來蓋上
+  // 往後翻：當前頁沿左邊翻走，露出底下的；往前翻：那頁從左邊翻回來蓋上。連著點時上一頁先落地，每一下都有反應
+  // 只把新頁放進來、舊頁拿掉，不動留在台上的節點：一動它的入場動畫就重播。上下靠 .leaf 的 z-index
   function go(i) {
-    if (busy || i === at) return;
+    if (i === at) return;
+    land?.();
     const fwd = i > at, cur = pages[at], nxt = pages[i], leaf = fwd ? cur : nxt;
-    busy = true;
+    at = i;
     mark(i);
-    enter(nxt);
-    stage.replaceChildren(...(fwd ? [nxt, cur] : [cur, nxt]));
+    stage.append(nxt);
     leaf.classList.add('leaf');
     const open = { transform: 'rotateY(0deg)', filter: 'brightness(1)' }, gone = { transform: 'rotateY(-96deg)', filter: 'brightness(.82)' };
     const a = leaf.animate(fwd ? [open, gone] : [gone, open], { duration: 520, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'both' });
-    const done = () => { if (!busy) return; busy = false; a.cancel(); leaf.classList.remove('leaf'); stage.replaceChildren(nxt); at = i; };
-    a.onfinish = done;
-    setTimeout(done, 800); // 後台標籤頁不出幀時直接翻完
+    const done = () => { if (land !== done) return; land = null; clearTimeout(late); a.cancel(); leaf.classList.remove('leaf'); cur.remove(); };
+    const late = setTimeout(done, 800); // 後台標籤頁不出幀時直接翻完
+    land = a.onfinish = done;
   }
   // 手機左右滑（在信紙裏劃字不算）
   stage.onpointerdown = e => { x0 = e.target.closest('textarea, input') ? null : e.clientX; };
   stage.onpointerup = e => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 50) go(Math.min(pages.length - 1, Math.max(0, at + (dx < 0 ? 1 : -1)))); };
 
   modal(card(), h('div', { class: 'about' }, h('nav', { class: 'ab-tabs' }, tabs), stage), { cls: 'about-modal' });
-  stage.replaceChildren(pages[at]);
-  enter(pages[at]);
+  stage.append(pages[at]);
   mark(at);
 }

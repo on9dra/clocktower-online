@@ -28,6 +28,8 @@ function body(s, e) {
     case 'info': return [mini(e.src), seatBadge(s, e.seat), e.free && w('中毒/醉酒', 'evil'),
       h('span', { class: 'lv lv' + e.level }, formula(s, e.f))];
     case 'sent': return [tag(e.src === 'demoninfo' ? 'demon' : 'minion'), w('已告知')];
+    case 'card': return [seatBadge(s, e.seat), e.f.length ? [w('選了'), formula(s, e.f)] : w('沒有選', 'muted')];
+    case 'told': return [w('告知'), seatBadge(s, e.seat), formula(s, e.f)];
     case 'skip': return [mini(e.src), e.seat && seatBadge(s, e.seat), w('跳過', 'muted')];
     case 'death': return [seatBadge(s, e.seat), mini(e.role), w(CAUSE[e.cause] || '死亡', 'bad')];
     case 'demon': return [seatBadge(s, e.seat), w('成為', 'bad'), named(e.role), w(e.why === 'scarletwoman' ? '（紅唇女郎）' : '（傳位）', 'muted')];
@@ -50,6 +52,7 @@ function fixBody(s, e) {
     case 'revive': return [seat, w('復活', 'good')];
     case 'role': return [seat, e.from && mini(e.from), w('改為'), named(e.role), e.fake && [w('以為是'), named(e.fake)]];
     case 'herring': return [named('fortuneteller'), w('紅鯡魚'), seat];
+    case 'align': return [seat, w('改為'), w(e.align === 'good' ? '善良' : '邪惡', e.align === 'good' ? 'good' : 'evil')];
     case 'execute': return [w('處決', 'bad'), seat];
     case 'tell': return [seat, h('span', { class: 'log-text' }, e.text)];
     default: return seat;

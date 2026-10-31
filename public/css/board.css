@@ -20,7 +20,7 @@ button.room:hover { border-bottom-color: var(--ink); }
 .board { grid-area: board; display: flex; min-height: 0; min-width: 0; }
 /* .town 是尺寸容器：圓桌取剩下的寬高裏小的那個 */
 .town { flex: 1; display: grid; place-items: center; padding: 6px; min-height: 0; min-width: 0; container-type: size; }
-.ring { position: relative; width: min(100cqw, 100cqh); aspect-ratio: 1; }
+.ring { --rw: min(100cqw, 100cqh); position: relative; width: var(--rw); aspect-ratio: 1; }
 .ring::before { content: ""; position: absolute; inset: 8%; border: 1.5px dashed var(--line-strong); border-radius: 50%; }
 body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { border-color: #5b6275; }
 
@@ -306,7 +306,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   /* 桌面：.town 是尺寸容器，圓桌取寬高裏小的那個；頭像跟著圓桌大小縮放（--tk） */
   .town { flex: 1; contain: layout; padding: 4px; }
   /* 左右留一點邊：3 點、9 點方向的名牌不被屏幕邊緣切掉 */
-  .ring { width: min(92cqw, 100cqh); --tk: clamp(34px, 15.5cqmin, 62px); }
+  .ring { --rw: min(92cqw, 100cqh); --tk: clamp(34px, 15.5cqmin, 62px); }
   .ring.crowded { --tk: clamp(30px, 12.5cqmin, 50px); }
   .seat { width: calc(var(--tk) * 1.35); }
   .seat .token:not(.sm):not(.xs) { width: var(--tk); height: var(--tk); }
@@ -379,10 +379,11 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .setup-role.ban { opacity: .5; border-style: dashed; }
 .setup-role.ban i { color: var(--evil); font-weight: 700; }
 /* 人數一行：固定高度吸頂；超額警告是蓋在右邊的小印章，不佔行、不撐高彈窗 */
-.setup-status { position: sticky; top: -12px; z-index: 2; display: flex; align-items: center; min-height: 34px; margin: 0 -2px 2px; padding: 0 2px; background: #dfd6c3; font-size: 12px; }
+.setup-status { position: sticky; top: -12px; z-index: 2; display: flex; align-items: center; min-height: 34px; margin: 0 -2px 2px; padding: 0 2px; background: var(--card) var(--paper-tex) 0 0 / 320px; font-size: 12px; }
 .setup-warn { position: absolute; right: 2px; top: 50%; translate: 0 -50%; padding: 1px 8px 2px; color: var(--evil); background: #e8dfcd; border: 1.5px solid currentColor; box-shadow: inset 0 0 0 1px #e8dfcd, inset 0 0 0 2px currentColor;
   font: 900 13px/1.5 var(--serif); letter-spacing: .06em; white-space: nowrap; rotate: -2deg; opacity: 0; scale: 1.5; pointer-events: none; transition: opacity .16s ease, scale .2s cubic-bezier(.5, 0, .7, 1); }
 .setup-warn.on { opacity: 1; scale: 1; }
+.setup-modal .modal-body { overflow-x: hidden; } /* 待命的印章放大著、格子按下去會傾斜，都會探出一點，不能變成左右滾動 */
 .guess-pick.on { background: var(--hover); outline: 1.5px solid var(--ink); }
 .guess-pick small { margin-left: auto; }
 .lang-lobby { justify-self: center; }
@@ -585,6 +586,14 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; min-height: 104px; }
 .lobby-after > * { animation: l-rise .3s ease backwards; }
 .lobby-after > .row { margin-top: 0; animation-delay: .08s; }
+/* 劇本卡占桌面左上角。桌子是圓的，角上本來就空：左邊空位夠就不動；不夠先把圓桌往右下推，還不夠才縮到圓剛好擦過卡片的右下角（--ab 是這個角的 x + y）。
+   開局後卡片收走，圓桌滑回原位，尺寸和座位都不跳 */
+.is-st .ring { transition: width .45s ease, translate .45s ease; }
+@media (min-width: 641px), (orientation: landscape) {
+  .town.picking { --a: 140px; --ab: 415px; }
+  .town.picking .ring { --r: min(var(--rw), .585 * (100cqw + 100cqh - var(--ab))); --dx: calc((100cqw - var(--r)) / 2); --dy: calc((100cqh - var(--r)) / 2);
+    width: var(--r); translate: min(var(--dx), max(0px, var(--a) - var(--dx))) min(var(--dy), max(0px, var(--a) - 2 * var(--dx))); }
+}
 .lp-top, .lp-act { display: contents; }
 .lp-act .row, .lp-top .row { justify-content: center; }
 /* 手機上圓桌內圈放不下這些控件：人數和機器人放圓桌上方、按鈕放下方那片空白（.center 的 50% 就是圓桌圓心），不壓座位，單手也夠得著 */
@@ -597,6 +606,8 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .lobby-after .frm-line { flex-wrap: nowrap; gap: 3px; font-size: 13px; white-space: nowrap; } /* 名字長時也一行，不然會把確認開局擠出屏幕 */
 }
 @media (max-width: 640px) and (max-height: 700px) {
+  .lp-top { gap: 2px; }
+  .lp-top .frm-line { margin: 0; }
   .lp-act { top: calc(50% + 48vw); gap: 4px; }
   .lobby-after { gap: 3px; }
   .lp-act .btn.big { padding: 6px 18px; }

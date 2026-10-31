@@ -2,6 +2,7 @@
 import { h, roleToken, seatLabel, modal, closeModal, prompt2 } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';
+import { renderOrder } from './manual.js';
 import { renderGameLog } from './gamelog.js';
 import { seatBadge, mini, tag, icon, ACTS } from './glyph.js';
 import { msgHeld } from './fx.js';
@@ -110,7 +111,7 @@ export function chatUnread(s) {
 }
 
 // [鍵, 側欄標籤, 手機短標籤]
-const tabsOf = s => [...(s.isSt ? [['flow', '流程', '流程']] : []), ['log', '遊戲日誌', '日誌'], ['chat', '聊天', '聊天'], ['sheet', '角色表', '角色']];
+const tabsOf = s => [...(s.st?.hand ? [['order', '順序', '順序']] : []), ...(s.isSt ? [['flow', '流程', '流程']] : []), ['log', s.st?.hand ? '日誌' : '遊戲日誌', '日誌'], ['chat', '聊天', '聊天'], ['sheet', '角色表', '角色']];
 // 紅點：數字一變就換一個節點，重新蓋章、慢慢閃
 const unreadBadge = n => n > 0 && h('i', { class: 'count', 'data-key': 'n' + n }, n > 99 ? '99+' : n);
 // 聊天標籤上的未讀：公共和私聊。玩家之間的私聊記錄只標在它自己的頁籤上，說書人不用回
@@ -150,7 +151,7 @@ export function renderSide(ctx) {
   const byCh = chatUnread(s);
   const label = (k, text) => [text, !(ui.tab === k && !hidden) && unreadBadge(tabUnread(k, byCh))];
   const go = k => { pickTab(s, k, ui.tab === k && !hidden); if (min) setCollapsed(ctx, false); else ctx.render(); };
-  const body = { flow: renderLog, log: renderPublic, chat: renderChat, sheet: renderSheet }[ui.tab](ctx, byCh);
+  const body = { order: renderOrder, flow: renderLog, log: renderPublic, chat: renderChat, sheet: renderSheet }[ui.tab](ctx, byCh);
   return h('aside', { class: 'side' + (ui.sheet ? ' open' : '') },
     h('div', { class: 'side-mask', onclick: () => closeSheet(ctx) }),
     h('nav', { class: 'side-rail' }, h('button', { class: 'rail-btn', title: '展開側欄', onclick: () => setCollapsed(ctx, false) }, '⇤'),
@@ -246,8 +247,8 @@ function seatMarks(ctx, id) {
 function renderSheet(ctx) {
   const sc = SCRIPTS[ctx.state.scriptId];
   return h('div', { class: 'tab-body', 'data-scroll': 'sheet' },
-    h('p', { class: 'muted' }, `${sc.name} · ${sc.en}`),
-    Object.keys(TEAMS).map(team => [
+    h('p', { class: 'muted' }, [sc.name, sc.en].filter(Boolean).join(' · ')),
+    Object.keys(TEAMS).filter(team => sc.roles.some(id => ROLES[id].team === team)).map(team => [
       h('div', { class: 'sheet-team', style: { color: TEAMS[team].color } }, TEAMS[team].name),
       sc.roles.filter(id => ROLES[id].team === team).map(id => h('div', { class: 'sheet-row' },
         roleToken(id, { size: 'sm' }), h('div', {}, h('b', {}, ROLES[id].name), h('div', { class: 'ab' }, ROLES[id].ability)))),

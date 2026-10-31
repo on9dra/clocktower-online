@@ -1,4 +1,4 @@
-/* 循環氛圍（js/ambient.js）：都很慢，能定格的就定格（steps），只動 transform / opacity；看不見的層暫停；減少動畫時全關。
+/* 循環氛圍（js/ambient.js）：都很慢，只動 transform / opacity；連續的運動要流暢，別用 steps（烟、旗子定格過，看著卡），星星、窗燈這種本來就一下一下的才定格；看不見的層暫停；減少動畫時全關。
    一局要開一兩個小時，寧可少：不閃、不搶角色牌，也不蓋住字 */
 .sky-life { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .lobby > .sky-life { z-index: -2; }
@@ -33,10 +33,13 @@ body[data-phase="dusk"] #scene, body[data-phase="dawn"] #scene { --cloud: #5b607
 .tl-lamps rect { fill: #1f2638; opacity: 0; animation: lamp var(--t) steps(1) var(--d) infinite; }
 .skyline-day .tl-lamps { display: none; }
 @keyframes lamp { 0%, 58% { opacity: 0; } 59%, 61% { opacity: .5; } 62%, 96% { opacity: .94; } 97%, 98% { opacity: .4; } 99%, 100% { opacity: 0; } }
-/* 炊煙：一團一團往上飄，定格 */
-.tl-smoke circle { fill: #c4b9a3; transform-box: fill-box; transform-origin: center; opacity: 0; animation: puff 8.4s steps(28) var(--d) infinite; }
-.lobby-town .tl-smoke circle, .skyline-night .tl-smoke circle { fill: #59617c; }
-@keyframes puff { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 14% { opacity: .55; } 100% { opacity: 0; transform: translate(34px, -86px) scale(2.3); } }
+/* 炊煙：一團一團往上飄，越飄越慢。--u 是三層圖的一個單位（圖按 cover 鋪、底邊居中），--x --y 是圖上的座標，換屏幕尺寸也落在煙囪上 */
+.town-life { container-type: size; }
+.tl-smoke { --u: calc(max(100cqw, 300cqh) / 2172); position: absolute; inset: 0; overflow: hidden; }
+.tl-smoke i { position: absolute; left: calc(50% + (var(--x) - 1086) * var(--u)); bottom: calc((724 - var(--y)) * var(--u)); width: calc(14 * var(--u)); height: calc(14 * var(--u)); margin: 0 0 calc(-7 * var(--u)) calc(-7 * var(--u));
+  border-radius: 50%; background: #c4b9a3; opacity: 0; will-change: transform, opacity; animation: puff 8.4s cubic-bezier(.3, .55, .6, 1) var(--d) infinite; }
+.lobby-town .tl-smoke i, .skyline-night .tl-smoke i { background: #59617c; }
+@keyframes puff { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 14% { opacity: .55; } 100% { opacity: 0; transform: translate(calc(34 * var(--u)), calc(-86 * var(--u))) scale(2.3); } }
 /* 鐘針：走真實時間，分針一分鐘跳一格 */
 .tl-h, .tl-m { stroke: #2a2622; stroke-linecap: round; transform-origin: 976.5px 594px; }
 .tl-h { stroke-width: 4.5; animation: clock-turn 43200s linear var(--d) infinite; }
@@ -46,8 +49,8 @@ body[data-phase="dusk"] #scene, body[data-phase="dawn"] #scene { --cloud: #5b607
 body:not([data-phase="night"]):not([data-phase="dusk"]):not([data-phase="dawn"]) .skyline-night .town-life *,
 body[data-phase="night"] .skyline-day .town-life * { animation-play-state: paused; }
 
-/* 大廳的房間旗：先從屋頂上立起來（和表單同一個動作），然後風吹著整根旗杆微微晃，定格 */
-.recent-room { --root: 9vh; transform-origin: 0 calc(100% + var(--root)); animation: l-up .62s cubic-bezier(.2, .8, .3, 1) .62s backwards, flag-sway 6.4s steps(10) infinite alternate; }
+/* 大廳的房間旗：先從屋頂上立起來（和表單同一個動作），然後風吹著整根旗杆微微晃 */
+.recent-room { --root: 9vh; transform-origin: 0 calc(100% + var(--root)); animation: l-up .62s cubic-bezier(.2, .8, .3, 1) .62s backwards, flag-sway 6.4s ease-in-out infinite alternate; }
 .recent-room:nth-child(even) { --root: 5vh; animation-duration: .62s, 5.2s; animation-delay: .76s, -2s; }
 @keyframes flag-sway { from { rotate: -.5deg; } to { rotate: 1.1deg; } }
 

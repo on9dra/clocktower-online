@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-HK">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>血染鐘樓 · 線上魔典</title>
+  <title>血染钟楼 · 线上魔典</title>
   <style>
     /* 開屏：跟著 HTML 一起到，不等任何外部文件。夜裏的小鎮，文件每到一個就多亮幾扇窗，全到了鐘響——
        鏡頭拉遠，和底下大廳的小鎮完全重合才揭開，同一片夜空、同一個小鎮上控件一個個出來。小鎮的基準尺寸同 .lobby-town（--w），字標同 .lobby .title */
@@ -13,9 +13,9 @@
     #boot.out { opacity: 0; pointer-events: none; }
     #boot.flush { transition-duration: .35s; } /* 小鎮已經重合，揭開時看不出換了一層 */
     .b-stars { position: absolute; inset: 0; background: url(img/stars.svg) top center / cover; }
-    .b-title { --tw: min(420px, 66vw); position: absolute; top: 9vh; left: 50%; width: var(--tw); aspect-ratio: 1461 / 337; transform: translateX(-50%); background: #f4eedf; opacity: 0; transition: opacity .6s;
-      -webkit-mask: url(img/art/title-tc-plain.webp) center / contain no-repeat; mask: url(img/art/title-tc-plain.webp) center / contain no-repeat; }
-    html[data-lang="sc"] .b-title { aspect-ratio: 1446 / 336; -webkit-mask-image: url(img/art/title-sc-plain.webp); mask-image: url(img/art/title-sc-plain.webp); }
+    .b-title { --tw: min(420px, 66vw); position: absolute; top: 9vh; left: 50%; width: var(--tw); aspect-ratio: 1446 / 336; transform: translateX(-50%); background: #f4eedf; opacity: 0; transition: opacity .6s;
+      -webkit-mask: url(img/art/title-sc-plain.webp) center / contain no-repeat; mask: url(img/art/title-sc-plain.webp) center / contain no-repeat; }
+    html[data-lang="tc"] .b-title { aspect-ratio: 1461 / 337; -webkit-mask-image: url(img/art/title-tc-plain.webp); mask-image: url(img/art/title-tc-plain.webp); }
     .named .b-title { opacity: 1; }
     .b-wait { position: absolute; left: 0; right: 0; top: 44vh; text-align: center; color: #f4eedf99; font: 14px serif; letter-spacing: .3em; animation: b-show .4s 15s both; }
     .b-town { position: absolute; left: 50%; bottom: 0; width: var(--w); aspect-ratio: 3 / 1; transform: translateX(-50%) scale(var(--zoom)); transform-origin: 50% 100%; transition: transform 1.5s cubic-bezier(.45, 0, .2, 1); }
@@ -50,7 +50,7 @@
   <div id="boot" aria-hidden="true">
     <div class="b-stars"></div>
     <div class="b-title"></div>
-    <div class="b-wait">連接中…</div>
+    <div class="b-wait">连接中…</div>
     <div class="b-town">
       <svg class="b-shade" viewBox="0 0 2172 724"><path d="M0 724L0 618 12 618 17 602 21 599 31 600 32 608 39 609 50 574 55 570 58 573 69 613 96 614 99 603 106 602 108 598 112 598 114 621 121 622 123 616 133 609 134 602 139 601 141 589 158 589 161 601 186 605 188 595 192 591 203 590 209 595 210 612 214 616 224 616 228 624 234 624 239 616 240 596 247 596 248 602 249 596 252 595 253 601 264 600 265 624 275 624 281 635 287 636 288 612 303 566 304 545 309 539 313 545 314 564 331 612 332 636 334 636 338 624 342 622 343 609 345 607 359 607 360 617 367 618 368 606 371 602 383 601 388 603 389 608 396 611 397 620 402 620 406 614 411 615 415 621 442 620 448 614 449 605 453 605 458 598 466 599 468 605 472 606 476 602 477 583 483 580 492 580 498 584 499 598 562 596 563 575 567 571 574 570 590 574 591 596 600 596 604 585 616 585 619 597 624 599 625 609 631 612 632 618 636 620 637 625 643 631 647 631 657 617 662 617 663 599 670 585 677 559 678 507 680 505 685 507 688 494 692 505 712 505 713 615 718 615 729 580 730 570 734 566 738 570 739 580 751 609 752 618 756 619 768 607 770 599 776 597 778 588 783 587 785 572 802 572 805 575 806 586 870 591 873 583 886 583 888 595 927 635 928 626 931 626 933 560 940 536 941 524 943 521 946 524 952 551 971 498 972 475 977 469 982 475 983 497 1002 551 1007 538 1009 524 1011 521 1013 523 1021 558 1022 629 1024 626 1029 625 1030 610 1035 610 1038 605 1048 605 1051 610 1054 610 1062 604 1068 587 1069 576 1072 572 1076 575 1077 586 1088 618 1093 613 1120 613 1128 582 1132 578 1137 582 1146 613 1153 616 1165 616 1168 604 1184 604 1186 610 1193 614 1199 611 1201 601 1215 600 1217 611 1222 612 1225 617 1235 618 1242 610 1243 576 1248 572 1261 572 1267 575 1270 591 1274 588 1284 590 1287 603 1375 602 1380 609 1381 591 1389 590 1391 598 1393 597 1394 588 1395 596 1402 594 1404 573 1406 571 1424 571 1429 574 1430 587 1433 588 1486 593 1488 585 1502 585 1507 601 1536 634 1538 628 1543 625 1544 613 1548 612 1553 595 1558 588 1563 568 1564 526 1566 524 1568 526 1569 547 1571 517 1573 515 1576 518 1577 524 1595 524 1596 598 1600 598 1607 603 1608 624 1628 624 1629 601 1646 548 1647 524 1651 519 1653 520 1654 524 1656 524 1658 549 1677 601 1679 636 1687 627 1688 608 1694 586 1700 583 1705 587 1711 606 1712 619 1727 619 1728 614 1733 619 1734 611 1736 610 1738 614 1741 614 1742 605 1749 601 1760 605 1761 620 1803 621 1810 627 1816 601 1821 600 1822 607 1826 598 1829 600 1833 599 1834 586 1836 584 1845 584 1849 585 1851 597 1853 598 1866 599 1870 591 1884 591 1888 593 1889 601 1891 602 1915 603 1933 623 1942 613 1943 588 1952 587 1954 574 1958 569 1962 573 1963 584 1970 601 1979 602 1981 610 2006 614 2007 604 2010 601 2023 601 2029 605 2030 616 2032 611 2035 610 2037 602 2045 599 2046 591 2050 589 2052 584 2058 584 2060 572 2065 572 2068 556 2086 556 2090 572 2126 578 2128 569 2143 569 2145 571 2146 585 2171 609L2172 724z"/><ellipse cx="976.5" cy="594" rx="27" ry="23.5" fill="#e0a93f"/></svg>
       <img src="img/art/town-far-night.webp" alt="">
@@ -66,14 +66,14 @@
     {
       const root = document.documentElement, el = document.getElementById('boot'), minHand = el.querySelector('.b-min'), hourHand = el.querySelector('.b-hour');
       const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: k => { try { localStorage.setItem(k, '1'); } catch { /* 隱私模式 */ } } };
-      const lang = store.get('botc.lang') || 'tc';
+      const lang = store.get('botc.lang') || 'sc';
       root.dataset.lang = lang;
-      if (lang === 'sc') el.querySelector('.b-wait').textContent = '连接中…';
+      if (lang === 'tc') { el.querySelector('.b-wait').textContent = '連接中…'; document.title = '血染鐘樓 · 線上魔典'; }
       const CSS = ['style', 'board', 'fx', 'hud', 'party', 'help', 'intro', 'print', 'about', 'art', 'night', 'ambient'];
       // 服務器只有 2Mbps 上下，開屏只等第一屏用得到的：進大廳不用等桌面的圖；點邀請鏈接直接進房間才等
-      const LOBBY = ['stamp-mask'], GAME = ['table-day', 'table-night', 'card-frame', 'seat-empty', 'plate', 'plate-evil', 'town-near-day', 'town-mid-day', 'town-far-day'];
+      const LOBBY = ['stamp-mask', '../press/card', '../press/paper'], GAME = ['table-day', 'table-night', 'seat-empty', 'plate', 'plate-evil', 'town-near-day', 'town-mid-day', 'town-far-day'];
       const inRoom = /[?&]room=/.test(location.search), MUST = inRoom ? [...LOBBY, ...GAME] : LOBBY;
-      const LATER = ['curtain-drape', 'curtain-valance', 'card-back', 'sun', 'moon', 'gallows-wood', 'gallows-noose', 'crown-good', 'crown-evil', 'egg', 'egg-splat-1', 'egg-splat-2', 'egg-splat-3', 'mvp-medal', 'trophy', ...['paper', 'frame', 'block', 'rule-thin', 'rule-mid', 'rule-wenwu', 'rule-thin-v', 'rule-dash', 'perf'].map(n => `../press/${n}`)];
+      const LATER = ['curtain-drape', 'curtain-valance', 'card-back', 'sun', 'moon', 'gallows-wood', 'gallows-noose', 'crown-good', 'crown-evil', 'egg', 'egg-splat-1', 'egg-splat-2', 'egg-splat-3', 'mvp-medal', 'trophy', ...['block', 'rule-thin', 'rule-mid', 'rule-wenwu', 'rule-thin-v', 'rule-dash', 'perf'].map(n => `../press/${n}`)];
       // 窗戶 x, y, 寬, 高（art-src/boot-town.py 從夜景圖算出來的），從鐘樓往兩邊亮
       const WINDOWS = [20,641,9,12,36,665,7,13,81,675,7,13,90,641,4,13,97,677,7,12,119,676,7,11,146,626,8,12,166,655,10,15,217,640,4,10,220,673,6,10,263,673,5,10,271,651,4,12,280,672,4,9,303,624,6,14,333,672,8,12,347,647,9,10,363,672,9,13,364,695,4,11,406,681,5,12,419,682,4,11,430,680,7,8,458,631,8,14,475,656,5,9,515,669,10,14,531,629,7,15,542,668,10,15,593,655,5,15,608,628,8,14,656,679,7,12,672,676,5,11,675,608,7,9,697,609,6,7,730,644,10,14,773,650,10,19,788,616,10,15,808,650,12,21,863,662,8,13,869,624,7,14,883,664,5,10,901,663,6,13,961,639,7,26,972,685,13,20,974,636,8,29,988,640,7,25,1073,680,9,13,1105,680,10,13,1112,641,9,13,1151,680,11,12,1203,641,11,14,1267,677,5,9,1269,644,5,11,1288,677,4,9,1355,666,7,18,1369,641,6,13,1384,666,8,11,1411,618,9,13,1433,649,7,17,1477,659,9,16,1481,620,13,15,1503,659,9,16,1536,674,4,12,1547,651,8,12,1562,675,7,13,1581,615,5,9,1605,685,11,12,1635,685,5,8,1645,611,7,14,1666,612,4,13,1678,682,6,13,1737,656,13,16,1760,671,6,9,1800,651,9,13,1800,683,7,11,1828,683,6,11,1838,624,9,13,1897,662,6,11,1910,663,5,8,1946,666,5,9,1955,646,7,11,1978,644,9,15,1991,668,9,15,2038,678,10,10,2071,643,10,21,2073,597,8,13,2117,648,4,11,2155,655,5,16];
       // 放大後跑出屏幕的窗戶直接算亮的（天亮拉遠時已經亮著），進度只看屏幕裏的
@@ -99,7 +99,7 @@
       // 小鎮和字標到了之後，JS 一次全列出來並行拉，不用一層層解析 import：香港線路一個往返 270ms，七層就是兩秒。
       // 等它們到了再拉：不搶開屏第一眼那幾張圖的帶寬。名單由 tests/preload.test.js 對著 import 核對
       let pulled = false, first = 2;
-      const pullJs = () => { if (pulled) return; pulled = true; for (const n of 'app ui roles icons lang t2s town side log glyph gamelog fx ambient tactile sfx fireworks score scores hud trial flow setup infoform infofmt stepcard invite topbar settings about author progress egg lobby intro press'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
+      const pullJs = () => { if (pulled) return; pulled = true; for (const n of 'app ui roles icons lang t2s town side log manual glyph gamelog fx ambient tactile sfx fireworks score scores hud trial flow setup infoform infofmt stepcard invite topbar settings about author progress egg lobby intro press'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
       const firstArt = () => { if (!--first) pullJs(); };
       const start = () => { if (!art) { art = true; t0 = performance.now(); } };
       const end = () => {

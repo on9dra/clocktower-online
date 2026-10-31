@@ -44,7 +44,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 /* 頁面的彎度：書脊那邊沉下去、離書脊一掌寬的地方最高，書口那邊又微微落下。墊在字底下，字不會被蓋髒 */
 .pp::before { content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg, #3a261270 0, #3a261230 14px, #3a261210 46px, #fff6e000 88px, #fff6e01a 150px, #fff6e000 300px, #3a261200 74%, #3a261214 100%); }
-.pp-frame { position: absolute; top: 12px; bottom: 30px; left: var(--pi); right: var(--po); border: 20px solid transparent; border-image: url(../img/press/frame.webp) 40 / 20px round; }
+.pp-frame { position: absolute; top: 4px; bottom: 22px; left: calc(var(--pi) - 8px); right: calc(var(--po) - 8px); border: 28px solid transparent; border-image: url(../img/press/card.webp) 56 / 28px round; }
 .pp-body { position: absolute; inset: 5px; display: flex; flex-direction: column; gap: 10px; padding: 6px 14px 8px; overflow: hidden; }
 .pp-body > * { flex-shrink: 0; }
 /* 書腳：書名和第幾帖、頁碼、下一章的提示字 */
@@ -94,7 +94,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .bk.one { --W: 400px; --H: 740px; padding: 40px 4px 4px; box-shadow: none; }
 .bk.one .bk-stack.l, .bk.one .bk-block::after { display: none; }
 .bk.one .pp { --po: 6px; --pi: 10px; }
-.bk.one .pp-frame { top: 6px; bottom: 26px; border-width: 13px; border-image-width: 13px; }
+.bk.one .pp-frame { top: 1px; bottom: 21px; left: calc(var(--pi) - 5px); right: calc(var(--po) - 5px); border-width: 18px; border-image-width: 18px; }
 .bk.one .pp-body { inset: 0; padding: 8px 8px 10px; gap: 12px; overflow: hidden auto; scrollbar-width: thin; }
 .bk.one .pp-foot { bottom: 7px; font-size: 11px; padding: 0 22px 0 2px; }
 .bk.one .pp-title::before { display: none; }
@@ -181,9 +181,9 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .sk-btn { display: inline-block; padding: 1.4cqmin 3.1cqmin; border: 1px solid var(--ink); background: var(--card); font: 700 4.2cqmin/1.2 var(--serif); color: var(--ink); white-space: nowrap; }
 .sk-btn.pri { background: var(--ink); color: var(--card); }
 .sk-btn.yes { border-color: #c9962c; background: var(--lit); color: #7a5a14; }
-.sk .script-pick { border-width: 1px; }
-.sk .script-pick .chip { padding: 1.2cqmin 2.3cqmin; font-size: 3.8cqmin; }
-.sk .script-pick .chip + .chip { border-left-width: 1px; }
+.sk .script-pick { gap: 1px; border-width: 1px; }
+.sk .script-pick .chip { padding: 1cqmin 2.3cqmin; font-size: 3.4cqmin; }
+.bk.one .sk .script-pick { grid-auto-flow: column; }
 .sk-card, .sk-trial { display: grid; justify-items: center; gap: 2.1cqmin; background: var(--card); border: 1px solid var(--ink); }
 .sk-card { padding: 3.1cqmin 4.5cqmin; }
 .sk-trial { width: 70cqmin; padding: 3.8cqmin 5.2cqmin; }
@@ -239,7 +239,6 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .skd-ph.btn { height: 26px; border: 1px solid var(--skl); background: none; }
 .skd-ph.box { height: 30px; border: 1px solid var(--skl); background: none; }
 .sk-detail .btn { pointer-events: none; }
-.sk-detail .script-pick .chip { padding: 5px 11px; font-size: 14px; }
 .sk-detail .btn.primary:not(.sm) { padding: 9px 26px; font-size: 16px; letter-spacing: .1em; }
 /* 夜晚的操作卡：放大圖裏放得下一整張 */
 .sk-night .sk-detail > * { zoom: 1.12; }

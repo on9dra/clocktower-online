@@ -1,8 +1,8 @@
 // 信息式子的畫法：座位號圓章、角色小牌、陣營牌、數字、惡魔是否、符號。
 // 玩家面板、說書人日誌、給信息卡片、演出共用（式子的數據格式見 infofmt.js infoFormula）
-import { h, roleToken } from './ui.js';
+import { h, roleToken, fillIcon } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
-import { ICONS, ICON_VIEWBOX } from './icons.js';
+import { ICON_VIEWBOX } from './icons.js';
 
 // 自繪小圖標（24×24，描邊 / 填充都用 currentColor）
 const S = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
@@ -89,7 +89,7 @@ export function roleIcon(roleId, cls = '') {
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   el.setAttribute('viewBox', ICON_VIEWBOX);
   el.setAttribute('class', 'ico ' + cls);
-  el.innerHTML = ICONS[roleId] || '';
+  fillIcon(el, roleId);
   return el;
 }
 

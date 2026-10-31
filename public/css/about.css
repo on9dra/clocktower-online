@@ -42,7 +42,7 @@ body.art .ab-seal:not(.empty) { -webkit-mask: url(../img/art/stamp-mask.webp) ce
   background: var(--card); border: solid var(--line-strong); border-width: 0 1px;
   -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--z)) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--z) * 2) var(--z) repeat-x;
   mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--z)) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--z) * 2) var(--z) repeat-x; }
-.ab-page.in .ab-slip { animation: ab-print .55s cubic-bezier(.3, .9, .4, 1) both; }
+.ab-slip { animation: ab-print .55s cubic-bezier(.3, .9, .4, 1) both; }
 @keyframes ab-print { from { clip-path: inset(0 0 100% 0); translate: 0 -30px; } to { clip-path: inset(0); } }
 .ab-codes { display: flex; justify-content: center; gap: 16px; }
 .ab-code { margin: 0; display: grid; justify-items: center; gap: 6px; color: var(--ink); text-decoration: none; font: 700 14px var(--serif); letter-spacing: .12em; }
@@ -88,10 +88,10 @@ a.ab-code:hover .ab-qr { background: var(--hover); }
 .ab-nv { color: var(--muted); font-size: 13px; }
 .ab-nv a { color: var(--ink); }
 
-/* 換頁時內容依次出來 */
-.ab-page.in .ab-notes > *, .ab-page.in .ab-share > *, .ab-page.in .ab-fb > * { animation: ab-rise .32s ease both; animation-delay: calc(.12s + var(--i, 0) * .07s); }
-.ab-page.in .ab-share > :nth-child(2), .ab-page.in .ab-fb > :nth-child(2) { --i: 1; }
-.ab-page.in .ab-share > :nth-child(3) { --i: 2; }
+/* 換頁時內容依次出來：頁面放進台上時播一次，about.js 不會去動留在台上的頁 */
+.ab-notes > *, .ab-share > *, .ab-fb > * { animation: ab-rise .32s ease both; animation-delay: calc(.12s + var(--i, 0) * .07s); }
+.ab-share > :nth-child(2), .ab-fb > :nth-child(2) { --i: 1; }
+.ab-share > :nth-child(3) { --i: 2; }
 @keyframes ab-rise { from { opacity: 0; transform: translateY(8px); } }
 
 @media (max-width: 520px) {

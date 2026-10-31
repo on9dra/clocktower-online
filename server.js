@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import * as store from './lib/store.js';
 import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH } from './lib/ops.js';
+import { scriptPayload } from './lib/script.js';
 import { viewFor } from './lib/view.js';
 import { isBot, botTick } from './lib/bots.js';
 import { countTick, virginTick } from './lib/day.js';
@@ -77,6 +78,8 @@ function emitState(socket, room) {
   const reset = d.chatKey !== key;
   const v = viewOf(room, d, reset ? 0 : d.chatSeq || 0);
   v.chatReset = reset;
+  // 上傳的劇本只發一次：剛連上、或換了一本
+  if (room.script && d.scriptVer !== room.script.ver) { v.custom = scriptPayload(room.script); d.scriptVer = room.script.ver; }
   d.chatKey = key;
   d.chatSeq = room.chatSeq || 0;
   socket.emit('state', v);

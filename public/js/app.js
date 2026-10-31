@@ -8,7 +8,8 @@ import { sel, stopSelect, fitTableCard } from './town.js';
 import { topbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
-import { tr } from './lang.js';
+import { installScript } from './roles.js';
+import { closeCompose } from './manual.js';
 import { onEggs } from './egg.js';
 import { renderLobby, recentList, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
 import { openInvite } from './invite.js';
@@ -35,7 +36,6 @@ if (params.get('room') && params.get('st')) { LS.set('botc.st.' + params.get('ro
 // 說書人發的換設備鏈接（?room=1234&r=…&seat=…）：連上後接過那個座位
 let claimToken = params.get('seat');
 params.delete('seat');
-document.title = tr(document.title);
 
 const sock = io();
 let session = null, chat = [], fresh = false; // session：{ code, inst, st }；fresh：剛建好房間，第一次收到狀態時彈邀請
@@ -184,6 +184,7 @@ function render() {
 function leave() { session = null; params.delete('room'); params.delete('r'); setUrl(''); location.reload(); }
 
 sock.on('state', s => {
+  if (s.custom) installScript(s.custom); // 上傳的劇本：先把角色登記好，後面畫什麼都查得到
   chat = s.chatReset ? s.chat : chat.concat(s.chat);
   if (chat.length > 600) chat = chat.slice(-600);
   s.chat = chat;
@@ -224,6 +225,7 @@ document.addEventListener('keydown', e => {
     if (document.querySelector('.popmenu')) closeMenu();
     else if (open) closeModal();
     else if (closeSheet(ctx)) return;
+    else if (closeCompose(ctx)) return;
     else if (sel.on && ctx.state.isSt) stopSelect(ctx);
     return;
   }

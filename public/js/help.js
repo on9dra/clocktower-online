@@ -112,27 +112,26 @@ const gray = (wd, cls = '') => h('i', { class: 'skd-ph ' + cls, style: { width: 
 
 // ———— 說書人指南 ————
 const ruleBtn = (r, k, text) => h('span', { class: 'setup-role ' + k }, tok(r), h('span', {}, ROLES[r].name), h('i', {}, text));
-const scripts = (cls = '') => h('span', { class: 'script-pick ' + cls }, h('span', { class: 'chip on' }, '暗流湧動'), h('span', { class: 'chip' }, '黯月初升'), h('span', { class: 'chip' }, '夢殞春宵'));
+const scripts = () => h('span', { class: 'script-pick' }, h('span', { class: 'chip on' }, '暗流湧動'), h('span', { class: 'chip' }, '黯月初升'), h('span', { class: 'chip' }, '夢殞春宵'), h('span', { class: 'chip' }, '上傳劇本'), h('span', { class: 'chip soon' }, '敬請期待'));
 const PREP = {
   key: 'prep', nav: '開局', title: '開局前',
   ico: 'gear',
   a: () => [sketch('lobby', {
       zoom: { box: [-33, -30, 66, 63], detail: h('div', { class: 'skd-col' },
-        mk(1, scripts(), 't-one'),
         gray(150),
         mk(2, fake('角色配置')),
         mk(3, h('span', { class: 'btn primary' }, '隨機抽取'))) },
     },
-      at(0, -24, h('b', { class: 'sk-t' }, '準備')),
-      at(0, -13, scripts()),
-      at(0, -3, tph(24)), at(0, 4.5, tph(31)),
-      at(0, 14, h('span', { class: 'sk-line' }, tph(12), skBtn('角色配置'), tph(16))),
-      at(0, 26, skBtn('隨機抽取', 'pri')))],
+      at(-52, -32, pc(mk(1, scripts(), 'r'))), at(0, -58, mo(mk(1, scripts()))),
+      at(0, -21, h('b', { class: 'sk-t' }, '準備')),
+      at(0, -9, tph(24)), at(0, -1.5, tph(31)),
+      at(0, 10, h('span', { class: 'sk-line' }, tph(12), skBtn('角色配置'), tph(16))),
+      at(0, 23, skBtn('隨機抽取', 'pri')))],
   b: () => [
     steps(
-      step(1, null, '選劇本', '暫時只支持 3 種官方劇本'),
+      step(1, null, '選劇本', '3 本官方，或上傳 Json'),
       step(2, scene('hp-rules', nth(0, ruleBtn('baron', 'rand', '隨機')), nth(1, ruleBtn('baron', 'lock', '必選')), nth(2, ruleBtn('baron', 'ban', '排除'))), '角色配置', '點角色切換'),
-      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局'))],
+      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局', '先點座位指定角色，其餘隨機'))],
 };
 
 const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && h('i', { class: 'tm' }, '真'));
@@ -201,6 +200,23 @@ const AUTO_SEC = {
     line(h('span', { class: 'hp-lit' }, blank(4)), '選項是座位時', '直接點桌上的座位；固定的目標亮金圈'),
     stub(memo(icon('quill'), b('黯月初升、夢殞春宵'), sm('大多也自動')),
       memo(b('補發信息'), sm('博學者、藝術家等：座位菜單裏')))],
+};
+
+// 手動模式：系統不判規則，說書人點座位做事
+const MENU_HAND = ['叫醒', '給信息', '貼標記', '-', '更換角色', '玩家看到的角色', '改為邪惡', '標記死亡'];
+const HAND = {
+  key: 'hand', nav: '手動', title: '手動模式',
+  ico: 'tap',
+  a: () => [h('div', { class: 'hp-menus' },
+      h('div', { class: 'hp-menuat' }, mk(1, h('span', { class: 'hp-tap' }, tok('imp', 'md'), icon('tap', 'hp-finger')), 'tight'), popmenu('3號 · 小惡魔', MENU_HAND)))],
+  b: () => [
+    steps(
+      step(1, null, '點座位叫醒', '他手機上彈選人牌，結果只回給你'),
+      step(0, null, '給信息', '點座位、選角色，拼成一句'),
+      step(0, null, '貼標記', '只有你看得到')),
+    line(fake('善良獲勝', 'ghost'), '勝負你來判', '在圓桌中央，系統不判'),
+    stub(memo(b('「順序」標籤'), sm('今晚的順序，勾掉叫過的')),
+      memo(b('上傳的劇本'), sm('有系統不認識的角色時只能手動')))],
 };
 
 // 座位菜單和頂欄「⋯」菜單：照遊戲裏的樣子畫，危險的項紅字
@@ -333,7 +349,7 @@ const EGGS = {
     stub(memo(b('積分榜'), sm('點頂欄的雞蛋數')))],
 };
 
-const BOOKS = { st: ['說書人指南', [PREP, NIGHT, SDAY, AUTO_SEC, FIX]], rules: ['遊戲規則', [GOAL, DAY, VOTE, TRAP, EGGS]] };
+const BOOKS = { st: ['說書人指南', [PREP, NIGHT, SDAY, AUTO_SEC, HAND, FIX]], rules: ['遊戲規則', [GOAL, DAY, VOTE, TRAP, EGGS]] };
 const lastSec = { st: 0, rules: 0 }; // 再打開時翻回上次看的那節
 
 // 一頁紙一章：版框（章標題 + 兩欄：左邊插圖、右邊一步一行；手機上下排）佔滿一頁，地方都留給內容；

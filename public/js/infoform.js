@@ -3,7 +3,7 @@
 // 下方是玩家將看到的式子，邊框顏色表示真實 / 登記 / 錯誤。
 // ON_TABLE 裏的角色（洗衣婦先試）：號碼直接點桌上的頭像，桌心只擺角色牌，中下方的紙條是這個組合的後果。
 import { h, roleToken } from './ui.js';
-import { ROLES, TEAMS } from './roles.js';
+import { ROLES, TEAMS, CORE } from './roles.js';
 import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
 import { formula, seatBadge, mini, named, evilNum, icon, w } from './glyph.js';
 
@@ -133,9 +133,9 @@ function choiceBody(s, step, d, set) {
   const level = v => (form.unknown ? 0 : v === t[key] ? 2 : ok.includes(v) ? 1 : 0);
   if (values.length === 1) return null; // 唯一答案：卡片只留下面的式子和發送
   // 渦流在場：真實 / 登記的答案不能選
-  const tiles = vs => row(vs.map(v => opt(face(v), { on: d[key] === v, level: level(v), cls: form.vortox && level(v) ? 'off' : '', onclick: () => set({ [key]: v }) })));
+  const tiles = vs => row(vs.map(v => opt(face(v), { on: d[key] === v, level: level(v), cls: form.vortox && !form.alt && level(v) ? 'off' : '', onclick: () => set({ [key]: v }) })));
   // 全部角色時按陣營分行
-  if (form.kind === 'role' && form.free) return Object.keys(TEAMS).map(team => tiles(values.filter(id => ROLES[id].team === team)));
+  if (form.kind === 'role' && form.free) return CORE.map(team => tiles(values.filter(id => ROLES[id].team === team)));
   return tiles(values);
 }
 
@@ -143,14 +143,14 @@ function choiceBody(s, step, d, set) {
 function dreamBody(s, step, d, set) {
   const form = step.form, ok = form.ok || [];
   const level = id => (id === form.role ? 2 : ok.includes(id) ? 1 : 0);
-  const tiles = (ids, key) => row(ids.map(id => opt(mini(id), { on: d[key] === id, level: level(id), cls: form.vortox && level(id) ? 'off' : '', onclick: () => set({ [key]: id }) })));
+  const tiles = (ids, key) => row(ids.map(id => opt(mini(id), { on: d[key] === id, level: level(id), cls: form.vortox && !form.alt && level(id) ? 'off' : '', onclick: () => set({ [key]: id }) })));
   return [tiles(form.goods, 'good'), tiles(form.evils, 'evil')];
 }
 
 // 當前選擇的狀態：level -1 沒選完、0 錯誤、1 登記、2 真實；err 不能發（能力正常卻不合規、渦流在場卻是真的）
 function verdict(s, form, d) {
   const level = checkFields(form, d, s.seats.map(x => x.id)) ? -1 : truthLevel(form, d);
-  return { level, err: level < 0 || (!form.free && level === 0) || (form.vortox && level > 0) };
+  return { level, err: level < 0 || (!form.free && level === 0) || (form.vortox && !form.alt && level > 0) };
 }
 const icHead = (s, step) => h('div', { class: 'ic-head' },
   h('span', { class: 'ic-actor' }, mini(step.roleId)),

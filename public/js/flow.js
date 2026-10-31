@@ -1,9 +1,10 @@
 // 流程操作：說書人和玩家都沒有底部操作塢，要看的、要點的都在圓桌中央「第 N 夜 / 天」下面（stCenter / playerCenter）和審判牌上。
 // 帶 data-hot 的按鈕是當前主操作，回車鍵觸發（見 app.js）
 import { h, seatLabel, ask, prompt2, roleToken, modal, closeModal } from './ui.js';
-import { ROLES, TEAMS, SCRIPTS, teamCounts, changesSetup, outsiderShift } from './roles.js';
+import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup, outsiderShift } from './roles.js';
 import { sel, stopSelect } from './town.js';
-import { openSetup } from './setup.js';
+import { openSetup, pickBluff } from './setup.js';
+import { uploadScript, manualNight, cardRows, winButtons } from './manual.js';
 import { seatBadge, mini, icon, actIcon, tag, named, w, ACTS } from './glyph.js';
 import { nightHeld } from './fx.js';
 
@@ -80,7 +81,7 @@ export function stCenter(ctx) {
     case 'lobby': return lobbyPane(ctx, next);
     case 'dawn': return h('div', { class: 'cx' }, lastNight(s), btns(next('開始白天')));
     // 處決台上有人時絞刑架就在上面，不再寫昨晚和處決台
-    case 'day': return !s.nomination && !s.st.ruling && h('div', { class: 'cx' }, !s.block && lastNight(s), btns(endDayButton(ctx)));
+    case 'day': return !s.nomination && !s.st.ruling && h('div', { class: 'cx' }, !s.block && lastNight(s), s.manual && cardRows(ctx), btns(endDayButton(ctx)), s.manual && winButtons(ctx));
     case 'ended': {
       // MVP 投票還沒結束：「再來一局」先問一句（會按已投的票結算）；已投人數在 MVP 牌上
       const m = s.mvpVote, open = m && !m.done;
@@ -143,6 +144,7 @@ export const PRETEND = { absent: '不在場', idle: '今晚不醒', quick: '已�
 // 夜晚走完：核對今晚的死亡、中毒、保護（點座位糾錯），再公佈死訊
 export function reviewCard(ctx) {
   const s = ctx.state, st = s.st;
+  if (s.manual) return manualNight(ctx);
   const seatsOr = ids => (ids?.length ? ids.map(id => seatBadge(s, id)) : w('無', 'ink'));
   const sep = h('i', { class: 'op-sep' });
   return h('div', { class: 'card focus infocard' },
@@ -161,24 +163,38 @@ function endDayButton(ctx) {
   return B(label, () => ask(msg, () => ctx.st('next'), label), nom ? 'ghost' : 'primary big', !nom);
 }
 
-// 說書人準備階段：圓桌中央選劇本（換劇本會清掉角色配置和預覽）
-export const scriptPick = ctx => h('div', { class: 'script-pick' }, Object.keys(SCRIPTS).map(id =>
-  h('button', { class: 'chip' + (id === ctx.state.scriptId ? ' on' : ''), onclick: () => id !== ctx.state.scriptId && ctx.st('script', { scriptId: id }) }, SCRIPTS[id].name)));
+// 說書人準備階段：桌面左上角的劇本卡（換劇本會清掉角色配置和預覽），虛線格是以後的 DLC
+export function scriptPick(ctx) {
+  const s = ctx.state, locked = s.st.modeLocked;
+  const mode = (m, text) => h('button', { class: 'chip' + (s.mode === m ? ' on' : ''), disabled: locked && m === 'auto' ? true : null,
+    onclick: () => s.mode !== m && ctx.st('mode', { mode: m }) }, text);
+  return h('div', { class: 'script-card', 'data-key': 'script-card' },
+    h('div', { class: 'sc-group' }, h('b', {}, '劇本'),
+      Object.keys(SCRIPTS).map(id => h('button', { class: 'chip' + (id === s.scriptId ? ' on' : ''), title: SCRIPTS[id].name,
+        onclick: () => id !== s.scriptId && ctx.st('script', { scriptId: id }) }, SCRIPTS[id].name)),
+      h('button', { class: 'chip up', onclick: () => uploadScript(ctx) }, '上傳劇本'),
+      h('button', { class: 'chip soon', disabled: true }, '敬請期待')),
+    h('div', { class: 'sc-group sc-mode' }, mode('auto', '智能推進'), mode('manual', '手動')));
+}
 
-// 準備（圓桌中央、劇本選擇下面）：各陣營人數（陣營色圓牌 + 數字），必選 / 排除的角色牌，預覽時的惡魔偽裝，機器人，開局按鈕
+// 準備（圓桌中央）：各陣營人數（陣營色圓牌 + 數字），必選 / 排除的角色牌，預覽時的惡魔偽裝，機器人，開局按鈕
 function lobbyPane(ctx, next) {
   const s = ctx.state, st = s.st, n = s.seats.length, rules = st.roleRules;
   const locked = Object.keys(rules).filter(id => rules[id] === 'lock'), banned = Object.keys(rules).filter(id => rules[id] === 'ban');
   // 預覽時按座位上實際的角色數，否則按人數和必選規則推算
-  const drafted = st.draft && s.seats.reduce((c, x) => (x.role && c[ROLES[x.role].team]++, c), { townsfolk: 0, outsider: 0, minion: 0, demon: 0 });
+  const drafted = st.draft && s.seats.reduce((c, x) => (x.role && CORE.includes(ROLES[x.role].team) && c[ROLES[x.role].team]++, c), { townsfolk: 0, outsider: 0, minion: 0, demon: 0 });
   const c = drafted || (n >= 5 && teamCounts(n, locked.filter(changesSetup)));
+  // 配比對不上的陣營標出來，不攔（教父 ±1 時外來者和鎮民不比）
+  const inPlay = drafted ? s.seats.map(x => x.role).filter(changesSetup) : [];
+  const due = drafted && n >= 5 && teamCounts(n, inPlay), flex = inPlay.some(id => Array.isArray(ROLES[id].setup.outsider));
+  const off = t => !!due && c[t] !== due[t] && !(flex && ['outsider', 'townsfolk'].includes(t));
   // 可能抽到、會改變外來者數量的角色（男爵 7 人以下隨機不出現）
   const shifts = !st.draft && SCRIPTS[s.scriptId].roles.filter(id => changesSetup(id) && !rules[id] && !(id === 'baron' && n < 7));
   const delta = id => { const x = ROLES[id].setup.outsider; return Array.isArray(x) ? '±1' : (x > 0 ? '+' : '') + x; };
   // 桌面上兩塊連著放在圓桌中央；手機上圓桌裏放不下，lp-top 放圓桌上方，lp-act 放圓桌下方（board.css）
   return h('div', { class: 'cx lobby-pane' },
     h('div', { class: 'lp-top' },
-      c && row(Object.keys(TEAMS).map(t => h('span', { class: 'team-n', style: { '--team': TEAMS[t].color } }, h('i'), c[t])),
+      c && row(CORE.map(t => h('span', { class: 'team-n' + (off(t) ? ' off' : ''), style: { '--team': TEAMS[t].color } }, h('i'), c[t])),
         n >= 5 && shifts && shifts.map(id => h('span', { class: 'maybe' }, mini(id), delta(id)))),
       (locked.length > 0 || banned.length > 0) && row(locked.map(id => h('span', { class: 'rule lock' }, mini(id))), banned.map(id => h('span', { class: 'rule ban' }, mini(id), icon('cross', 'rule-x')))),
       botConfig(ctx)),
@@ -186,7 +202,7 @@ function lobbyPane(ctx, next) {
       // 這一排抽沒抽都在原位、不換字（人不夠時置灰不隱藏），說書人的手不用重新找按鈕；抽完只在下面多出來，位置預先留好，圓桌中央的居中不會把這排頂走
       btns(B('打亂座位', () => ctx.st('shuffleSeats'), 'ghost' + (n > 1 ? '' : ' disabled')), B('角色配置', () => openSetup(ctx)),
         B('隨機抽取', () => ctx.st('draft'), 'primary' + (n >= 5 ? '' : ' disabled'))),
-      h('div', { class: 'lobby-after' }, st.draft && [row(tag('bluff'), st.bluffs.map(id => named(id))),
+      h('div', { class: 'lobby-after' }, st.draft && [row(tag('bluff'), st.bluffs.map((id, i) => h('button', { class: 'bluff-pick' + (st.bluffPins?.[i] ? ' pinned' : ''), title: '指定', onclick: () => pickBluff(ctx, i) }, named(id)))),
         btns(B('取消', () => ctx.st('undraft'), 'ghost'), next('確認開局'))])));
 }
 
@@ -229,7 +245,7 @@ export function playerCenter(ctx) {
 // 輪到自己行動：圓桌中央一張紙牌——大角色牌 + 行動圖標，一句話說清楚選誰、會怎樣（關鍵詞用語義色），下面是選中的座位和確認
 function turnPane(ctx) {
   // 這一步的角色（理髮師死後惡魔替他選人時是理髮師）
-  const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = ACTS[rid];
+  const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = !s.prompt.manual && ACTS[rid]; // 手動局的牌是說書人寫的，不用角色自己的說法
   const say = a?.say || [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
   return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : '') },
     h('div', { class: 'tp-head' }, rid && roleToken(rid), rid && h('span', { class: 'tp-ico' }, actIcon(rid))),

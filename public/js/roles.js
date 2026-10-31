@@ -8,7 +8,12 @@ export const TEAMS = {
   outsider: { name: '外來者', color: '#3f7f86', good: true },
   minion: { name: '爪牙', color: '#a3402e', good: false },
   demon: { name: '惡魔', color: '#8a1c1c', good: false },
+  // 只會出現在上傳的劇本裏：不進隨機抽取，說書人可以手動指定
+  traveller: { name: '旅行者', color: '#6d5a86', good: true },
+  fabled: { name: '傳奇角色', color: '#a0792a', good: true },
+  loric: { name: '奇遇角色', color: '#5d7a45', good: true },
 };
+export const CORE = ['townsfolk', 'outsider', 'minion', 'demon']; // 按人數配比的四類
 
 const R = (id, name, team, ability, first, other, extra = {}) =>
   ({ id, name, team, ability, first, other, ...extra });
@@ -37,7 +42,7 @@ export const ROLES = Object.fromEntries([
   R('baron', '男爵', 'minion', '會有額外的外來者在場。[+2 外來者]', 0, 0, { setup: { outsider: 2 } }),
   R('imp', '小惡魔', 'demon', '每個夜晚*，你要選擇一名玩家：他死亡。如果你以這種方式自殺，一名爪牙會變成小惡魔。', 0, 24),
   // 黯月初升
-  R('grandmother', '祖母', 'townsfolk', '在你的首個夜晚，你會得知一名善良玩家和他的角色。如果惡魔殺死了他，你也會死亡。', 40, 51),
+  R('grandmother', '祖母', 'townsfolk', '在你的首個夜晚，你會得知一名善良玩家和他的角色。如果惡魔殺死了他，你也會死亡。', 40, 0),
   R('sailor', '水手', 'townsfolk', '每個夜晚，你要選擇一名存活的玩家：你或他之一會醉酒直到下個黃昏。你不會死亡。', 11, 4),
   R('chambermaid', '侍女', 'townsfolk', '每個夜晚，你要選擇除你以外的兩名存活的玩家：你會得知他們中有幾人在當晚因其自身能力而被喚醒。', 51, 70),
   R('exorcist', '驅魔人', 'townsfolk', '每個夜晚*，你要選擇一名玩家（與上個夜晚不同）：如果你選中了惡魔，他會得知你是驅魔人，但他當晚不會因其自身能力而被喚醒。', 0, 21),
@@ -141,3 +146,9 @@ export function teamCounts(n, setupRoles = [], picks = {}) {
 export const changesSetup = id => !!ROLES[id]?.setup;
 
 export const isEvilRole = id => !!ROLES[id] && !TEAMS[ROLES[id].team].good;
+
+// 上傳的劇本：把系統不認識的角色登記進角色表，整本掛在 SCRIPTS.custom 下（瀏覽器收到房間狀態時調用；服務端見 lib/script.js）
+export function installScript(c) {
+  Object.assign(ROLES, c.defs);
+  SCRIPTS.custom = { name: c.name, en: c.author, roles: c.roles };
+}
