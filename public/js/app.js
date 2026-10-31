@@ -15,8 +15,11 @@ import { renderLobby, recentList, recentRooms, rememberRoom, forgetRoom } from '
 import { openInvite } from './invite.js';
 import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
+import { chime, locked, wake } from './sfx.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
+Object.assign(window.boot, { locked, chime: ms => chime('night', ms) }); // 開屏結束時鐘響兩下，和音波同拍
+wake();
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },

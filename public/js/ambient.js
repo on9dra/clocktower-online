@@ -17,7 +17,7 @@ const dots = (r, n) => Array.from({ length: n }, () => `${(r() * 100).toFixed(1)
 export function skyLife(cls = '') {
   const r = rand(1868);
   const root = h('div', { class: 'sky-life ' + cls, 'aria-hidden': 'true' });
-  [[7, 1, 190, 20], [17, .7, 260, 150], [30, 1.25, 150, 90]].forEach(([y, s, t, d]) => {
+  [[7, 1, 190, 62], [17, .7, 260, 150], [30, 1.25, 150, 90]].forEach(([y, s, t, d]) => {
     const c = h('div', { class: 'cloud', style: { '--y': y + 'vh', '--s': s, '--t': t + 's', '--d': -d + 's' } });
     c.innerHTML = CLOUD;
     root.append(c);

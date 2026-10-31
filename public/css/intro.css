@@ -16,7 +16,7 @@
 .it-page:nth-child(2) { --dr: 7deg; animation-delay: .13s; }
 .it-page:nth-child(1) { --dr: -4deg; --deal: .62s; animation-delay: .26s; }
 .it-nav, .it-skip { animation: it-show .4s ease .7s backwards; }
-.intro.hold * { animation-play-state: paused; }
+.intro.hold *:not(.sky-life, .sky-life *, .lobby-town *) { animation-play-state: paused; }
 @keyframes it-deal { from { translate: 0 115vh; rotate: var(--dr); } }
 @keyframes it-show { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .it-page, .it-nav, .it-skip { animation: none; } }

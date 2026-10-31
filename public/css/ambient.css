@@ -5,7 +5,7 @@
 .sky-life.night { --cloud: #2a3250; --crow: #0d111d; }
 
 /* 雲：平塗的紙片，往右飄，和屋頂上的風向標同一個風向 */
-.cloud { position: absolute; left: 0; top: var(--y); width: calc(230px * var(--s)); color: var(--cloud, #e2d9c6); opacity: .8; will-change: transform;
+.cloud { position: absolute; left: 0; top: var(--y); width: calc(230px * var(--s)); color: var(--cloud, #e2d9c6); opacity: .8; will-change: transform, translate;
   transition: color 1.4s ease; animation: cloud-drift var(--t) linear var(--d) infinite; }
 .cloud svg { display: block; width: 100%; fill: currentColor; }
 body[data-phase="night"] #scene { --cloud: #2a3250; --crow: #0d111d; }
@@ -53,6 +53,14 @@ body[data-phase="night"] .skyline-day .town-life * { animation-play-state: pause
 .recent-room { --root: 9vh; transform-origin: 0 calc(100% + var(--root)); animation: l-up .62s cubic-bezier(.2, .8, .3, 1) .62s backwards, flag-sway 6.4s ease-in-out infinite alternate; }
 .recent-room:nth-child(even) { --root: 5vh; animation-duration: .62s, 5.2s; animation-delay: .76s, -2s; }
 @keyframes flag-sway { from { rotate: -.5deg; } to { rotate: 1.1deg; } }
+
+/* 開屏揭開：開屏裏沒有的東西不能跟著一下子冒出來。雲順著風從畫面左邊飄進來，大的近、飄得快；烏鴉揭開才起飛；星星閃、炊煙、窗燈淡入。
+   html[data-sky]：hold 等揭開，in 登場（index.html）。第一次來的介紹和大廳同時登場，收起介紹時兩片天是對齊的 */
+html[data-sky] .sky-life.night, html[data-sky] .lobby-town :is(.tl-smoke, .tl-lamps) { animation: sky-in 3s ease backwards; }
+html[data-sky] .sky-life.night .cloud { animation: cloud-drift var(--t) linear var(--d) infinite, cloud-in calc(8.6s - var(--s) * 3s) cubic-bezier(.22, .6, .3, 1) backwards; }
+html[data-sky="hold"] :is(.sky-life.night, .sky-life.night *, .lobby-town .tl-smoke, .lobby-town .tl-lamps) { animation-play-state: paused; }
+@keyframes sky-in { from { opacity: 0; } }
+@keyframes cloud-in { from { translate: calc(-70vw - 300px) 0; } }
 
 /* 太陽慢慢轉 */
 body.art #scene .sun-disk { background: none !important; }

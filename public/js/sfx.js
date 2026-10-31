@@ -26,6 +26,16 @@ function ctx() {
   return ac;
 }
 document.addEventListener('pointerdown', () => ctx(), { once: true });
+// 開屏的鐘第一下就要出聲，提前建好（起來要一小會兒）
+export const wake = () => { ctx(); };
+// 瀏覽器還不讓出聲（這一頁沒點過），又沒靜音：開屏要等用戶點一下
+export const locked = () => !muted() && !!ctx() && ac.state !== 'running';
+// 等聲音環境真的起來再敲，第一下不被吃掉。不讓出聲時 resume 一直掛著，超時就算了，不能等以後點一下才補響
+export function chime(name, within) {
+  const a = ctx();
+  if (!a) return Promise.resolve();
+  return Promise.race([a.resume(), new Promise(ok => setTimeout(ok, within))]).then(() => play(name));
+}
 
 function tone(freq, { at = 0, dur = 0.3, type = 'sine', vol = 0.4, to, attack = 0.005 } = {}) {
   const a = ac, t = a.currentTime + at;
