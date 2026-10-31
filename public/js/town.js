@@ -73,7 +73,7 @@ export function renderTown(ctx) {
     if (ck && !ck.done && ck.current === seat.id) cls.push('clock');
     if (ck && ck.locked(seat.id)) cls.push('counted');
     if (sel.on) {
-      cls.push(sel.on.notSelfId === seat.id || (sel.on.alive && seat.dead) || (sel.on.dead && !seat.dead) ? 'unselectable' : 'selectable');
+      cls.push(sel.on.notSelfId === seat.id || sel.on.last?.includes(seat.id) || (sel.on.alive && seat.dead) || (sel.on.dead && !seat.dead) ? 'unselectable' : 'selectable');
       if (sel.on.ids.includes(seat.id)) cls.push('selected');
     }
     // 坐上處決台的人：座位上只留一個虛線空位，頭像在圓桌中間
@@ -150,7 +150,6 @@ export function renderTown(ctx) {
     mid ? cardEl(b) : s.isSt ? stCenter(ctx) : !blk && playerCenter(ctx),
     s.phase === 'ended' && mvpPane(ctx),
   ));
-  if (b && b.side) ring.append(cardEl(b));
   if (blk) ring.append(blockSeat(ctx, blk));
   // 被擠下台 / 被平票擠下的人：從圓桌中間飛回自己的座位
   for (const seat of s.seats) {
@@ -161,7 +160,7 @@ export function renderTown(ctx) {
   }
   if (showNom) ring.append(nomLine(s, nom));
   const picking = s.isSt && !s.peek && s.phase === 'lobby';
-  return h('div', { class: 'town' + (picking ? ' picking' : '') }, ring, picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)));
+  return h('div', { class: 'town' + (picking ? ' picking' : '') }, ring, picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)), b && b.side && cardEl(b));
 }
 
 // 說書人：當前夜晚步驟的操作卡（走完是天亮前核對）/ 白天的裁定卡。貞潔者小窗（side）不擋投票，有別的裁定時讓位
@@ -176,7 +175,7 @@ function stBubble(ctx) {
 }
 // 圓桌中間放不下的卡（築夢師這種一整排角色牌）：整張縮小到放得下（最小 60%），再不行才滾動。畫完後調用
 export function fitTableCard() {
-  const el = document.querySelector('.st-card:not(.side)'), card = el && el.firstElementChild;
+  const el = document.querySelector('.st-card:not(.corner)'), card = el && el.firstElementChild;
   if (!card) return;
   card.style.zoom = '';
   if (getComputedStyle(el).overflowY === 'visible') return; // 手機上角色牌和紙條在圓桌外面（hud.css），不用縮
@@ -186,7 +185,7 @@ export function fitTableCard() {
 function cardEl(b) {
   const fresh = lastBubble !== b.id; // 只在新步驟出現時播放展開動畫，重繪不重播
   lastBubble = b.id;
-  return h('section', { class: 'st-card' + (b.side ? ' side' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id }, b.card());
+  return h('section', { class: 'st-card' + (b.side ? ' corner' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id }, b.card());
 }
 // 當前步驟已經定下的目標（旅店老闆選的兩人、築夢師查的人……）：桌上金圈標出來
 function stepTargets(s) {
@@ -263,6 +262,7 @@ function onSeat(ctx, seat, anchor) {
   if (pk && pk.can.has(seat.id)) return pk.pick(seat.id);
   if (sel.on) {
     if (sel.on.notSelfId === seat.id) return toast('不能選擇自己');
+    if (sel.on.last?.includes(seat.id)) return toast('不能和上一晚選同一名玩家');
     const ids = sel.on.ids, max = Math.max(...(sel.on.counts || [sel.on.count]));
     if (ids.includes(seat.id)) ids.splice(ids.indexOf(seat.id), 1);
     else if (sel.on.alive && seat.dead) return toast('只能選擇存活的玩家');

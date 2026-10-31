@@ -47,10 +47,10 @@ function truths(s, form) {
   return out;
 }
 
-// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項（渦流在場時不預填，說書人自己挑錯的）
+// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項（渦流在場時不預填，說書人自己挑錯的；數學家、雜耍藝人攔不了，也不預填）
 function initial(form) {
   const t = form.truth;
-  if (form.vortox) return {};
+  if (form.why === 'vortox') return {};
   if (form.kind !== 'two') return form.kind === 'text' ? {} : { ...t };
   if (t.none) return { none: true };
   const of = form.roleOf || {};
@@ -85,6 +85,7 @@ function opt(content, { on, level = 0, onclick, cls = '' }) {
   return h('button', { class: `opt-tile ${cls}` + (on ? ' on' : '') + (level === 1 ? ' alt' : ''), onclick }, content, level === 2 && Tm());
 }
 const row = (...kids) => h('div', { class: 'opt-row' }, kids);
+const seatRow = kids => h('div', { class: 'opt-row seat-row' }, kids); // 手機上不顯示：座位直接點桌上的頭像（seatPicking）
 
 function twoBody(s, step, d, set) {
   const form = step.form, of = form.roleOf || {}, may = form.mayBe || {}, t = form.truth;
@@ -96,7 +97,7 @@ function twoBody(s, step, d, set) {
       row(form.roles.map(id => opt(mini(id), { on: !d.none && d.role === id, level: inPlay.has(id) ? 2 : maybe.has(id) ? 1 : 0,
         onclick: () => set({ none: false, role: id, a: d.a || null, b: d.b || null }) })),
       form.allowNone && opt(w(`沒有${TEAMS[form.team]?.name || ''}`, 'ink'), { on: d.none, level: t.none ? 2 : form.noneOk ? 1 : 0, onclick: () => set({ none: true }) })),
-      !d.none && row(others(s, step).map(id => opt(seatBadge(s, id), { on: picked.includes(id), level: lvSeat(id),
+      !d.none && seatRow(others(s, step).map(id => opt(seatBadge(s, id), { on: picked.includes(id), level: lvSeat(id),
         onclick: () => { const n = picked.includes(id) ? picked.filter(x => x !== id) : [...picked, id].slice(-2); set({ a: n[0] || null, b: n[1] || null }); } }))),
     ];
   }
@@ -117,7 +118,7 @@ function twoBody(s, step, d, set) {
     list.length === 1 ? h('div', { class: 'opt-row' }, h('div', { class: 'opt-tile fixed' }, face(list[0])))
       : row(list.map(x => opt(face(x), { on: isOn(x), level: x.via ? 1 : 2, onclick: () => choose(x) }))),
     cur && cur.roles && cur.roles.length > 1 && row(cur.roles.map(id => opt(mini(id), { on: d.role === id, level: 1, onclick: () => set({ role: id }) }))),
-    !d.none && row(others(s, step).filter(id => id !== d.a).map(id => opt(seatBadge(s, id), { on: d.b === id, onclick: () => set({ b: id }) }))),
+    !d.none && seatRow(others(s, step).filter(id => id !== d.a).map(id => opt(seatBadge(s, id), { on: d.b === id, onclick: () => set({ b: id }) }))),
   ];
 }
 
@@ -155,7 +156,7 @@ function verdict(s, form, d) {
 const icHead = (s, step) => h('div', { class: 'ic-head' },
   h('span', { class: 'ic-actor' }, mini(step.roleId)),
   s.seats.some(x => x.id === step.seatId) && seatBadge(s, step.seatId, 'lg'),
-  step.form.why && w({ poison: '中毒', drunk: '酒鬼', vortox: '渦流' }[step.form.why], 'evil'));
+  step.form.why && w({ poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', vortox: '渦流' }[step.form.why], 'evil'));
 const sendBtn = (ctx, d, { level, err }) => h('button', {
   class: 'btn wide ' + (err ? 'disabled' : level === 0 ? 'red' : 'primary'), 'data-hot': '1',
   onclick: () => !err && ctx.st('confirm', { fields: d }),
@@ -193,10 +194,11 @@ export function infoForm(ctx, step) {
   const body = form.kind === 'two' ? twoBody(s, step, d, set) : form.kind === 'dream' ? dreamBody(s, step, d, set)
     : form.kind === 'text' ? null : choiceBody(s, step, d, set);
   const v = verdict(s, form, d), { level } = v;
-  return h('div', { class: 'card focus infocard' + (form.free ? ' free' : '') },
+  return h('div', { class: 'card focus infocard spread' + (form.free ? ' free' : '') },
     icHead(s, step),
-    body,
-    h('div', { class: 'ic-preview ' + (level < 0 ? 'empty' : ['bad', 'alt', 'good'][level]) },
-      level < 0 ? h('span', { class: 'frm' }, h('i', { class: 'op-sep' })) : formula(s, infoFormula(form, d), 'big')),
-    sendBtn(ctx, d, v));
+    body && h('div', { class: 'ic-body' }, body),
+    h('div', { class: 'ic-foot' },
+      h('div', { class: 'ic-preview ' + (level < 0 ? 'empty' : ['bad', 'alt', 'good'][level]) },
+        level < 0 ? h('span', { class: 'frm' }, h('i', { class: 'op-sep' })) : formula(s, infoFormula(form, d), 'big')),
+      sendBtn(ctx, d, v)));
 }

@@ -277,8 +277,8 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .check input { width: auto; margin-top: 3px; }
 .sheet-team { font-family: var(--serif); font-weight: 700; margin: 10px 0 6px; }
 .sheet-row { display: flex; gap: 10px; margin-bottom: 8px; }
-.guess-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-bottom: 10px; }
-.guess-pick { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px; border-radius: 4px; font-size: 13px; }
+.guess-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.guess-pick { display: flex; align-items: center; gap: 6px; min-width: 0; cursor: pointer; padding: 4px; border-radius: 4px; font-size: 13px; white-space: nowrap; }
 .guess-pick:hover { background: var(--hover); }
 
 /* 手機頂欄的側欄標籤、抽屜的遮罩和 ✕、「規則」短字只在窄屏出現 */
@@ -293,7 +293,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .topbar .brand, .topbar .who, .room i, .topbar .long, .topbar .help, .topbar .sound, .topbar .script-name { display: none; }
   .topbar .more { flex: none; }
   .topbar .short { display: inline; }
-  .topbar .btn.sm { padding: 3px 8px; }
+  .topbar .btn.sm { min-height: 36px; min-width: 36px; padding: 3px 8px; }
   .topbar .warn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
   .m-tabs { display: flex; gap: 4px; flex: none; }
   .m-tabs .btn { position: relative; }
@@ -511,7 +511,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .tr-num { font-size: 44px; }
   .tr-slots i { width: 10px; height: 10px; }
   .tr-foot { padding-top: 6px; gap: 6px; }
-  .tr-acts { gap: 6px; padding-top: 6px; } .tr-acts .btn { padding: 5px 9px; font-size: 13px; }
+  .tr-acts { gap: 6px; padding-top: 6px; } .tr-acts .btn { min-height: 38px; padding: 5px 9px; font-size: 13px; }
   .tr-clock .sb { font-size: 13px; }
 }
 
@@ -575,7 +575,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .tr-k .vbtn { padding: 6px 14px; font-size: 15px; gap: 5px; min-width: 96px; justify-content: center; }
 .tr-k .vbtn i { font: 600 13px var(--sans); opacity: .75; letter-spacing: 0; }
 .tr-k .vbtn .ico { width: 18px; height: 18px; }
-@media (max-width: 860px) { .tr-k .vbtn { padding: 4px 8px; font-size: 13px; } .tr-k .vbtn .ico { width: 14px; height: 14px; } }
+@media (max-width: 860px) { .tr-k .vbtn { min-height: 38px; padding: 4px 8px; font-size: 13px; } .tr-k .vbtn .ico { width: 14px; height: 14px; } }
 
 /* 圓桌中央「第 N 夜 / 天」下面：死訊、主人、輪到自己時的選人確認；說書人的準備、天亮、白天按鈕 */
 .cx { display: grid; justify-items: center; gap: 8px; margin-top: 10px; pointer-events: auto; }
@@ -627,7 +627,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   box-shadow: inset 0 0 0 3px var(--tone), inset 0 0 0 4.5px var(--card); }
 .tp-ico .ico { width: 60%; height: 60%; }
 .tp-say { font: 700 17px/1.45 var(--serif); }
-.tp-say b { color: var(--tone); font-size: 1.15em; }
+.tp-say b { color: var(--tone); font-size: 1.15em; white-space: nowrap; }
 .turn-pane .slots { font-size: 26px; }
 .center:has(.turn-pane) .phase-sub { display: none; }
 @media (max-width: 860px) {
@@ -639,7 +639,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .tp-ico { width: 30px; height: 30px; }
   .tp-say { font-size: 12.5px; line-height: 1.35; }
   .turn-pane .slots { font-size: 18px; }
-  .turn-pane .btn.big { padding: 5px 16px; font-size: 13.5px; }
+  .turn-pane .btn.big { min-height: 44px; padding: 5px 22px; font-size: 14.5px; }
+  .turn-pane .role-slot { min-height: 40px; }
+  .cx .btn.sm { min-height: 40px; }
 }
 
 /* 獵手：其他活著的人頭上（左上角）一個瞄準鈕，點開先講規則再開槍 */

@@ -15,6 +15,7 @@ function entry(s, e) {
     case 'night': return ['div', [icon('moon'), `第 ${e.n} 夜`], 'night'];
     case 'day': return ['div', [icon('sun'), `第 ${e.n} 天`], 'day'];
     case 'dawn': return e.deaths?.length ? [2, [icon('skull'), e.deaths.map(id => who(s, id)), w('死亡', 'bad')]] : [0, [w('平安夜')]];
+    case 'revive': return [2, [who(s, e.seat), w('復活', 'good')]];
     case 'nom': return [1, [who(s, e.from), w('提名', 'bad'), who(s, e.to)]];
     case 'votes': return [e.res === 'block' ? 1.5 : 1, [who(s, e.to), w('得票'), h('b', { class: 'gl-num' }, e.n, h('small', {}, '/', e.need)), w(...VOTE[e.res]),
       e.voters?.length > 0 && h('span', { class: 'gl-voters' }, icon('hand'), e.voters.map(id => seatBadge(s, id, 'sm')))]];

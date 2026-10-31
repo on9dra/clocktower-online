@@ -54,7 +54,7 @@ export const ROLES = Object.fromEntries([
   R('minstrel', '吟遊詩人', 'townsfolk', '當一名爪牙死於處決時，除了你和旅行者以外的所有其他玩家醉酒直到明天黃昏。', 0, 0),
   R('tealady', '茶藝師', 'townsfolk', '如果與你鄰近的兩名存活的玩家是善良的，他們不會死亡。', 0, 0),
   R('pacifist', '和平主義者', 'townsfolk', '被處決的善良玩家可能不會死亡。', 0, 0),
-  R('fool', '弄臣', 'townsfolk', '當你首次將要死亡時，你不會死亡。', 0, 0),
+  R('fool', '弄臣', 'townsfolk', '當你首次將要死亡時，你不會死亡。', 0, 0, { once: true }),
   R('tinker', '修補匠', 'outsider', '你隨時可能死亡。', 0, 0),
   R('moonchild', '月之子', 'outsider', '當你得知你死亡時，你要公開選擇一名存活的玩家。如果他是善良的，在當晚他會死亡。', 0, 50),
   R('goon', '莽夫', 'outsider', '每個夜晚，首個使用其自身能力選擇了你的玩家會醉酒直到下個黃昏。你會轉變爲他的陣營。', 0, 0),

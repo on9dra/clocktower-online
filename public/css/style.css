@@ -154,6 +154,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .popmenu button.off small { color: var(--evil); }
 .popmenu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 99; background: var(--ink); color: var(--card); padding: 8px 16px; border-radius: 4px; max-width: 90vw; }
+@media (max-width: 860px) { .toast { bottom: 64px; } } /* 手機底部是進度條 */
 
 /* 角色牌：雙圈印章 */
 .token {

@@ -24,7 +24,7 @@ export function clockState(ctx) {
 const row = (...kids) => h('div', { class: 'frm-line' }, kids);
 const btns = (...kids) => h('div', { class: 'row' }, kids);
 // 選人狀態：服務端的 choose（count / counts / notSelf / alive / dead / roles / roleOptional）→ 本地的 sel.on
-export const selFrom = (key, c, selfId) => ({ key, ids: [], count: c.count, counts: c.counts || [c.count], notSelfId: c.notSelf ? selfId : null,
+export const selFrom = (key, c, selfId) => ({ key, ids: [], count: c.count, counts: c.counts || [c.count], notSelfId: c.notSelf ? selfId : null, last: c.last || [],
   alive: !!c.alive, dead: !!c.dead, roles: c.roles || null, roleOptional: !!c.roleOptional, role: null });
 const pickOk = on => on.counts.includes(on.ids.length) && (!on.roles || !!on.role || (on.roleOptional && !on.ids.length));
 // 要選幾個人：選中的座位號 + 還空著的虛線圈
@@ -126,14 +126,15 @@ export function rulingCard(ctx, r = ctx.state.st.ruling, op = 'rule') {
     : B(label, () => ctx.st(op, { work }), 'ghost' + (side ? ' sm' : '')));
   const opts = r.forced ? [r.auto] : r.auto ? [false, true] : [true, false];
   const left = side && r.due ? Math.max(0, Math.ceil((r.due - ctx.now()) / 1000)) : null;
-  return h('div', { class: 'card infocard ruling' + (side ? ' side' : ' focus') },
-    h('div', { class: 'rule-k' }, !side && icon('timer'), RULE_TITLE[r.kind] || '裁定'),
+  const say = [h('div', { class: 'rule-k' }, !side && icon('timer'), RULE_TITLE[r.kind] || '裁定'),
     rulingWho(s, r),
     !r.forced && r.why && row(w(r.why, 'evil'), w('能力可能無效', 'muted')),
-    !r.forced && r.reg && row(mini(r.reg), w(REG_AS[r.kind], 'muted')),
-    h('div', { class: 'row' }, left != null
-      ? [h('span', { class: 'v-left' }, icon('timer'), h('b', {}, left), w('秒後反噬', 'muted')), B('立即反噬', () => ctx.st(op, { work: true }), 'primary sm')]
-      : opts.map(work => btn(work ? yes : no, work))));
+    !r.forced && r.reg && row(mini(r.reg), w(REG_AS[r.kind], 'muted'))];
+  const acts = h('div', { class: 'row' }, left != null
+    ? [h('span', { class: 'v-left' }, icon('timer'), h('b', {}, left), w('秒後反噬', 'muted')), B('立即反噬', () => ctx.st(op, { work: true }), 'primary sm')]
+    : opts.map(work => btn(work ? yes : no, work)));
+  return h('div', { class: 'card infocard ruling' + (side ? ' corner' : ' focus spread') },
+    side ? [say, acts] : [h('div', { class: 'ic-top' }, say), h('div', { class: 'ic-foot' }, acts)]);
 }
 // 可以被登記成另一類的角色在這次裁定裏可能被當作什麼
 const REG_AS = { slayer: '可以被當作惡魔', virgin: '可以被當作鎮民' };
@@ -147,11 +148,12 @@ export function reviewCard(ctx) {
   if (s.manual) return manualNight(ctx);
   const seatsOr = ids => (ids?.length ? ids.map(id => seatBadge(s, id)) : w('無', 'ink'));
   const sep = h('i', { class: 'op-sep' });
-  return h('div', { class: 'card focus infocard' },
-    row(w('今晚'), st.diedTonight.length ? [st.diedTonight.map(id => seatBadge(s, id)), w('死亡', 'bad')] : w('無人死亡', 'good')),
-    row(w('中毒', 'evil'), seatsOr(st.poisonList), st.drunkList?.length > 0 && [sep, w('醉酒', 'evil'), seatsOr(st.drunkList)],
-      h('i', { class: 'op-sep' }), w('保護', 'good'), seatsOr(st.protectList)),
-    B('天亮，公佈死訊', () => ctx.st('dawn'), 'primary wide', true));
+  return h('div', { class: 'card focus infocard spread' },
+    h('div', { class: 'ic-body' }, h('div', { class: 'ic-slip' },
+      row(w('今晚'), st.diedTonight.length ? [st.diedTonight.map(id => seatBadge(s, id)), w('死亡', 'bad')] : w('無人死亡', 'good')),
+      row(w('中毒', 'evil'), seatsOr(st.poisonList), st.drunkList?.length > 0 && [sep, w('醉酒', 'evil'), seatsOr(st.drunkList)],
+        h('i', { class: 'op-sep' }), w('保護', 'good'), seatsOr(st.protectList)))),
+    h('div', { class: 'ic-foot' }, B('天亮，公佈死訊', () => ctx.st('dawn'), 'primary wide', true)));
 }
 
 // 結束白天前說清楚會發生什麼，避免誤點直接入夜

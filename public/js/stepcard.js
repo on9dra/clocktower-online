@@ -56,12 +56,12 @@ const GROUP = { minioninfo: '爪牙信息', demoninfo: '惡魔信息' };
 function decideCard(ctx, step) {
   const s = ctx.state, d = step.decide, key = step.id + (d.role || d.kind);
   const cur = d.options.some(o => o.id === choices[key]) ? choices[key] : null;
-  if (d.kind === 'ability') return h('div', { class: 'card focus infocard free' },
-    head(s, step),
-    h('div', { class: 'frm big' }, (step.picks || []).length > 0 && [w({ imp: '想殺', monk: '保護' }[step.roleId] || '選了', 'ink'),
-      step.picks.map(id => seatBadge(s, id)), h('i', { class: 'op-sep' })], seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil')),
+  if (d.kind === 'ability') return h('div', { class: 'card focus infocard free spread' },
+    h('div', { class: 'ic-top' }, head(s, step),
+      h('div', { class: 'frm big' }, (step.picks || []).length > 0 && [w({ imp: '想殺', monk: '保護' }[step.roleId] || '選了', 'ink'),
+        step.picks.map(id => seatBadge(s, id)), h('i', { class: 'op-sep' })], seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil'))),
     // 酒鬼只有「無效」一個選項
-    h('div', { class: 'row' }, d.options.map((o, i) => B(o.label, () => ctx.st('decide', { choice: o.id }), i ? '' : 'primary', d.options.length === 1))));
+    h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, d.options.map((o, i) => B(o.label, () => ctx.st('decide', { choice: o.id }), i ? '' : 'primary', d.options.length === 1)))));
   const face = o => {
     const seat = s.seats.find(x => x.id === o.id);
     return seat ? [seatBadge(s, seat.id), mini(seat.role)] : o.id === 'none' ? icon('none') : w(o.label, 'ink');
@@ -69,11 +69,10 @@ function decideCard(ctx, step) {
   const lead = d.kind === 'mayor' ? [w('惡魔殺', 'bad'), seatBadge(s, d.targetId), named('mayor'), w('換誰死？', 'ink')]
     : d.kind === 'starpass' ? [w('誰成為', 'ink'), named('imp'), w('？', 'ink')]
       : [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
-  return h('div', { class: 'card focus infocard' },
-    head(s, step),
-    h('div', { class: 'frm big' }, lead),
-    h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
+  return h('div', { class: 'card focus infocard spread' },
+    h('div', { class: 'ic-top' }, head(s, step), h('div', { class: 'frm big' }, lead)),
+    h('div', { class: 'ic-body' }, h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
-    }, face(o)))),
-    h('button', { class: 'btn primary wide' + (cur ? '' : ' disabled'), 'data-hot': '1', onclick: () => cur && ctx.st('decide', { choice: cur }) }, '確定'));
+    }, face(o))))),
+    h('div', { class: 'ic-foot' }, h('button', { class: 'btn primary wide' + (cur ? '' : ' disabled'), 'data-hot': '1', onclick: () => cur && ctx.st('decide', { choice: cur }) }, '確定')));
 }

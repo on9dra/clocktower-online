@@ -231,7 +231,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key !== 'Enter' || typing || document.querySelector('.popmenu')) return;
   const hot = open ? open.querySelector('.btn.primary:not(.disabled)')
-    : ['.st-card:not(.side)', '.center', '.trial'].map(k => document.querySelector(k + ' [data-hot]:not(.disabled)')).find(Boolean);
+    : ['.st-card:not(.corner)', '.center', '.trial'].map(k => document.querySelector(k + ' [data-hot]:not(.disabled)')).find(Boolean);
   // 焦點停在別的按鈕上時也走主操作，避免回車重複點到剛剛用鼠標點過的按鈕
   e.preventDefault();
   if (hot) hot.click();

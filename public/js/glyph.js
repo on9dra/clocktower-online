@@ -126,7 +126,7 @@ export const w = (text, k = '') => h('span', { class: 'w' + (k ? ' ' + k : '') }
 // 角色小牌 + 名字
 export const named = roleId => h('span', { class: 'rn' }, mini(roleId), h('b', {}, ROLES[roleId]?.name || roleId));
 
-const OPS = { to: 'to', eq: 'eq', become: 'become', pairs: 'pairs', mask: 'mask', exec: 'noose' };
+const OPS = { to: 'to', eq: 'eq', pairs: 'pairs', mask: 'mask', exec: 'noose' };
 function term(s, t) {
   if (t.s) return seatBadge(s, t.s);
   if (t.w) return w(t.w, t.k);
@@ -138,6 +138,7 @@ function term(s, t) {
   if (t.grim) return grimGrid(s, t.grim);
   if (t.op === 'or') return w('或');
   if (t.op === 'eq') return w('是');
+  if (t.op === 'become') return w('變成');
   if (t.op === 'sep') return h('i', { class: 'op-sep' });
   if (t.op === 'br') return h('i', { class: 'op-br' });
   return icon(OPS[t.op] || 'to', 'op');

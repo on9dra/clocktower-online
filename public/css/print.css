@@ -47,7 +47,7 @@ body.art .trial { --fw: 24px; padding: 4px 6px 2px; }
 body.art .turn-pane { --fw: 24px; --mark: var(--tone); padding: 6px 8px 8px; }
 body.art .card:not(.on-table) { padding: 2px 4px 4px; }
 body.art .infocard.ruling { --mark: var(--brass); }
-body.art .infocard.ruling.side { padding: 0 2px; }
+body.art .infocard.ruling.corner { padding: 0 2px; }
 body.art .hud { --mark: var(--team); padding: 3px 4px; }
 body.art .bluffs { --mark: var(--evil); padding: 1px 3px 3px; }
 body.art .board:has(> .bluffs:not(.min)) > .hud:not(.min) { --bl-h: 158px; } /* 帶版框的偽裝卡高一點，HUD 要讓出這麼多 */
@@ -57,7 +57,7 @@ body.art .town .script-card { --fw: 14px; padding: 2px; border-radius: 6px; } /*
 /* 收成角色牌的圓片不是卡片 */
 body.art .hud.min { padding: 5px; background: var(--card); border: 0; border-image: none; border-radius: 50%; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
 body.art .bluffs.min { padding: 6px 10px; background: var(--card); border: 1.5px solid var(--evil); border-image: none; border-radius: 999px; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
-@media (min-width: 861px) and (max-width: 1180px) {
+@media (max-width: 1180px) {
   body.art .hud.pick { padding: 5px; background: var(--card); border: 0; border-image: none; border-radius: 50%; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
   body.art .bluffs.pick { padding: 6px 10px; background: var(--card); border: 1.5px solid var(--evil); border-image: none; border-radius: 999px; box-shadow: var(--card-edge-s), 0 6px 14px #0006; }
 }
@@ -87,6 +87,12 @@ body.art .score-tbl td { border-bottom: 0; background: var(--r-dash) 0 100% / 60
   body.art .mvp-pane { padding: 0 4px; }
   body.art .turn-pane { padding: 2px 4px 4px; }
   body.art .join { padding: 3px 4px 5px; }
+  body.art .infocard.ruling.corner { padding: 2px 4px; }
+  /* 收起的角色牌、偽裝條不是卡片，不吃上面的圓角 */
+  body.art .hud:is(.min, .pick) { border-radius: 50%; }
+  body.art .bluffs:is(.min, .pick) { border-radius: 999px; }
+  /* 信息卡拆開擺在圓桌上下：外框不要了，圓桌中間只留一小張寫著是誰 */
+  body.art .card.spread { background: none; border: 0; border-image: none; box-shadow: none; padding: 0; }
 }
 /* 手機上「收起」貼著角，別壓到能力說明 */
 body.art .hud-x { right: 0; top: 0; }

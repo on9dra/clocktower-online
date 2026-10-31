@@ -124,7 +124,13 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .pmark.act.good { background: var(--good); }
 .pmark.act.evil { background: var(--evil); }
 .pmark.act.brass { background: var(--brass); }
-@media (max-width: 860px) { .pmarks { max-width: 80px; } .pmark { font-size: 10px; padding: 0 3px; } }
+@media (max-width: 860px) {
+  .pmarks { max-width: 80px; }
+  .pmark { font-size: 10px; padding: 0 3px; }
+  /* 幾枚小牌疊成一排，不折到第二行壓到鄰座 */
+  .pmarks:has(.pm + .pm) { flex-wrap: nowrap; }
+  .pmarks .pm + .pm { margin-left: -9px; }
+}
 
 /* 說書人的操作卡：和玩家輪到自己時的牌一樣，在圓桌中央「第 N 夜 / 天」下面，按圓桌大小限寬高（--rw 圓桌邊長，.town 是尺寸容器）；
    放不下時整張縮小（town.js fitTableCard）。貞潔者小窗貼桌面左上角；提名期間的裁定卡蓋在審判牌上（.st-over）。正在行動的座位外圈金線擴散 */
@@ -133,7 +139,7 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .center:has(> .st-card) { width: auto; }
 .st-card > .card { margin: 0; box-shadow: 0 12px 28px #0005; }
 .st-card.fresh > .card { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
-.ring > .st-card.side { position: absolute; left: 0; top: 0; z-index: 6; margin: 0; max-width: 30%; }
+.town > .st-card.corner { position: absolute; left: 0; top: 0; z-index: 9; margin: 0; max-width: 30%; }
 .st-over { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; pointer-events: none; }
 .st-over > .st-card { margin: 0; }
 .seat.aimed .token { outline: 3px solid var(--brass); outline-offset: 3px; }
@@ -165,12 +171,22 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .infocard.ruling .btn .ico { width: 15px; height: 15px; margin-right: 4px; }
 .seat.ruled .token { outline: 3px dashed var(--evil); outline-offset: 4px; }
 /* 貞潔者小窗：投票照常進行，卡片縮小、不帶計時圖標 */
-.infocard.ruling.side { padding: 10px 12px; gap: 6px; }
-.infocard.ruling.side .rule-k { font-size: 14px; }
-.infocard.ruling.side .frm-line { font-size: 18px; }
+.infocard.ruling.corner { padding: 10px 12px; gap: 6px; }
+.infocard.ruling.corner .rule-k { font-size: 14px; }
+.infocard.ruling.corner .frm-line { font-size: 18px; }
 .v-left { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; color: var(--evil); }
 .v-left .ico { width: 16px; height: 16px; }
 .v-left b { font: 800 20px var(--serif); min-width: 1.4em; text-align: right; }
+/* 手機：審判牌佔滿桌面，小窗橫著壓在頂上一條，審判牌讓到底下 */
+@media (max-width: 860px) {
+  .town > .st-card.corner { left: 4px; right: 4px; top: 4px; width: auto; max-width: none; max-height: none; padding: 0; }
+  .town:has(> .st-card.corner) > .trial { margin-bottom: 6px; max-height: calc(100% - 96px); }
+  .infocard.ruling.corner { grid-template-columns: 1fr auto; align-items: center; padding: 6px 10px; gap: 2px 8px; }
+  .infocard.ruling.corner .row { grid-column: 2; grid-row: 1 / 3; margin: 0; flex-wrap: nowrap; }
+  .infocard.ruling.corner .frm-line { flex-wrap: nowrap; margin: 0; font-size: 16px; white-space: nowrap; }
+  .infocard.ruling.corner .frm-line .rn b { display: none; } /* 標題已經寫了是貞潔者 */
+  .infocard.ruling.corner .btn { min-height: 40px; }
+}
 
 /* 射空的人：所有人視角都標「射 N 號失敗」，「未中」章飛過來時按上去 */
 .pmark.shot { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; background: var(--muted); color: #fff; font-weight: 700; }

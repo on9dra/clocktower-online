@@ -66,8 +66,8 @@ function playGame(n, scriptId = 'tb') {
       } else if (step.status === 'decide') {
         ok(applyStOp(room, { op: 'decide', choice: rnd(step.decide.options).id }));
       } else if (step.status === 'review') {
-        // 天亮前確認：玩家這時還看不到今晚的死亡
-        for (const id of room.g.diedTonight) assert.ok(!viewFor(room, { pid: 'p0' }).seats.find(s => s.id === id).dead || room.seats.find(s => s.pid === 'p0').id === id);
+        // 天亮前確認：玩家這時還看不到今晚的死亡（今晚復活又死的人，大家本來就知道他死了）
+        for (const id of room.g.diedTonight.filter(x => !room.g.risen.includes(x))) assert.ok(!viewFor(room, { pid: 'p0' }).seats.find(s => s.id === id).dead || room.seats.find(s => s.pid === 'p0').id === id);
         ok(applyStOp(room, { op: 'dawn' }));
       } else {
         const form = step.form;
