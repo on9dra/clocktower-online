@@ -17,6 +17,7 @@ const day = r => st(r, 'next');
   await runOnly(r, 'mathematician', 2);
   const f = r.g.step.form;
   assert.strictEqual(f.truth.n, 2);
+  assert.deepStrictEqual(f.ids, [S(r, 'chef').id, S(r, 'empath').id], '卡片上列出算入的座位');
   assert.ok(f.free && f.open && !f.unknown && !f.why, '系統知道答案，所有數字可選');
   ok(st(r, 'confirm', { fields: { n: 3 } }));
   assert.ok(!off(r, 'mathematician'), '說書人調整數字不算失常');

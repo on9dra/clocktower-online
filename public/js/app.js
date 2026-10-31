@@ -5,6 +5,7 @@ import { renderSide, sideCollapsed, closeSheet, resetSide } from './side.js';
 import { syncPrompt } from './flow.js';
 import { progressBar } from './progress.js';
 import { sel, stopSelect, fitTableCard } from './town.js';
+import { syncSetup } from './setup.js';
 import { topbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView, intoRoom, backToLobby, resetFx } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
@@ -15,6 +16,7 @@ import { renderLobby, recentList, recentRooms, rememberRoom, forgetRoom } from '
 import { openInvite } from './invite.js';
 import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
+import { askPass } from './roompass.js';
 import { chime, locked, wake } from './sfx.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
@@ -54,7 +56,7 @@ export const ctx = {
   },
   peek: seatId => new Promise(res => sock.emit('st:peek', { seatId }, done(res))),
   // 觀戰的人入座（準備階段有空位時）
-  sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst),
+  sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst, true),
   // 說書人解散房間
   close: () => ctx.st('close').then(r => r.ok && bye('closed')),
   // 意見反饋（關於面板）：斷線時等 8 秒
@@ -73,17 +75,35 @@ function enter(code, st, inst = '') {
   if (inst) rememberRoom(LS, { code, inst });
 }
 
-function joinPlayer(code, name, inst = '') {
+// 有密碼的房間：本機記著輸對過的，先用它試；不對再問。stay：觀戰的人入座，關掉密碼框還留在房間裏
+const NEED_PASS = '請輸入房間密碼', BAD_PASS = '房間密碼不對';
+async function joinPlayer(code, name, inst = '', stay = false) {
   if (name) LS.set('botc.name', name);
-  sock.emit('pl:join', { code, inst, pid, name }, r => (r.ok ? enter(code, false, inst) : fail(r.error, code)));
+  const key = 'botc.pass.' + code;
+  const go = pass => new Promise(res => sock.emit('pl:join', { code, inst, pid, name, pass }, res));
+  const r = await go(LS.get(key) || '');
+  if (r.ok) return enter(code, false, inst);
+  if (r.error !== NEED_PASS && r.error !== BAD_PASS) return fail(r.error, code);
+  LS.del(key);
+  if (!stay) toLobby(code);
+  await window.boot.out;
+  askPass(async pass => {
+    const t = await go(pass);
+    if (t.ok) { LS.set(key, pass); enter(code, false, inst); }
+    else if (t.error !== BAD_PASS) toast(t.error);
+    return t.ok;
+  });
 }
 // 進不去：回大廳，地址欄清掉（斷線重連時不再拿它重試），房間號留在輸入框裏
-function fail(err, code = '') {
-  toast(err);
+function toLobby(code = '') {
   session = null;
   params.delete('room'); params.delete('r');
   setUrl('');
   lobby(code);
+}
+function fail(err, code = '') {
+  toast(err);
+  toLobby(code);
 }
 function resume() {
   const code = (session && session.code) || params.get('room');
@@ -191,6 +211,7 @@ function render() {
   const cur = app.querySelector(':scope > .game:not(.gone)');
   if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
   fitTableCard();
+  syncSetup(ctx);
   // 聊天、日誌：原本停在底部的保持在底部，新打開的貼底列表直接滾到底
   app.querySelectorAll('[data-scroll]').forEach(el => {
     const b = atBottom[el.dataset.scroll];

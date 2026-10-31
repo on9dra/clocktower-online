@@ -60,6 +60,15 @@ function fixBody(s, e) {
 }
 
 const groupKey = l => (l.phase === 'night' ? `n${l.night}` : l.phase === 'lobby' ? 'setup' : `d${l.day}`);
+const logRow = (s, l) => {
+  const b = l.e && body(s, l.e);
+  return h('div', { class: 'log-row' + (l.e ? ` k-${l.e.k}` : ''), title: l.text }, b || h('span', { class: 'log-text' }, l.text));
+};
+
+// 數學家卡片：今天白天和今晚到現在玩家做過的事，說書人據此判斷數字。開局、告知這些說書人自己的記錄不列
+const NOT_PLAYERS = new Set(['setup', 'bluffs', 'sent', 'told', 'card', 'skip', 'fix']);
+export const sinceDawn = s => s.st.log.filter(l => !NOT_PLAYERS.has(l.e?.k)
+  && ((l.phase === 'night' && l.night === s.night) || (l.phase === 'day' && l.day === s.day))).map(l => logRow(s, l));
 
 export function renderLog(ctx) {
   const s = ctx.state, st = s.st;
@@ -73,9 +82,6 @@ export function renderLog(ctx) {
   return h('div', { class: 'tab-body log2', 'data-scroll': 'log', 'data-stick': '1' },
     groups.length ? groups.map(g => h('div', { class: 'log-group ' + (g.l.phase === 'night' ? 'night' : 'day') },
       h('div', { class: 'log-head' }, head(g)),
-      g.rows.map(l => {
-        const b = l.e && body(s, l.e);
-        return h('div', { class: 'log-row' + (l.e ? ` k-${l.e.k}` : ''), title: l.text }, b || h('span', { class: 'log-text' }, l.text));
-      })))
+      g.rows.map(l => logRow(s, l))))
       : h('div', { class: 'log-empty' }, icon('quill')));
 }

@@ -37,7 +37,7 @@ export function recentList(rooms, onPick) {
 
 // 房間號：四個連成一排的小方格，上面疊一個看不見的真輸入框（粘貼、刪除照常），數字從左往右一格格填，下一格閃光標。
 // 不設 maxlength：粘貼「房間 5179」這類帶別的字的也能留下 4 位數字
-function codeBox(input) {
+export function codeBox(input) {
   const cells = [0, 1, 2, 3].map(() => h('i'));
   const sync = () => {
     const v = input.value.replace(/\D/g, '').slice(0, 4);

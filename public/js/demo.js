@@ -68,7 +68,7 @@ function viewOf() {
   const score = x => { const p = world.players[x.id]; return { crown: res?.winners.includes(x.id) ? res.team : null,
     mvp: !!(sameGame && m?.done && m.winners.includes(x.id)), wins: p.wins, mvps: p.mvp, eggs: p.eggs }; };
   return {
-    code: world.code || 'DEMO', inst: world.inst || '', locked: !!world.locked, watchers: world.watchers || 0,
+    code: world.code || 'DEMO', inst: world.inst || '', locked: !!world.pass, pass: who.st ? world.pass || '' : undefined, watchers: world.watchers || [],
     gameId: 'demo', isSt, myId, serverNow: Date.now(), stOnline: true, scriptId: world.scriptId,
     phase: world.phase, night: world.night, day: world.day,
     seats: world.seats.map(x => ({ id: x.id, name: x.name, online: true, dead: shown(x), deathBy: shown(x) ? x.deathBy || null : null, voteUsed: x.voteUsed, mine: x.id === myId, bot: !!x.bot, ...score(x),
@@ -132,7 +132,7 @@ const ctx = {
     else if (op === 'mvp') voteMvp('st', args.seatId);
     else if (op === 'next' && world.phase === 'ended') lobby();
     else if (op === 'next' && world.phase === 'lobby') startGame();
-    else if (op === 'lock') world.locked = !!args.on;
+    else if (op === 'pass') world.pass = args.pass || '';
     else if (op === 'seatLink') return ok({ token: '0123456789ab' });
     else if (op === 'kick') { world.banned = (world.banned || 0) + 1; world.seats = world.seats.filter(x => x.id !== args.seatId); }
     else if (op === 'unban') world.banned = 0;
@@ -384,6 +384,7 @@ function progOf(isSt) {
   return { at, order: order.map(r => (isSt ? { r, seats: holders(r), fake: !wakes(r) } : { r })) };
 }
 // ———— 場景：每步一個按鈕，按順序點 ————
+const CROWD = [{ name: '路人甲', mine: true }, { name: '小滿' }, { name: '阿九' }, { name: '老周' }]; // 觀眾席
 const SCENES = {
   // 提名、大家舉手、計票時鐘、上處決台 / 票不夠、處決、無人處決（要好幾個人一起投，自己一個人測不到）
   vote: {
@@ -634,15 +635,15 @@ const SCENES = {
       ['舊/新', () => document.body.classList.toggle('art')],
     ],
   },
-  // 房間：要好幾台設備 / 好幾個房間才撞得上的——最近的房間、玩家看到鎖房、觀戰、被移出（邀請二維碼、換設備鏈接一台設備就能在對局裏看）
+  // 房間：要好幾台設備 / 好幾個房間才撞得上的——最近的房間、玩家看到密碼鎖、觀戰、被移出（邀請二維碼、換設備鏈接一台設備就能在對局裏看）
   room: {
     title: '房間',
-    init() { lobby(); Object.assign(world, { code: '2468', inst: 'a1b2c3', locked: false, watchers: 0, banned: 0 }); who = { st: true }; LS.set('botc.st.2468', 'demo'); },
+    init() { lobby(); Object.assign(world, { code: '2468', inst: 'a1b2c3', pass: '', watchers: [], banned: 0 }); who = { st: true }; LS.set('botc.st.2468', 'demo'); },
     steps: [
       ['大廳', () => { screen = 'lobby'; }],
-      ['鎖房', () => { screen = null; world.locked = true; view({ me: ME }); }],
-      ['觀戰', () => { screen = null; world.locked = false; world.watchers = 2; view({}); }],
-      ['開局觀戰', () => { screen = null; world.watchers = 2; view({}); startGame(); }],
+      ['密碼', () => { screen = null; world.pass = '2468'; view({ me: ME }); }],
+      ['觀戰', () => { screen = null; world.pass = ''; world.watchers = CROWD; view({}); }],
+      ['開局觀戰', () => { screen = null; world.watchers = CROWD; view({}); startGame(); }],
       ['來消息', () => {
         screen = null; view({ me: ME });
         say('s3', ME, '你昨晚看到什麼了？');

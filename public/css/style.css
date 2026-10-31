@@ -217,6 +217,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .invite { display: grid; justify-items: center; gap: 12px; padding: 4px 0 6px; }
 .inv-code { display: flex; gap: 8px; }
 .inv-code b { display: grid; place-items: center; width: 52px; height: 64px; font: 700 40px var(--serif); border: 1.5px solid var(--ink); border-radius: 4px; background: var(--paper); }
+.inv-pass { display: inline-flex; align-items: center; gap: 6px; font: 700 20px var(--serif); letter-spacing: .25em; }
+.inv-pass .ico { width: 17px; height: 17px; color: var(--muted); }
+/* 房間密碼：輸錯時方格紅著晃一下，開始重輸就退掉 */
+.pass-modal { width: min(292px, 100%); }
+.pass-form { display: grid; justify-items: center; gap: 14px; padding: 6px 0 8px; }
+.pass-form .code-box { transition: border-color .2s; }
+.pass-form .row { justify-content: center; }
+.code-box.wrong { border-color: var(--evil); outline-color: var(--evil); animation: pass-no .36s ease; }
+@keyframes pass-no { 20% { translate: -7px; } 45% { translate: 6px; } 70% { translate: -4px; } 88% { translate: 2px; } }
+@media (prefers-reduced-motion: reduce) { .code-box.wrong { animation: none; } }
 .inv-qr { width: 200px; height: 200px; image-rendering: pixelated; border: 1px solid var(--line); }
 .inv-host { display: flex; align-items: center; gap: 8px; width: 100%; padding-top: 10px; border-top: 1px dashed var(--line-strong); font-size: 13px; color: var(--muted); }
 .inv-host .ico { width: 16px; height: 16px; color: var(--brass); }
@@ -225,9 +235,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .land-ring { position: fixed; z-index: 70; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 2.5px solid var(--brass); border-radius: 50%;
   pointer-events: none; animation: land-ring .6s ease-out forwards; }
 @keyframes land-ring { from { scale: .4; opacity: 1; } to { scale: 1.7; opacity: 0; } }
-/* 手機頂欄：說書人準備階段放不下，「⋯」會被擠出屏幕。分享在房間號和「⋯ → 分享房間」裏都有，單獨的分享按鈕收掉，側欄標籤收窄一點 */
+/* 手機頂欄：說書人準備階段放不下，「⋯」會被擠出屏幕，側欄標籤收窄一點 */
 @media (max-width: 860px) {
-  .topbar .invite { display: none; }
   .topbar .m-tabs { gap: 2px; }
   .topbar .m-tabs .btn.sm { padding-left: 5px; padding-right: 5px; }
 }

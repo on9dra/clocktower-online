@@ -10,7 +10,7 @@ import { trialPanel } from './trial.js';
 import { seatPicking } from './infoform.js';
 import { stepCard, decidePicking } from './stepcard.js';
 import { clockState, blockLines, playerCenter, stCenter, rulingCard, reviewCard, scriptPick } from './flow.js';
-import { pickRole, pickShown } from './setup.js';
+import { pickRole, pickShown, canHover, hoverSeat, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { handBubble, composePicking, startCompose, openCard, openReminders } from './manual.js';
 import { openSeatLink } from './invite.js';
 
@@ -22,7 +22,7 @@ export function stopSelect(ctx) { sel.on = null; ctx.render(); }
 
 // 圓桌中間的小字：說書人在桌邊說話的口吻（玩家和說書人各一句；觀戰的人沒有座位，不叫他閉眼、提名）
 const PHASE = s => ({
-  lobby: ['準備', s.seats.length < 5 ? `來了 ${s.seats.length} 位，至少要 5 位` : `來了 ${s.seats.length} 位，人齊就開局`],
+  lobby: ['準備'],
   night: [`第 ${s.night} 夜`, !s.isSt ? (s.myId ? '閉上眼，輪到你時我會叫你' : '大家都閉上了眼') : s.st?.step?.status === 'review' ? '天快亮了，核對一下今晚' : '按順序叫醒他們'],
   dawn: ['天亮了', s.isSt ? '準備好就開始白天' : '睜開眼，聽聽昨晚發生了什麼'],
   day: [`第 ${s.day} 天`, s.dayOver ? '今天已經處決過人了' : '討論時間'],
@@ -41,6 +41,9 @@ export function renderTown(ctx) {
   const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), num = id => s.seats.findIndex(x => x.id === id) + 1;
   const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--n': n } }); // --n：按人數縮放頭像（board.css）
   const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s), aimed = stepTargets(s);
+  const hoverPick = s.isSt && !s.peek && s.phase === 'lobby' && canHover(); // 準備階段：懸停頭像就能選角色（setup.js）
+  // 準備階段說書人桌上的牌：帶 key，換了角色是一張新牌，蓋下來（hud.css）
+  const dealt = id => { const t = roleToken(id); if (s.phase === 'lobby') t.setAttribute('data-key', id); return t; };
   const unread = chatUnread(s);
   // 私聊未讀：發送者身旁冒聊天氣泡，點開直接進那個頻道
   const pop = (ch, who) => unread[ch] && h('div', {
@@ -64,7 +67,7 @@ export function renderTown(ctx) {
       if (pk.fixed.has(seat.id)) cls.push('fixed-pick');
       else if (pk.on.has(seat.id)) cls.push('selected');
       else if (pk.can.has(seat.id)) cls.push('selectable');
-    } else if (aimed.has(seat.id)) cls.push('aimed');
+    } else if (aimed.has(seat.id) || pickingSeat() === seat.id) cls.push('aimed');
     if (seat.mine) cls.push('mine');
     if (s.st?.hand?.cards.some(c => c.seatId === seat.id && !c.done)) cls.push('acting');
     if (nom && nom.nomineeId === seat.id) cls.push('nominee');
@@ -78,7 +81,7 @@ export function renderTown(ctx) {
     }
     // 坐上處決台的人：座位上只留一個虛線空位，頭像在圓桌中間
     const token = seatAway(s, seat.id) ? h('div', { class: 'token md blank away' }, i + 1)
-      : seat.role ? roleToken(seat.role)
+      : seat.role ? dealt(seat.role)
         : seat.mine && s.myRole ? roleToken(s.myRole)
           : team[seat.id] ? teamToken(team[seat.id])
             : g[seat.id] ? h('div', { class: 'guess' }, roleToken(g[seat.id]))
@@ -92,7 +95,7 @@ export function renderTown(ctx) {
       style: { left: 50 + 41 * Math.cos(ang) + '%', top: 50 + 41 * Math.sin(ang) + '%', ...(died && died.style), ...(nom && nom.nomineeId === seat.id ? syncDelay(1600) : {}) },
       onclick: e => onSeat(ctx, seat, e.currentTarget),
     },
-    h('div', { class: 'seat-token' }, token,
+    h('div', { class: 'seat-token', onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
       s.isSt && seat.fakeRole && fakeBadge(seat.fakeRole),
       s.phase === 'lobby' && seat.pinned && h('i', { class: 'pin-mark', title: '指定' }, icon('quill')),
@@ -144,7 +147,7 @@ export function renderTown(ctx) {
   const hang = (blk || execActive()) && !mid;
   ring.append(h('div', { class: 'center' + (nom ? ' has-nom' : '') + (hang ? ' has-blk' : '') },
     !blk && h('div', { class: 'phase-title' }, title),
-    !blk && !mid && h('div', { class: 'phase-sub' }, sub),
+    !blk && !mid && sub && h('div', { class: 'phase-sub' }, sub),
     !s.isSt && (pop('st', '說書人') || pub('st', '公告')),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
     mid ? cardEl(b) : s.isSt ? stCenter(ctx) : !blk && playerCenter(ctx),
@@ -160,7 +163,19 @@ export function renderTown(ctx) {
   }
   if (showNom) ring.append(nomLine(s, nom));
   const picking = s.isSt && !s.peek && s.phase === 'lobby';
-  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)), b && b.side && cardEl(b));
+  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)), b && b.side && cardEl(b));
+}
+
+// 觀眾席：桌子右下角一張小紙條，寫前幾個名字，點開看全部。手機上只剩眼睛和人數（board.css）
+const STAND_NAMES = 3;
+function stand(s) {
+  const all = s.watchers;
+  if (!all.length) return null;
+  const open = e => menu(e.currentTarget, `觀眾席 ${all.length} 人`, all.map(x => ({ label: x.name, off: true })));
+  return h('button', { class: 'stand', 'data-key': 'stand', 'data-exit': true, title: '觀眾席', 'aria-label': `觀眾席 ${all.length} 人`, onclick: open },
+    h('span', { class: 'stand-h' }, icon('eye'), h('i', {}, '觀眾席'), h('b', {}, all.length)),
+    all.slice(0, STAND_NAMES).map(x => h('span', { class: 'stand-n' + (x.mine ? ' mine' : ''), 'data-key': 'w-' + x.name, 'data-exit': true }, x.name)),
+    all.length > STAND_NAMES && h('span', { class: 'stand-more', 'data-key': 'more' }, '⋯'));
 }
 
 // 說書人：當前夜晚步驟的操作卡（走完是天亮前核對）/ 白天的裁定卡。貞潔者小窗（side）不擋投票，有別的裁定時讓位
@@ -271,7 +286,7 @@ function onSeat(ctx, seat, anchor) {
     return ctx.render();
   }
   const title = seatLabel(s, seat.id);
-  if (s.isSt) return menu(anchor, title + (seat.role ? ' · ' + ROLES[seat.role].name : ''), stMenu(ctx, seat, title));
+  if (s.isSt) { closePick(); return menu(anchor, title + (seat.role ? ' · ' + ROLES[seat.role].name : ''), stMenu(ctx, seat, title)); }
   const me = s.seats.find(x => x.mine);
   if (!me && s.phase === 'lobby') return; // 觀戰的人準備階段沒什麼可做
   const day = s.phase === 'day' && me && !me.dead;
@@ -322,7 +337,7 @@ function stMenu(ctx, seat, title) {
     onclick: () => ctx.st('seatLink', { seatId: seat.id }).then(r => r.ok && openSeatLink(ctx, seat, title, r.token)) };
   const shown = seat.role && s.mode === 'manual' && { label: '玩家看到的角色', onclick: () => pickShown(ctx, seat) };
   if (s.phase === 'lobby') return [
-    { label: '指定角色', onclick: () => pickRole(ctx, seat) },
+    !canHover() && { label: '指定角色', onclick: () => pickRole(ctx, seat) },
     seat.pinned && { label: '恢復隨機', onclick: () => ctx.st('unpin', { seatId: seat.id }) },
     shown,
     st.draft && s.mode !== 'manual' && herring,

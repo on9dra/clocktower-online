@@ -131,7 +131,7 @@ const PREP = {
     steps(
       step(1, null, '選劇本', '3 本官方，或上傳 Json'),
       step(2, scene('hp-rules', nth(0, ruleBtn('baron', 'rand', '隨機')), nth(1, ruleBtn('baron', 'lock', '必選')), nth(2, ruleBtn('baron', 'ban', '排除'))), '角色配置', '點角色切換'),
-      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局', '先點座位指定角色，其餘隨機'))],
+      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局', '先給座位指定角色，其餘隨機'))],
 };
 
 const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && h('i', { class: 'tm' }, '真'));

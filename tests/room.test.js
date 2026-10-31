@@ -1,4 +1,4 @@
-// 房間系統測試：移出 / 鎖房 / 換設備 / 觀戰 / 騰房（直接調用），限流、退回大廳、解散、存檔、二維碼（起一個真服務器）。
+// 房間系統測試：移出 / 房間密碼 / 換設備 / 觀戰 / 騰房（直接調用），限流、退回大廳、解散、存檔、二維碼（起一個真服務器）。
 // 用法：node tests/room.test.js
 import assert from 'assert';
 import fs from 'fs';
@@ -12,7 +12,7 @@ const DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'botc-room-'));
 process.env.MAX_ROOMS = '3';
 process.env.DATA_DIR = DATA;
 const store = await import('../lib/store.js');
-const { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH } = await import('../lib/ops.js');
+const { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH, NEED_PASS, BAD_PASS } = await import('../lib/ops.js');
 const { viewFor } = await import('../lib/view.js');
 const { EGG } = await import('../public/js/score.js');
 
@@ -31,14 +31,25 @@ const seatOf = (r, pid) => r.seats.find(s => s.pid === pid);
   ok(st(r, 'unban'));
   ok(joinPlayer(r, 'p1', 'x'));
 }
-// 鎖房：新來的進不來（也不能觀戰），已經在座的能重連
+// 房間密碼：新來的要輸對（觀戰也一樣），已經在座的直接重連；密碼只有說書人看得到
 {
-  const r = room(2);
-  ok(st(r, 'lock', { on: true }));
-  assert.strictEqual(joinPlayer(r, 'new', 'x'), '房間已鎖定');
+  const r = room(3);
+  ok(st(r, 'pass', { pass: '1234' }));
+  assert.strictEqual(joinPlayer(r, 'new', 'x'), NEED_PASS);
+  assert.strictEqual(joinPlayer(r, 'new', 'x', '0000'), BAD_PASS);
   ok(joinPlayer(r, 'p0', 'n0'));
-  ok(st(r, 'lock', { on: false }));
-  ok(joinPlayer(r, 'new', 'x'));
+  assert.strictEqual(viewFor(r, { pid: 'p0' }).pass, undefined);
+  assert.strictEqual(viewFor(r, { pid: 'p0' }).locked, true);
+  assert.strictEqual(viewFor(r, { st: true }).pass, '1234');
+  ok(joinPlayer(r, 'new', 'x', '1234'));
+  assert.ok(st(r, 'pass', { pass: '12' }), '不是 4 位數字');
+  assert.strictEqual(r.pass, '1234');
+  ok(st(r, 'pass', { pass: '' }));
+  ok(joinPlayer(r, 'new2', 'x'));
+  ok(st(r, 'next'));
+  ok(st(r, 'pass', { pass: '1234' }));
+  assert.strictEqual(joinPlayer(r, 'late', 'x'), NEED_PASS);
+  assert.strictEqual(joinPlayer(r, 'late', 'x', '1234'), WATCH);
 }
 // 坐不下就觀戰：已開局、滿 15 人
 {
@@ -183,6 +194,21 @@ try {
   }
   assert.ok(blocked, '猜房號被限流');
 
+  // 房間密碼：沒帶密碼不算猜，輸錯算，連錯被擋；輸對能進
+  assert.ok((await call(stS, 'st:op', { op: 'pass', pass: '4321' })).ok);
+  const guessPass = conn('10.0.9.8');
+  for (let i = 0; i < 12; i++) assert.match((await call(guessPass, 'pl:join', { code: R.code, pid: 'g2', name: 'g' })).error, /請輸入/);
+  let passBlocked = false;
+  for (let i = 0; i < 12; i++) {
+    const r = await call(guessPass, 'pl:join', { code: R.code, pid: 'g2', name: 'g', pass: '0000' });
+    if (/太頻繁/.test(r.error)) passBlocked = true;
+  }
+  assert.ok(passBlocked, '猜密碼被限流');
+  const friend = conn('10.0.1.3');
+  assert.ok((await call(friend, 'pl:join', { code: R.code, pid: 'pid-3', name: '丙', pass: '4321' })).ok);
+  friend.emit('pl:act', { act: 'leave' });
+  assert.ok((await call(stS, 'st:op', { op: 'pass', pass: '' })).ok);
+
   // 聊天：每個座位連發 6 條後被限流
   const sent = [];
   for (let i = 0; i < 8; i++) sent.push(await call(p1, 'pl:act', { act: 'chat', to: 'all', text: 'hi' + i }));
@@ -214,11 +240,11 @@ try {
   assert.ok((await call(stS, 'st:op', { op: 'next' })).ok);
   const w = conn('10.0.2.1');
   const watchView = until(w, x => x.phase === 'night');
-  const stView = until(stS, x => x.watchers === 1);
+  const stView = until(stS, x => x.watchers.length === 1);
   const jr = await call(w, 'pl:join', { code: R.code, inst: R.inst, pid: 'pid-w', name: '看' });
   assert.ok(jr.ok && jr.watch);
   assert.strictEqual((await watchView).myId, null);
-  assert.strictEqual((await stView).watchers, 1);
+  assert.deepStrictEqual((await stView).watchers, [{ name: '看', mine: false }], '觀眾席只有名字，不帶 pid');
   assert.ok(!(await call(w, 'pl:act', { act: 'chat', to: 'all', text: 'x' })).ok, '觀戰不能發言');
 
   // 最近的房間：實例標識對上的才回答

@@ -1,5 +1,24 @@
-// 演出音效：全部用 Web Audio 現場合成，不加載外部素材。默認開，頂欄喇叭一鍵靜音；「⋯ → 設置」裏還有音量、煙花、煙花聲（都記在本機）
+// 演出音效：除了入夜的鐘都放錄音（public/sfx），鐘用 Web Audio 現場合成；錄音沒載完、解不開時也放合成聲。默認開，頂欄喇叭一鍵靜音；「⋯ → 設置」裏還有音量、煙花、煙花聲（都記在本機）
 let ac = null, master = null, bus = null;
+// 有錄音的音效：public/sfx/<名字>.m4a，蓋掉 SOUNDS 裏的同名合成聲，響度寫在文件裏（tools/sfx-build.py）。
+// 實物聲每次音高隨機浮動一點，連著響才不像複製粘貼；樂器音的音高不動
+const WOBBLE = {};
+const sampled = (names, wobble) => names.split(' ').forEach(n => { WOBBLE[n] = wobble; });
+sampled('dun dunBig dunLow objection flop pass fail good evil dawn crown turn key bell hum shimmer', 0);
+sampled('stab slash thud clang crack zap rope twang miss gavel rumble demon flip page leaf clip rattle cork unlock tock tick '
+  + 'whoosh swish toss splat caw flap dig splash drip fire fw hiss smack sniff beat2 pop', 0.08);
+const buffers = {}, waiting = Object.keys(WOBBLE);
+let downloading = 0;
+// 服務器帶寬只有 2Mbps 上下，一次下三個，不和圖片搶
+function pump() {
+  while (downloading < 3 && waiting.length) {
+    const name = waiting.shift();
+    downloading++;
+    fetch(`sfx/${name}.m4a`).then(r => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+      .then(b => ac.decodeAudioData(b)).then(b => { buffers[name] = b; }).catch(() => { /* 退回合成聲 */ })
+      .finally(() => { downloading--; pump(); });
+  }
+}
 const LS = 'botc.mute', PREFS = 'botc.sfx';
 export const muted = () => { try { return localStorage.getItem(LS) === '1'; } catch { return false; } };
 export function setMuted(v) { try { localStorage.setItem(LS, v ? '1' : ''); } catch { /* 忽略 */ } }
@@ -21,6 +40,7 @@ function ctx() {
     master = ac.createGain();
     master.gain.value = 0.6 * prefs().vol;
     master.connect(ac.destination);
+    pump();
   }
   if (ac.state === 'suspended') ac.resume();
   return ac;
@@ -144,10 +164,21 @@ const SOUNDS = {
   sniff: () => [0, 0.12].forEach(a => noise({ at: a, dur: 0.08, freq: 3000, to: 5200, q: 1.4, vol: 0.13 })),
 };
 
+function sample(name, k) {
+  const src = ac.createBufferSource(), g = ac.createGain();
+  src.buffer = buffers[name];
+  src.playbackRate.value = 1 + (Math.random() - 0.5) * WOBBLE[name];
+  g.gain.value = k;
+  src.connect(g).connect(master);
+  src.start();
+}
+
 // k：這一聲的音量倍數（煙花這種背景聲壓低）
 export function play(name, k = 1) {
   if (muted() || !SOUNDS[name] || !ctx() || ac.state !== 'running') return;
   try {
+    const rec = name === 'pageturn' ? 'page' : name;
+    if (buffers[rec]) return sample(rec, k);
     if (k !== 1) { bus = ac.createGain(); bus.gain.value = k; bus.connect(master); }
     SOUNDS[name]();
   } catch { /* 音效失敗不影響遊戲 */ } finally { bus = null; }

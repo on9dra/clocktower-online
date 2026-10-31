@@ -8,7 +8,7 @@ import qrcode from 'qrcode-generator';
 import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import * as store from './lib/store.js';
-import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH } from './lib/ops.js';
+import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH, BAD_PASS } from './lib/ops.js';
 import { scriptPayload } from './lib/script.js';
 import { viewFor } from './lib/view.js';
 import { isBot, botTick } from './lib/bots.js';
@@ -24,7 +24,7 @@ const FEEDBACK = path.join(process.env.DATA_DIR || path.join(ROOT, 'data'), 'fee
 // 頻率限制：[連續最多幾次, 之後每多少毫秒回一次]
 const LIMIT = {
   create: [5, 60 * 1000], // 每個 IP 建房：連建 5 個，之後每分鐘 1 個
-  miss: [10, 3000], // 每個 IP 輸錯房號 / 密鑰 / 重連鏈接：連錯 10 次，之後每 3 秒 1 次（9000 個房號猜一遍要七八個小時）
+  miss: [10, 3000], // 每個 IP 輸錯房號 / 密鑰 / 房間密碼 / 重連鏈接：連錯 10 次，之後每 3 秒 1 次（9000 個房號猜一遍要七八個小時）
   op: [40, 50], // 每個連接的操作：連發 40 個，之後每秒 20 個
   chat: [6, 2000], // 每個座位的聊天：連發 6 條，之後每 2 秒 1 條
   feedback: [3, 10 * 60 * 1000], // 每個 IP 的反饋：連寄 3 封，之後每 10 分鐘 1 封
@@ -48,8 +48,8 @@ app.get('/qr.svg', (req, res) => {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 ${m} ${m}" shape-rendering="crispEdges">`
     + `<rect x="-3" y="-3" width="${m}" height="${m}" fill="#fffdf3"/><path fill="#2a2622" d="${d}"/></svg>`);
 });
-// 圖片一天內不再問服務器，過期後先用舊的、後台更新；HTML、JS、CSS 每次都驗證，一部署就是新版
-const IMG = /\.(webp|svg)$/;
+// 圖片、音效一天內不再問服務器，過期後先用舊的、後台更新；HTML、JS、CSS 每次都驗證，一部署就是新版
+const IMG = /\.(webp|svg|m4a)$/;
 app.use(express.static(path.join(ROOT, 'public'), { setHeaders: (res, file) => {
   if (IMG.test(file)) res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=2592000');
 } }));
@@ -104,7 +104,8 @@ function broadcast(room) {
   const list = dropOrphans(room, socketsOf(room.code));
   const online = new Set(list.map(s => s.data.pid).filter(Boolean));
   room.stOnline = list.some(s => s.data.st);
-  room.watchers = list.filter(s => s.data.watch).length;
+  // 觀眾席：同一個人開了幾個標籤頁只坐一個位置
+  room.watchers = [...new Map(list.filter(s => s.data.watch).map(s => [s.data.pid, { pid: s.data.pid, name: s.data.name }])).values()];
   for (const seat of room.seats) seat.online = isBot(seat) || online.has(seat.pid);
   for (const s of list) emitState(s, room);
   store.save(room);
@@ -155,13 +156,14 @@ io.on('connection', socket => {
   }));
 
   // 坐不下（已開局、滿員）就觀戰
-  socket.on('pl:join', handle(({ code, inst, pid, name }, cb) => {
+  socket.on('pl:join', handle(({ code, inst, pid, name, pass }, cb) => {
     if (badPid(pid)) return reply(cb, '缺少玩家標識');
     const room = find(code, inst, cb);
     if (!room) return;
-    const err = joinPlayer(room, pid, name);
+    const err = joinPlayer(room, pid, name, String(pass || ''));
+    if (err === BAD_PASS) miss();
     if (err && err !== WATCH) return reply(cb, err);
-    socket.data = { code: room.code, pid, watch: err === WATCH };
+    socket.data = { code: room.code, pid, watch: err === WATCH, name: String(name ?? '').trim().slice(0, 12) || '路人' };
     done(room, cb, { watch: err === WATCH });
   }));
 

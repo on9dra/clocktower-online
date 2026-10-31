@@ -6,6 +6,7 @@ import { h, roleToken } from './ui.js';
 import { ROLES, TEAMS, CORE } from './roles.js';
 import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
 import { formula, seatBadge, mini, named, evilNum, icon, w } from './glyph.js';
+import { sinceDawn } from './log.js';
 
 const drafts = {}; // stepId -> 說書人當前的選擇
 const others = (s, step) => s.seats.filter(x => x.id !== step.seatId).map(x => x.id);
@@ -186,6 +187,13 @@ function tableForm(ctx, step, d) {
       sendBtn(ctx, d, v)));
 }
 
+// 數學家：系統算入的座位，下面是從黎明起大家做過的事，說書人自己判斷數字
+function eventList(s, form) {
+  const rows = sinceDawn(s), ids = form.ids || [];
+  return (rows.length > 0 || ids.length > 0) && h('div', { class: 'ic-events', 'data-scroll': 'events' },
+    ids.length > 0 && h('div', { class: 'ic-count' }, w('算入'), ids.map(id => seatBadge(s, id))), rows);
+}
+
 export function infoForm(ctx, step) {
   const s = ctx.state, form = step.form;
   const d = draftOf(step);
@@ -196,6 +204,7 @@ export function infoForm(ctx, step) {
   const v = verdict(s, form, d), { level } = v;
   return h('div', { class: 'card focus infocard spread' + (form.free ? ' free' : '') },
     icHead(s, step),
+    form.open && eventList(s, form),
     body && h('div', { class: 'ic-body' }, body),
     h('div', { class: 'ic-foot' },
       h('div', { class: 'ic-preview ' + (level < 0 ? 'empty' : ['bad', 'alt', 'good'][level]) },

@@ -8,14 +8,15 @@
 .brand { font-family: var(--serif); font-weight: 700; font-size: 17px; letter-spacing: 4px; }
 .room b { font-family: var(--serif); font-size: 18px; letter-spacing: 2px; }
 /* 房間號點開邀請（大號房間號 + 二維碼） */
-button.room { background: none; border: 0; padding: 0 2px; border-bottom: 1.5px dashed var(--line-strong); }
-button.room:hover { border-bottom-color: var(--ink); }
+button.room { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 0 2px; }
+button.room b { border-bottom: 1.5px dashed var(--line-strong); }
+button.room:hover b { border-bottom-color: var(--ink); }
+button.room .btn { margin-left: 8px; }
 .who { font-weight: 600; }
 /* 鎖房：說書人的開關（鎖上時塗黑），玩家只看到一把鎖；觀戰人數、自己在觀戰 */
 .topbar .lock.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
-.lock-tag, .watchers, .watch-tag { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); }
-.lock-tag .ico, .watchers .ico, .watch-tag .ico { width: 17px; height: 17px; }
-.watchers b { font: 700 14px var(--serif); }
+.lock-tag, .watch-tag { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); }
+.lock-tag .ico, .watch-tag .ico { width: 17px; height: 17px; }
 .watch-tag { padding: 1px 8px; border: 1.5px solid var(--line-strong); border-radius: 999px; font-weight: 600; color: var(--ink); }
 
 .board { grid-area: board; display: flex; min-height: 0; min-width: 0; }
@@ -287,13 +288,13 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .check { display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; color: var(--muted); margin: 6px 0 10px; }
 .check input { width: auto; margin-top: 3px; }
 .sheet-team { font-family: var(--serif); font-weight: 700; margin: 10px 0 6px; }
-.sheet-row { display: flex; gap: 10px; margin-bottom: 8px; }
+.sheet-row { display: flex; gap: 10px; margin-bottom: 8px; content-visibility: auto; contain-intrinsic-size: auto 64px; } /* 換劇本時屏幕外的行不排版 */
 .guess-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; margin-bottom: 10px; }
 .guess-pick { display: flex; align-items: center; gap: 6px; min-width: 0; cursor: pointer; padding: 4px; border-radius: 4px; font-size: 13px; white-space: nowrap; }
 .guess-pick:hover { background: var(--hover); }
 
-/* 手機頂欄的側欄標籤、抽屜的遮罩和 ✕、「規則」短字只在窄屏出現 */
-.m-tabs, .sheet-x, .side-mask, .topbar .short { display: none; }
+/* 手機頂欄的側欄標籤、抽屜的遮罩和 ✕ 只在窄屏出現 */
+.m-tabs, .sheet-x, .side-mask { display: none; }
 .room i { font-style: normal; }
 .sheet-x { background: none; border: 0; color: var(--muted); padding: 4px 10px; font-size: 15px; }
 
@@ -303,7 +304,6 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .topbar { gap: 5px; padding: 5px 8px; }
   .topbar .brand, .topbar .who, .room i, .topbar .long, .topbar .help, .topbar .sound, .topbar .script-name { display: none; }
   .topbar .more { flex: none; }
-  .topbar .short { display: inline; }
   .topbar .btn.sm { min-height: 36px; min-width: 36px; padding: 3px 8px; }
   .topbar .warn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
   .m-tabs { display: flex; gap: 4px; flex: none; }
@@ -458,6 +458,27 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 
 /* 審判牌（trial.js）：提名期間蓋在桌面上的一張紙牌。平塗、墨線、印章，和其他卡片一個風格 */
 .town { position: relative; }
+/* 觀眾席（town.js stand）：桌子是圓的，右下角空著，放一張斜貼的小紙條。夜裏桌面換深色變量，紙還是紙 */
+.stand { --card: #e8e0d0; --ink: #2a2622; --muted: #635a4c; --line: #c2b7a1; position: absolute; right: 8px; bottom: 8px; z-index: 2; display: grid; justify-items: start; gap: 1px; min-width: 76px; max-width: 112px; padding: 4px 9px 6px;
+  background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); border-radius: 0; box-shadow: 2px 3px 0 #2a262233; rotate: -1.5deg; color: var(--ink); font: 500 13px/1.45 var(--serif); text-align: left; cursor: pointer; animation: slip-in .3s ease-out backwards; }
+.stand:hover { box-shadow: 3px 4px 0 #2a262244; }
+.stand-h { display: flex; align-items: center; gap: 3px; width: 100%; padding-bottom: 2px; margin-bottom: 1px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.stand-h .ico { width: 14px; height: 14px; }
+.stand-h i { font-style: normal; flex: 1; }
+.stand-h b { font: 700 13px var(--serif); color: var(--ink); }
+.stand-n { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: slip-in .3s ease-out backwards; }
+.stand-n.mine { font-weight: 800; }
+.stand-more { color: var(--muted); line-height: .8; }
+/* 手機、矮屏：只剩眼睛和人數，點開看名字；橫屏時操作卡鋪到屏幕邊，紙條讓開 */
+@media (max-height: 520px) {
+  .stand { transition: opacity .2s ease; }
+  .town:has(.st-card:not(.corner)) .stand { opacity: 0; pointer-events: none; }
+}
+@media (max-width: 860px), (max-height: 520px) {
+  .stand { min-width: 0; min-height: 36px; padding: 3px 8px; right: 4px; bottom: 4px; }
+  .stand-h { padding: 0; margin: 0; border: 0; gap: 4px; }
+  .stand-h i, .stand-n, .stand-more { display: none; }
+}
 .trial { position: absolute; inset: 0; margin: auto; z-index: 8; width: min(580px, calc(100% - 24px)); height: fit-content; max-height: calc(100% - 24px); overflow: auto;
   display: grid; gap: 10px; padding: 14px 16px 12px; background: var(--card) url(../img/grain.svg); border: 2px solid var(--ink); border-radius: 12px;
   box-shadow: 0 18px 40px #2a262240; font-family: var(--serif); color: var(--ink); }

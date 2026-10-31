@@ -83,7 +83,7 @@ export function toast(msg, ms = 2200) {
 
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // 退場：加 .leaving 交給樣式演完再摘掉。用定時器收尾：後台標籤頁不出幀時動畫的 finish 不會來
-function leaveDom(el, ms) {
+export function leaveDom(el, ms) {
   if (still() || document.hidden) return el.remove();
   el.classList.add('leaving');
   setTimeout(() => el.remove(), ms);

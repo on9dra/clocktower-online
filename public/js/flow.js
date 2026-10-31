@@ -165,15 +165,34 @@ function endDayButton(ctx) {
   return B(label, () => ask(msg, () => ctx.st('next'), label), nom ? 'ghost' : 'primary big', !nom);
 }
 
+// 劇本卡的選中態不等服務器：點了就亮（到香港來回要 0.3 秒），被拒絕就退回。left 是還沒回覆的操作數：連點時中間幾步的狀態不把高亮拉回去
+const wanted = new Map();
+function shown(s, key) {
+  const w = wanted.get(key);
+  if (w && (w.code !== s.code || (!w.left && w.value === s[key]))) wanted.delete(key);
+  return wanted.has(key) ? wanted.get(key).value : s[key];
+}
+function pick(ctx, op, key, value) {
+  const w = { code: ctx.state.code, value, left: (wanted.get(key)?.left || 0) + 1 };
+  wanted.set(key, w);
+  ctx.render();
+  setTimeout(() => { if (wanted.get(key) === w) { wanted.delete(key); ctx.render(); } }, 8000); // 斷線丟了回覆：不能一直亮著沒生效的那個
+  ctx.st(op, { [key]: value }).then(r => {
+    const cur = wanted.get(key);
+    if (cur) cur.left--;
+    if (!r.ok && cur?.value === value) { wanted.delete(key); ctx.render(); }
+  });
+}
+
 // 說書人準備階段：桌面左上角的劇本卡（換劇本會清掉角色配置和預覽），虛線格是以後的 DLC
 export function scriptPick(ctx) {
-  const s = ctx.state, locked = s.st.modeLocked;
-  const mode = (m, text) => h('button', { class: 'chip' + (s.mode === m ? ' on' : ''), disabled: locked && m === 'auto' ? true : null,
-    onclick: () => s.mode !== m && ctx.st('mode', { mode: m }) }, text);
+  const s = ctx.state, locked = s.st.modeLocked, script = shown(s, 'scriptId'), now = shown(s, 'mode');
+  const mode = (m, text) => h('button', { class: 'chip' + (now === m ? ' on' : ''), disabled: locked && m === 'auto' ? true : null,
+    onclick: () => now !== m && pick(ctx, 'mode', 'mode', m) }, text);
   return h('div', { class: 'script-card', 'data-key': 'script-card' },
     h('div', { class: 'sc-group' }, h('b', {}, '劇本'),
-      Object.keys(SCRIPTS).map(id => h('button', { class: 'chip' + (id === s.scriptId ? ' on' : ''), title: SCRIPTS[id].name,
-        onclick: () => id !== s.scriptId && ctx.st('script', { scriptId: id }) }, SCRIPTS[id].name)),
+      Object.keys(SCRIPTS).map(id => h('button', { class: 'chip' + (id === script ? ' on' : ''), title: SCRIPTS[id].name,
+        onclick: () => id !== script && pick(ctx, 'script', 'scriptId', id) }, SCRIPTS[id].name)),
       h('button', { class: 'chip up', onclick: () => uploadScript(ctx) }, '上傳劇本'),
       h('button', { class: 'chip soon', disabled: true }, '敬請期待')),
     h('div', { class: 'sc-group sc-mode' }, mode('auto', '智能推進'), mode('manual', '手動')));
@@ -236,7 +255,7 @@ export function playerCenter(ctx) {
   const s = ctx.state, me = s.seats.find(x => x.mine);
   if (s.isSt || s.peek) return null;
   // 觀戰的人：準備階段有空位就能入座
-  if (!me) return s.phase === 'lobby' && s.seats.length < 15 && !s.locked ? h('div', { class: 'cx' }, h('div', { class: 'row' }, B('入座', () => ctx.sit(), 'primary'))) : null;
+  if (!me) return s.phase === 'lobby' && s.seats.length < 15 ? h('div', { class: 'cx' }, h('div', { class: 'row' }, B('入座', () => ctx.sit(), 'primary'))) : null;
   if (s.prompt && sel.on && !nightHeld()) return turnPane(ctx);
   if (s.phase === 'lobby') return h('div', { class: 'cx' }, h('div', { class: 'row' }, B('離開房間', () => ctx.act('leave').then(() => ctx.leave()), 'ghost sm'),
     B('改名', () => prompt2('你的暱稱', me.name, name => { if (name) { ctx.ls.set('botc.name', name); ctx.act('rename', { name }); } }, { max: 12 }), 'sm')));
