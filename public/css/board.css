@@ -349,6 +349,8 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 
 .peekbar { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 10px; align-items: center;
   background: var(--brass); color: #fff; padding: 5px 6px 5px 14px; border-radius: 4px; font-weight: 600; white-space: nowrap; animation: slip-in .24s ease-out; }
+.solobar { left: auto; right: 8px; transform: none; padding: 4px 6px; gap: 6px; }
+.solobar select { font: inherit; font-size: 13px; max-width: 110px; }
 .board { position: relative; }
 .preview { margin: 8px 0 0; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 4px; font-size: 13px; }
 .preview.good { border: 1.5px solid var(--good); }

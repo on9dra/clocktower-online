@@ -8,7 +8,7 @@ import qrcode from 'qrcode-generator';
 import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import * as store from './lib/store.js';
-import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH, BAD_PASS } from './lib/ops.js';
+import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, createSolo, soloOp, WATCH, BAD_PASS } from './lib/ops.js';
 import { scriptPayload } from './lib/script.js';
 import { viewFor } from './lib/view.js';
 import { isBot, botTick } from './lib/bots.js';
@@ -145,6 +145,23 @@ io.on('connection', socket => {
     socket.data = { code: room.code, st: true };
     reply(cb, { code: room.code, stKey: room.stKey, inst: room.inst });
     broadcast(room);
+  }));
+
+  // 單人試玩：機器人當說書人，自己當玩家
+  socket.on('solo:create', handle(({ pid, name, count, role, script }, cb) => {
+    if (badPid(pid)) return reply(cb, '缺少玩家標識');
+    if (!allow('create:' + ip, LIMIT.create)) return reply(cb, '建房太頻繁，請稍後再試');
+    if (!store.makeSpace(code => socketsOf(code).length > 0)) return reply(cb, '房間已滿，請稍後再試');
+    const room = createSolo(pid, String(name ?? ''), { count, role, script });
+    if (typeof room === 'string') return reply(cb, room);
+    socket.data = { code: room.code, pid, name: String(name ?? '').trim().slice(0, 12) };
+    done(room, cb, { code: room.code, inst: room.inst });
+  }));
+
+  socket.on('solo:op', handle((op, cb) => {
+    const room = store.get(socket.data.code);
+    if (!room) return reply(cb, '未加入房間');
+    done(room, cb, soloOp(room, socket.data.pid, op));
   }));
 
   socket.on('st:join', handle(({ code, stKey }, cb) => {

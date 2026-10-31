@@ -58,7 +58,7 @@ export function topbar(ctx) {
     h('span', { class: 'script-name' }, SCRIPTS[s.scriptId]?.name),
     s.mode === 'manual' && h('span', { class: 'mode-tag' }, '手動'),
     h('span', { class: 'grow' }),
-    !s.isSt && !s.peek && !s.stOnline && h('span', { class: 'warn' }, '說書人離線'),
+    !s.isSt && !s.peek && !s.solo && !s.stOnline && h('span', { class: 'warn' }, '說書人離線'),
     s.isSt || s.peek ? h('span', { class: 'who' }, '說書人') : me ? h('span', { class: 'who' }, me.name)
       : h('span', { class: 'watch-tag' }, icon('eye'), '觀戰'),
     // 自己的雞蛋數（點開積分榜）；結算時雞蛋飛進來跳一下「+N」。說書人是獎盃

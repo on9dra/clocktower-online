@@ -17,6 +17,7 @@ import { openInvite } from './invite.js';
 import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
 import { askPass } from './roompass.js';
+import { soloBar } from './solo.js';
 import { chime, locked, wake } from './sfx.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
@@ -55,6 +56,7 @@ export const ctx = {
     return new Promise(res => sock.emit('pl:act', { act, ...args }, done(res)));
   },
   peek: seatId => new Promise(res => sock.emit('st:peek', { seatId }, done(res))),
+  solo: (op, args = {}) => new Promise(res => sock.emit('solo:op', { op, ...args }, done(res))),
   // 觀戰的人入座（準備階段有空位時）
   sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst, true),
   // 說書人解散房間
@@ -105,7 +107,18 @@ function fail(err, code = '') {
   toast(err);
   toLobby(code);
 }
+function startSolo(opts = {}) {
+  const name = LS.get('botc.name') || '玩家';
+  LS.set('botc.name', name);
+  sock.emit('solo:create', { pid, name, ...opts }, r => (r.ok ? enter(r.code, false, r.inst) : fail(r.error)));
+}
 function resume() {
+  // ?solo[=人數][&role=imp][&script=tb]：開一局單人試玩，地址欄換成房間鏈接，刷新回到這一局
+  if (params.has('solo') && !session) {
+    const solo = { count: params.get('solo'), role: params.get('role'), script: params.get('script') };
+    ['solo', 'role', 'script'].forEach(k => params.delete(k));
+    return startSolo(solo);
+  }
   const code = (session && session.code) || params.get('room');
   if (!code) return lobby();
   const inst = (session && session.inst) || params.get('r') || '';
@@ -164,6 +177,7 @@ function lobby(code = params.get('room') || '') {
     code, name: LS.get('botc.name') || '',
     // 從邀請鏈接來、第一次填暱稱：房間號沒改的話帶上鏈接裏的實例標識
     onJoin: (c, name) => joinPlayer(c, name, c === params.get('room') ? params.get('r') || '' : ''), onCreate: create,
+    onSolo: () => startSolo(),
     onPick: pick,
     onIntro: () => showIntro(LS),
     onAbout: () => openAbout(ctx),
@@ -207,7 +221,7 @@ function render() {
     topbar(ctx),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar', 'data-key': 'peek', 'data-exit': true }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), side);
+    soloBar(ctx), renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), side);
   const cur = app.querySelector(':scope > .game:not(.gone)');
   if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
   fitTableCard();
@@ -243,11 +257,11 @@ sock.on('state', s => {
   window.boot.ready();
 });
 // 大廳畫出來不用等連上服務器（連接要好幾個往返），點按鈕發的請求 socket.io 會存著，連上再發；邀請鏈接、回房間才要等
-let early = !params.get('room');
+let early = !params.get('room') && !params.has('solo');
 if (early) lobby();
 sock.on('connect', () => {
   if (early) { early = false; return; }
-  (session || params.get('room') ? resume() : lobby());
+  (session || params.get('room') || params.has('solo') ? resume() : lobby());
 });
 sock.on('disconnect', why => { if (why !== 'io client disconnect') toast('連接斷開，正在重連…'); });
 sock.on('bye', bye);
