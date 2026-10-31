@@ -59,6 +59,7 @@ body[data-phase="night"] .skyline-day .town-life * { animation-play-state: pause
 html[data-sky] .sky-life.night, html[data-sky] .lobby-town :is(.tl-smoke, .tl-lamps) { animation: sky-in 3s ease backwards; }
 html[data-sky] .sky-life.night .cloud { animation: cloud-drift var(--t) linear var(--d) infinite, cloud-in calc(8.6s - var(--s) * 3s) cubic-bezier(.22, .6, .3, 1) backwards; }
 html[data-sky="hold"] :is(.sky-life.night, .sky-life.night *, .lobby-town .tl-smoke, .lobby-town .tl-lamps) { animation-play-state: paused; }
+html[data-sky] .lobby.clear > .sky-life { animation: none; } /* 剛揭開就進房間：動畫佔著 opacity，大廳這層天就淡不掉了 */
 @keyframes sky-in { from { opacity: 0; } }
 @keyframes cloud-in { from { translate: calc(-70vw - 300px) 0; } }
 
