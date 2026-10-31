@@ -47,7 +47,7 @@ function truths(s, form) {
   return out;
 }
 
-// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項（渦流在場時不預填，說書人自己挑錯的；數學家、雜耍藝人攔不了，也不預填）
+// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項（渦流在場時不預填，說書人自己挑錯的；雜耍藝人攔不了，也不預填）
 function initial(form) {
   const t = form.truth;
   if (form.why === 'vortox') return {};
@@ -127,7 +127,7 @@ function choiceBody(s, step, d, set) {
   const form = step.form, t = form.truth, key = { number: 'n', yesno: 'yes', role: 'role' }[form.kind];
   const ok = [...new Set([t[key], ...(form.ok || [])])];
   const all = form.kind === 'number' ? [...Array(form.max + 1).keys()] : form.kind === 'yesno' ? [true, false] : form.roles;
-  // unknown：系統不知道真相（雜耍藝人、數學家），全部列出、不標真假
+  // unknown：系統不知道真相（雜耍藝人），全部列出、不標真假
   const values = form.free || form.unknown ? all : ok;
   const y = YES[form.roleId] || YES.fortuneteller;
   const face = v => (form.kind === 'number' ? evilNum(v) : form.kind === 'yesno' ? w(v ? y.yes : y.no, y.k[v ? 0 : 1]) : mini(v));

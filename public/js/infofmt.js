@@ -1,6 +1,7 @@
 // 說書人給信息的表單：服務端生成表單（含真實答案），說書人選擇後兩端用同一個函數拼出句子和式子。
 // form.kind：two（兩名玩家+一個角色）、number（數字）、yesno（是/否）、role（一個角色）、dream（一善一惡兩個角色）、text（間諜看魔典）
-// form.ok / form.mayBe / form.noneOk：隱士、間諜「登記」為別的身份時也算合規的答案；form.unknown：系統不知道真相（雜耍藝人、數學家）
+// form.ok / form.mayBe / form.noneOk：隱士、間諜「登記」為別的身份時也算合規的答案；form.unknown：系統不知道真相（雜耍藝人）；
+// form.open：真相算得出來，但哪些失常算數由說書人定，所有答案都能選（數學家）
 import { ROLES, TEAMS } from './roles.js';
 
 const name = id => (ROLES[id] ? ROLES[id].name : '?');
