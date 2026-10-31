@@ -107,3 +107,7 @@ a.ab-code:hover .ab-qr { background: var(--hover); }
   .ab-share .inv-qr { width: 150px; height: 150px; }
   .ab-nk { padding-right: 8px; font-size: 14px; }
 }
+
+/* 二維碼是現生成的，到了淡入 */
+.inv-qr, img.ab-qr { opacity: 0; transition: opacity .4s ease; }
+.inv-qr.in, img.ab-qr.in { opacity: 1; }

@@ -14,8 +14,12 @@ import { msgHeld } from './fx.js';
 const newView = () => ({ tab: null, chat: 'all', seen: {}, base: null, focus: false, drafts: {}, sheet: false });
 const views = {};
 let ui = newView();
+// 離開房間不刷新頁面：換一個房間，已讀、草稿都從頭算
+export function resetSide() { Object.keys(views).forEach(k => delete views[k]); ui = newView(); }
 const viewKey = s => (s.peek ? 'peek:' + s.peek.seatId : s.isSt ? 'st' : 'me');
 const wide = () => window.matchMedia('(min-width: 861px)').matches;
+// 換標籤、換頻道：新的內容淡進來
+const tabIn = sel => { if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelector(sel)?.animate({ opacity: [0, 1] }, 180); };
 
 // 打開頻道：側欄翻到聊天標籤的那一頁（座位菜單、桌上的氣泡走這裏）
 export function openChat(ctx, ch) {
@@ -95,7 +99,15 @@ export function pickGuess(ctx, seatId) {
 
 // 側欄只放記錄類內容；可以收成一條豎排標籤軌（桌面寬屏），收起狀態記在本機
 export const sideCollapsed = ctx => ctx.ls.get('botc.side') === 'min';
-const setCollapsed = (ctx, v) => { ctx.ls.set('botc.side', v ? 'min' : ''); ctx.render(); };
+// 欄寬過渡的這一會兒（side-moving，board.css）面板和豎條都留著，一個淡出一個淡入；過渡完再畫一次，圓桌中間的卡按新寬度量
+let moving = 0;
+const setCollapsed = (ctx, v) => {
+  ctx.ls.set('botc.side', v ? 'min' : '');
+  document.body.classList.add('side-moving');
+  ctx.render();
+  clearTimeout(moving);
+  moving = setTimeout(() => { document.body.classList.remove('side-moving'); ctx.render(); }, 340);
+};
 
 // 未讀：別人發的聊天（不算系統公告；玩家的說書人信息另有彈窗），按頻道統計 { 頻道: { n, last } }
 export function chatUnread(s) {
@@ -132,10 +144,19 @@ export function sheetTabs(ctx) {
   const byCh = chatUnread(s);
   return h('nav', { class: 'm-tabs' }, tabsOf(s).map(([k, , short]) => h('button', {
     class: 'btn sm' + (ui.sheet && ui.tab === k ? ' primary' : ''),
-    onclick: () => { const open = ui.sheet && ui.tab === k; pickTab(s, k, open); ui.sheet = !open; ctx.render(); },
+    onclick: () => { const open = ui.sheet && ui.tab === k; pickTab(s, k, open); setSheet(ctx, !open); tabIn('.tab-body'); },
   }, short, !(ui.sheet && ui.tab === k) && unreadBadge(tabUnread(k, byCh)))));
 }
-export function closeSheet(ctx) { if (!ui.sheet) return false; ui.sheet = false; ctx.render(); return true; }
+// 抽屜收起：sheet-out 這一會兒抽屜還在，滑下去、遮罩淡掉（board.css）
+function setSheet(ctx, on) {
+  if (ui.sheet && !on) {
+    document.body.classList.add('sheet-out');
+    setTimeout(() => document.body.classList.remove('sheet-out'), 200);
+  }
+  ui.sheet = on;
+  ctx.render();
+}
+export function closeSheet(ctx) { if (!ui.sheet) return false; setSheet(ctx, false); return true; }
 
 export function renderSide(ctx) {
   const s = ctx.state, min = sideCollapsed(ctx);
@@ -150,7 +171,7 @@ export function renderSide(ctx) {
   if (!hidden && ui.tab === 'chat') ui.seen[ui.chat] = lastSeq;
   const byCh = chatUnread(s);
   const label = (k, text) => [text, !(ui.tab === k && !hidden) && unreadBadge(tabUnread(k, byCh))];
-  const go = k => { pickTab(s, k, ui.tab === k && !hidden); if (min) setCollapsed(ctx, false); else ctx.render(); };
+  const go = k => { pickTab(s, k, ui.tab === k && !hidden); if (min) setCollapsed(ctx, false); else ctx.render(); tabIn('.tab-body'); };
   const body = { order: renderOrder, flow: renderLog, log: renderPublic, chat: renderChat, sheet: renderSheet }[ui.tab](ctx, byCh);
   return h('aside', { class: 'side' + (ui.sheet ? ' open' : '') },
     h('div', { class: 'side-mask', onclick: () => closeSheet(ctx) }),
@@ -213,7 +234,7 @@ function renderChat(ctx, byCh) {
     ui.focus = false;
     setTimeout(() => document.querySelector(`[data-keep="chat-${ch}"]`)?.focus(), 0);
   }
-  const flip = c => { ui.chat = c; ui.focus = wide(); ctx.render(); };
+  const flip = c => { ui.chat = c; ui.focus = wide(); ctx.render(); tabIn('.chan-page'); };
   const tab = c => {
     const i = s.seats.findIndex(x => x.id === c);
     return h('button', { class: 'chan-tab' + (c === ch ? ' on' : ''), 'data-key': 'tab-' + c, title: s.seats[i]?.name, onclick: () => flip(c) },

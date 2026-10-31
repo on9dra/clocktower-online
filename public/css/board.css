@@ -1,8 +1,9 @@
 /* 遊戲界面：頂欄 + 桌面 + 側欄，進度條（prog）在桌面下方，寬屏在桌面右邊。夜晚桌面換成深色桌布。
    沒有底部操作塢：說書人和玩家要看的、要點的都在圓桌中央和審判牌上 */
 .game { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-rows: auto minmax(0, 1fr) auto;
-  grid-template-areas: "top top" "board side" "prog side"; }
+  grid-template-areas: "top top" "board side" "prog side"; transition: grid-template-columns .32s cubic-bezier(.3,.7,.3,1); }
 .game.side-min { grid-template-columns: minmax(0, 1fr) 44px; }
+.game.gone { position: fixed; inset: 0; } /* 回大廳：桌面退場，底下已經是大廳（fx.js） */
 .topbar { grid-area: top; display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1.5px solid var(--ink); background: var(--card); }
 .brand { font-family: var(--serif); font-weight: 700; font-size: 17px; letter-spacing: 4px; }
 .room b { font-family: var(--serif); font-size: 18px; letter-spacing: 2px; }
@@ -117,7 +118,17 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .side-min .side { padding: 8px 0; }
   .side-min .side-panel { display: none; }
   .side-min .side-rail { display: flex; }
+  /* 收起、展開側欄（side.js）：欄寬過渡時面板保持原寬被裁掉，豎條疊在上面，一個淡出一個淡入 */
+  .side-moving .side { position: relative; overflow: hidden; }
+  .side-moving .side, .side-moving .side-min .side { padding: 10px; }
+  .side-moving .side-panel, .side-moving .side-min .side-panel { display: flex; flex: 1; width: 318px; }
+  .side-moving .side-rail, .side-moving .side-min .side-rail { display: flex; position: absolute; left: 0; top: 8px; width: 44px; }
+  .side-moving .side-min .side-panel, .side-moving .game:not(.side-min) .side-rail { animation: quiet-out .24s ease forwards; }
+  .side-moving .side-min .side-rail, .side-moving .game:not(.side-min) .side-panel { animation: quiet-in .24s ease; }
 }
+.phase-sub { animation: quiet-in .3s ease; }
+@keyframes quiet-in { from { opacity: 0; } }
+@keyframes quiet-out { to { opacity: 0; } }
 
 /* 進度條（progress.js）：沒有底框，一串紙牌掛在桌面（天空）下方。
    --n 張牌等距排開（兩端各留 --pad），--stp 牌距，--pn 牌的大小隨牌距縮；所有牌的頂端掛在 --ty 這條線上，
@@ -319,21 +330,25 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 
   /* 側欄：底部抽屜，上面一塊半透明遮罩，點遮罩或 ✕ 收起 */
   .side, .side-min .side { display: none; position: fixed; inset: 0; z-index: 40; flex-direction: column; gap: 0; padding: 0; border: 0; background: none; }
-  .side.open { display: flex; }
-  .side-mask { display: block; flex: 1; min-height: 18%; background: #2a262266; }
+  .side.open, .sheet-out .side { display: flex; }
+  .sheet-out .side { pointer-events: none; }
+  .side-mask { display: block; flex: 1; min-height: 18%; background: #2a262266; animation: back-in .22s ease; }
+  .sheet-out .side-mask { animation: back-out .2s ease forwards; }
   .side .side-panel { display: flex; flex: none; height: 72%; padding: 2px 10px calc(10px + env(safe-area-inset-bottom)); background: var(--paper);
     border-top: 1.5px solid var(--ink); border-radius: 14px 14px 0 0; box-shadow: 0 -10px 30px #0004; animation: sheet-in .22s ease-out; }
+  .sheet-out .side .side-panel { animation: sheet-out .2s ease-in forwards; }
   .side .side-rail, .tab-min { display: none; }
   .sheet-x { display: block; }
   .tab-body { max-height: none; }
 }
 @keyframes sheet-in { from { transform: translateY(40%); opacity: 0; } }
+@keyframes sheet-out { to { transform: translateY(100%); } }
 .bots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
 .bots select { width: auto; }
 .small { font-size: 12px; }
 
 .peekbar { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 10px; align-items: center;
-  background: var(--brass); color: #fff; padding: 5px 6px 5px 14px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+  background: var(--brass); color: #fff; padding: 5px 6px 5px 14px; border-radius: 4px; font-weight: 600; white-space: nowrap; animation: slip-in .24s ease-out; }
 .board { position: relative; }
 .preview { margin: 8px 0 0; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 4px; font-size: 13px; }
 .preview.good { border: 1.5px solid var(--good); }
@@ -617,6 +632,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .turn-pane { --tone: var(--ink); gap: 10px; margin-top: 8px; padding: 12px 14px 14px; color: var(--ink); background: var(--card) url(../img/grain.svg);
   border: 2px solid var(--tone); border-radius: 12px; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px var(--tone), 0 12px 28px #0005;
   animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
+.center > .turn-pane { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
 .turn-pane.poison { --tone: #3d8b3d; }
 .turn-pane.good { --tone: var(--good); }
 .turn-pane.evil { --tone: var(--evil); }

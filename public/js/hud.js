@@ -86,7 +86,7 @@ export function renderHud(ctx) {
   groups.reverse();
   // 翻角色牌演出期間面板空著，等牌飛進來；落定後名字、能力、信息淡入
   const held = roleHeld(), fx = !held && hudFx();
-  return h('aside', { class: 'hud' + (min ? ' min' : '') + (pick ? ' pick' : '') + (held ? ' held' : '') + (fx ? ' fx-in' : ''), style: { '--team': TEAMS[r.team].color, ...fx } },
+  return h('aside', { class: 'hud' + (min ? ' min' : '') + (pick ? ' pick' : '') + (held ? ' held' : '') + (fx ? ' fx-in' : ''), 'data-key': 'hud', 'data-exit': true, style: { '--team': TEAMS[r.team].color, ...fx } },
     h('button', { class: 'hud-me', title: min ? '展開' : '收起', 'aria-label': min ? '展開角色面板' : '收起角色面板', onclick: toggle }, roleToken(s.myRole)),
     !min && h('button', { class: 'hud-x', onclick: () => setCollapsed(ctx, true) }, '收起'),
     !min && h('div', { class: 'hud-body' },
@@ -104,7 +104,7 @@ export function renderBluffs(ctx) {
   if (s.isSt || !s.bluffs?.length || s.phase === 'ended' || roleHeld()) return null;
   const min = ctx.ls.get('botc.bluffs') === 'min', set = v => { ctx.ls.set('botc.bluffs', v ? 'min' : ''); ctx.render(); };
   const show = id => modal(ROLES[id].name, h('div', { class: 'bl-ab' }, roleToken(id), h('p', {}, ROLES[id].ability)));
-  return h('aside', { class: 'bluffs' + (min ? ' min' : '') + (s.prompt ? ' pick' : ''), onclick: min ? () => set(false) : null },
+  return h('aside', { class: 'bluffs' + (min ? ' min' : '') + (s.prompt ? ' pick' : ''), 'data-key': 'bluffs', 'data-exit': true, onclick: min ? () => set(false) : null },
     h('div', { class: 'bl-head' }, tag('bluff'), h('span', { class: 'bl-minis' }, s.bluffs.map(id => mini(id))),
       h('span', { class: 'bl-sub' }, '這些角色不在場，需要時可以偽裝成他們'),
       h('button', { class: 'hud-x bl-x', onclick: e => { e.stopPropagation(); set(true); } }, '收起')),

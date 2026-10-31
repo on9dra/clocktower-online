@@ -6,7 +6,7 @@ import { copy } from './topbar.js';
 // 鏈接帶上房間實例標識（r）：房號回收給新房間後，舊鏈接不會進錯房間
 export const inviteUrl = s => `${location.origin}/?room=${s.code}&r=${s.inst}`;
 export const hostUrl = (s, key) => `${inviteUrl(s)}&st=${key}`;
-const qr = url => h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURIComponent(url), alt: '二維碼', width: 200, height: 200 });
+const qr = url => h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURIComponent(url), alt: '二維碼', width: 200, height: 200, onload: e => e.target.classList.add('in') });
 
 // 分享房間：建好房間時自動彈一次，之後在「⋯」裏（或點頂欄的房間號）再打開；關掉時收進「⋯」。from：從哪個按鈕彈出來
 export function openInvite(ctx, from = null) {

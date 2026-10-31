@@ -1,12 +1,12 @@
 // 入口：連接、身份持久化、大廳、整體渲染
 import { h, toast, closeModal, morph, closeMenu } from './ui.js';
 import { renderTown } from './town.js';
-import { renderSide, sideCollapsed, closeSheet } from './side.js';
+import { renderSide, sideCollapsed, closeSheet, resetSide } from './side.js';
 import { syncPrompt } from './flow.js';
 import { progressBar } from './progress.js';
 import { sel, stopSelect, fitTableCard } from './town.js';
 import { topbar } from './topbar.js';
-import { onState, ensureScene, setRender, heldView } from './fx.js';
+import { onState, ensureScene, setRender, heldView, intoRoom, backToLobby, resetFx } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
 import { installScript } from './roles.js';
 import { closeCompose } from './manual.js';
@@ -38,7 +38,7 @@ let claimToken = params.get('seat');
 params.delete('seat');
 
 const sock = io();
-let session = null, chat = [], fresh = false; // session：{ code, inst, st }；fresh：剛建好房間，第一次收到狀態時彈邀請
+let session = null, chat = [], fresh = false, dealt = null; // session：{ code, inst, st }；fresh：剛建好房間，桌面擺好（dealt）時彈邀請
 const done = res => r => { if (!r.ok) toast(r.error); res(r); };
 export const ctx = {
   state: null, ls: LS, offset: 0,
@@ -106,7 +106,9 @@ function resume() {
 // 被移出、座位在別的設備上打開、房間解散：退回大廳
 const BYE = { kicked: '你已被說書人移出房間', moved: '這個座位已在別的設備上打開', closed: '房間已解散' };
 function bye(why) {
-  if (session) { forgetRoom(LS, session.code); if (why === 'closed') LS.del('botc.st.' + session.code); }
+  if (!session) return; // 說書人自己解散：回調和服務器的通知都會走到這裏
+  forgetRoom(LS, session.code);
+  if (why === 'closed') LS.del('botc.st.' + session.code);
   session = null;
   closeModal();
   params.delete('room'); params.delete('r');
@@ -116,9 +118,18 @@ function bye(why) {
 }
 
 function lobby(code = params.get('room') || '') {
+  const app = document.getElementById('app');
+  // 已經在大廳（房間號不對、重新連上）：把房間號填回去就好，別的不動，不重播登場
+  const here = app.querySelector(':scope > .lobby:not(.off)');
+  if (here) {
+    const input = here.querySelector('.lobby-forms input');
+    if (code) { input.value = code; input.dispatchEvent(new Event('input')); }
+    return;
+  }
+  const room = !!app.querySelector(':scope > .game');
   ctx.state = ctx.live = null;
   ensureScene();
-  document.body.dataset.phase = 'lobby';
+  if (room) { resetFx(); resetSide(); chat = []; sel.on = null; closeCompose(ctx); closeMenu(); }
   const create = () => sock.emit('st:create', {}, r => {
     if (!r.ok) return toast(r.error);
     LS.set('botc.st.' + r.code, r.stKey);
@@ -126,21 +137,24 @@ function lobby(code = params.get('room') || '') {
     enter(r.code, true, r.inst);
   });
   const pick = r => { session = { code: r.code, inst: r.inst }; resume(); };
-  // 重畫時保留已經填了的房間號、暱稱
-  const typed = i => document.querySelectorAll('.lobby-forms input')[i]?.value;
-  document.getElementById('app').replaceChildren(renderLobby({
-    code: typed(0) ?? code, name: typed(1) ?? (LS.get('botc.name') || ''),
+  const page = renderLobby({
+    code, name: LS.get('botc.name') || '',
     // 從邀請鏈接來、第一次填暱稱：房間號沒改的話帶上鏈接裏的實例標識
     onJoin: (c, name) => joinPlayer(c, name, c === params.get('room') ? params.get('r') || '' : ''), onCreate: create,
     onPick: pick,
     onIntro: () => showIntro(LS),
     onAbout: () => openAbout(ctx),
-  }));
+  });
   // 控件等開屏揭開才出來；第一次來先看介紹，介紹收起才出來
-  const page = document.querySelector('.lobby'), show = () => page.classList.remove('pre');
+  const show = () => page.classList.remove('pre');
   page.classList.add('pre');
-  if (introSeen(LS)) window.boot.out.then(show);
-  else showIntro(LS, { wait: window.boot.out, after: show });
+  if (room) backToLobby(app, page, show);
+  else {
+    document.body.dataset.phase = 'lobby';
+    app.replaceChildren(page);
+    if (introSeen(LS)) window.boot.out.then(show);
+    else showIntro(LS, { wait: window.boot.out, after: show });
+  }
   // 最近的房間：問服務器哪些還在、走到哪了；不在的從本機記錄裏去掉
   const mine = recentRooms(LS);
   if (mine.length) sock.emit('rooms:info', { list: mine }, r => {
@@ -168,11 +182,11 @@ function render() {
   const town = renderTown(ctx);
   const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (sideCollapsed(ctx) ? ' side-min' : '') },
     topbar(ctx),
-    h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
+    h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar', 'data-key': 'peek', 'data-exit': true }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
     renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), side);
-  const cur = app.firstElementChild;
-  if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
+  const cur = app.querySelector(':scope > .game:not(.gone)');
+  if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
   fitTableCard();
   // 聊天、日誌：原本停在底部的保持在底部，新打開的貼底列表直接滾到底
   app.querySelectorAll('[data-scroll]').forEach(el => {
@@ -181,7 +195,15 @@ function render() {
   });
 }
 
-function leave() { session = null; params.delete('room'); params.delete('r'); setUrl(''); location.reload(); }
+// 離開房間：斷開重連，服務器當作普通掉線（座位留著，之後可以用同一個鏈接回來）；頁面不刷新，桌面退掉，大廳接上
+function leave() {
+  session = null;
+  params.delete('room'); params.delete('r');
+  setUrl('');
+  early = true;
+  sock.disconnect().connect();
+  lobby();
+}
 
 sock.on('state', s => {
   if (s.custom) installScript(s.custom); // 上傳的劇本：先把角色登記好，後面畫什麼都查得到
@@ -192,7 +214,7 @@ sock.on('state', s => {
   // 說書人用密鑰回來、舊鏈接沒帶 r 時：從狀態裏補上房間實例標識
   if (session && s.inst && session.inst !== s.inst) enter(session.code, session.st, s.inst);
   onInfo(ctx, s, render); onState(s); ctx.live = s; render();
-  if (fresh) { fresh = false; openInvite(ctx); } // 剛建好房間：先把房間號、二維碼亮出來
+  if (fresh) { fresh = false; dealt.then(() => { if (ctx.state) openInvite(ctx); }); } // 剛建好房間：桌面擺好就把房間號、二維碼亮出來
   onEggs(s); // 桌面畫好之後再扔，按座位現在的位置飛
   window.boot.ready();
 });
@@ -203,7 +225,7 @@ sock.on('connect', () => {
   if (early) { early = false; return; }
   (session || params.get('room') ? resume() : lobby());
 });
-sock.on('disconnect', () => toast('連接斷開，正在重連…'));
+sock.on('disconnect', why => { if (why !== 'io client disconnect') toast('連接斷開，正在重連…'); });
 sock.on('bye', bye);
 setRender(render);
 // 計票時鐘走到下一位時重繪（數到誰、誰的手已經定下）；投票倒數、MVP 倒數每秒重繪
@@ -220,16 +242,16 @@ document.addEventListener('keydown', e => {
   if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
   if (!ctx.state) { if (e.key === 'Escape') closeModal(); return; } // 大廳：Esc 關掉「關於」
   const t = e.target, typing = t.closest && t.closest('input, textarea, select, [contenteditable]');
-  const open = document.querySelector('.backdrop');
+  const open = document.querySelector('.backdrop:not(.leaving)'), popped = document.querySelector('.popmenu:not(.leaving)');
   if (e.key === 'Escape') {
-    if (document.querySelector('.popmenu')) closeMenu();
+    if (popped) closeMenu();
     else if (open) closeModal();
     else if (closeSheet(ctx)) return;
     else if (closeCompose(ctx)) return;
     else if (sel.on && ctx.state.isSt) stopSelect(ctx);
     return;
   }
-  if (e.key !== 'Enter' || typing || document.querySelector('.popmenu')) return;
+  if (e.key !== 'Enter' || typing || popped) return;
   const hot = open ? open.querySelector('.btn.primary:not(.disabled)')
     : ['.st-card:not(.corner)', '.center', '.trial'].map(k => document.querySelector(k + ' [data-hot]:not(.disabled)')).find(Boolean);
   // 焦點停在別的按鈕上時也走主操作，避免回車重複點到剛剛用鼠標點過的按鈕
