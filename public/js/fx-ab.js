@@ -288,7 +288,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   const scene = fn => async (...a) => { await wait(0); begin(); try { await fn(...a); } finally { restore(); on = false; } };
 
   // 「噔」：從大砸下來落定
-  function beat(el, snd = 'dun') {
+  function beat(el, snd) {
     el.style.opacity = 1;
     if (snd) sfx(snd);
     const r = rot(el);
@@ -363,9 +363,8 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     el.style.transform = `rotate(${el._rot}deg) scale(${s1})`;
   }
   // 信物從自己的牌裏升起，落在座位內側
-  async function emerge(name, tone, me, { size = tk * 1.1, to = inward(me), snd = 'dun', r = 0 } = {}) {
+  async function emerge(name, tone, me, { size = tk * 1.1, to = inward(me), snd, r = 0 } = {}) {
     const m = at(me), pr = put(sticker(name, tone), m.x, m.y, size), dx = to.x - m.x, dy = to.y - m.y;
-    sfx('whoosh');
     motes(m.x, m.y, tone === 'ink' ? 'paper' : tone, { n: 6, R: tk * 0.4 });
     anim(pr, [{ transform: 'scale(.2)', opacity: 0 },
       { transform: `translate(${dx * 0.4}px, ${dy * 0.4 - tk * 0.75}px) rotate(-10deg) scale(1.2)`, opacity: 1, offset: 0.55 },
@@ -383,7 +382,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const st = h('div', { class: 'ab-stamp', style: { '--c': col(tone), '--g': col(tone === 'brass' ? 'night' : 'brass'), fontSize: (fs || Math.max(18, tk * 0.42)) + 'px' } },
       h('b', { class: 'gh' }, text), h('b', {}, text));
     parent.append(st);
-    sfx(snd || (soft ? 'flop' : 'dunBig'));
+    sfx(snd || 'stamp', soft ? 0.6 : 1);
     if (soft) {
       anim(st, [{ transform: 'translate(-50%,-50%) scale(1.5) rotate(-4deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-7deg)', opacity: 1 }], { duration: 360, easing: 'ease-out' });
       await wait(300);
@@ -436,7 +435,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const r = tg.getBoundingClientRect(), exact = row || tg.classList.contains('hud-me');
     els.forEach(e => { e.style.transformOrigin = ''; });
     const b = exact ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: r.left + Math.min(r.width / 2, 60), y: r.top + Math.min(r.height / 2, 18) };
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     els.forEach((e, i) => {
       const a = cen(e), dx = b.x - a.x, dy = b.y - a.y, L = Math.min(tk * 1.6, Math.hypot(dx, dy) * 0.25), base = e.style.transform || '';
       const vh = (e.querySelector('.ab-stamp') || e).getBoundingClientRect().height || tk, end = exact ? Math.min(1, Math.max(0.15, r.height * 0.9 / vh)) : 0.2;
@@ -450,7 +449,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     });
     await wait(640 + (els.length - 1) * 70);
     els.forEach(e => { e._trail = false; });
-    sfx('tock');
+    sfx('tag');
     ring(b.x, b.y, 'brass', tk * 0.6, 2, 360);
   }
   // 得到的結果落到對應的座位旁邊（座位底下那排標記的位置），停一下；演出播完界面就在那裏畫上標記。
@@ -463,7 +462,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const p = at(id), m = markAt(id, sel), b = m || { x: p.x, y: r.bottom + tk * 0.24 }, size = m ? Math.min(m.w, m.h * 1.4) : tk * 0.5;
     el.style.transformOrigin = ''; // 錨點不在中心的話，縮小以後會偏離落點
     await fly(el, b, 540, 'brass', { lift: tk * 0.8, s1: size / el.offsetWidth, trail: { d: tk * 0.05 } });
-    sfx('tock'); squash(el, 0.6); squash(tokOf(id), 0.3); ring(b.x, b.y, 'brass', tk * 0.7, 1.8, 420);
+    sfx('tag'); squash(el, 0.6); squash(tokOf(id), 0.3); ring(b.x, b.y, 'brass', tk * 0.7, 1.8, 420);
     await wait(760);
   }
   // 座位底下某一枚標記的位置（先找還沒放出來的那枚；同樣的標記之前就有，就找那枚）
@@ -485,7 +484,6 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       getStage().append(cl);
       return cl;
     });
-    sfx('pop');
     await Promise.all(copies.map((x, k) => moveTo(x, { x: c.x + (k - (ids.length - 1) / 2) * tk * 0.9, y: c.y }, 200, { lift: tk * 0.15 })));
     await Promise.all(copies.map((x, k) => toSeat(x, ids[k], k * 90, sel)));
   }
@@ -519,7 +517,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   // 一件信物沿弧線飛過去，身後拖一串墨點
   async function fly(el, b, ms, tone, o = {}) {
     trail(el, tone, o.trail);
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     await moveTo(el, b, ms, o);
     el._trail = false;
   }
@@ -530,7 +528,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const ti = e.to[0], p = at(ti);
     wash(SELF_WASH); lift(me); const tt = lift(ti, true);
     await wait(320);
-    const btl = await emerge('poison-bottle', 'poison', me, { size: tk * 1.15, snd: 'dun' });
+    const btl = await emerge('poison-bottle', 'poison', me, { size: tk * 1.15 });
     sfx('rattle'); wiggle(btl, 1.2);
     later(120, () => { const c = posOf(btl); motes(c.x, c.y - tk * 0.4, 'poison', { n: 4, R: tk * 0.15 }); });
     await wait(360);
@@ -565,7 +563,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       b.style.opacity = 0;
       anim(b, [{ transform: 'translateY(0) scale(.3)', opacity: 0 }, { transform: `translateY(${-tk * 0.35}px) scale(1)`, opacity: 1, offset: 0.75 }, { transform: `translateY(${-tk * 0.45}px) scale(1.4)`, opacity: 0 }],
         { duration: 560, delay: 120 + k * 200, easing: 'ease-out' });
-      later(120 + k * 200 + 520, () => { sfx('pop'); burst(bx, p.y - tk * 0.6, 'poison', { n: 4, R: tk * 0.25, keep: false, big: 0.5 }); });
+      later(120 + k * 200 + 520, () => { burst(bx, p.y - tk * 0.6, 'poison', { n: 4, R: tk * 0.25, keep: false, big: 0.5 }); });
     }
     anim(btl, [{ transform: 'rotate(132deg)' }, { transform: `translate(${-tk * 0.4}px, ${-tk * 0.5}px) rotate(0deg)`, opacity: 0 }], { duration: 420, easing: 'ease-in-out' });
     await wait(420);
@@ -581,7 +579,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     await wait(280);
     ring(m.x, m.y, 'evil', tk * 1.2, 1.6, 440);
     anim(own, [{ transform: 'none' }, { transform: 'scale(1.1, .8) translateY(8px)', offset: 0.6 }, { transform: 'scale(1.06, .86) translateY(6px)' }], { duration: 420, easing: 'ease-out' });
-    sfx('dunLow'); sfx('fire');
+    sfx('fire');
     flames(m.x, m.y, { n: 7 });
     await wait(440);
     anim(own, [{ transform: 'scale(1.06, .86) translateY(6px)' }, { transform: 'scale(.94, 1.14) translateY(-12px)', offset: 0.4 }, { transform: 'scale(1.08) translateY(-6px)' }], { duration: 280, easing: 'ease-out' });
@@ -606,7 +604,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     develop(blot(p.x, p.y + tk * 0.05, 'evil', tk * 1.25, 0.5), 360);
     anim(fork, [45, 52, 40, 48, 45].map(d => ({ transform: `rotate(${d}deg)` })), { duration: 480, easing: 'ease-out' });
     await wait(300);
-    await seatStamp(ti, self ? '傳位' : '擊殺', 'evil', { mark: '[data-act="imp"]' });
+    await seatStamp(ti, self ? '傳位' : '想殺', 'evil', { mark: '[data-act="imp"]' });
     await finish();
   });
 
@@ -693,7 +691,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       const c = put(chip('crystal-ball', 'night'), b.x, b.y - tk * 0.2, tk * 0.46);
       await fly(c, above(id, 0.62), 440, 'paper', { lift: tk * 0.8, trail: { d: tk * 0.05 } });
       const p = at(id);
-      squash(tokOf(id), 0.5); ring(p.x, p.y, 'paper', tk * 1.1, 1.6, 420); motes(p.x, p.y, 'paper', { n: 5, R: tk * 0.4 }); sfx('pop');
+      squash(tokOf(id), 0.5); ring(p.x, p.y, 'paper', tk * 1.1, 1.6, 420); motes(p.x, p.y, 'paper', { n: 5, R: tk * 0.4 });
     }));
     await wait(480);
     await finish(360);
@@ -768,7 +766,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     stop(tkn);
     R.items.push({ el: tkn, u: 0.5, on: true, t0: now(), R: 12 });
     R.dips.push({ u: 0.5, A: tk * 0.3, rest: tk * 0.12, t0: now(), a: 0 });
-    sfx('splash'); sfx('dun');
+    sfx('splash');
     burst(md.x, md.y + tk * 0.5, 'paper', { n: 12, R: tk * 0.9, keep: false, big: 0.6 });
     ring(md.x, md.y + tk * 0.45, teamCol(e.role), tk * 1.2, 1.8, 440);
     const dry = dripping(tkn, 280);
@@ -778,7 +776,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     sfx('clip');
     tkn.style.rotate = ''; tkn.style.transformOrigin = ''; // 晃的時候錨點在頂上；之後要縮放、飛到座位，錨點放回中心
     await moveTo(tkn, mid, 380, { lift: tk * 0.6, s1: 1.3 });
-    sfx('dunBig'); ring(mid.x, mid.y, teamCol(e.role), tk * 1.3, 2.1); squash(tkn, 0.5);
+    sfx('stamp'); ring(mid.x, mid.y, teamCol(e.role), tk * 1.3, 2.1); squash(tkn, 0.5);
     burst(mid.x, mid.y + tk * 0.3, 'paper', { n: 8, R: tk * 0.8, keep: false, big: 0.5, dir: Math.PI / 2, spread: Math.PI });
     await hold([tkn], 'paper');
     dry();
@@ -822,7 +820,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       const tkn = put(roleToken(e.role), c.x, c.y - S * 0.42, tk * 1.2);
       tkn.style.transformOrigin = '50% 100%';
       anim(tkn, [{ transform: 'scale(.9, 0)', opacity: 0 }, { transform: 'scale(1, 1.08)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 340, easing: 'cubic-bezier(.3,1.2,.5,1)' });
-      sfx('pop'); later(200, () => { sfx('dunBig'); ring(c.x, c.y - S * 0.42, teamCol(e.role), tk * 1.3, 2); });
+      later(200, () => { sfx('stamp'); ring(c.x, c.y - S * 0.42, teamCol(e.role), tk * 1.3, 2); });
       await wait(420);
       tkn.style.transformOrigin = ''; // 立起來時錨點在底邊；之後要縮小飛到座位，錨點放回中心
       // 兩條書籤絲帶飛出去，夾在那兩人的座位底下
@@ -874,7 +872,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     anim(mg, [{ rotate: '0deg' }, { rotate: '-6deg' }, { rotate: '4deg' }, { rotate: '0deg' }], { duration: 560, fill: 'none' });
     develop(tkn, 560);
     await wait(540);
-    sfx('dunBig'); ring(c.x, c.y, teamCol(e.role), tk * 1.3, 2); squash(tkn, 0.3);
+    sfx('stamp'); ring(c.x, c.y, teamCol(e.role), tk * 1.3, 2); squash(tkn, 0.3);
     await hold([tkn, mg], 'brass');
     fade(mg, 300);
     await toSeats(tkn, seats, `[data-r="${e.role}"]`);
@@ -904,7 +902,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const m = at(me), head = put(roleToken('chef'), m.x, m.y, tk * 0.7);
     anim(head, [{ transform: 'scale(.3)', opacity: 0 }, { transform: `translateY(${-tk * 0.6}px) scale(1.12)`, opacity: 1, offset: 0.6 }, { transform: `translateY(${-tk * 0.45}px)`, opacity: 1 }],
       { duration: 420, easing: 'cubic-bezier(.3,.8,.4,1)' });
-    sfx('pop'); motes(m.x, m.y, 'paper', { n: 5, R: tk * 0.4 });
+    motes(m.x, m.y, 'paper', { n: 5, R: tk * 0.4 });
     await wait(420);
     stop(head); place(head, { x: m.x, y: m.y - tk * 0.45 });
     // 沿桌嗅一圈：停在每兩個鄰座之間（往桌心收一點）
@@ -918,7 +916,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     }
     // 回到桌心，深吸一口
     await moveTo(head, { x: mid.x, y: mid.y - tk * 0.15 }, 380, { lift: tk * 0.5, s1: 2 });
-    sfx('dun'); ring(mid.x, mid.y - tk * 0.15, 'paper', tk * 1.5, 1.6, 460);
+    ring(mid.x, mid.y - tk * 0.15, 'paper', tk * 1.5, 1.6, 460);
     await wait(200);
     const nose = { x: mid.x, y: mid.y - tk * 0.15 };
     if (n) {
@@ -947,7 +945,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   });
   // 嗅一下：頭像抽兩下鼻子，兩個座位各飄來一縷紙色的氣味（兩邊都一樣）
   function sniff(head, pair) {
-    sfx('sniff');
+    sfx('sniff', 0.5);
     anim(head, [{ scale: '1' }, { scale: '1.08 .93' }, { scale: '1' }, { scale: '1.06 .95' }, { scale: '1' }], { duration: 260, fill: 'none' });
     const c = posOf(head);
     pair.forEach(p => scent({ x: c.x + (p.x - c.x) * 0.7, y: c.y + (p.y - c.y) * 0.7 }, c, 'paper', { w: tk * 0.4, ms: 320 }));
@@ -1021,7 +1019,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     });
     await wait(720);
     // 兩顆球飛到桌心，合成一顆大球
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     await Promise.all(smalls.map(({ b }, k) => (async () => {
       await wait(k * 80);
       await fly(b, spot, 460, 'paper', { lift: tk * 0.7, s1: 1.25, trail: { d: tk * 0.05 } });
@@ -1032,16 +1030,16 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       h('div', { class: 'ab-badge', style: { background: col(tone) } }, icon(yes ? 'check' : 'cross')));
     const ans = h('div', { class: 'ab-in', style: { left: '27%', top: '10%', width: '46%', height: '46%', opacity: 0 } }, disc());
     const box = put(h('div', { class: 'ab-box' }, sticker('crystal-ball', 'night'), swirl, ans), spot.x, spot.y, bs);
-    sfx('dunLow'); ring(spot.x, spot.y, 'paper', bs * 1.1, 1.6, 460);
+    ring(spot.x, spot.y, 'paper', bs * 1.1, 1.6, 460);
     anim(box, [{ transform: 'scale(.7)' }, { transform: 'scale(1.06)', offset: 0.6 }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
     swirl.style.opacity = 1;
     anim(swirl, [{ transform: 'rotate(0) scale(1)', opacity: 0.95 }, { transform: 'rotate(600deg) scale(1)', opacity: 0.95, offset: 0.7 }, { transform: 'rotate(800deg) scale(0)', opacity: 0 }], { duration: 620, easing: 'ease-in' });
     await wait(600);
     ans.style.opacity = 1;
-    develop(ans, 320); sfx('dunBig');
+    develop(ans, 320); sfx('tag');
     const a = cen(ans); ring(a.x, a.y, tone, a.w * 1.4, 2.2, 460); burst(a.x, a.y, tone, { n: 10, R: bs * 0.5, keep: false, big: 0.6 });
     await wait(260);
-    const st = await spotStamp({ x: mid.x, y: mid.y + tk * 0.95 }, yes ? '有惡魔' : '沒有惡魔', tone, { snd: 'dun' });
+    const st = await spotStamp({ x: mid.x, y: mid.y + tk * 0.95 }, yes ? '有惡魔' : '沒有惡魔', tone, {});
     await hold([box, st.parentElement], 'paper');
     if (seats.length) {
       // 球裏的答案浮出來，一分為二落到被查的兩人身邊；球和章淡掉
@@ -1074,7 +1072,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     if (dt) {
       const p = at(dead), gh = put(dt.firstChild.cloneNode(true), p.x, p.y, tk);
       gh.style.opacity = 0.5;
-      sfx('whoosh');
+      sfx('whoosh', 0.6);
       await moveTo(gh, { x: c.x, y: c.y - tk * 0.15 }, 520, { lift: tk * 0.6, s1: 0.5 });
       anim(gh, [{ opacity: 0.5, translate: '0 0' }, { opacity: 0, translate: `0 ${tk * 0.2}px` }], { duration: 220, easing: 'ease-in' });
       puff(c.x, c.y - tk * 0.1, 'paper', { n: 3, d: tk * 0.4, op: 0.35, rise: tk * 0.3 });
@@ -1089,7 +1087,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     sfx('thud'); squash(stone, 0.3);
     const tkn = put(roleToken(e.role), c.x, c.y - S * 0.52, tk * 1.12);
     develop(tkn, 480);
-    later(420, () => { sfx('dunBig'); ring(c.x, c.y - S * 0.52, teamCol(e.role), tk * 1.2, 2); });
+    later(420, () => { sfx('stamp'); ring(c.x, c.y - S * 0.52, teamCol(e.role), tk * 1.2, 2); });
     await wait(520);
     await hold([tkn], 'paper');
     anim(rise.firstChild, [{ transform: 'none' }, { transform: 'translateY(100%)' }], { duration: 420, delay: 200, easing: 'ease-in' });
@@ -1122,7 +1120,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     trail(rv, 'paper', { d: tk * 0.05, gap: tk * 0.22 });
     await Promise.all([moveTo(rv, { x: c.x + tk * 0.1, y: c.y - tk * 1.05 }, 660, { lift: tk * 0.9 }), moveTo(tkn, c, 660, { lift: tk * 0.9, s1: 1.75 })]);
     rv._trail = false;
-    sfx('dunBig'); ring(c.x, c.y, teamCol(e.role), tk * 1.3, 2.1); squash(tkn, 0.5); feathers(c.x, c.y - tk * 0.6, 3);
+    sfx('stamp'); ring(c.x, c.y, teamCol(e.role), tk * 1.3, 2.1); squash(tkn, 0.5); feathers(c.x, c.y - tk * 0.6, 3);
     await moveTo(rv, { x: c.x + tk * 0.8, y: c.y - tk * 0.9 }, 220, { lift: tk * 0.2 });
     flap?.cancel();
     sfx('caw');
@@ -1158,7 +1156,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const bk = put(sticker('evil-book', 'evil'), mid.x, mid.y - tk * 0.1, tk * 1.45);
     beat(bk, 'thud'); later(230, () => impress('evil-book', 'evil', bk)); puff(mid.x, mid.y + tk * 0.4, 'paper', { n: 3, op: 0.3, d: tk * 0.5, rise: tk * 0.2 });
     await wait(260);
-    const st = await spotStamp({ x: mid.x, y: mid.y + tk * 0.95 }, '過目', 'evil', { snd: 'dun' });
+    const st = await spotStamp({ x: mid.x, y: mid.y + tk * 0.95 }, '過目', 'evil', {});
     await hold([bk, st.parentElement], 'evil');
     // 看到的每張牌落到各自的座位旁邊；魔典和章淡掉
     fade(gl, 260); fade(bk, 360); fade(st.parentElement, 300);
@@ -1176,9 +1174,9 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       const p = at(from), dt = lift(from, true);
       if (e.why === 'scarletwoman') {
         // 飛吻：紅唇一嘟，輕飄飄蕩過去，一路飄著小愛心，在惡魔牌上留下唇印
-        const lips = await emerge('lips', 'evil', me, { size: tk * 1.05, snd: 'pop' });
+        const lips = await emerge('lips', 'evil', me, { size: tk * 1.05 });
         anim(lips, [{ scale: '1' }, { scale: '.78 1.2', offset: 0.55 }, { scale: '1.12' }, { scale: '1' }], { duration: 300, easing: 'ease-out', fill: 'none' });
-        sfx('pop'); await wait(260);
+        await wait(260);
         const q0 = posOf(lips);
         [0.2, 0.4, 0.6, 0.8].forEach((k, n) => later(80 + n * 110, () => {
           const q = { x: q0.x + (p.x - q0.x) * k, y: q0.y + (p.y - q0.y) * k - tk * 1.0 * Math.sin(Math.PI * k) };
@@ -1218,7 +1216,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     // 新的惡魔牌在桌心浮現
     const big = put(roleToken(e.role), c.x, c.y, tk * 1.35);
     develop(big, 500); flames(c.x, c.y, { n: 8, R: tk * 0.75, d: tk * 0.5 });
-    later(440, () => { sfx('dunBig'); ring(c.x, c.y, 'evil', tk * 1.6, 2.2); burst(c.x, c.y, 'evil', { n: 14, R: tk * 1.3, keep: false }); });
+    later(440, () => { sfx('stamp'); ring(c.x, c.y, 'evil', tk * 1.6, 2.2); burst(c.x, c.y, 'evil', { n: 14, R: tk * 1.3, keep: false }); });
     await wait(560);
     const st = await spotStamp({ x: c.x, y: c.y + tk * 1.05 }, '接任', 'evil');
     await hold([big, st.parentElement], 'evil');
@@ -1259,7 +1257,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const a = lift(id);
     await wait(260);
     const top = above(id, 0.95), medal = put(sticker('ribbon-medal', 'brass'), top.x, top.y, tk * 0.95);
-    beat(medal, 'dun'); motes(top.x, top.y, 'brass', { n: 6, R: tk * 0.4 });
+    beat(medal); motes(top.x, top.y, 'brass', { n: 6, R: tk * 0.4 });
     await wait(420);
     await moveTo(medal, { x: top.x, y: top.y + tk * 0.45 }, 150, { lift: 0, ease: 'cubic-bezier(.7,0,1,.5)' });
     sfx('bell'); squash(a, 0.5); ring(p.x, p.y, 'brass', tk * 1.3, 2.2);
@@ -1276,14 +1274,14 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     ring(m.x, m.y, 'brass', tk * 1.2, 1.4, 380);
     if (!tg.length) {
       const c = put(chip(sp.prop, sp.tone), m.x, m.y + tk * 0.1, tk * 0.55);
-      beat(c, 'dun'); await wait(200); squash(tokOf(e.seat)); mk(e.seat, word, sp.tone);
+      beat(c); await wait(200); squash(tokOf(e.seat)); mk(e.seat, word, sp.tone);
       await wait(420); return finish(200);
     }
     await Promise.all(tg.map(async id => {
       const p = at(id), c = put(chip(sp.prop, sp.tone), m.x, m.y, tk * 0.52);
-      sfx('whoosh');
+      sfx('whoosh', 0.6);
       await moveTo(c, { x: p.x, y: p.y - tk * 0.35 }, 380, { lift: tk * 0.9 });
-      sfx(land === 'blot' ? 'drip' : land === 'dome' ? 'shimmer' : land === 'tag' ? 'key' : 'pop');
+      sfx(land === 'blot' ? 'drip' : land === 'dome' ? 'shimmer' : land === 'tag' ? 'key' : 'tag');
       squash(tokOf(id), 0.6); ring(p.x, p.y, sp.tone);
       if (land === 'blot') blot(p.x, p.y, sp.tone, tk * 1.1);
       if (land === 'dome') ring(p.x, p.y, sp.tone, tk * 1.35, 1, 300);
@@ -1297,7 +1295,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   const stKill = scene(async (e, word = '擊殺') => {
     const id = e.to[0], p = at(id), c = put(forkChip(), p.x, p.y - tk * 1.5, tk * 0.6);
     anim(c, [{ transform: 'translateY(-40px) scale(1.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'ease-out' });
-    sfx('whoosh'); await wait(240);
+    sfx('whoosh', 0.6); await wait(240);
     await moveTo(c, { x: p.x, y: p.y - tk * 0.3 }, 120, { lift: 0, ease: 'cubic-bezier(.7,0,1,.5)' });
     sfx('stab'); sfx('thud'); squash(tokOf(id)); ring(p.x, p.y, 'evil'); burst(p.x, p.y, 'evil', { n: 10, R: tk * 0.9, keep: false });
     release(id);
@@ -1310,7 +1308,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const a = at(e.seat), id = e.to[0], b = at(id);
     if (e.why === 'protect') { ring(b.x, b.y, 'good', tk * 1.35, 1, 260); sfx('shimmer'); }
     const atk = put(forkChip(), a.x, a.y, tk * 0.52);
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     await moveTo(atk, { x: b.x - (b.x - a.x) * 0.12, y: b.y - tk * 0.35 }, 380, { lift: tk * 0.6 });
     sfx('clang');
     anim(atk, [{ transform: 'none', opacity: 1 }, { transform: `translate(${(a.x - b.x) * 0.25}px, ${-tk * 1.2}px) rotate(260deg) scale(.8)`, opacity: 0 }], { duration: 520, easing: 'cubic-bezier(.2,.7,.4,1)' });
@@ -1324,7 +1322,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const g = e.to[0], a = at(e.seat), b = at(g);
     ring(a.x, a.y, 'evil', tk * 1.2, 1.4, 380);
     const atk = put(forkChip(), a.x, a.y, tk * 0.55);
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     moveTo(atk, { x: b.x + (a.x - b.x) * 0.3, y: b.y + (a.y - b.y) * 0.3 - tk * 0.3 }, 340, { lift: tk * 0.8 });
     await wait(220);
     const helm = put(sticker('visored-helm', 'good'), b.x, b.y - tk * 0.12, tk * 1.15);
@@ -1347,7 +1345,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   const stMayor = scene(async e => {
     const a = at(e.seat), g = e.to[0], b = at(g);
     const atk = put(forkChip(), a.x, a.y, tk * 0.52);
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     await moveTo(atk, { x: a.x + (b.x - a.x) * 0.7, y: a.y + (b.y - a.y) * 0.7 - tk * 0.4 }, 320, { lift: tk * 0.5 });
     const pr = put(sticker('ribbon-medal', 'brass'), b.x, b.y - tk * 0.15, tk * 1.05);
     beat(pr, 'bell'); ring(b.x, b.y, 'brass');
@@ -1362,7 +1360,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   const stFail = scene(async e => {
     const sp = look(e.src), m = at(e.seat), id = e.to?.[0], p = id ? at(id) : { x: mid.x, y: mid.y };
     const c = put(chip(sp.prop, sp.tone, true), m.x, m.y, tk * 0.55);
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     await moveTo(c, { x: m.x + (p.x - m.x) * 0.6, y: m.y + (p.y - m.y) * 0.6 }, 360, { lift: tk * 0.7 });
     sfx('miss');
     anim(c, [{ transform: `rotate(${rot(c)}deg)`, opacity: 1 }, { transform: `translateY(${tk * 0.5}px) scale(.5) rotate(40deg)`, opacity: 0 }], { duration: 380, easing: 'ease-in' });
@@ -1387,7 +1385,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   const stReg = scene(async e => {
     const id = e.reg, b = at(id), sp = look(e.src), a = at(e.seat);
     const atk = put(chip(sp.prop, sp.tone), a.x, a.y, tk * 0.5);
-    sfx('whoosh');
+    sfx('whoosh', 0.6);
     await moveTo(atk, { x: b.x, y: b.y - tk * 0.5 }, 280, { lift: tk * 0.6 });
     fade(atk, 120);
     const web = put(sticker(e.regRole === 'spy' ? 'spyglass' : 'spider-web', 'evil'), b.x, b.y, tk * 1.3);
@@ -1404,6 +1402,8 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   // 說書人看到的答案短詞
   const answerWord = e => (e.kind === 'two' ? (e.none ? '沒有' : ROLES[e.role]?.name) : e.kind === 'number' ? String(e.n)
     : e.kind === 'yesno' ? (e.yes ? '有' : '沒有') : e.kind === 'role' ? ROLES[e.role]?.name : e.kind === 'text' ? '過目' : '');
+  // 說書人魔典上的一枚章：免疫、全場醉酒、主謀……沒有專門演出的被動結算
+  const ststamp = scene(async e => { await seatStamp(e.seat, e.word, e.tone, { hold: 1100 }); await finish(); });
   const SELF_ACT = { poisoner, imp, monk, butler };
   const PICK = { fortuneteller: ftPick, ravenkeeper: rkPick };
   const SELF_INFO = { washerwoman, librarian, investigator, chef, empath, fortuneteller: ftInfo, undertaker, ravenkeeper: rkInfo, spy };
@@ -1421,6 +1421,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       if (['role', 'two'].includes(e.kind) && !e.none && !ROLES[e.role]) return null; // 答案缺了角色就不演，免得畫一張空牌
       return SELF_INFO[e.src](e, me);
     },
+    ststamp,
     demon: (e, me) => demon(e, me),
     saint: e => saint(e),
     mayor: e => mayor(e),

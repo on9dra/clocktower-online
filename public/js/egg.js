@@ -49,7 +49,6 @@ export async function toss(from, to) {
   const dx = b.x - a.x, dy = b.y - b.w * 0.08 - a.y, dist = Math.hypot(dx, dy), lift = Math.min(170, dist * 0.45 + 30);
   const spin = (dx >= 0 ? 1 : -1) * (420 + Math.random() * 300);
   const ms = 460 + Math.min(280, dist * 0.3);
-  play('toss', 0.8);
   egg.animate(Array.from({ length: 11 }, (_, i) => {
     const t = i / 10;
     return { offset: t, transform: `translate(${f1(dx * t)}px, ${f1(dy * t - lift * 4 * t * (1 - t))}px) rotate(${f1(spin * t)}deg) scale(${f1(0.75 + 0.4 * Math.sin(Math.PI * t))})` };

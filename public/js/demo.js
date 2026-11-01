@@ -17,6 +17,7 @@ import { tr } from './lang.js';
 import { formatInfo, infoFormula, infoMarks, infoAnswer, answerSeats } from './infofmt.js';
 import { renderLobby } from './lobby.js';
 import { openInvite } from './invite.js';
+import { audition } from './bgm.js';
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -381,7 +382,8 @@ const wakes = r => holders(r).some(id => !seatOf(id).dead);
 function progOf(isSt) {
   const order = nightOrder(), step = world.step;
   const at = step?.status === 'review' ? order.length : order.indexOf(world.beat || step?.roleId);
-  return { at, order: order.map(r => (isSt ? { r, seats: holders(r), fake: !wakes(r) } : { r })) };
+  if (!isSt) return { order: order.map(r => ({ r })) };
+  return { at, order: order.map(r => ({ r, seats: holders(r), fake: !wakes(r) })) };
 }
 // ———— 場景：每步一個按鈕，按順序點 ————
 const CROWD = [{ name: '路人甲', mine: true }, { name: '小滿' }, { name: '阿九' }, { name: '老周' }]; // 觀眾席
@@ -629,10 +631,11 @@ const SCENES = {
   // 新美術資源（img/art/ + css/art.css）先在這裏看：對局裏看不到的單件素材，以及新舊美術切換
   art: {
     title: '美術',
-    init: () => { document.body.classList.add('art'); gallery = false; },
+    init: () => { document.body.classList.add('art'); gallery = jukebox = false; },
     steps: [
-      ['素材', () => { gallery = !gallery; }],
+      ['素材', () => { gallery = !gallery; jukebox = false; }],
       ['舊/新', () => document.body.classList.toggle('art')],
+      ['音樂', () => { jukebox = !jukebox; gallery = false; }],
     ],
   },
   // 房間：要好幾台設備 / 好幾個房間才撞得上的——最近的房間、玩家看到密碼鎖、觀戰、被移出（邀請二維碼、換設備鏈接一台設備就能在對局裏看）
@@ -666,7 +669,19 @@ const SCENES = {
     ],
   },
 };
-let gallery = false, screen = null; // screen = 'lobby'：畫大廳而不是對局
+let gallery = false, jukebox = false, screen = null; // screen = 'lobby'：畫大廳而不是對局
+// 背景音樂試聽：點哪版放哪版，選中的留在這一頁，到別的場景會跟著遊戲放
+const musicPicks = { day: 'a', night: 'a', vote: 'a' };
+function musicBench() {
+  const choose = (kind, v) => e => {
+    musicPicks[kind] = v;
+    e.currentTarget.parentNode.querySelectorAll('.btn').forEach(b => { b.classList.toggle('primary', b === e.currentTarget); b.classList.toggle('ghost', b !== e.currentTarget); });
+    audition(kind, v);
+  };
+  return h('div', { class: 'art-gallery music-bench' }, [['day', '白天'], ['night', '夜晚'], ['vote', '提名']].map(([kind, label]) => h('div', { class: 'row' }, h('b', {}, label),
+    ['a', 'b', 'c'].map(v => h('button', { class: 'btn sm' + (musicPicks[kind] === v ? ' primary' : ' ghost'), onclick: choose(kind, v) }, v.toUpperCase())))),
+    h('button', { class: 'btn sm ghost', onclick: () => audition('off') }, '停'));
+}
 // 對局裏看不到的素材：大廳（字標 + 主視覺，疊上真實的 .card / .btn）和其餘單件
 const ART = n => h('img', { src: `img/art/${n}.webp`, alt: n });
 function artGallery() {
@@ -700,6 +715,7 @@ function demoBar() {
 }
 function go(k) {
   scene = k;
+  audition(null);
   screen = null;
   history.replaceState(null, '', `?s=${k}`);
   document.getElementById('app').replaceChildren();
@@ -742,7 +758,7 @@ function render() {
     h('div', { class: 'demo-top' }, !bare && demoBar(), topbar(ctx)),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), town, renderBluffs(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), side);
+    renderHud(ctx), town, renderBluffs(ctx), scene === 'art' && gallery && artGallery(), scene === 'art' && jukebox && musicBench()), progressBar(ctx), side);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
   fitTableCard();

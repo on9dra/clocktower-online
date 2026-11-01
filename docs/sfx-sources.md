@@ -4,7 +4,7 @@
 
 ## 樂器採樣（CC0）
 
-`dun`、`dunBig`、`dunLow`、`flop`、`objection`、`good`、`evil`、`dawn`、`pass`、`fail`、`crown`、`key`、`turn`、`hum`、`shimmer`、`tick`、`clang` 由這兩個採樣庫的樂器做成，用了哪些在腳本的 `PACKS` 裏：
+`key`、`good`、`evil`、`dawn`、`crown`、`turn`、`hum`、`shimmer`、`tick`、`clang` 由這兩個採樣庫的樂器做成，用了哪些在腳本的 `PACKS` 裏：
 
 - [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE)，Versilian Studios
 - [Versilian Community Sample Library](https://github.com/sgossner/VCSL)，Versilian Studios
@@ -28,12 +28,10 @@
 | `flap.m4a` | [wings2.wav](https://freesound.org/people/Godowan/sounds/240469/) | Godowan |
 | `flip.m4a` | [flipCard.wav](https://freesound.org/people/Splashdust/sounds/84322/) | Splashdust |
 | `fw.m4a` | [low mid afar explosion 1.wav](https://freesound.org/people/Logicogonist/sounds/264031/) | Logicogonist |
-| `gavel.m4a` | [wood hammer, gavel, knock, pound, jury, court.mp3](https://freesound.org/people/JohnsonBrandEditing/sounds/173941/) | JohnsonBrandEditing |
 | `hiss.m4a` | [hiss.wav](https://freesound.org/people/Reitanna/sounds/241562/) | Reitanna |
 | `leaf.m4a` | [paper flip 3.wav](https://freesound.org/people/gynation/sounds/82379/) | gynation |
 | `miss.m4a` | [Slingshot Fly by 2.wav](https://freesound.org/people/saturdaysoundguy/sounds/394186/) | saturdaysoundguy |
 | `page.m4a` | [Page Turn 01](https://freesound.org/people/LilMati/sounds/397548/) | LilMati |
-| `pop.m4a` | [UI Button Click](https://freesound.org/people/benzix2/sounds/467951/) | benzix2 |
 | `rattle.m4a` | [Pill Bottle, Shaking](https://freesound.org/people/AudioWay/sounds/460153/) | AudioWay |
 | `rope.m4a` | [rope leathery creaking.wav](https://freesound.org/people/vestibule-door/sounds/664929/) | vestibule-door |
 | `rope.m4a` | [Body fall_01.wav](https://freesound.org/people/deleted_user_2104797/sounds/346695/) | deleted_user_2104797 |
@@ -44,11 +42,28 @@
 | `splash.m4a` | [Splash](https://freesound.org/people/swordofkings128/sounds/398032/) | swordofkings128 |
 | `splat.m4a` | [Mud Splat](https://freesound.org/people/Breviceps/sounds/445109/) | Breviceps |
 | `stab.m4a` | [Knife Stab.wav](https://freesound.org/people/Mixedupmoviestuff/sounds/179222/) | Mixedupmoviestuff |
+| `stamp.m4a` | [traditional stamp.wav](https://freesound.org/people/I.fekry/sounds/470710/) | I.fekry |
+| `stamp.m4a` | [Thump.mp3](https://freesound.org/people/mpuffenbarger/sounds/683031/) | mpuffenbarger |
 | `swish.m4a` | [curtain.wav](https://freesound.org/people/BraveFrog/sounds/347237/) | BraveFrog |
+| `tag.m4a` | [traditional stamp.wav](https://freesound.org/people/I.fekry/sounds/470710/) | I.fekry |
 | `thud.m4a` | [Body fall_01.wav](https://freesound.org/people/deleted_user_2104797/sounds/346695/) | deleted_user_2104797 |
 | `tock.m4a` | [traditional stamp.wav](https://freesound.org/people/I.fekry/sounds/470710/) | I.fekry |
-| `toss.m4a` | [Throw 1.mp3](https://freesound.org/people/deleted_user_6479820/sounds/394873/) | deleted_user_6479820 |
-| `twang.m4a` | [Crossbow Firing and Hitting Target](https://freesound.org/people/Ali_6868/sounds/384919/) | Ali_6868 |
 | `unlock.m4a` | [Hotel room door unlocking](https://freesound.org/people/wlabarron/sounds/494128/) | wlabarron |
 | `whoosh.m4a` | [Whoosh (Clothing Drag)](https://freesound.org/people/JonasTisell/sounds/496188/) | JonasTisell |
 | `zap.m4a` | [ELECTRIC_ZAP_001.wav](https://freesound.org/people/JoelAudio/sounds/136542/) | JoelAudio |
+
+## 背景音樂（CC0）
+
+來自 OpenGameArt，逐條在曲目頁核對過授權字段。文件由 `tools/bgm-build.py` 做成。
+
+| 文件 | 原名 | 作者 |
+|---|---|---|
+| `day-a.m4a` | [Medieval: Market Day](https://opengameart.org/content/medieval-market-day) | RandomMind |
+| `day-b.m4a` | [Medieval: The Old Tower Inn](https://opengameart.org/content/medieval-the-old-tower-inn) | RandomMind |
+| `day-c.m4a` | [Shakkar](https://opengameart.org/content/shakkar) | zesona |
+| `night-a.m4a` | [Sirens in Darkness](https://opengameart.org/content/sirens-in-darkness) | cynicmusic |
+| `night-b.m4a` | [Mysterious](https://opengameart.org/content/mysterious) | nene |
+| `night-c.m4a` | [Dark Shrine Loop](https://opengameart.org/content/dark-shrine-loop) | qubodup |
+| `vote-a.m4a` | [Determined Pursuit (epic orchestra loop)](https://opengameart.org/content/determined-pursuit-epic-orchestra-loop) | Emma_MA |
+| `vote-b.m4a` | [Battle Theme A](https://opengameart.org/content/battle-theme-a) | cynicmusic |
+| `vote-c.m4a` | [Dramatic Boss Encounter](https://opengameart.org/content/dramatic-boss-encounter) | cynicmusic |

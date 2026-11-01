@@ -539,7 +539,7 @@ export function showHelp(isSt) {
   function turnOver(ms = 560, then) {
     const f = fl;
     f.mode = 'turn';
-    play(ms < 400 ? 'leaf' : 'pageturn', ms < 400 ? 0.6 : 1);
+    if (ms >= 400) play('pageturn');
     tween(1, Math.max(150, ms * (1 - f.t)), () => {
       f.done();
       if (then) return then();

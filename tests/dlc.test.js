@@ -1,24 +1,25 @@
 // 黯月初升 / 夢殞春宵的關鍵規則。用法：node tests/dlc.test.js
 import assert from 'assert';
 import { createRoom } from '../lib/store.js';
-import { applyStOp, joinPlayer } from '../lib/ops.js';
+import { applyStOp, applyPlayerAction, joinPlayer } from '../lib/ops.js';
 import { startNight, run } from '../lib/engine.js';
 import { startDay, nominate } from '../lib/day.js';
 import { execute } from '../lib/rules.js';
-import { impaired, isEvil, alignOf } from '../lib/util.js';
+import { impaired, isEvil, alignOf, seatTags } from '../lib/util.js';
 import { teamCounts } from '../public/js/roles.js';
 import { truthLevel } from '../public/js/infofmt.js';
-import { setup, S, act, st, ok, atReview } from './helpers.js';
+import { setup, S, act, st, ok, atReview, ack } from './helpers.js';
 
 const mk = (roles, sid) => { const r = setup(roles); r.scriptId = sid; return r; };
-const pick = (r, role, ids, roleId) => ok(applyStOp(r, { op: 'pick', ids, role: roleId }));
+const pick = (r, role, ids, roleId) => { ok(applyStOp(r, { op: 'pick', ids, role: roleId })); ack(r); };
 // 走完夜晚剩下的步驟：要選人的隨便選第一個合規的，信息按真相給
 // until：停在這個角色的步驟上（不替他選）
 function finish(r, until) {
   for (let i = 0; i < 40 && !atReview(r); i++) {
     const step = r.g.step;
     if (until && step.roleId === until) return;
-    if (step.status === 'choose') {
+    if (step.status === 'ack') ack(r);
+    else if (step.status === 'choose') {
       const c = step.choose, counts = c.counts || [c.count];
       const pool = r.seats.filter(s => !(c.notSelf && s.id === step.seatId) && !(c.alive && s.dead) && !(c.dead && !s.dead));
       ok(applyStOp(r, { op: 'pick', ids: pool.slice(0, Math.min(...counts)).map(s => s.id), role: c.roles && !c.roleOptional ? c.roles[0] : null }));
@@ -151,6 +152,22 @@ function finish(r, until) {
   assert.ok(impaired(r, S(r, 'poisoner')), '投毒者醉酒');
   assert.ok(!impaired(r, S(r, 'goon')), '毒沒有生效');
   assert.ok(isEvil(S(r, 'goon')), '莽夫變邪惡');
+  const told = r.chat.filter(m => m.to === S(r, 'goon').id && m.src === 'goon');
+  assert.strictEqual(told.length, 1, '陣營變了要告訴莽夫');
+  assert.ok(told[0].text.includes('邪惡') && !told[0].text.includes(S(r, 'poisoner').name), '只告訴陣營，不告訴是誰');
+  assert.ok(seatTags(r, S(r, 'poisoner')).includes('醉酒'), '魔典上標醉酒');
+  assert.ok(seatTags(r, S(r, 'goon')).includes('邪惡'), '魔典上標陣營');
+}
+// 莽夫被同陣營的人選中：選的人照樣醉酒，陣營沒變不叫醒他；結果卡上說清楚
+{
+  const r = mk(['chef', 'imp', 'poisoner', 'goon', 'saint', 'fool'], 'bmr');
+  S(r, 'goon').align = 'evil';
+  startNight(r);
+  assert.strictEqual(applyPlayerAction(r, S(r, 'poisoner').pid, { act: 'pick', ids: [S(r, 'goon').id] }), undefined);
+  assert.strictEqual(r.g.step.status, 'ack');
+  assert.deepStrictEqual([r.g.step.goon.changed, r.g.step.goon.align], [false, 'evil']);
+  assert.ok(impaired(r, S(r, 'poisoner')), '投毒者醉酒');
+  assert.ok(!r.chat.some(m => m.to === S(r, 'goon').id && m.src === 'goon'), '陣營沒變不告訴莽夫');
 }
 
 // 方古：殺外來者時他變成方古，原方古死亡
@@ -296,7 +313,9 @@ function finish(r, until) {
   const r = mk(['chef', 'imp', 'witch', 'sweetheart', 'saint', 'oracle'], 'snv');
   startDay(r);
   execute(r, S(r, 'sweetheart'));
-  assert.ok(r.seats.some(s => s.role !== 'sweetheart' && impaired(r, s)));
+  assert.strictEqual(r.g.lastWords[0].role, 'sweetheart', '說書人選誰醉酒');
+  ok(st(r, 'word', { seatId: S(r, 'sweetheart').id, targetId: S(r, 'chef').id }));
+  assert.ok(impaired(r, S(r, 'chef')));
 }
 
 // 手動判勝負

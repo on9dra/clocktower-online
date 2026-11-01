@@ -10,6 +10,7 @@ import { topbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView, intoRoom, backToLobby, resetFx } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
 import { installScript } from './roles.js';
+import { trimChat } from './infofmt.js';
 import { closeCompose } from './manual.js';
 import { onEggs } from './egg.js';
 import { renderLobby, recentList, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
@@ -243,11 +244,12 @@ function leave() {
   lobby();
 }
 
+let stLog = [];
 sock.on('state', s => {
   if (s.custom) installScript(s.custom); // 上傳的劇本：先把角色登記好，後面畫什麼都查得到
-  chat = s.chatReset ? s.chat : chat.concat(s.chat);
-  if (chat.length > 600) chat = chat.slice(-600);
+  chat = trimChat(s.chatReset ? s.chat : chat.concat(s.chat));
   s.chat = chat;
+  if (s.st) { stLog = s.st.logFrom ? stLog.concat(s.st.log) : s.st.log; s.st.log = stLog; } // 流程日誌也是增量的
   ctx.offset = s.serverNow - Date.now();
   // 說書人用密鑰回來、舊鏈接沒帶 r 時：從狀態裏補上房間實例標識
   if (session && s.inst && session.inst !== s.inst) enter(session.code, session.st, s.inst);

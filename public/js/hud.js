@@ -90,7 +90,7 @@ export function renderHud(ctx) {
     h('button', { class: 'hud-me', title: min ? '展開' : '收起', 'aria-label': min ? '展開角色面板' : '收起角色面板', onclick: toggle }, roleToken(s.myRole)),
     !min && h('button', { class: 'hud-x', onclick: () => setCollapsed(ctx, true) }, '收起'),
     !min && h('div', { class: 'hud-body' },
-      h('div', { class: 'hud-name' }, r.name, h('span', { class: 'hud-team' }, TEAMS[r.team].name, s.myWas && ` · 原${ROLES[s.myWas].name}`)),
+      h('div', { class: 'hud-name' }, r.name, h('span', { class: 'hud-team' }, TEAMS[r.team].name, s.myWas && ` · 原${ROLES[s.myWas].name}`, s.myAlign && [' · ', w(s.myAlign === 'evil' ? '現為邪惡' : '現為善良', s.myAlign)])),
       h('div', { class: 'hud-ab' }, r.ability),
       groups.length > 0 && h('div', { class: 'hud-list', 'data-scroll': 'hud' }, groups.map(g => h('div', { class: 'hud-night' },
         h('div', { class: 'hud-n' }, g.n ? `第 ${g.n} 夜` : '開局'),

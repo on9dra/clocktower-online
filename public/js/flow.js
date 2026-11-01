@@ -81,7 +81,7 @@ export function stCenter(ctx) {
     case 'lobby': return lobbyPane(ctx, next);
     case 'dawn': return h('div', { class: 'cx' }, lastNight(s), btns(next('開始白天')));
     // 處決台上有人時絞刑架就在上面，不再寫昨晚和處決台
-    case 'day': return !s.nomination && !s.st.ruling && h('div', { class: 'cx' }, !s.block && lastNight(s), s.manual && cardRows(ctx), btns(endDayButton(ctx)), s.manual && winButtons(ctx));
+    case 'day': return !s.nomination && !s.st.ruling && h('div', { class: 'cx' }, !s.block && lastNight(s), s.manual && cardRows(ctx), !s.manual && dayDue(ctx), btns(endDayButton(ctx)), s.manual && winButtons(ctx));
     case 'ended': {
       // MVP 投票還沒結束：「再來一局」先問一句（會按已投的票結算）；已投人數在 MVP 牌上
       const m = s.mvpVote, open = m && !m.done;
@@ -89,6 +89,15 @@ export function stCenter(ctx) {
     }
   }
   return null;
+}
+
+// 白天要私下給信息的角色（博學者每天、藝術家一次）：小圓牌，點了直接補發，發過就收起
+function dayDue(ctx) {
+  const s = ctx.state, role = x => x.fakeRole || x.role;
+  const told = (id, today) => s.st.log.some(l => l.e?.what === 'tell' && l.e.seat === id && (!today || l.day === s.day));
+  const due = s.seats.filter(x => !x.dead && ((role(x) === 'savant' && !told(x.id, true)) || (role(x) === 'artist' && !told(x.id))));
+  return due.length > 0 && row(due.map(x => h('button', { class: 'chip due', title: '補發信息',
+    onclick: () => prompt2(`告訴 ${seatLabel(s, x.id)}`, '', text => text && ctx.st('tellInfo', { seatId: x.id, text }), { max: 300 }) }, mini(role(x)), seatBadge(s, x.id))));
 }
 
 // 審判牌最下面一行（說書人）：取消提名、提前結算、結束白天、立即計票（主按鈕放最右）
@@ -104,14 +113,15 @@ export function trialButtons(ctx) {
 
 // 白天、被動能力觸發：遊戲停下，說書人裁定是否生效；按規則應有的結果是主按鈕
 const RULE_BTN = { slayer: ['命中', '未中'], virgin: ['處決提名者', '無事發生'], saint: ['邪惡獲勝', '繼續'],
-  scarletwoman: ['接任惡魔', '不接任'], mayor: ['善良獲勝', '入夜'], pacifist: ['不死亡', '死亡'] };
-const RULE_TITLE = { slayer: '獵手開槍', virgin: '貞潔者被提名', saint: '聖徒被處決', scarletwoman: '紅唇女郎接任', mayor: '鎮長勝利', pacifist: '和平主義者' };
+  scarletwoman: ['接任惡魔', '不接任'], mayor: ['善良獲勝', '入夜'], pacifist: ['不死亡', '死亡'], klutz: ['他的陣營落敗', '無事發生'] };
+const RULE_TITLE = { slayer: '獵手開槍', virgin: '貞潔者被提名', saint: '聖徒被處決', scarletwoman: '紅唇女郎接任', mayor: '鎮長勝利', pacifist: '和平主義者', klutz: '呆瓜選人' };
 const rulingWho = (s, r) => {
   const role = id => s.seats.find(x => x.id === id)?.role;
   return r.kind === 'slayer'
     ? row(seatBadge(s, r.seatId), r.real ? mini('slayer') : w('假獵手', 'muted'), w('射'), seatBadge(s, r.to), mini(role(r.to)))
     : r.kind === 'virgin' ? row(seatBadge(s, r.from), mini(role(r.from)), w('提名', 'bad'), seatBadge(s, r.seatId), r.real === false ? w('假貞潔者', 'muted') : named('virgin'))
       : r.kind === 'pacifist' ? row(seatBadge(s, r.to), mini(role(r.to)), w('被處決', 'bad'), named('pacifist'))
+        : r.kind === 'klutz' ? row(seatBadge(s, r.seatId), mini('klutz'), w('選'), seatBadge(s, r.to), mini(role(r.to)))
         : row(seatBadge(s, r.seatId), named(r.role));
 };
 // 白天被動能力觸發、遊戲停下等說書人裁定：圓桌中央的裁定卡。誰觸發了什麼；
@@ -137,7 +147,7 @@ export function rulingCard(ctx, r = ctx.state.st.ruling, op = 'rule') {
     side ? [say, acts] : [h('div', { class: 'ic-top' }, say), h('div', { class: 'ic-foot' }, acts)]);
 }
 // 可以被登記成另一類的角色在這次裁定裏可能被當作什麼
-const REG_AS = { slayer: '可以被當作惡魔', virgin: '可以被當作鎮民' };
+const REG_AS = { slayer: '可以被當作惡魔', virgin: '可以被當作鎮民', klutz: '可以被當作另一陣營' };
 
 // 假裝叫醒的原因（stepcard.js 也用）
 export const PRETEND = { absent: '不在場', idle: '今晚不醒', quick: '已完成' };
@@ -269,7 +279,7 @@ function turnPane(ctx) {
   const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = !s.prompt.manual && ACTS[rid]; // 手動局的牌是說書人寫的，不用角色自己的說法
   const say = a?.say || [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
   return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : ''), 'data-key': 'turn', 'data-exit': true },
-    h('div', { class: 'tp-head' }, rid && roleToken(rid), rid && h('span', { class: 'tp-ico' }, actIcon(rid))),
+    h('div', { class: 'tp-head' }, rid && roleToken(rid), rid && ACTS[rid] && h('span', { class: 'tp-ico' }, actIcon(rid))),
     h('div', { class: 'tp-say' }, say.map((t, i) => (i % 2 ? h('b', {}, `「${t}」`) : t))),
     h('div', { class: 'row tp-picks' }, slots(ctx), roleSlot(ctx)),
     confirmPick((ids, role) => ctx.act('pick', { ids, role }), 'big'));

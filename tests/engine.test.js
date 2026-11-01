@@ -5,6 +5,7 @@ import { applyStOp, applyPlayerAction, joinPlayer } from '../lib/ops.js';
 import { viewFor } from '../lib/view.js';
 import { autoPicks } from '../lib/engine.js';
 import { truthLevel } from '../public/js/infofmt.js';
+import { words } from './helpers.js';
 
 const rnd = a => a[Math.floor(Math.random() * a.length)];
 // 構造一份錯誤答案，模擬說書人給假信息
@@ -49,10 +50,10 @@ function playGame(n, scriptId = 'tb') {
       const pv = viewFor(room, { pid: 'p0' }).prog, sv = viewFor(room, { st: true }).prog;
       assert.ok(pv.order.every(o => Object.keys(o).length === 1), '玩家的進度條不帶持有者');
       assert.deepStrictEqual(pv.order.map(o => o.r), expectOrder(room), '玩家的進度條只取決於劇本');
-      assert.strictEqual(pv.at, sv.at);
+      assert.ok(!('at' in pv), '玩家看不到進度走到哪');
       if (step.status === 'fake') {
         assert.ok(step.due > Date.now() && !step.seatId, '假裝叫醒：沒有人醒，到點自動往下走');
-        assert.strictEqual(pv.at, 0, '只有今晚第一格假裝叫醒');
+        assert.strictEqual(sv.at, 0, '只有今晚第一格假裝叫醒');
         ok(applyStOp(room, { op: 'pretend' }));
       } else if (step.status === 'choose') {
         const { ids, role, stuck } = autoPicks(room, step);
@@ -63,6 +64,8 @@ function playGame(n, scriptId = 'tb') {
         const other = room.seats.find(s => s !== seat);
         assert.strictEqual(viewFor(room, { pid: other.pid }).prompt, null);
         ok(applyPlayerAction(room, pidOf(seat), { act: 'pick', ids, role }));
+      } else if (step.status === 'ack') {
+        ok(applyStOp(room, { op: 'ack' }));
       } else if (step.status === 'decide') {
         ok(applyStOp(room, { op: 'decide', choice: rnd(step.decide.options).id }));
       } else if (step.status === 'review') {
@@ -98,6 +101,7 @@ function playGame(n, scriptId = 'tb') {
           if (room.nomination) ok(applyStOp(room, { op: Math.random() < 0.1 ? 'cancelVote' : 'closeVote' }));
         }
       }
+      if (!room.g.ruling) words(room);
       if (room.phase === 'day' && !room.g.ruling && !(room.g.virginCheck && !room.g.virginCheck.forced)) ok(applyStOp(room, { op: 'next' }));
     }
   }

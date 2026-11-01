@@ -162,7 +162,7 @@ export const formulaSeats = terms => (terms || []).flatMap(t => (t.s ? [t.s] : t
 export const ACTS = {
   poisoner: { ico: 'drop', tone: 'poison', mark: '中毒', say: ['選擇一名玩家，使其', '中毒'] },
   monk: { ico: 'shield', tone: 'good', mark: '保護', say: ['選擇一名其他玩家，使其今晚', '受保護'] },
-  imp: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
+  imp: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，使其', '死亡'] },
   butler: { ico: 'key', tone: 'brass', mark: '主人', say: ['選擇一名其他玩家作為你的', '主人'] },
   fortuneteller: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇兩名玩家，查驗其中有沒有', '惡魔'] },
   ravenkeeper: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名玩家，得知他的', '角色'] },
@@ -175,13 +175,13 @@ export const ACTS = {
   courtier: { ico: 'drop', tone: 'poison', mark: '醉酒', say: ['選擇一個角色，使其', '醉酒三天'] },
   professor: { ico: 'shield', tone: 'good', mark: '復活', say: ['選擇一名死亡的玩家，如果是鎮民，他', '復活'] },
   devilsadvocate: { ico: 'shield', tone: 'evil', mark: '保護', say: ['選擇一名存活的玩家，明天他', '處決不死'] },
-  assassin: { ico: 'dagger', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，無視保護使其', '死亡'] },
-  godfather: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
-  zombuul: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
+  assassin: { ico: 'dagger', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，無視保護使其', '死亡'] },
+  godfather: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，使其', '死亡'] },
+  zombuul: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，使其', '死亡'] },
   pukka: { ico: 'drop', tone: 'poison', mark: '中毒', say: ['選擇一名玩家，使其', '中毒', '，他明晚死亡'] },
-  shabaloth: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇兩名玩家，使其', '死亡'] },
+  shabaloth: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇兩名玩家，使其', '死亡'] },
   // 珀：可以不選人（下次殺三人），選人提示用這一步自己的說法（flow.js turnPane）
-  po: { ico: 'pitchfork', tone: 'evil', mark: '擊殺' },
+  po: { ico: 'pitchfork', tone: 'evil', mark: '想殺' },
   // 夢殞春宵
   dreamer: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名玩家，得知他可能的', '角色'] },
   snakecharmer: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名存活的玩家，如果是惡魔就', '交換身份'] },
@@ -190,10 +190,10 @@ export const ACTS = {
   witch: { ico: 'bolt', tone: 'evil', mark: '詛咒', say: ['選擇一名玩家，明天他提名就', '死亡'] },
   cerenovus: { ico: 'mask', tone: 'evil', mark: '瘋狂', say: ['選擇一名玩家和一個角色，使其', '瘋狂'] },
   pithag: { ico: 'become', tone: 'evil', mark: '變身', say: ['選擇一名玩家和一個角色，使其', '變成該角色'] },
-  fanggu: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
-  vigormortis: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
-  nodashii: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
-  vortox: { ico: 'pitchfork', tone: 'evil', mark: '擊殺', say: ['選擇一名玩家，使其', '死亡'] },
+  fanggu: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，使其', '死亡'] },
+  vigormortis: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，使其', '死亡'] },
+  nodashii: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，使其', '死亡'] },
+  vortox: { ico: 'pitchfork', tone: 'evil', mark: '想殺', say: ['選擇一名玩家，使其', '死亡'] },
   barber: { ico: 'become', tone: 'evil', mark: '交換', say: ['理髮師死了：可以選擇兩名玩家', '交換角色'] },
 };
 export const actIcon = (roleId, cls = '') => (ACTS[roleId] ? icon(ACTS[roleId].ico, cls) : roleIcon(roleId, cls));

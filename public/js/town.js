@@ -1,6 +1,6 @@
 // 桌面：座位圍成一圈。支持“選人模式”（夜晚行動 / 說書人代選）
 import { h, menu, roleToken, toast, seatLabel, ask, prompt2, modal, closeModal } from './ui.js';
-import { ROLES, TEAMS } from './roles.js';
+import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { openChat, chatUnread, pickGuess, guesses, notes, addNote, clearNotes, infoMarksBySeat, markView, actMarksBySeat, actMarkView } from './side.js';
 import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs, nightHeld } from './fx.js';
 import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './scores.js';
@@ -8,7 +8,7 @@ import { mini, tag, icon, roleIcon, gallows, demonMark, w } from './glyph.js';
 import { hudLinked } from './hud.js';
 import { trialPanel } from './trial.js';
 import { seatPicking } from './infoform.js';
-import { stepCard, decidePicking } from './stepcard.js';
+import { stepCard, decidePicking, lastWordCard } from './stepcard.js';
 import { clockState, blockLines, playerCenter, stCenter, rulingCard, reviewCard, scriptPick } from './flow.js';
 import { pickRole, pickShown, canHover, hoverSeat, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { handBubble, composePicking, startCompose, openCard, openReminders } from './manual.js';
@@ -150,7 +150,7 @@ export function renderTown(ctx) {
     !blk && !mid && sub && h('div', { class: 'phase-sub' }, sub),
     !s.isSt && (pop('st', '說書人') || pub('st', '公告')),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
-    mid ? cardEl(b) : s.isSt ? stCenter(ctx) : !blk && playerCenter(ctx),
+    mid ? cardEl(b) : s.isSt ? stCenter(ctx) : (!blk || s.prompt) && playerCenter(ctx),
     s.phase === 'ended' && mvpPane(ctx),
   ));
   if (blk) ring.append(blockSeat(ctx, blk));
@@ -185,8 +185,10 @@ function stBubble(ctx) {
   const step = s.isSt && !s.peek && s.phase === 'night' && !nightHeld() && s.st.step;
   const ruling = s.isSt && !s.peek && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
   const side = !!ruling && !s.st.ruling;
+  const word = s.isSt && !s.peek && s.phase === 'day' && !ruling && s.st.lastWord; // 月之子、呆瓜、心上人死後的選擇
   return step ? { id: step.id, seatId: step.seatId, card: () => (step.status === 'review' ? reviewCard(ctx) : stepCard(ctx)) }
-    : ruling ? { id: `rule-${ruling.kind}-${ruling.seatId}`, seatId: ruling.seatId, ruling, side, card: () => (side ? rulingCard(ctx, ruling, 'virgin') : rulingCard(ctx)) } : null;
+    : ruling ? { id: `rule-${ruling.kind}-${ruling.seatId}`, seatId: ruling.seatId, ruling, side, card: () => (side ? rulingCard(ctx, ruling, 'virgin') : rulingCard(ctx)) }
+      : word ? { id: 'word-' + word.seatId, seatId: word.seatId, side: true, card: () => lastWordCard(ctx, word) } : null;
 }
 // 圓桌中間放不下的卡（築夢師這種一整排角色牌）：整張縮小到放得下（最小 60%），再不行才滾動。畫完後調用
 export function fitTableCard() {
@@ -300,11 +302,18 @@ function onSeat(ctx, seat, anchor) {
     day && s.dayOver && { label: [h('s', {}, '提名他'), h('small', {}, '今日已執行處決')], off: true },
     day && !seat.mine && !s.manual && { label: '宣稱獵手：向他開槍', onclick: () => (s.myRole === 'slayer' ? aimAsk(ctx, seat)
       : ask(`公開宣稱自己是獵手，向 ${title} 開槍？`, () => ctx.act('slay', { targetId: seat.id }), '開槍')) },
+    day && s.juggleLeft > 0 && !seat.mine && { label: `公開猜他的角色（還有 ${s.juggleLeft} 次）`, onclick: () => pickJuggle(ctx, seat, title) },
     me && s.phase !== 'lobby' && !seat.mine && { label: '私聊', onclick: () => openChat(ctx, seat.id) },
     !s.peek && s.phase !== 'lobby' && !seat.mine && { label: '標記角色猜測', onclick: () => pickGuess(ctx, seat.id) },
     !s.peek && s.phase !== 'lobby' && { label: '加備註', onclick: () => addNote(ctx, seat.id) },
     !s.peek && notes(ctx)[seat.id] && { label: '清除我的備註', onclick: () => clearNotes(ctx, seat.id) },
   ]);
+}
+
+// 雜耍藝人：第一個白天公開猜，所有人都看得到
+function pickJuggle(ctx, seat, title) {
+  modal(`公開猜 ${title} 的角色`, h('div', { class: 'guess-grid' }, SCRIPTS[ctx.state.scriptId].roles.map(id =>
+    h('div', { class: 'guess-pick', onclick: () => { closeModal(); ctx.act('juggle', { targetId: seat.id, role: id }); } }, roleToken(id, { size: 'sm' }), ROLES[id].name))), { wide: true });
 }
 
 // 自己是獵手（含以為自己是獵手的酒鬼）、活著、白天、還沒開過槍、沒在投票：其他活著的人頭上有瞄準鈕

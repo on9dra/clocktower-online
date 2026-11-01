@@ -65,9 +65,9 @@ function ipOf(socket) {
 }
 
 // 說書人可以「代入」某位玩家的視角：拿到的就是那位玩家看到的狀態（只讀）
-function viewOf(room, who, since) {
+function viewOf(room, who, since, logFrom) {
   const seat = who.st && who.peek && room.seats.find(x => x.id === who.peek);
-  if (!seat) return viewFor(room, who, since);
+  if (!seat) return viewFor(room, who, since, logFrom);
   const i = room.seats.indexOf(seat);
   return { ...viewFor(room, { pid: seat.pid }, since), peek: { seatId: seat.id, label: `${i + 1}號 ${seat.name}` } };
 }
@@ -76,7 +76,10 @@ function viewOf(room, who, since) {
 function emitState(socket, room) {
   const d = socket.data, key = `${room.chatEpoch}|${d.peek || ''}`;
   const reset = d.chatKey !== key;
-  const v = viewOf(room, d, reset ? 0 : d.chatSeq || 0);
+  // 流程日誌也只推新增的；換了一局（日誌變短）從頭發
+  const logN = room.g?.log?.length || 0, logFrom = reset || (d.logN || 0) > logN ? 0 : d.logN || 0;
+  const v = viewOf(room, d, reset ? 0 : d.chatSeq || 0, logFrom);
+  d.logN = logN;
   v.chatReset = reset;
   // 上傳的劇本只發一次：剛連上、或換了一本
   if (room.script && d.scriptVer !== room.script.ver) { v.custom = scriptPayload(room.script); d.scriptVer = room.script.ver; }

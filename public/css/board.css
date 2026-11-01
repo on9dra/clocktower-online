@@ -131,7 +131,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 @keyframes quiet-in { from { opacity: 0; } }
 @keyframes quiet-out { to { opacity: 0; } }
 
-/* 進度條（progress.js）：沒有底框，一串紙牌掛在桌面（天空）下方。
+/* 進度條（progress.js）：一張紙卡上的一串牌，窄屏橫放、寬屏豎放（下面兩個媒體查詢）。
    --n 張牌等距排開（兩端各留 --pad），--stp 牌距，--pn 牌的大小隨牌距縮；所有牌的頂端掛在 --ty 這條線上，
    線段（.pg-seg）從一張牌的頂上連到下一張，按牌距下垂（--sag 越寬垂得越多）。
    線的顏色：--th0 沒走到的淡線，--th1 走過的金線（夜晚在深色天空上換亮一點的金） */
@@ -204,6 +204,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .pg-seal.moon { color: #4a5272; }
 .pg-seal.sun { color: var(--brass); }
 .pg-it.seal.done > :not(.pg-knot) { opacity: 1; filter: none; }
+.pg::before { content: ""; position: absolute; inset: 0; background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); }
 /* 寬屏：進度條不在桌面下方，是桌面右邊一張窄長的紙卡（這一欄開局前也留著，開局時圓桌不跳）。紙卡高度跟著牌數走，白天每多一次提名長一格，封頂 60%。
    兩端的日月章騎在紙卡上下邊上，線是紙上的一道豎線，牌貼在紙上不晃，當前這張從條上抽出來一截朝向圓桌 */
 @media (min-width: 1000px) {
@@ -213,7 +214,6 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .prog.day, .prog.night { --th0: #2a262266; --th1: var(--brass); --ring: var(--brass); --edge: transparent; }
   .pg { --h: min(60cqh, calc(var(--n) * 46px)); --pad: 7px; --stp: calc((var(--h) - 2 * var(--pad)) / (var(--n) - 1)); --pn: clamp(18px, calc(var(--stp) - 5px), 32px);
     --ps: clamp(26px, calc(var(--stp) * 1.2), 38px); --sag: 3px; width: 62px; height: var(--h); translate: 0 -3cqh; transition: height .5s ease; }
-  .pg::before { content: ""; position: absolute; inset: 0; background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); }
   .pg-seg { top: calc(var(--pad) + var(--i) * var(--stp)); left: calc(50% + 1.5px); rotate: 90deg; transform-origin: 0 0; transition: top .5s ease, width .5s ease; }
   .pg-it { top: calc(var(--pad) + var(--i) * var(--stp)); left: 50%; margin-top: calc(var(--pn) / -2); transform-origin: 50% 50%;
     transition: scale .3s cubic-bezier(.2, .9, .3, 1.4) .42s, top .5s ease, left .3s ease .42s; animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards; }
@@ -223,6 +223,25 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .pg-knot { display: none; }
   .pg-tag { left: 80%; top: 50%; bottom: auto; translate: 0 -50%; height: 15px; padding: 0 3px; font-size: 11px; }
   .pg-it.done > .pg-tag { opacity: 1; filter: none; }
+}
+/* 窄屏：桌面底下一條橫放的紙卡，和寬屏的豎條同一種做法：日月章騎在左右兩邊，牌貼在紙上不晃，當前這張往上抽出來一截朝向圓桌 */
+@media (max-width: 999px) {
+  .prog { padding: 8px 18px max(8px, env(safe-area-inset-bottom)); }
+  .prog.day, .prog.night { --th0: #2a262266; --th1: var(--brass); --ring: var(--brass); --edge: transparent; }
+  .pg { --pad: 9px; --pn: clamp(16px, calc(var(--stp) - 3px), 30px); --ps: clamp(24px, calc(var(--pn) * 1.2), 34px); --h: calc(var(--pn) + 20px);
+    --ty: calc((var(--h) - var(--pn)) / 2); --sag: 3px; height: var(--h); }
+  .pg-seg { top: calc(var(--h) / 2 - 1px); }
+  .pg-it { transition: scale .3s cubic-bezier(.2, .9, .3, 1.4) .42s, left .5s ease, top .3s ease .42s; animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards; }
+  .pg-it.now { top: calc(var(--ty) - 10px); animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards, pg-tug .55s cubic-bezier(.3, 1.6, .5, 1) .4s; }
+  .pg-it.seal, .pg-it.seal.now { top: calc((var(--h) - var(--ps)) / 2); }
+  .pg-knot { display: none; }
+  .pg-it.done > .pg-tag { opacity: 1; filter: none; }
+}
+/* 橫屏手機：高度金貴，橫條壓扁 */
+@media (max-width: 999px) and (max-height: 520px) {
+  .prog { padding: 3px 18px 4px; }
+  .pg { --pn: clamp(16px, calc(var(--stp) - 3px), 24px); --ps: clamp(22px, calc(var(--pn) * 1.15), 28px); --h: calc(var(--pn) + 12px); }
+  .pg-it.now { top: calc(var(--ty) - 5px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .pg-it, .pg-it.now, .pg-it.seal, .pg-it.seal.now, .pg-it.now::after, .pg-it.now::before, .pg-seg { animation: none; }
@@ -311,8 +330,6 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .m-tabs .count { position: absolute; top: -7px; right: -7px; margin: 0; }
 
   .board { min-height: 0; }
-  .prog { padding: 0 6px; }
-  .pg { --pad: 14px; }
 
   /* 桌面：.town 是尺寸容器，圓桌取寬高裏小的那個；頭像跟著圓桌大小縮放（--tk） */
   .town { flex: 1; contain: layout; padding: 4px; }

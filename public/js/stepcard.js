@@ -4,6 +4,7 @@ import { sel, startSelect } from './town.js';
 import { selectBar, selFrom, B, PRETEND } from './flow.js';
 import { infoForm } from './infoform.js';
 import { seatBadge, mini, icon, named, w } from './glyph.js';
+import { actRow, goonLine } from './log.js';
 
 const choices = {}; // stepId -> 說書人在裁定卡上選中的選項
 
@@ -33,9 +34,32 @@ export function stepCard(ctx) {
         B('代為選擇', () => startSelect(ctx, selFrom(step.id, step.choose, step.seatId)), online ? '' : 'primary', !online),
         B('跳過', () => ask(`跳過 ${step.title} 的行動？`, () => ctx.st('skip'), '跳過'), 'ghost')));
   }
+  if (step.status === 'ack') return ackCard(ctx, step);
   if (step.status === 'decide') return decideCard(ctx, step);
   if (step.status === 'fake') return pretendCard(ctx, step);
   return infoForm(ctx, step);
+}
+
+// 死後的選擇：月之子、呆瓜自己公開選（等他，或者代選），心上人由說書人選誰醉酒。放在桌面左上角，不擋白天
+export function lastWordCard(ctx, word) {
+  const s = ctx.state, key = 'word-' + word.seatId, lead = [mini(word.role), seatBadge(s, word.seatId, 'lg')];
+  const send = ids => ctx.st('word', { seatId: word.seatId, targetId: ids[0] || null });
+  if (sel.on?.key === key) return selectBar(ctx, lead, send, true);
+  const pick = () => startSelect(ctx, selFrom(key, { count: 1, alive: true, notSelf: true }, word.seatId));
+  return h('div', { class: 'card infocard ruling corner' },
+    h('div', { class: 'frm-line' }, lead, word.st ? w('誰從此醉酒？', 'ink') : h('span', { class: 'waiting' }, h('i'), h('i'), h('i'))),
+    h('div', { class: 'row' }, B(word.st ? '選人' : '代選', pick, (word.st ? 'primary ' : '') + 'sm'),
+      !word.st && B('不選', () => ask('就當他沒有選人？', () => send([]), '不選'), 'ghost sm')));
+}
+
+// 玩家用完能力：這一步的結果，說書人確認了才叫下一位
+function ackCard(ctx, step) {
+  const s = ctx.state, { note, e } = step.result || {}, picks = step.picks || [];
+  const what = e?.k === 'act' && e.to?.length ? actRow(s, e) : note ? w(note, 'ink')
+    : picks.length ? [w('選了', 'ink'), picks.map(id => seatBadge(s, id))] : w('沒有使用能力', 'muted');
+  return h('div', { class: 'card focus infocard spread' },
+    h('div', { class: 'ic-top' }, head(s, step), h('div', { class: 'frm big' }, what), goonLine(s, step)),
+    h('div', { class: 'ic-foot' }, B('確認', () => ctx.st('ack'), 'primary wide', true)));
 }
 
 // 假裝叫醒：沒有人醒（不在場 / 今晚不醒 / 已經做完），停一會兒再往下走，玩家看不出這一格是空的。
@@ -59,7 +83,7 @@ function decideCard(ctx, step) {
   if (d.kind === 'ability') return h('div', { class: 'card focus infocard free spread' },
     h('div', { class: 'ic-top' }, head(s, step),
       h('div', { class: 'frm big' }, (step.picks || []).length > 0 && [w({ imp: '想殺', monk: '保護' }[step.roleId] || '選了', 'ink'),
-        step.picks.map(id => seatBadge(s, id)), h('i', { class: 'op-sep' })], seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil'))),
+        step.picks.map(id => seatBadge(s, id)), h('i', { class: 'op-sep' })], seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil')), goonLine(s, step)),
     // 酒鬼只有「無效」一個選項
     h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, d.options.map((o, i) => B(o.label, () => ctx.st('decide', { choice: o.id }), i ? '' : 'primary', d.options.length === 1)))));
   const face = o => {
@@ -70,7 +94,7 @@ function decideCard(ctx, step) {
     : d.kind === 'starpass' ? [w('誰成為', 'ink'), named('imp'), w('？', 'ink')]
       : [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
   return h('div', { class: 'card focus infocard spread' },
-    h('div', { class: 'ic-top' }, head(s, step), h('div', { class: 'frm big' }, lead)),
+    h('div', { class: 'ic-top' }, head(s, step), h('div', { class: 'frm big' }, lead), goonLine(s, step)),
     h('div', { class: 'ic-body' }, h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
     }, face(o))))),

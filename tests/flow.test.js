@@ -3,6 +3,9 @@ import assert from 'assert';
 import { startNight } from '../lib/engine.js';
 import { truthLevel } from '../public/js/infofmt.js';
 import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
+import { applyPlayerAction, applyStOp } from '../lib/ops.js';
+
+const pl2 = (r, role, ids) => applyPlayerAction(r, S(r, role).pid, { act: 'pick', ids });
 
 // A1 共情者鄰座是隱士：0 是真實答案，1 也合規
 {
@@ -68,8 +71,9 @@ import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
   act(r, 'poisoner', [S(r, 'chef').id]);
   act(r, 'monk', [S(r, 'chef').id]);
   act(r, 'imp', [S(r, 'mayor').id]);
-  ok(st(r, 'decide', { choice: S(r, 'soldier').id }));
-  assert.ok(!S(r, 'soldier').dead && !S(r, 'mayor').dead, '轉給士兵：無人死亡');
+  assert.ok(!r.g.step.decide.options.some(o => o.id === S(r, 'soldier').id), '士兵不能替死');
+  ok(st(r, 'decide', { choice: 'none' }));
+  assert.ok(!S(r, 'mayor').dead, '無人死亡');
 }
 // A2 夜裏復活的玩家不出現在天亮的死訊裏
 {
@@ -202,7 +206,8 @@ import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
   // 玩家：只有角色順序，看不出投毒者不醒；說書人：這一格標成假的
   const pv = viewFor(r, { pid: S(r, 'chef').pid }).prog, sv = viewFor(r, { st: true }).prog;
   assert.deepStrictEqual(pv.order[0], { r: 'poisoner' });
-  assert.strictEqual(pv.at, 0);
+  assert.strictEqual(pv.at, undefined);
+  assert.strictEqual(sv.at, 0);
   assert.ok(sv.order[0].fake && !sv.order[1].fake && sv.order[1].seats[0] === S(r, 'monk').id);
   assert.ok(sv.order[3].fake, '不在場的守鴉人');
   // 到點自動往下走
@@ -218,7 +223,7 @@ import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
     else ok(st(r, 'confirm', { fields: step().form.truth }));
   }
   assert.ok(atReview(r));
-  assert.strictEqual(nightProgress(r, false).at, order.length);
+  assert.strictEqual(nightProgress(r, true).at, order.length);
   // 「本局不再假裝」只是開關：這次的假裝照走（可以關回去），點繼續才往下；之後的夜晚第一格空著也不假裝
   ok(st(r, 'dawn'));
   startNight(r);
@@ -254,5 +259,36 @@ import { setup, S, ok, act, st, pl, atReview, runOnly } from './helpers.js';
   assert.ok(o.includes('washerwoman') && o.indexOf('poisoner') === 0, '首夜從投毒者開始');
   const demon = room.seats.find(s => s.role === 'imp');
   assert.ok(room.chat.some(m => m.to === demon.id && m.text.includes('你的爪牙')), '惡魔信息照常發出');
+}
+// 玩家用完能力：停在結果卡上，說書人確認了才叫下一位；能力已經結算，下一位還沒輪到
+{
+  const r = setup(['poisoner', 'monk', 'imp', 'chef', 'soldier', 'saint']);
+  startNight(r);
+  const before = r.g.step.id, target = S(r, 'chef').id;
+  assert.strictEqual(r.g.step.roleId, 'poisoner');
+  assert.strictEqual(pl2(r, 'poisoner', [target]), undefined);
+  assert.strictEqual(r.g.step.status, 'ack');
+  assert.strictEqual(r.g.step.result.e.res, 'poison');
+  assert.notStrictEqual(r.g.step.id, before, '換一張操作卡');
+  assert.strictEqual(r.g.poisoned, target);
+  assert.ok(pl2(r, 'monk', [target]), '下一位還沒輪到');
+  assert.ok(st(r, 'confirm', { fields: {} }), '只有確認能往下走');
+  ok(st(r, 'ack'));
+  assert.strictEqual(r.g.step.roleId, 'monk');
+  assert.ok(st(r, 'ack'), '不能重複確認');
+  // 說書人代選：結果也要看一眼
+  ok(applyStOp(r, { op: 'pick', ids: [target] }));
+  assert.strictEqual(r.g.step.status, 'ack');
+  ok(st(r, 'ack'));
+  assert.strictEqual(r.g.step.roleId, 'imp');
+}
+// 裁定也算說書人看過：小惡魔打鎮長，裁定之後不再確認
+{
+  const r = setup(['mayor', 'imp', 'chef', 'soldier', 'saint', 'recluse']);
+  startNight(r);
+  assert.strictEqual(pl2(r, 'imp', [S(r, 'mayor').id]), undefined);
+  assert.strictEqual(r.g.step.status, 'decide');
+  ok(st(r, 'decide', { choice: S(r, 'saint').id }));
+  assert.notStrictEqual(r.g.step.status, 'ack');
 }
 console.log('新規則測試通過 ✔');

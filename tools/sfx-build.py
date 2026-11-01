@@ -19,41 +19,28 @@ SR = 48000
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'sfx')
 MASTER_DB = 20 * np.log10(0.6 * 0.8)  # sfx.js 的總音量，下面 LEVEL 是過了它之後的響度
 
-# 最響 100ms 的 RMS（dBFS）。提名、處決這些重音最響，飛入、翻頁這種出現得頻繁的壓低，比原來的合成聲最多響十幾 dB
+# 最響 100ms 的 RMS（dBFS）。死亡、處決這些重音最響，翻頁、嘀嗒這種出現得頻繁的壓低
 LEVEL = {
-    'objection': -20, 'thud': -20, 'good': -21, 'dunLow': -21, 'evil': -22, 'rope': -22, 'slash': -22, 'stab': -23,
-    'dunBig': -23, 'tock': -24, 'demon': -24, 'dawn': -24, 'zap': -24, 'beat2': -24, 'clang': -25, 'gavel': -25,
-    'rumble': -26, 'crack': -26, 'dun': -27, 'pass': -27, 'fail': -27, 'flop': -27, 'crown': -27, 'turn': -27, 'splat': -27,
-    'caw': -28, 'flip': -28, 'twang': -28, 'hum': -28, 'bell': -28, 'splash': -28, 'dig': -28, 'cork': -28,
-    'fire': -30, 'shimmer': -30, 'key': -30, 'drip': -30, 'miss': -30, 'fw': -30, 'pop': -30, 'clip': -30, 'smack': -30, 'unlock': -30,
-    'swish': -31, 'whoosh': -32, 'hiss': -32, 'rattle': -32, 'flap': -33, 'tick': -33, 'page': -34, 'sniff': -34, 'leaf': -36, 'toss': -36,
+    'thud': -20, 'good': -21, 'evil': -22, 'rope': -22, 'slash': -22, 'stab': -23, 'stamp': -23,
+    'tock': -24, 'demon': -24, 'dawn': -24, 'zap': -24, 'beat2': -24, 'clang': -25,
+    'crack': -26, 'rumble': -26, 'tag': -26, 'crown': -27, 'turn': -27, 'splat': -27,
+    'caw': -28, 'flip': -28, 'cork': -28, 'hum': -28, 'bell': -28, 'splash': -28, 'dig': -28,
+    'fire': -30, 'clip': -30, 'drip': -30, 'key': -30, 'miss': -30, 'shimmer': -30, 'fw': -30, 'smack': -30, 'unlock': -30,
+    'swish': -31, 'whoosh': -32, 'hiss': -32, 'rattle': -32, 'flap': -33, 'tick': -33, 'page': -34, 'sniff': -34, 'leaf': -36,
 }
 
 # 輸出名: (原始文件, 起點秒, 長度秒, 淡出秒, 變速倍數, 高通 Hz)
 TAKES = {
-    'whoosh': ('whoosh-496188', 0, .5, .15, 1, 120),
     'tock': ('tock-470710', .46, .4, .12, 1, 50),
     'page': ('page-397548', 0, .5, .08, 1, 200),
     'caw': ('caw-361470', 0, .43, .06, 1, 200),
     'demon': ('demon-320345', 2.85, 1.6, .4, .75, 30),
     'beat2': ('beat2-116642', 0, .55, .1, 1, 30),
     'bell': ('bell-452379', 0, 1.2, .5, 1, 300),
-    'clip': ('clip-667382', 0, .2, .06, 1, 200),
-    'cork': ('cork-392624', .1, .4, .15, 1, 100),
     'crack': ('crack-164472', .1, .4, .1, 1, 100),
     'dig': ('dig-651293', 0, .4, .1, 1, 80),
-    'drip': ('drip-174718', 0, .4, .1, 1, 150),
     'fire': ('fire-186932', 1.15, .9, .4, 1, 60),
-    'flap': ('flap-240469', 0, .6, .1, 1, 120),
-    'flip': ('flip-84322', .25, .6, .12, 1, 150),
     'fw': ('fw-264031', 0, 1.4, .7, 1, 40),
-    'gavel': ('gavel-173941', .2, .4, .1, 1, 100),
-    'hiss': ('hiss-241562', .25, .5, .2, 1, 300),
-    'leaf': ('page-82379', 0, .2, .06, 1, 200),
-    'miss': ('miss-394186', 0, .2, .06, 1, 150),
-    'pop': ('pop-467951', 0, .12, .04, 1, 150),
-    'rattle': ('rattle-460153', 0, .35, .08, 1, 200),
-    'rumble': ('rumble-222517', 0, 1, .5, 1, 30),
     'slash': ('slash-323526', .05, .55, .15, 1, 100),
     'smack': ('smack-430594', .12, .2, .06, 1, 200),
     'sniff': ('sniff-151218', .1, .45, .1, 1, 200),
@@ -62,30 +49,30 @@ TAKES = {
     'stab': ('stab-179222', .13, .55, .2, 1, 80),
     'swish': ('swish-347237', .3, 1, .3, 1, 100),
     'thud': ('thud-346695', .55, .6, .2, 1, 35),
-    'toss': ('toss-394873', .05, .3, .1, 1, 150),
-    'twang': ('twang-384919', 0, .4, .15, 1, 100),
     'unlock': ('unlock-494128', .4, .28, .08, 1, 200),
     'zap': ('zap-136542', 0, .6, .15, 1, 150),
+    'whoosh': ('whoosh-496188', 0, .5, .15, 1, 120),
+    'clip': ('clip-667382', 0, .2, .06, 1, 200),
+    'cork': ('cork-392624', .1, .4, .15, 1, 100),
+    'drip': ('drip-174718', 0, .4, .1, 1, 150),
+    'flap': ('flap-240469', 0, .6, .1, 1, 120),
+    'flip': ('flip-84322', .25, .6, .12, 1, 150),
+    'hiss': ('hiss-241562', .25, .5, .2, 1, 300),
+    'leaf': ('page-82379', 0, .2, .06, 1, 200),
+    'miss': ('miss-394186', 0, .2, .06, 1, 150),
+    'rattle': ('rattle-460153', 0, .35, .08, 1, 200),
+    'rumble': ('rumble-222517', 0, 1, .5, 1, 30),
 }
 
 # 樂器包：名字: (倉庫, 路徑正則)。都是 CC0
 PACKS = {
-    'horn': ('VSCO-2-CE', r'Brass/F Horn/stac/.*_v3_rr1\.wav'),
-    'tpt': ('VSCO-2-CE', r'Brass/Trumpet/stac/.*_v3_rr1\.wav'),
-    'tbn': ('VSCO-2-CE', r'Brass/Tenor Trombone/stac/.*_v4_rr1\.wav'),
-    'tbnsus': ('VSCO-2-CE', r'Brass/Tenor Trombone/sus/.*_v3_1\.wav'),
     'tubasus': ('VSCO-2-CE', r'Brass/Tuba/sus/.*_v3_rr1_Mid\.wav'),
-    'cello': ('VSCO-2-CE', r'Strings/Cello Section/spic/.*_v2_RR1\.wav'),
     'cellosus': ('VSCO-2-CE', r'Strings/Cello Section/susvib/.*_v3_1\.wav'),
-    'violapizz': ('VSCO-2-CE', r'Strings/Viola Section/pizz/.*_v2_rr1\.wav'),
     'bass': ('VSCO-2-CE', r'Strings/Solo Contrabass/SusNV/.*_v3_rr1\.wav'),
     'harp': ('VSCO-2-CE', r'Strings/Harp/KSHarp_.*\.wav'),
-    'timp': ('VSCO-2-CE', r'Percussion/Timpani/Timpani\d_Hit_v4_rr1_Sum\.wav'),
-    'crash': ('VSCO-2-CE', r'Percussion/cymbal-crash1_(ff|mf)_rr1\.wav'),
     'gong': ('VSCO-2-CE', r'Percussion/gongHit_p\.wav'),
     'marimba': ('VCSL', r'Struck Idiophones/Marimba/.*_med_01\.wav'),
     'glock': ('VCSL', r'Glockenspiel/glock_medium_.*_01\.wav'),
-    'vibes': ('VCSL', r'Vibraphone/Soft Mallets/Vibes_soft_.*_v2_rr1_Main\.wav'),
     'chime': ('VCSL', r'Hand Chimes/sus_.*_r01_main\.wav'),
     'glass': ('VCSL', r'Wine Glasses/Sustains/Fast/glass3_.*\.wav'),
     'belltree': ('VCSL', r'Bell Tree/Stroke/BellTree_Stroke_3_Mid\.wav'),
@@ -271,21 +258,15 @@ def attack(x, sec):
     return x
 
 
-# 結算音：真實樂器疊起來，音和原來的合成聲一樣
+# 真實樂器疊成的結算音，和幾段錄音疊成的聲音
 MUSIC = {
-    'dun': lambda: layer((0, chord('marimba', ['A4', 'E5'], .22, 1, .1)), (0, note('violapizz', 'A4', .2, .3, .1))),
-    'dunBig': lambda: layer((0, chord('marimba', ['A4', 'C#5', 'E5'], .7, 1, .4)), (0, chord('harp', ['A4', 'E5', 'A5'], .7, .6, .4)), (0, note('cello', 'A3', .3, .5, .15)), (0, note('glock', 'A6', .6, .25, .35))),
-    'dunLow': lambda: glide(layer((0, chord('tbnsus', ['G2', 'A#2', 'D3'], .95, .8, .4)), (0, chord('cellosus', ['G2'], .95, .7, .4)), (0, chord('tubasus', ['G1'], .95, .8, .4)), (0, note('timp', 98, .95, 1.3, .4))), 1, .94),
-    'flop': lambda: glide(note('tubasus', 'D3', .62, 1, .2), 1, .72),
-    'objection': lambda: layer((0, chord('tpt', ['C5', 'E5', 'G5'], .6, .8, .25)), (0, chord('horn', ['C4', 'G4', 'C5'], .6, .7, .25)), (0, chord('tbn', ['G2', 'C3'], .6, .8, .25)),
-                                 (0, note('timp', 98, .6, 1.3, .25)), (0, one('crash', .6, .35, .4))),
+    'key': lambda: arp('glock', ['A6', 'C7'], .07, .35, 1, .15),
+    'tag': lambda: layer((0, clip('tock-470710', .46, .12, .05, hp=400, lp=5000) * .7), (0, note('marimba', 'A5', .24, 1, .14)), (0, note('glock', 'E7', .3, .3, .2))),
+    'stamp': lambda: layer((0, clip('tock-470710', .46, .36, .12, hp=45, lp=900)), (0, clip('tock-683031', .13, .36, .14, hp=40, lp=700) * .9)),
     'good': lambda: layer((0, arp('harp', ['G4', 'C5', 'E5', 'G5', 'C6'], .13, 1.4, 1, .7)), (0, arp('glock', ['G5', 'C6', 'E6', 'G6', 'C7'], .13, 1.2, .5, .6))),
     'evil': lambda: layer((0, attack(chord('bass', ['A1', 'E2'], 3, .9, 1.2), .4)), (0, attack(chord('tubasus', ['A1', 'A#1'], 3, .7, 1.2), .4)), (0, attack(chord('cellosus', ['A2', 'A#2'], 3, .5, 1.2), .4)), (0, one('gong', 3, .2, 1.2))),
     'dawn': lambda: layer((0, arp('harp', ['C5', 'E5', 'G5', 'C6'], .12, .95, 1, .4)), (0, arp('glock', ['C6', 'E6', 'G6', 'C7'], .12, .9, .45, .4))),
-    'pass': lambda: arp('vibes', ['A4', 'C#5', 'E5'], .08, .55, 1, .25),
-    'fail': lambda: arp('violapizz', ['G4', 'D#4'], .15, .45, 1, .15),
     'crown': lambda: arp('glock', ['C6', 'G6'], .09, .75, 1, .4),
-    'key': lambda: arp('glock', ['A6', 'C7'], .07, .35, 1, .15),
     'turn': lambda: note('chime', 'D5', 1.2, 1, .7),
     'hum': lambda: attack(glide(note('glass', 'A#4', .95, 1, .3), 1, 1.12), .15),
     'shimmer': lambda: one('belltree', .9, 1, .4),
@@ -295,9 +276,9 @@ MUSIC = {
 }
 
 
-def decode(path, start, dur, rate, hp):
+def decode(path, start, dur, rate, hp, lp=None):
     pitch = f'asetrate={SR * rate},aresample={SR},' if rate != 1 else ''
-    af = f'aresample={SR},{pitch}highpass=f={hp}'
+    af = f'aresample={SR},{pitch}highpass=f={hp}' + (f',lowpass=f={lp}' if lp else '')
     cmd = ['ffmpeg', '-v', 'error', '-ss', str(start), '-t', str((dur + .3) / rate), '-i', path, '-ac', '1', '-af', af, '-f', 'f32le', '-']
     return np.frombuffer(subprocess.run(cmd, capture_output=True, check=True).stdout, dtype='<f4').copy()
 
@@ -310,9 +291,9 @@ def shape(x, dur, fade):
     return x
 
 
-def clip(src, start, dur, fade, rate=1, hp=100):
+def clip(src, start, dur, fade, rate=1, hp=100, lp=None):
     """一段錄音，歸一後好疊"""
-    x = shape(decode(os.path.join(raw_dir, src + '.ogg'), start, dur, rate, hp), dur, fade)
+    x = shape(decode(os.path.join(raw_dir, src + '.ogg'), start, dur, rate, hp, lp), dur, fade)
     return x / rms100(x) * .1
 
 

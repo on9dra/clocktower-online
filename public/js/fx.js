@@ -11,6 +11,7 @@ import { tactile } from './tactile.js';
 import { icon, roleIcon, seatBadge, gallows, ACTS } from './glyph.js';
 import { play } from './sfx.js';
 import { ROLES, TEAMS } from './roles.js';
+import { setBgm } from './bgm.js';
 import { burst, setBusy, setFireworks } from './fireworks.js';
 import { EGG } from './score.js';
 
@@ -193,7 +194,7 @@ const wait = ms => (cur.skip ? Promise.resolve() : new Promise(r => {
   cur.waits.push(() => { clearTimeout(t); r(); });
 }));
 const anim = (el, frames, opts) => (cur.skip || !el ? null : el.animate(frames, typeof opts === 'number' ? { duration: opts, fill: 'forwards', easing: 'ease-out' } : { fill: 'forwards', ...opts }));
-const sfx = name => !cur.skip && play(name);
+const sfx = (name, k) => !cur.skip && play(name, k);
 
 // 座位牌在屏幕上的中心
 function seatAt(id) {
@@ -247,19 +248,19 @@ function ring(parent, tone = '', to = 2.4, color) {
   parent.append(el);
   anim(el, [{ transform: 'scale(.5)', opacity: 0.7 }, { transform: `scale(${to})`, opacity: 0 }], { duration: 520, easing: 'ease-out' });
 }
-// 「噔」：元素從大砸下來落定，配一聲重音；power 帶震屏
-function beat(el, { sound = 'dun', power = 0 } = {}) {
+// 「噔」：元素從大砸下來落定，默認沒有聲音；power 帶震屏
+function beat(el, { sound, power = 0 } = {}) {
   el.style.opacity = 1;
-  sfx(sound);
+  if (sound) sfx(sound);
   anim(el, [{ transform: 'scale(2.2)', opacity: 0 }, { transform: 'scale(.94)', opacity: 1, offset: 0.65 }, { transform: 'none', opacity: 1 }],
     { duration: 230, easing: 'cubic-bezier(.4,0,.6,1)' });
   if (power) shake(power);
 }
 // 蓋章：從大到小砸下來，落定時一圈墨線向外散開；soft 是票數不足那種慢慢落下、不震。card 是章落在的那個元素
-async function slamStamp(card, text, tone, { power = 0, sound, soft = false, color } = {}) {
+async function slamStamp(card, text, tone, { power = 0, sound = 'stamp', soft = false, color } = {}) {
   const st = h('div', { class: 'ink-stamp ' + tone, style: color ? { color } : null }, text);
   card.append(st);
-  sfx(sound);
+  sfx(sound, soft ? 0.6 : 1);
   anim(st, soft
     ? [{ transform: 'translate(-50%,-50%) scale(1.5) rotate(-4deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-7deg)', opacity: 1 }]
     : [{ transform: 'translate(-50%,-50%) scale(3) rotate(-18deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(.94) rotate(-6deg)', opacity: 1, offset: 0.7 },
@@ -303,7 +304,7 @@ function release(id) {
 }
 
 // 技能演出連著信物圖形有 50KB，大廳用不到：收到第一份對局狀態時才拉，拉到之前走通用演出
-let AB = { act: () => null, grim: () => null, hasInfo: () => false, demon: () => {}, saint: () => {}, mayor: () => {} }, abPull = null;
+let AB = { act: () => null, grim: () => null, hasInfo: () => false, demon: () => {}, saint: () => {}, mayor: () => {}, ststamp: () => {} }, abPull = null;
 function pullAb() {
   abPull ||= import('./fx-ab.js').then(m => { AB = m.abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping: () => !cur || cur.skip, ACT_ICONS: ACTS }); }, () => { abPull = null; });
 }
@@ -348,7 +349,6 @@ async function bolt(a, b) {
 async function shoot(a, b, stop) {
   const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, size = 76, k = (len - stop - size * 0.44) / len;
   const el = sprite(h('div', { class: 'fx-arrow', style: { transform: `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)` } }, icon('arrow')), a.x, a.y, size, 'shot');
-  sfx('twang');
   const to = `translate(${dx * k}px, ${dy * k}px)`;
   anim(el, [{ transform: 'translate(0,0)', opacity: 0 }, { transform: `translate(${dx * k * 0.12}px, ${dy * k * 0.12}px)`, opacity: 1, offset: 0.12 },
     { transform: to, opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.4,0,1,1)' });
@@ -360,7 +360,6 @@ async function shoot(a, b, stop) {
 async function stab(id) {
   const p = seatAt(id), size = 64;
   const fork = sprite(chip(icon('pitchfork'), 'evil'), p.x, p.y - size * 0.7, size, 'fork');
-  sfx('whoosh');
   anim(fork, [{ transform: 'translateY(-240px) rotate(180deg) scale(1.3)', opacity: 0 },
     { transform: 'translateY(-80px) rotate(180deg) scale(1.15)', opacity: 1, offset: 0.65 },
     { transform: 'translateY(0) rotate(180deg) scale(1)', opacity: 1 }], { duration: 540, easing: 'cubic-bezier(.6,0,.9,.6)' });
@@ -454,7 +453,6 @@ async function flyEggs(from, n) {
   const A = { x: a.left + a.width / 2, y: a.top + a.height / 2 }, B = { x: b.left + 16, y: b.top + b.height / 2 }, flown = [];
   for (let i = 0; i < Math.min(n, 5); i++) { flown.push(fly(icon('egg'), A, B, { size: 30, ms: 620, tone: 'egg' })); await wait(80); }
   const done = await Promise.all(flown);
-  sfx('pop');
   done.forEach(f => fadeOut(f.el, 150));
   await wait(150);
 }
@@ -512,7 +510,6 @@ const SCENES = {
     await wait(480);
     instantSky('night');
     thaw();
-    sfx('rumble');
     const title = h('div', { class: 'pc-title' }, `第 ${e.n || 1} 局`), slot = h('div', { class: 'pc-slot' });
     const card = h('div', { class: 'pc cal' }, title, slot);
     mid.append(card);
@@ -521,11 +518,10 @@ const SCENES = {
     await wait(220);
     beat(title);
     await wait(420);
-    await slamStamp(slot, '開局', 'red', { sound: 'dunBig' });
+    await slamStamp(slot, '開局', 'red');
     await wait(900);
     cardOut(card);
     await wait(260);
-    sfx('swish');
     pull(L, -1, true); pull(R, 1, true);
     trail(L, -1); trail(R, 1);
     await wait(950);
@@ -545,10 +541,10 @@ const SCENES = {
     await wait(260);
     if (!dark) sky('dusk');
     await wait(300);
-    sfx('night'); beat(em, { sound: null }); ring(em, 'night', 2);
+    sfx('night'); beat(em); ring(em, 'night', 2);
     await wait(900);
     sky('night');
-    beat(title, { sound: null });
+    beat(title);
     await wait(1800);
     await closeCard(card);
   } }),
@@ -564,18 +560,18 @@ const SCENES = {
     await wait(260);
     sky('dawn');
     await wait(220);
-    sfx('dawn'); beat(em, { sound: null }); ring(em, 'brass', 2);
+    sfx('dawn'); beat(em); ring(em, 'brass', 2);
     await wait(700);
     sky('day');
-    beat(title, { sound: null });
+    beat(title);
     await wait(700);
     if (!e.deaths.length) {
-      await slamStamp(slot, '平安夜', 'brass', { sound: 'pass' });
+      await slamStamp(slot, '平安夜', 'brass');
       await wait(1300);
       await closeCard(card);
       return;
     }
-    await slamStamp(slot, `${e.deaths.length} 人死亡`, 'red', { sound: 'dunBig' }); // 震留給下面每一下叉子
+    await slamStamp(slot, `${e.deaths.length} 人死亡`, 'red'); // 震留給下面每一下叉子
     await wait(900);
     cardOut(card);
     anim(getStage(), [{ backgroundColor: WASH.dawn }, { backgroundColor: WASH.light }], { duration: 400 });
@@ -589,10 +585,9 @@ const SCENES = {
   nominate: (e, s) => ({ block: true, run: async () => {
     veil(WASH.ink, 200);
     const card = paperCard([bigToken(s, e.from, 'from'), h('div', { class: 'pc-arrow' }, icon('to')), bigToken(s, e.to, 'to')], 'face');
-    sfx('whoosh');
     cardIn(card);
     await wait(520);
-    await slamStamp(card, '提名', 'red', { sound: 'objection' });
+    await slamStamp(card, '提名', 'red');
     await wait(1000);
     await closeCard(card);
   } }),
@@ -606,12 +601,12 @@ const SCENES = {
     hide(em, say, sub);
     cardIn(card, 420);
     await wait(400);
-    beat(em, { sound: 'dun' }); ring(em, 'brass', 2);
+    beat(em); ring(em, 'brass', 2);
     await wait(260);
-    beat(say, { sound: null });
+    beat(say);
     await wait(260);
-    await slamStamp(slot, '立即計票', 'red', { sound: 'objection' });
-    beat(sub, { sound: null });
+    await slamStamp(slot, '立即計票', 'red');
+    beat(sub);
     await wait(1100);
     await closeCard(card);
   } }),
@@ -634,7 +629,7 @@ const SCENES = {
     beat(num); await wait(380);
     beat(need); row.classList.add('in'); await wait(440);
     await slamStamp(slot, { block: '上處決台', tie: '平票', fail: '票數不足' }[e.res], { block: 'red', tie: 'brass', fail: 'gray' }[e.res],
-      hit ? { power: 14, sound: 'dunBig' } : e.res === 'tie' ? { sound: 'dunLow' } : { soft: true, sound: 'flop' });
+      hit ? { power: 14 } : { soft: e.res !== 'tie' });
     await wait(1300);
     fadeOut(getStage(), 380); await wait(380);
   } }),
@@ -669,7 +664,7 @@ const SCENES = {
     await wait(420);
     const zap = await bolt(v, n);
     hit(e.from);
-    await seatStamp(e.from, '反噬', { power: 12, sound: 'dunBig' });
+    await seatStamp(e.from, '反噬', { power: 12 });
     fadeOut(zap, 300);
     await wait(450);
     fadeOut(getStage(), 380); await wait(380);
@@ -677,7 +672,8 @@ const SCENES = {
   },
 
   // 處決：頭像一直掛在絞刑架下（不在台上就先從座位飛到圓桌中間），整副絞刑架連人慢慢浮起，
-  // 然後繩子和人一起往下墜、一頓、晃幾下、褪色，下面蓋「處決」章；最後頭像飛回座位
+  // 然後繩子和人一起往下墜、一頓、晃幾下、褪色，下面蓋「處決」章；最後頭像飛回座位。
+  // survive：沒死（弄臣、水手、魔鬼代言人……）：不褪色，蓋「沒有死亡」章
   execute: (e, s) => ({ block: true, holds: [e.seat], run: async () => {
     const i = s.seats.findIndex(x => x.id === e.seat), seat = s.seats[i];
     const rr = document.querySelector('.ring')?.getBoundingClientRect();
@@ -691,7 +687,6 @@ const SCENES = {
     const face = () => (seat?.role ? roleToken(seat.role) : h('div', { class: 'token md blank solid' }, i + 1));
     if (!onBlk) {
       const fly = sprite(face(), home.x, home.y, size, 'ex-tok');
-      sfx('whoosh');
       anim(fly, [{ transform: `scale(${homeSize / size})` }, { transform: `translate(${at.x - home.x}px, ${at.y - home.y}px)` }], { duration: 520, easing: 'cubic-bezier(.3,.8,.3,1)' });
       await wait(540); fly.remove();
     }
@@ -721,17 +716,17 @@ const SCENES = {
     anim(rope, drop(D).map(f => ({ offset: f.offset, easing: f.easing, transform: `scaleY(${(L + f.v) / L})` })), { duration: 560 });
     await wait(280);
     sfx('thud'); shake(10);
-    anim(tok, [{ filter: 'none' }, { filter: 'grayscale(1) brightness(.75)' }], 500);
+    if (!e.survive) anim(tok, [{ filter: 'none' }, { filter: 'grayscale(1) brightness(.75)' }], 500);
     anim(swing, [{ transform: 'rotate(0)' }, { transform: 'rotate(5deg)' }, { transform: 'rotate(-3.5deg)' }, { transform: 'rotate(2deg)' }, { transform: 'rotate(-1deg)' }, { transform: 'rotate(0)' }],
       { duration: 1500, easing: 'ease-out' });
     await wait(420);
     const pad = h('div', { class: 'ex-pad' }); getStage().append(pad);
     Object.assign(pad.style, { left: at.x + 'px', top: at.y + D + size * 0.5 + 46 * k + 'px' });
-    await slamStamp(pad, '處決', 'red', { sound: 'stab' });
+    await slamStamp(pad, e.survive ? '沒有死亡' : '處決', e.survive ? 'good' : 'red');
     await wait(900);
     // 頭像飛回座位，落定時座位上蓋章
     const r = tok.getBoundingClientRect(), from = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-    const back = sprite(face(), from.x, from.y, r.width, 'ex-tok gray');
+    const back = sprite(face(), from.x, from.y, r.width, e.survive ? 'ex-tok' : 'ex-tok gray');
     tok.style.visibility = 'hidden';
     fadeOut(rig, 250); fadeOut(pad, 250);
     anim(back, [{ transform: 'none' }, { transform: `translate(${home.x - from.x}px, ${home.y - from.y}px) scale(${homeSize / r.width})` }], { duration: 560, easing: 'cubic-bezier(.5,0,.3,1)' });
@@ -745,9 +740,9 @@ const SCENES = {
     veil(WASH.ink, 200);
     const slot = h('div', { class: 'pc-slot' });
     const card = paperCard([h('div', { class: 'pc-gallows' }, gallows()), slot], 'cal');
-    sfx('whoosh'); cardIn(card);
+    cardIn(card);
     await wait(520);
-    await slamStamp(slot, '無人處決', 'gray', { soft: true, sound: 'flop' });
+    await slamStamp(slot, '無人處決', 'gray', { soft: true });
     await wait(1200);
     await closeCard(card);
   } }),
@@ -758,22 +753,22 @@ const SCENES = {
     veil(WASH.dim, 250);
     const a = seatAt(e.from), b = seatAt(e.to), r = (b.el?.getBoundingClientRect().width || 80) / 2;
     const aim = sprite(icon('aim'), b.x, b.y, r * 2.7, 'aim');
-    sfx('whoosh'); mark(e.from, 'brass');
+    mark(e.from, 'brass');
     anim(aim, [{ transform: 'scale(2.2) rotate(-60deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.3,.8,.3,1)' });
     await wait(620);
     if (e.hit) {
       await shoot(a, b, r * 0.4);
       sfx('stab'); hit(e.to); fadeOut(aim, 200);
-      await seatStamp(e.to, '射殺', { power: 12, sound: 'dunBig' });
+      await seatStamp(e.to, '射殺', { power: 12 });
       await wait(500);
     } else {
       const f = await shoot(a, b, -r * 0.5);
-      sfx('miss'); fadeOut(aim, 300);
+      fadeOut(aim, 300);
       anim(f.el, [{ transform: f.to, opacity: 1 }, { transform: `${f.to} translate(16px, 70px)`, opacity: 0 }], { duration: 560, easing: 'ease-in' });
       anim(f.el.firstChild, [{ rotate: '0deg' }, { rotate: '80deg' }], { duration: 560, easing: 'ease-in' });
       const pad = h('div', { class: 'seat-pad', style: { left: b.x + 'px', top: b.y + 'px' } });
       getStage().append(pad);
-      await slamStamp(pad, '未中', 'gray', { soft: true, sound: 'flop' });
+      await slamStamp(pad, '未中', 'gray', { soft: true });
       await wait(700);
       anim(pad, [{ transform: 'none', opacity: 1 }, { transform: `translate(${a.x - b.x}px, ${a.y - b.y + r * 1.6}px) scale(.3)`, opacity: 0.2 }],
         { duration: 480, easing: 'cubic-bezier(.5,0,.3,1)' });
@@ -802,16 +797,16 @@ const SCENES = {
         roleToken(x.role, { size: 'sm' }), h('small', {}, `${k + 1} ${x.name}`)))) : null;
       const card = paperCard([seal(good ? icon('sun') : roleIcon('imp'), good ? 'sun' : 'demon'), h('div', { class: 'pc-title ' + e.team }, chars), slot, reward, sub, row], 'cal win');
       hide(...chars, ...gains, sub);
-      sfx('whoosh'); cardIn(card, 520);
+      cardIn(card, 520);
       await wait(560);
       for (const [k, ch] of chars.entries()) {
         const last = k === chars.length - 1;
-        beat(ch, { sound: last ? 'dunBig' : 'dun', power: last && !good ? 12 : 0 });
+        beat(ch, { power: last && !good ? 12 : 0 });
         await wait(last ? 560 : 340);
       }
       if (verdict) {
         await slamStamp(slot, verdict === 'win' ? '勝利' : '失敗', verdict === 'win' ? (good ? 'good' : 'red') : 'gray',
-          verdict === 'win' ? { sound: 'objection' } : { soft: true, sound: 'flop' });
+          { soft: verdict !== 'win' });
         if (verdict === 'win' && !cur.skip) {
           const r = card.getBoundingClientRect();
           sfx('fw');
@@ -819,7 +814,7 @@ const SCENES = {
           setTimeout(() => burst(r.right - 26, r.top + 46, e.team, 54, true, getStage()), 230);
         }
         await wait(300);
-        for (const g of gains) { beat(g, { sound: 'pop' }); await wait(280); }
+        for (const g of gains) { beat(g); await wait(280); }
       }
       sfx(good ? 'good' : 'evil');
       if (sub) { sub.style.opacity = 1; anim(sub, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 400); }
@@ -843,13 +838,13 @@ const SCENES = {
       hide(em, ...toks, sub, reward);
       cardIn(card, 480);
       await wait(500);
-      beat(em, { sound: 'dun' }); ring(em, 'brass', 2);
+      beat(em); ring(em, 'brass', 2);
       await wait(360);
       for (const t of toks) { beat(t); await wait(320); }
-      await slamStamp(slot, 'MVP', 'brass', { sound: 'objection' });
+      await slamStamp(slot, 'MVP', 'brass');
       sfx('crown');
       sub.style.opacity = 1; anim(sub, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], 300);
-      if (reward) { await wait(300); beat(reward, { sound: 'pop' }); await wait(360); await flyEggs(reward, EGG.mvp); land(); }
+      if (reward) { await wait(300); beat(reward); await wait(360); await flyEggs(reward, EGG.mvp); land(); }
       await wait(1700);
       await closeCard(card);
     } };
@@ -867,6 +862,8 @@ const SCENES = {
   // 自己收到信息：答案落在桌心再收進面板（不擋操作）；沒有專門演出的角色不演
   info: (e, s) => (AB.hasInfo(e.src) && !s.isSt ? { run: () => AB.info(e, s.myId) } : null),
 
+  // 說書人魔典上的一枚章（不擋操作，排多了就跳過）
+  ststamp: e => ({ lite: true, run: () => AB.ststamp(e) }),
   // 說書人魔典上的夜晚結算（不擋操作，排多了就跳過）
   grim: e => ({ lite: true, holds: e.res === 'kill' || e.res === 'starpass' ? e.to : [], run: () => AB.grim(e) || grimScene(e) }),
 };
@@ -908,7 +905,7 @@ async function grimScene(e) {
     // 擋下：目標身上先亮盾，叉子飛過去撞上彈開
     case 'blocked': {
       const sh = e.why === 'protect' && sprite(chip(icon('shield'), 'good'), t.x, t.y, 64);
-      if (sh) { beat(sh, { sound: 'shimmer' }); await wait(320); }
+      if (sh) { beat(sh); await wait(320); }
       const f = await fly(icon('pitchfork'), a, t, { ms: 500, tone: 'evil' });
       sfx('clang'); mark(e.to[0], 'good');
       anim(f.el, [{ transform: `translate(${f.dx}px, ${f.dy}px)`, opacity: 1 }, { transform: `translate(${f.dx + 40}px, ${f.dy - 80}px) rotate(200deg) scale(.8)`, opacity: 0 }],
@@ -920,7 +917,6 @@ async function grimScene(e) {
     // 能力失效（中毒 / 酒鬼）：虛線的棋子飛過去，落空沉下去
     case 'fail': {
       const f = await fly(look.ico(), a, t, { ms: 500, tone: 'dim' });
-      sfx('miss');
       anim(f.el, [{ transform: `translate(${f.dx}px, ${f.dy}px)`, opacity: 1 }, { transform: `translate(${f.dx}px, ${f.dy + 30}px) scale(.6)`, opacity: 0 }], { duration: 420, easing: 'ease-in' });
       await wait(420); break;
     }
@@ -949,12 +945,12 @@ async function revealRole(roleId, kind) {
   const slot = h('div', { class: 'pc-slot' }), ab = r ? h('p', { class: 'pc-ab' }, r.ability) : null;
   const card = paperCard([flip, slot, ab], 'cal reveal');
   hide(ab);
-  sfx('whoosh'); cardIn(card, 480);
+  cardIn(card, 480);
   await wait(560);
-  sfx(demon ? 'demon' : 'flip');
+  if (demon) sfx('demon');
   anim(flip, [{ transform: 'rotateY(0) scale(.9)' }, { transform: 'rotateY(180deg)' }], { duration: 700, easing: 'cubic-bezier(.3,1.3,.5,1)' });
   await wait(760);
-  if (team) await slamStamp(slot, team.name, '', demon ? { power: 12, sound: 'dunBig', color: team.color } : { sound: 'dun', color: team.color });
+  if (team) await slamStamp(slot, team.name, '', { power: demon ? 12 : 0, color: team.color });
   if (ab) { ab.style.opacity = 1; anim(ab, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], 360); }
   await wait(Math.min(5000, Math.max(2200, (r?.ability.length || 0) * 75)));
   const dest = document.querySelector('.hud-me .token')?.getBoundingClientRect();
@@ -966,11 +962,10 @@ async function revealRole(roleId, kind) {
   flip.style.visibility = 'hidden';
   anim(card, [{ transform: 'rotate(-1deg)', opacity: 1 }, { transform: 'translateY(16px) rotate(-1deg)', opacity: 0 }], { duration: 300, easing: 'ease-in' });
   anim(getStage(), [{ backgroundColor: wash }, { backgroundColor: '#0000' }], { duration: 650, easing: 'ease-in' });
-  sfx('whoosh');
   anim(tok, [{ transform: `scale(${k})` }, { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 40}px) scale(${(k + 1) / 2})`, offset: 0.5 },
     { transform: `translate(${dx}px, ${dy}px) scale(1)` }], { duration: 650, easing: 'cubic-bezier(.45,0,.3,1)' });
   await wait(650);
-  sfx('tock');
+  sfx('tag');
   anim(tok, [{ transform: `translate(${dx}px, ${dy}px) scale(1.1)` }, { transform: `translate(${dx}px, ${dy}px) scale(1)` }], { duration: 160, easing: 'ease-out' });
   await wait(180);
 }
@@ -1010,6 +1005,7 @@ export function onState(s) {
   ensureScene();
   document.body.classList.toggle('my-turn', !!s.prompt);
   setFireworks(s.fireworks || null);
+  setBgm(s.phase, !!s.nomination);
   const p = prev, id = `${s.code}:${s.isSt ? 'st' : s.myId}:${s.peek?.seatId || ''}`;
   prev = s;
   lastState = s;
@@ -1068,9 +1064,9 @@ export function onState(s) {
   if (s.prompt && !p.prompt && !s.peek) { const sc = turnScene(s); nightHold++; chain(sc, () => { nightHold--; rerender(); }); enqueue(sc); }
 
   const pv = p.nomination?.votes || {};
-  for (const [k, up] of Object.entries(s.nomination?.votes || {})) if (up && !pv[k]) { recent.voted.set(k, now); play('pop'); }
+  for (const [k, up] of Object.entries(s.nomination?.votes || {})) if (up && !pv[k]) { recent.voted.set(k, now); }
   const pa = p.nomination?.abstain || {};
-  for (const k of Object.keys(s.nomination?.abstain || {})) if (!pa[k]) { recent.voted.set(k, now); play('pop'); }
+  for (const k of Object.keys(s.nomination?.abstain || {})) if (!pa[k]) { recent.voted.set(k, now); }
   if (s.nomination && s.nomination.at !== p.nomination?.at) recent.nom = now;
 }
 
@@ -1177,6 +1173,7 @@ export function resetFx() {
   prev = who = null; seen = 0; frozen = null; blkOverride = undefined; execId = null;
   lastState = { phase: 'lobby' };
   setFireworks(null);
+  setBgm(null);
   body.classList.remove('my-turn');
 }
 

@@ -6,7 +6,7 @@ import { h, roleToken } from './ui.js';
 import { ROLES, TEAMS, CORE } from './roles.js';
 import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
 import { formula, seatBadge, mini, named, evilNum, icon, w } from './glyph.js';
-import { sinceDawn } from './log.js';
+import { sinceDawn, goonLine } from './log.js';
 
 const drafts = {}; // stepId -> 說書人當前的選擇
 const others = (s, step) => s.seats.filter(x => x.id !== step.seatId).map(x => x.id);
@@ -178,6 +178,7 @@ function tableForm(ctx, step, d) {
   const verdictWord = level < 0 ? null : level === 0 && !form.free ? '不合規' : ['錯誤', '登記', '真實'][level];
   return h('div', { class: 'card infocard on-table' + (form.free ? ' free' : '') },
     icHead(s, step),
+    goonLine(s, step),
     h('div', { class: 'tb-roles' }, roles.map(tile), none),
     h('div', { class: 'tb-foot' },
       h('div', { class: 'tb-slip' },
@@ -186,6 +187,10 @@ function tableForm(ctx, step, d) {
         verdictWord && h('span', { class: 'tb-stamp t' + level, 'data-key': verdictWord }, verdictWord)),
       sendBtn(ctx, d, v)));
 }
+
+// 雜耍藝人：白天公開猜過的，對不對系統算好了
+const guessList = (s, list) => h('div', { class: 'ic-events' }, list.map(x => h('div', { class: 'log-row' },
+  seatBadge(s, x.seat), named(x.role), x.hit ? w('對', 'good') : x.maybe ? w('可算對', 'ink') : w('錯', 'muted'))));
 
 // 數學家：系統算入的座位，下面是從黎明起大家做過的事，說書人自己判斷數字
 function eventList(s, form) {
@@ -204,7 +209,9 @@ export function infoForm(ctx, step) {
   const v = verdict(s, form, d), { level } = v;
   return h('div', { class: 'card focus infocard spread' + (form.free ? ' free' : '') },
     icHead(s, step),
+    goonLine(s, step),
     form.open && eventList(s, form),
+    form.extra?.guesses && guessList(s, form.extra.guesses),
     body && h('div', { class: 'ic-body' }, body),
     h('div', { class: 'ic-foot' },
       h('div', { class: 'ic-preview ' + (level < 0 ? 'empty' : ['bad', 'alt', 'good'][level]) },

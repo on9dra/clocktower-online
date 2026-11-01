@@ -37,9 +37,11 @@ function startRoom() {
     if (v.phase === 'lobby' && v.seats.length >= PLAYERS) return later(3, 6, () => { games++; op({ op: 'next' }); });
     if (v.phase === 'ended') return later(5, 10, () => op({ op: 'next' }));
     if (v.phase === 'dawn') return later(5, 10, () => op({ op: 'next' }));
-    const step = v.st?.step;
+    const step = v.st?.step, word = v.st?.lastWord;
+    if (word) return later(3, 6, () => op({ op: 'word', seatId: word.seatId, targetId: v.seats.find(x => !x.dead && x.id !== word.seatId)?.id }));
     if (v.phase === 'night' && step) {
       if (step.status === 'review') return later(3, 6, () => op({ op: 'dawn' }));
+      if (step.status === 'ack') return later(3, 6, () => op({ op: 'ack' }));
       if (step.status === 'decide') return later(3, 6, () => op({ op: 'decide', choice: step.decide.options[0].id }));
       if (step.status === 'confirm') return later(4, 8, () => {
         st.emit('st:op', { op: 'confirm', fields: step.form.truth }, r => { if (!r.ok) op({ op: 'skip' }); });

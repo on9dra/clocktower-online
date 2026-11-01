@@ -128,3 +128,14 @@ export function infoAnswer(form, f) {
 }
 // 答案牽涉到的座位
 export const answerSeats = a => [...new Set([a.a, a.b, ...(a.ids || []), a.id].filter(Boolean))];
+
+// 聊天記錄上限：先丟玩家閒聊，再丟系統公告，說書人給的信息和角色變化留到最後
+export function trimChat(list, max = 600) {
+  let over = list.length - max;
+  if (over <= 0) return list;
+  for (const keep of [m => m.info || m.from === 'sys', m => m.info]) {
+    list = list.filter(m => keep(m) || over-- <= 0);
+    if (over <= 0) return list;
+  }
+  return list.slice(-max);
+}

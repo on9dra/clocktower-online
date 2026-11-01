@@ -111,7 +111,7 @@
       // 小鎮和字標到了之後，JS 一次全列出來並行拉，不用一層層解析 import：香港線路一個往返 270ms，七層就是兩秒。
       // 等它們到了再拉：不搶開屏第一眼那幾張圖的帶寬。名單由 tests/preload.test.js 對著 import 核對
       let pulled = false, first = 2;
-      const pullJs = () => { if (pulled) return; pulled = true; for (const n of 'app ui roompass solo roles icons lang t2s town side log manual glyph gamelog fx ambient tactile sfx fireworks score scores hud trial flow setup infoform infofmt stepcard invite topbar settings about author progress egg lobby intro press'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
+      const pullJs = () => { if (pulled) return; pulled = true; for (const n of 'app ui roompass solo roles icons lang t2s town side log manual glyph gamelog fx ambient tactile sfx bgm fireworks score scores hud trial flow setup infoform infofmt stepcard invite topbar settings about author progress egg lobby intro press'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
       const firstArt = () => { if (!--first) pullJs(); };
       const start = () => { if (!art) { art = true; t0 = performance.now(); } };
       const end = () => {

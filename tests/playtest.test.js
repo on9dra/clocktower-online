@@ -6,16 +6,17 @@ import { startDay, nominate, vote, closeVote } from '../lib/day.js';
 import { execute, killSeat } from '../lib/rules.js';
 import { impaired, hasEff, isGoodSeat } from '../lib/util.js';
 import { viewFor } from '../lib/view.js';
-import { setup, S, act, st, ok, atReview } from './helpers.js';
+import { setup, S, act, st, pl, ok, atReview, ack, words } from './helpers.js';
 
 const mk = (roles, sid) => { const r = setup(roles); r.scriptId = sid; return r; };
-const pick = (r, ids, role) => ok(applyStOp(r, { op: 'pick', ids, role }));
+const pick = (r, ids, role) => { ok(applyStOp(r, { op: 'pick', ids, role })); ack(r); };
 // 走完今晚：要選人的選第一個合規的，信息按真相給。until：停在這個角色的步驟上
 function finish(r, until) {
   for (let i = 0; i < 60 && !atReview(r); i++) {
     const step = r.g.step;
     if (until && step.roleId === until) return;
-    if (step.status === 'choose') {
+    if (step.status === 'ack') ok(st(r, 'ack'));
+    else if (step.status === 'choose') {
       const c = step.choose, counts = c.counts || [c.count], last = c.last || [];
       const pool = r.seats.filter(s => !(c.notSelf && s.id === step.seatId) && !(c.alive && s.dead) && !(c.dead && !s.dead) && !last.includes(s.id));
       pick(r, pool.slice(0, Math.min(...counts)).map(s => s.id), c.roles && !c.roleOptional ? c.roles[0] : null);
@@ -29,10 +30,10 @@ function finish(r, until) {
 // 裁定卡上第一個善良的座位
 const goodOpt = r => r.seats.find(s => r.g.step.decide.options.some(o => o.id === s.id) && isGoodSeat(s));
 // 天亮、白天什麼也不做、入夜
-const nextNight = r => { finish(r); ok(st(r, 'dawn')); r.g.dayOver = true; ok(st(r, 'next')); };
+const nextNight = r => { finish(r); ok(st(r, 'dawn')); words(r); r.g.dayOver = true; ok(st(r, 'next')); };
 
-// 普卡：先結算死亡再解毒，中毒的弄臣 / 水手 / 士兵照死，弄臣的免死不用掉
-for (const role of ['fool', 'sailor', 'soldier']) {
+// 普卡：先結算死亡再解毒，中毒的弄臣 / 水手照死，弄臣的免死不用掉（士兵不會中普卡的毒，見 roles.test.js）
+for (const role of ['fool', 'sailor']) {
   const r = mk(['chef', 'pukka', 'godfather', role, 'tinker', 'saint'], 'bmr');
   startNight(r);
   finish(r, 'pukka'); act(r, 'pukka', [S(r, role).id]);
@@ -72,7 +73,7 @@ for (const role of ['fool', 'sailor', 'soldier']) {
   const order = [];
   let at = -1;
   for (let i = 0; i < 40 && !atReview(r); i++) {
-    const step = r.g.step, v = viewFor(r, { pid: 'p0' }).prog.at;
+    const step = r.g.step, v = viewFor(r, { st: true }).prog.at;
     assert.ok(v >= at, '進度條不倒退'); at = v;
     if (step.status === 'choose') {
       order.push(step.seatId);
@@ -92,11 +93,12 @@ for (const role of ['fool', 'sailor', 'soldier']) {
   finish(r, 'imp'); act(r, 'imp', [S(r, 'moonchild').id]);
   finish(r, 'moonchild');
   assert.notStrictEqual(r.g.step.roleId, 'moonchild', '夜裏死的月之子當夜不結算');
-  nextNight(r);
+  ok(st(r, 'dawn'));
+  const t = S(r, 'saint');
+  ok(pl(r, 'moonchild', 'pick', { ids: [t.id] }));
+  r.g.dayOver = true; ok(st(r, 'next'));
   finish(r, 'moonchild');
   assert.strictEqual(r.g.step.roleId, 'moonchild', '下一個夜晚結算');
-  const t = goodOpt(r);
-  ok(st(r, 'decide', { choice: t.id }));
   assert.strictEqual(t.dead, true);
 }
 // 白天死的月之子當晚結算；死的時候中毒不影響，結算那夜中毒才無效
@@ -105,21 +107,19 @@ for (const role of ['fool', 'sailor', 'soldier']) {
   startNight(r); finish(r); ok(st(r, 'dawn'));
   ok(st(r, 'setPoison', { seatId: S(r, 'moonchild').id }));
   execute(r, S(r, 'moonchild'));
-  r.g.ending = true; ok(st(r, 'next'));
+  const t = S(r, 'saint');
+  r.g.ending = true; ok(pl(r, 'moonchild', 'pick', { ids: [t.id] }));
   finish(r, 'moonchild');
-  const t = goodOpt(r);
-  ok(st(r, 'decide', { choice: t.id }));
   assert.strictEqual(t.dead, true, '白天中毒，當晚已經健康：能力生效');
 }
 {
   const r = mk(['chef', 'imp', 'poisoner', 'moonchild', 'saint', 'fool', 'gossip'], 'bmr');
   startNight(r); finish(r); ok(st(r, 'dawn'));
   execute(r, S(r, 'moonchild'));
-  r.g.ending = true; ok(st(r, 'next'));
+  const t = S(r, 'saint');
+  r.g.ending = true; ok(pl(r, 'moonchild', 'pick', { ids: [t.id] }));
   finish(r, 'poisoner'); act(r, 'poisoner', [S(r, 'moonchild').id]);
   finish(r, 'moonchild');
-  const t = goodOpt(r);
-  ok(st(r, 'decide', { choice: t.id }));
   assert.strictEqual(t.dead, false, '結算那夜中毒：沒有人死');
 }
 
@@ -145,14 +145,14 @@ for (const role of ['fool', 'sailor', 'soldier']) {
   ok(st(r, 'setPoison', { seatId: S(r, 'po').id }));
   finish(r, 'po'); act(r, 'po', []);
   ok(st(r, 'decide', { choice: 'fail' }));
-  assert.strictEqual(r.g.poCharged, true, '失效時不選人，下次仍然三殺');
+  assert.strictEqual(r.g.poCharge[S(r, 'po').id], true, '失效時不選人，下次仍然三殺');
   nextNight(r);
   ok(st(r, 'setPoison', { seatId: S(r, 'po').id }));
   finish(r, 'po');
   assert.strictEqual(r.g.step.choose.count, 3);
   act(r, 'po', [S(r, 'saint').id, S(r, 'fool').id, S(r, 'gossip').id]);
   ok(st(r, 'decide', { choice: 'fail' }));
-  assert.strictEqual(r.g.poCharged, false, '三殺夜失效，之後不再被迫三殺');
+  assert.strictEqual(r.g.poCharge[S(r, 'po').id], false, '三殺夜失效，之後不再被迫三殺');
 }
 
 // 哲學家死亡：被弄醉的人恢復清醒
@@ -214,6 +214,7 @@ for (const role of ['fool', 'sailor', 'soldier']) {
   S(r, 'chef').dead = true; S(r, 'flowergirl').dead = true; S(r, 'oracle').dead = true;
   r.g.night = 2;
   finish(r, 'vigormortis'); act(r, 'vigormortis', [S(r, 'witch').id]);
+  ok(st(r, 'decide', { choice: r.g.step.decide.options[0].id })); // 兩邊都是鎮民時說書人選
   assert.ok([S(r, 'oracle').id, S(r, 'flowergirl').id].some(id => r.seats.find(s => s.id === id) && hasEff(r, r.seats.find(s => s.id === id), 'poison')), '毒落在死人身上');
 }
 
@@ -274,6 +275,7 @@ for (const role of ['fool', 'sailor', 'soldier']) {
   finish(r, 'vortox'); act(r, 'vortox', [S(r, 'flowergirl').id]);
   finish(r); ok(st(r, 'dawn'));
   execute(r, S(r, 'klutz')); // 渦流在場，白天無人被處決邪惡直接獲勝
+  words(r); ok(st(r, 'rule', { work: false })); // 呆瓜選了善良玩家
   ok(st(r, 'next'));
   r.g.poisoned = S(r, 'oracle').id;
   finish(r, 'vortox'); act(r, 'vortox', [S(r, 'saint').id]);

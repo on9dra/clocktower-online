@@ -5,6 +5,7 @@ import { createRoom } from '../lib/store.js';
 import { applyStOp, applyPlayerAction, joinPlayer } from '../lib/ops.js';
 import { autoPicks } from '../lib/engine.js';
 import { truthLevel, checkFields } from '../public/js/infofmt.js';
+import { words } from './helpers.js';
 import { ROLES, SCRIPTS } from '../public/js/roles.js';
 
 const rnd = a => a[Math.floor(Math.random() * a.length)];
@@ -44,7 +45,8 @@ function play(n) {
         const { ids, role, stuck } = autoPicks(room, step);
         assert.ok(!stuck, `${step.roleId} 找不到合規的選擇`);
         ok(applyPlayerAction(room, room.seats.find(s => s.id === step.seatId).pid, { act: 'pick', ids, role }), 'pick ' + step.roleId);
-      } else if (step.status === 'decide') ok(applyStOp(room, { op: 'decide', choice: rnd(step.decide.options).id }), 'decide ' + step.roleId);
+      } else if (step.status === 'ack') ok(applyStOp(room, { op: 'ack' }), 'ack ' + step.roleId);
+      else if (step.status === 'decide') ok(applyStOp(room, { op: 'decide', choice: rnd(step.decide.options).id }), 'decide ' + step.roleId);
       else if (step.status === 'review') ok(applyStOp(room, { op: 'dawn' }), 'dawn');
       else {
         const form = step.form, ids = room.seats.map(s => s.id);
@@ -72,6 +74,7 @@ function play(n) {
           if (room.nomination && !room.g.ruling) ok(applyStOp(room, { op: Math.random() < 0.1 ? 'cancelVote' : 'closeVote' }), 'close');
         }
       }
+      if (!room.g.ruling) words(room);
       if (room.phase === 'day' && !room.g.ruling && !(room.g.virginCheck && !room.g.virginCheck.forced)) ok(applyStOp(room, { op: 'next' }), 'endday');
     }
   }

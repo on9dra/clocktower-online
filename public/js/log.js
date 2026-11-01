@@ -4,7 +4,7 @@ import { formula, seatBadge, mini, icon, tag, named, w, ACTS } from './glyph.js'
 
 // 原則：座位號、角色牌是圖；動作和結果用短詞（投毒 / 殺死 / 提名…）
 const RES = { poison: ['投毒'], protect: ['保護', 'good'], kill: ['殺死', 'bad'], blocked: ['想殺'], fail: ['失效', 'muted'],
-  master: ['認主'], starpass: ['自殺傳位', 'bad'], mayor: ['想殺'] };
+  master: ['認主'], starpass: ['自殺傳位', 'bad'], mayor: ['想殺'], charge: ['蓄力', 'bad'] };
 const WHY = { protect: '被保護', soldier: '士兵免疫', mayor: '鎮長替死', dead: '已死亡' };
 const CAUSE = { demon: '被殺', execute: '被處決', slayer: '被射殺', virgin: '貞潔者反噬', starpass: '傳位', manual: '說書人判定' };
 const VOTE = { block: ['上處決台', 'bad'], tie: ['平票'], fail: ['票數不足', 'muted'] };
@@ -12,15 +12,25 @@ const SRC_VERB = { poisoner: '投毒', monk: '保護', imp: '想殺', butler: '�
 
 // 新劇本的角色：投毒 / 保護 / 認主這類「落到目標上」的結果，按角色換成它自己的動作詞（詛咒、瘋狂、變身、驅魔……）
 const OWN_VERB = { snakecharmer: '交換', eviltwin: '雙子', fanggu: '跳身' };
-function actRow(s, e) {
+export function actRow(s, e) {
   const seats = (e.to || []).map(id => seatBadge(s, id));
   const own = ['poison', 'protect', 'master', 'starpass'].includes(e.res) && !SRC_VERB[e.src] && (OWN_VERB[e.src] || ACTS[e.src]?.mark);
   const [verb, k] = e.res === 'fail' ? [SRC_VERB[e.src] || ACTS[e.src]?.mark || '行動'] : own ? [own, ACTS[e.src]?.tone === 'evil' ? 'bad' : ''] : RES[e.res] || ['行動'];
   return [w(verb, k), seats, e.res === 'fail' && w('失效', 'muted'), e.why && w(WHY[e.why] || '', 'good')];
 }
 
+// 莽夫：誰選中他醉酒，他的陣營變沒變
+export const goonRow = (s, e) => [seatBadge(s, e.seat), w('醉酒', 'evil'), seatBadge(s, e.goon), mini('goon'),
+  e.changed ? [w('變成'), w(e.align === 'evil' ? '邪惡' : '善良', e.align === 'evil' ? 'evil' : 'good')] : w('陣營不變', 'muted')];
+
+// 操作卡上的一行：這一步選中了莽夫
+export const goonLine = (s, step) => step.goon && h('div', { class: 'frm' }, goonRow(s, step.goon));
+
 function body(s, e) {
   switch (e.k) {
+    case 'goon': return goonRow(s, e);
+    case 'word': return [mini(e.role), seatBadge(s, e.seat), e.to ? [w('選'), seatBadge(s, e.to)] : w('沒有選', 'muted')];
+    case 'juggle': return [mini('juggler'), seatBadge(s, e.seat), w('猜'), seatBadge(s, e.to), named(e.role)];
     case 'setup': return formula(s, [{ grim: e.grim }]);
     case 'bluffs': return [tag('bluff'), e.bluffs.map(r => named(r)),
       e.herring && [h('i', { class: 'op-br' }), named('fortuneteller'), w('紅鯡魚'), seatBadge(s, e.herring)]];

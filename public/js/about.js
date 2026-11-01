@@ -50,7 +50,7 @@ function fbPage(ctx) {
     if (!r.ok) return toast(r.error);
     letter.classList.add('sent');
     text.readOnly = contact.readOnly = true;
-    play('gavel');
+    play('stamp');
     send.replaceWith(again);
   };
   again.onclick = () => {
