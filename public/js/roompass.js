@@ -30,7 +30,7 @@ export function askPass(attempt) {
 export function openPass(ctx, from) {
   const pass = ctx.state.pass || '', input = passInput(pass);
   const save = v => ctx.st('pass', { pass: v }).then(r => r.ok && closeModal());
-  const yes = h('button', { class: 'btn primary', disabled: pass ? null : true, onclick: () => save(input.value) }, '確定');
+  const yes = h('button', { class: 'btn', disabled: pass ? null : true, onclick: () => save(input.value) }, '確定');
   input.addEventListener('input', () => { yes.disabled = input.value.length < 4; });
   input.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) yes.click(); };
   modal('房間密碼', h('div', { class: 'pass-form' }, codeBox(input),

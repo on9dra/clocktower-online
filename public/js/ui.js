@@ -23,9 +23,8 @@ export function h(tag, attrs = {}, ...kids) {
   if (tag === 'button') label(el);
   return el;
 }
-// 按鈕的提示和讀屏名字：主操作（data-hot，回車觸發，見 app.js）懸停寫快捷鍵；只有圖標 / 符號的按鈕把 title 當作讀屏名字
+// 按鈕的讀屏名字：只有圖標 / 符號的按鈕把 title 當作讀屏名字
 function label(el) {
-  if (el.hasAttribute('data-hot') && !el.title) el.title = tr('快捷鍵：回車');
   if (!el.hasAttribute('aria-label') && el.title && !/[\p{L}\p{N}]/u.test(el.textContent)) el.setAttribute('aria-label', el.title);
 }
 
@@ -194,14 +193,14 @@ export function ask(msg, onYes, yes = '確定') {
     h('p', { style: { whiteSpace: 'pre-wrap', marginTop: 0 } }, msg),
     h('div', { class: 'row', style: { justifyContent: 'flex-end' } },
       h('button', { class: 'btn ghost', onclick: closeModal }, '取消'),
-      h('button', { class: 'btn primary', onclick: () => { closeModal(); onYes(); } }, yes))));
+      h('button', { class: 'btn', onclick: () => { closeModal(); onYes(); } }, yes))));
 }
 
 export function prompt2(title, value, cb, { max = 16, placeholder = '' } = {}) {
   const input = h('input', { value: value || '', maxlength: max, placeholder });
   const go = () => { cb(input.value.trim()); closeModal(); };
   input.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) go(); };
-  modal(title, h('div', { class: 'row' }, input, h('button', { class: 'btn primary', onclick: go }, '確定')));
+  modal(title, h('div', { class: 'row' }, input, h('button', { class: 'btn', onclick: go }, '確定')));
   input.focus();
   input.select();
 }

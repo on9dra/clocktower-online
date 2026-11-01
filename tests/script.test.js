@@ -5,6 +5,7 @@ import { applyStOp, joinPlayer } from '../lib/ops.js';
 import { viewFor } from '../lib/view.js';
 import { parseScript, registerScript, scriptPayload } from '../lib/script.js';
 import { ROLES, SCRIPTS } from '../public/js/roles.js';
+import { COMMUNITY } from '../public/js/community.js';
 
 const parse = e => parseScript(e, 'abc');
 
@@ -102,6 +103,24 @@ const parse = e => parseScript(e, 'abc');
   assert.strictEqual(applyStOp(r, { op: 'next' }), undefined);
   assert.strictEqual(r.phase, 'night');
   assert.ok(!r.g.manual);
+}
+// 社區劇本：每個角色都認得，auto 標記和解析結果一致，標準劇本 5 到 15 人都抽得出、開得了局
+for (const c of COMMUNITY) {
+  const s = parse([{ id: '_meta', name: c.name, author: c.author }, ...c.roles]);
+  assert.strictEqual(typeof s, 'object', c.name);
+  assert.deepStrictEqual(s.skipped, [], c.name);
+  assert.strictEqual(s.roles.length, c.roles.length, c.name);
+  assert.strictEqual(s.auto, !!c.auto, c.name);
+  const sizes = c.small ? [5, 6] : [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  for (const n of sizes) for (let i = 0; i < 20; i++) {
+    const r = createRoom();
+    for (let p = 0; p < n; p++) joinPlayer(r, 'p' + p, 'x' + p);
+    applyStOp(r, { op: 'upload', entries: [{ id: '_meta', name: c.name, author: c.author }, ...c.roles] });
+    assert.strictEqual(viewFor(r, { st: true }).mode, c.auto ? 'auto' : 'manual', c.name);
+    assert.strictEqual(applyStOp(r, { op: 'next' }), undefined, `${c.name} ${n} 人`);
+    assert.strictEqual(r.phase, 'night');
+    remove(r.code);
+  }
 }
 console.log('上傳劇本測試通過 ✔');
 process.exit(0);

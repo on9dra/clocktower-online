@@ -3,20 +3,22 @@ import { h } from './ui.js';
 import { formula, seatBadge, mini, icon, tag, named, w, ACTS } from './glyph.js';
 
 // 原則：座位號、角色牌是圖；動作和結果用短詞（投毒 / 殺死 / 提名…）
-const RES = { poison: ['投毒'], protect: ['保護', 'good'], kill: ['殺死', 'bad'], blocked: ['想殺'], fail: ['失效', 'muted'],
-  master: ['認主'], starpass: ['自殺傳位', 'bad'], mayor: ['想殺'], charge: ['蓄力', 'bad'] };
-const WHY = { protect: '被保護', soldier: '士兵免疫', mayor: '鎮長替死', dead: '已死亡' };
+const RES = { poison: ['投毒'], protect: ['保護', 'good'], kill: ['殺死', 'bad'], blocked: ['攻擊'], fail: ['失效', 'muted'],
+  master: ['認主'], starpass: ['自殺傳位', 'bad'], mayor: ['攻擊'], charge: ['蓄力', 'bad'], noop: ['行動'] };
+const WHY = { protect: '被保護', soldier: '士兵免疫', mayor: '鎮長替死', dead: '已死亡', tealady: '茶藝師', fool: '弄臣', sailor: '水手', safe: '被保護',
+  notdemon: '不是惡魔', nottown: '不是鎮民', notgood: '不是善良', inplay: '已在場', absent: '不在場' };
 const CAUSE = { demon: '被殺', execute: '被處決', slayer: '被射殺', virgin: '貞潔者反噬', starpass: '傳位', manual: '說書人判定' };
 const VOTE = { block: ['上處決台', 'bad'], tie: ['平票'], fail: ['票數不足', 'muted'] };
-const SRC_VERB = { poisoner: '投毒', monk: '保護', imp: '想殺', butler: '認主' };
+const SRC_VERB = { poisoner: '投毒', monk: '保護', imp: '攻擊', butler: '認主' };
 
 // 新劇本的角色：投毒 / 保護 / 認主這類「落到目標上」的結果，按角色換成它自己的動作詞（詛咒、瘋狂、變身、驅魔……）
 const OWN_VERB = { snakecharmer: '交換', eviltwin: '雙子', fanggu: '跳身' };
 export function actRow(s, e) {
   const seats = (e.to || []).map(id => seatBadge(s, id));
-  const own = ['poison', 'protect', 'master', 'starpass'].includes(e.res) && !SRC_VERB[e.src] && (OWN_VERB[e.src] || ACTS[e.src]?.mark);
+  const own = ['poison', 'protect', 'master', 'starpass', 'noop'].includes(e.res) && !SRC_VERB[e.src] && (e.word || OWN_VERB[e.src] || ACTS[e.src]?.mark);
   const [verb, k] = e.res === 'fail' ? [SRC_VERB[e.src] || ACTS[e.src]?.mark || '行動'] : own ? [own, ACTS[e.src]?.tone === 'evil' ? 'bad' : ''] : RES[e.res] || ['行動'];
-  return [w(verb, k), seats, e.res === 'fail' && w('失效', 'muted'), e.why && w(WHY[e.why] || '', 'good')];
+  return [w(verb, k), seats, e.role && named(e.role), e.res === 'fail' && w('失效', 'muted'), e.why && w(WHY[e.why] || '', ['notdemon', 'nottown', 'notgood', 'inplay', 'absent'].includes(e.why) ? 'muted' : 'good'),
+    e.heir ? [w('接任', 'bad'), seatBadge(s, e.heir)] : e.noHeir && w('沒有人接任', 'muted')];
 }
 
 // 莽夫：誰選中他醉酒，他的陣營變沒變

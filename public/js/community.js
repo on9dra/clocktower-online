@@ -1,0 +1,28 @@
+// 社區劇本：botcscripts.com 收藏榜靠前的自創劇本，只存名字、作者和角色 id（全是官方角色）。名字是自己譯的，en 是原名。
+// 全是內置角色的 auto 為 true，可以智能推進；其餘的走手動。small：Teensyville，給 5 到 6 人玩
+export const COMMUNITY = [
+  { id: 1945, name: '人人皆可玩', en: 'Everyone Can Play', author: 'Ben Burns', auto: true,
+    roles: ['librarian', 'clockmaker', 'grandmother', 'fortuneteller', 'empath', 'monk', 'undertaker', 'gambler', 'artist', 'slayer', 'fool', 'ravenkeeper', 'mayor', 'drunk', 'recluse', 'saint', 'moonchild', 'baron', 'poisoner', 'assassin', 'devilsadvocate', 'spy', 'scarletwoman', 'imp'] },
+  { id: 77, name: '至樂無雙', en: 'No Greater Joy', author: 'Steven Medway', small: true, auto: true,
+    roles: ['clockmaker', 'investigator', 'empath', 'chambermaid', 'artist', 'sage', 'drunk', 'klutz', 'scarletwoman', 'baron', 'imp'] },
+  { id: 136, name: '紫羅蘭之亂', en: 'Trouble with Violets', author: 'Ben Burns', auto: true,
+    roles: ['washerwoman', 'librarian', 'investigator', 'chef', 'empath', 'fortuneteller', 'undertaker', 'monk', 'ravenkeeper', 'virgin', 'slayer', 'soldier', 'mayor', 'butler', 'drunk', 'recluse', 'saint', 'eviltwin', 'witch', 'cerenovus', 'pithag', 'fanggu', 'vigormortis', 'nodashii', 'vortox'] },
+  { id: 942, name: '河的對岸', en: 'Over the River', author: 'Andrew Nathenson', small: true, auto: true,
+    roles: ['grandmother', 'clockmaker', 'innkeeper', 'snakecharmer', 'professor', 'slayer', 'lunatic', 'recluse', 'godfather', 'spy', 'imp'] },
+  { id: 3, name: '鯰魚', en: 'Catfishing', author: 'Emily',
+    roles: ['chef', 'investigator', 'grandmother', 'balloonist', 'snakecharmer', 'dreamer', 'fortuneteller', 'gambler', 'savant', 'philosopher', 'cannibal', 'amnesiac', 'ravenkeeper', 'lunatic', 'drunk', 'recluse', 'sweetheart', 'mutant', 'godfather', 'cerenovus', 'pithag', 'widow', 'imp', 'vigormortis', 'fanggu', 'barista', 'harlot', 'bonecollector', 'apprentice', 'beggar'] },
+  { id: 42, name: '延長線', en: 'Extension Cord', author: 'Viva La Sam',
+    roles: ['investigator', 'pixie', 'empath', 'mathematician', 'dreamer', 'oracle', 'monk', 'huntsman', 'artist', 'fisherman', 'soldier', 'cannibal', 'ravenkeeper', 'recluse', 'barber', 'mutant', 'damsel', 'puzzlemaster', 'poisoner', 'spy', 'marionette', 'boomdandy', 'scarletwoman', 'nodashii', 'bureaucrat', 'butcher', 'matron', 'bonecollector', 'bishop', 'sentinel'] },
+  { id: 76, name: '自由放任', en: 'Laissez un Faire', author: 'Steven Medway', small: true,
+    roles: ['balloonist', 'savant', 'amnesiac', 'fisherman', 'artist', 'cannibal', 'mutant', 'lunatic', 'widow', 'goblin', 'leviathan'] },
+  { id: 754, name: '信任', en: 'Trust', author: 'Milk',
+    roles: ['noble', 'librarian', 'pixie', 'general', 'fortuneteller', 'oracle', 'monk', 'seamstress', 'philosopher', 'magician', 'ravenkeeper', 'mayor', 'cannibal', 'recluse', 'drunk', 'politician', 'lunatic', 'cerenovus', 'baron', 'mezepheles', 'marionette', 'imp', 'vigormortis'] },
+  { id: 65, name: '疑心之蛭', en: 'A Lleech of Distrust', author: 'OJ', small: true,
+    roles: ['pixie', 'undertaker', 'exorcist', 'fisherman', 'slayer', 'juggler', 'drunk', 'lunatic', 'devilsadvocate', 'marionette', 'lleech', 'sentinel'] },
+  { id: 104, name: '午夜綠洲', en: 'The Midnight Oasis', author: 'Zets',
+    roles: ['noble', 'balloonist', 'snakecharmer', 'savant', 'amnesiac', 'engineer', 'huntsman', 'professor', 'fisherman', 'farmer', 'poppygrower', 'cannibal', 'atheist', 'damsel', 'drunk', 'golem', 'barber', 'mezepheles', 'poisoner', 'pithag', 'psychopath', 'alhadikhia', 'vigormortis', 'sentinel', 'spiritofivory'] },
+  { id: 68, name: '死因未卜', en: 'Uncertain Death', author: 'Matt',
+    roles: ['clockmaker', 'grandmother', 'librarian', 'empath', 'fortuneteller', 'exorcist', 'flowergirl', 'oracle', 'undertaker', 'artist', 'slayer', 'seamstress', 'monk', 'lunatic', 'mutant', 'sweetheart', 'recluse', 'godfather', 'assassin', 'scarletwoman', 'marionette', 'nodashii', 'pukka'] },
+  { id: 173, name: '酩酊', en: 'Boozling', author: 'Lau',
+    roles: ['noble', 'pixie', 'highpriestess', 'balloonist', 'fortuneteller', 'oracle', 'savant', 'philosopher', 'huntsman', 'fisherman', 'slayer', 'sage', 'cannibal', 'drunk', 'mutant', 'damsel', 'klutz', 'golem', 'baron', 'cerenovus', 'scarletwoman', 'marionette', 'nodashii', 'fanggu', 'imp'] },
+];

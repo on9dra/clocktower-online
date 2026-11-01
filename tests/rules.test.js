@@ -100,20 +100,21 @@ import { setup, S, act, st, pl, ok, atReview, runOnly } from './helpers.js';
   st(r, 'next');
   r.g.poisoned = S(r, 'slayer').id;
   pl(r, 'slayer', 'slay', { targetId: S(r, 'imp').id });
-  assert.strictEqual(r.g.ruling?.auto, false);
-  ok(st(r, 'rule', { work: true }));
-  assert.strictEqual(r.winner, 'good');
+  assert.ok(r.g.ruling.forced && !r.g.ruling.auto, '中毒獵手只有未中');
+  assert.ok(st(r, 'rule', { work: true }), '不能判命中');
+  ok(st(r, 'rule', { work: false }));
+  assert.strictEqual(r.winner, null);
 }
-// 中毒士兵被惡魔攻擊：說書人裁定免疫生效
+// 中毒士兵被惡魔攻擊：只有「無效」，他死亡
 {
   const r = setup(['monk', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);
   startNight(r);
   act(r, 'poisoner', [S(r, 'soldier').id]);
   act(r, 'monk', [S(r, 'chef').id]);
   act(r, 'imp', [S(r, 'soldier').id]);
-  assert.strictEqual(r.g.step.decide?.role, 'soldier');
-  ok(st(r, 'decide', { choice: 'work' }));
-  assert.strictEqual(S(r, 'soldier').dead, false);
+  assert.deepStrictEqual(r.g.step.decide?.options.map(o => o.id), ['fail']);
+  ok(st(r, 'decide', { choice: 'fail' }));
+  assert.strictEqual(S(r, 'soldier').dead, true);
 }
 // 中毒的共情者需要說書人確認（可給假信息）
 {
@@ -377,11 +378,11 @@ console.log('規則測試全部通過 ✔');
   r = day(['slayer', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);
   pl(r, 'slayer', 'slay', { targetId: S(r, 'chef').id });
   assert.ok(r.g.ruling.forced && !r.g.ruling.auto);
-  // 中毒的真獵手射惡魔：二選一，推薦未中
+  // 中毒的真獵手射惡魔：只有未中
   r = day(['slayer', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);
   r.g.poisoned = S(r, 'slayer').id;
   pl(r, 'slayer', 'slay', { targetId: S(r, 'imp').id });
-  assert.ok(!r.g.ruling.forced && !r.g.ruling.auto, '中毒獵手：說書人定');
+  assert.ok(r.g.ruling.forced && !r.g.ruling.auto, '中毒獵手：只有未中');
   // 健康的真獵手射隱士：隱士可以被當作惡魔，二選一
   r = day(['slayer', 'imp', 'poisoner', 'recluse', 'soldier', 'saint']);
   pl(r, 'slayer', 'slay', { targetId: S(r, 'recluse').id });

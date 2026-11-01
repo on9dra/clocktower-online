@@ -5,6 +5,7 @@
 // 收進左上角面板，或落到對應座位旁邊（面板那一行和座位標記等演出播完才出現，見 fx.js msgHeld）→ 壓暗退掉。
 // 印刷墨水的質感：單個零件按網點顯影（全屏不用網點，晃眼），章有套色錯位和磨損，濺墨、墨霧、紙屑做粒子；信物是 game-icons 線稿做的紙偶（props.js）。
 // 不露餡：醉酒、中毒的人看到的和真角色一模一樣（說書人那邊才有虛線和「失效」）；小惡魔只演出手，不演生死；共情者只聽心跳，不標誰邪惡；天亮的死亡照舊是通用的「死亡」
+// 黯月初升、夢殞春宵的角色在 fx-ab-dlc.js：用這裏的工具箱（T），不是暗流湧動的房間才下載
 import { h, roleToken } from './ui.js';
 import { icon, roleIcon } from './glyph.js';
 import { ROLES, TEAMS } from './roles.js';
@@ -35,8 +36,6 @@ function blobPath(k = 11, jag = 0.32) {
   return d + 'Z';
 }
 
-// 自己選完人：每個角色一套戲；信息類角色選完人先演一小段（答案到了再演整段）
-const PICK_ROLES = ['fortuneteller', 'ravenkeeper'];
 // 說書人魔典上各角色的信物（沒有的用選人提示裏的圖標）
 const ST = {
   poisoner: { prop: 'poison-bottle', tone: 'poison' }, monk: { prop: 'prayer-beads', tone: 'good' }, butler: { prop: 'key', tone: 'brass' },
@@ -517,6 +516,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     }
   }
   const forkChip = () => { const c = chip('pitchfork', 'evil'); c.firstChild.style.rotate = FORK_DOWN + 'deg'; return c; };
+  const atkChip = src => { const sp = ST[src]; return sp && src !== 'imp' ? chip(sp.prop, sp.tone) : forkChip(); };
   // 一件信物沿弧線飛過去，身後拖一串墨點
   async function fly(el, b, ms, tone, o = {}) {
     trail(el, tone, o.trail);
@@ -607,7 +607,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     develop(blot(p.x, p.y + tk * 0.05, 'evil', tk * 1.25, 0.5), 360);
     anim(fork, [45, 52, 40, 48, 45].map(d => ({ transform: `rotate(${d}deg)` })), { duration: 480, easing: 'ease-out' });
     await wait(300);
-    await seatStamp(ti, self ? '傳位' : '想殺', 'evil', { mark: '[data-act="imp"]' });
+    await seatStamp(ti, '攻擊', 'evil', { mark: '[data-act="imp"]' }); // 只演出手，選自己也不暗示傳位成了
     await finish();
   });
 
@@ -1175,7 +1175,8 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     await wait(320);
     if (from) {
       const p = at(from), dt = lift(from, true);
-      if (e.why === 'scarletwoman') {
+      if (e.why === 'fanggu') await DEMON.fanggu?.(p, me, dt);
+      else if (e.why === 'scarletwoman') {
         // 飛吻：紅唇一嘟，輕飄飄蕩過去，一路飄著小愛心，在惡魔牌上留下唇印
         const lips = await emerge('lips', 'evil', me, { size: tk * 1.05 });
         anim(lips, [{ scale: '1' }, { scale: '.78 1.2', offset: 0.55 }, { scale: '1.12' }, { scale: '1' }], { duration: 300, easing: 'ease-out', fill: 'none' });
@@ -1294,15 +1295,23 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     await wait(360);
     await finish(200);
   });
-  // 夜殺：草叉從上面刺下（叉尖朝下），牌挨一下，座位才倒下（release）
+  // 夜殺：信物從上面刺下（草叉叉尖朝下），牌挨一下，座位才倒下（release）。一晚殺幾個人（沙巴洛斯、珀）時各挨各的，each 裏被擋下的撞一下彈開
   const stKill = scene(async (e, word = '擊殺') => {
-    const id = e.to[0], p = at(id), c = put(forkChip(), p.x, p.y - tk * 1.5, tk * 0.6);
-    anim(c, [{ transform: 'translateY(-40px) scale(1.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'ease-out' });
-    sfx('whoosh', 0.6); await wait(240);
-    await moveTo(c, { x: p.x, y: p.y - tk * 0.3 }, 120, { lift: 0, ease: 'cubic-bezier(.7,0,1,.5)' });
-    sfx('stab'); sfx('thud'); squash(tokOf(id)); ring(p.x, p.y, 'evil'); burst(p.x, p.y, 'evil', { n: 10, R: tk * 0.9, keep: false });
-    release(id);
-    mk(id, word, 'evil');
+    const list = e.each || (e.dies || e.to).map(id => ({ id, res: 'kill' }));
+    await Promise.all(list.map(async (x, i) => {
+      await wait(i * 160);
+      const id = x.id, p = at(id), c = put(atkChip(e.src), p.x, p.y - tk * 1.5, tk * 0.6);
+      anim(c, [{ transform: 'translateY(-40px) scale(1.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 240, easing: 'ease-out' });
+      sfx('whoosh', 0.6); await wait(240);
+      await moveTo(c, { x: p.x, y: p.y - tk * 0.3 }, 120, { lift: 0, ease: 'cubic-bezier(.7,0,1,.5)' });
+      if (x.res === 'kill') {
+        sfx('stab'); sfx('thud'); squash(tokOf(id)); ring(p.x, p.y, 'evil'); burst(p.x, p.y, 'evil', { n: 10, R: tk * 0.9, keep: false });
+        release(id);
+        return mk(id, word, 'evil');
+      }
+      sfx('clang'); fade(c, 200); burst(p.x, p.y - tk * 0.3, 'brass', { n: 6, R: tk * 0.6, keep: false, big: 0.6 });
+      mk(id, x.why === 'dead' ? '已死' : '擋下', x.why === 'dead' ? 'gray' : 'good');
+    }));
     await wait(520);
     await finish(200);
   });
@@ -1310,7 +1319,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   const stBlocked = scene(async e => {
     const a = at(e.seat), id = e.to[0], b = at(id);
     if (e.why === 'protect') { ring(b.x, b.y, 'good', tk * 1.35, 1, 260); sfx('shimmer'); }
-    const atk = put(forkChip(), a.x, a.y, tk * 0.52);
+    const atk = put(atkChip(e.src), a.x, a.y, tk * 0.52);
     sfx('whoosh', 0.6);
     await moveTo(atk, { x: b.x - (b.x - a.x) * 0.12, y: b.y - tk * 0.35 }, 380, { lift: tk * 0.6 });
     sfx('clang');
@@ -1324,7 +1333,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   const stSoldier = scene(async e => {
     const g = e.to[0], a = at(e.seat), b = at(g);
     ring(a.x, a.y, 'evil', tk * 1.2, 1.4, 380);
-    const atk = put(forkChip(), a.x, a.y, tk * 0.55);
+    const atk = put(atkChip(e.src), a.x, a.y, tk * 0.55);
     sfx('whoosh', 0.6);
     moveTo(atk, { x: b.x + (a.x - b.x) * 0.3, y: b.y + (a.y - b.y) * 0.3 - tk * 0.3 }, 340, { lift: tk * 0.8 });
     await wait(220);
@@ -1337,7 +1346,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     sfx('crack'); sfx('clang');
     await wait(70); // 頓一下
     const r = cen(atk); atk.remove();
-    halves(forkChip(), r.x, r.y, r.w);
+    halves(atkChip(e.src), r.x, r.y, r.w);
     burst(r.x, r.y, 'brass', { n: 6, R: tk * 0.6, keep: false, big: 0.5 });
     anim(helm, [{ transform: 'none' }, { transform: 'translateY(-5px) rotate(-6deg)', offset: 0.3 }, { transform: 'rotate(3deg)', offset: 0.6 }, { transform: 'none' }], { duration: 400 });
     await wait(120);
@@ -1347,7 +1356,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   // 刺向鎮長（等說書人決定誰替死）：叉子飛過去，綬帶一甩把叉子帶偏
   const stMayor = scene(async e => {
     const a = at(e.seat), g = e.to[0], b = at(g);
-    const atk = put(forkChip(), a.x, a.y, tk * 0.52);
+    const atk = put(atkChip(e.src), a.x, a.y, tk * 0.52);
     sfx('whoosh', 0.6);
     await moveTo(atk, { x: a.x + (b.x - a.x) * 0.7, y: a.y + (b.y - a.y) * 0.7 - tk * 0.4 }, 320, { lift: tk * 0.5 });
     const pr = put(sticker('ribbon-medal', 'brass'), b.x, b.y - tk * 0.15, tk * 1.05);
@@ -1404,19 +1413,35 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
 
   // 說書人看到的答案短詞
   const answerWord = e => (e.kind === 'two' ? (e.none ? '沒有' : ROLES[e.role]?.name) : e.kind === 'number' ? String(e.n)
-    : e.kind === 'yesno' ? (e.yes ? '有' : '沒有') : e.kind === 'role' ? ROLES[e.role]?.name : e.kind === 'text' ? '過目' : '');
+    : e.kind === 'yesno' ? (e.yes ? '有' : '沒有') : e.kind === 'role' ? ROLES[e.role]?.name : e.kind === 'text' ? '過目'
+      : e.kind === 'dream' ? `${ROLES[e.good]?.name}／${ROLES[e.evil]?.name}` : '');
   // 說書人魔典上的一枚章：免疫、全場醉酒、主謀……沒有專門演出的被動結算
   const ststamp = scene(async e => { await seatStamp(e.seat, e.word, e.tone, { hold: 1100 }); await finish(); });
   const SELF_ACT = { poisoner, imp, monk, butler };
   const PICK = { fortuneteller: ftPick, ravenkeeper: rkPick };
   const SELF_INFO = { washerwoman, librarian, investigator, chef, empath, fortuneteller: ftInfo, undertaker, ravenkeeper: rkInfo, spy };
+  // 下面幾張表由 fx-ab-dlc.js 填：STX 說書人魔典上有專門演出的角色，GUARD 被動擋下，PUB 全桌，DEMON 接任的前半段
+  const STX = {}, GUARD = {}, PUB = {}, DEMON = {}, CHANGED = {};
+
+  // 工具箱：DLC 角色的演出用的和暗流湧動是同一套零件。tk、mid 每段開始時才量，用 T.tk / T.mid 取
+  const T = { wait, anim, sfx, h, roleToken, icon, roleIcon, ROLES, C, col, teamCol, TAU, rand, any, SELF_WASH, PUB_WASH, EVIL_WASH, HOLD, DROP, getStage, release,
+    get tk() { return tk; }, get mid() { return mid; }, W, at, inward, above, later, scene, svgEl, sticker, flat, chip, put, dot, place, posOf, cen, rot, fade, stop, tween, loop, blobPath,
+    develop, impress, burst, trail, puff, wisp, flecks, motes, flames, clods, feathers, waterDrop, dripping, wash, finish, beat, ring, squash, wiggle, bob, blot, lift, tokOf, liftOf, flipTo,
+    moveTo, emerge, slam, pad, spotStamp, seatStamp, mk, hold, toHud, toSeat, toSeats, markAt, halves, drip, heartbeat, fly, walk, stFly, stKill, atkChip, look };
+  let dlcPull = null;
+  const dlc = () => (dlcPull ||= import('./fx-ab-dlc.js').then(m => {
+    Object.assign(PROPS, m.PROPS_DLC);
+    const d = m.dlcFx(T);
+    Object.assign(ST, d.looks); Object.assign(SELF_ACT, d.act); Object.assign(PICK, d.pick); Object.assign(SELF_INFO, d.info);
+    Object.assign(STX, d.st); Object.assign(GUARD, d.guard); Object.assign(PUB, d.pub); Object.assign(DEMON, d.demon); Object.assign(CHANGED, d.changed);
+  }, () => { dlcPull = null; }));
 
   return {
     // 自己選完人；返回 null 表示這個角色沒有專門的演出（fx.js 用通用的棋子）
     act(e, me) {
-      if (!me || !e.to?.length) return null;
-      if (e.pick) return PICK_ROLES.includes(e.src) ? PICK[e.src](e, me) : null;
-      return SELF_ACT[e.src] ? SELF_ACT[e.src](e, me) : null;
+      if (!me || !(e.to?.length || e.role || e.charge)) return null;
+      const show = (e.pick ? PICK : SELF_ACT)[e.src];
+      return show ? show(e, me) : null;
     },
     hasInfo: src => !!SELF_INFO[src],
     info(e, me) {
@@ -1424,21 +1449,27 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
       if (['role', 'two'].includes(e.kind) && !e.none && !ROLES[e.role]) return null; // 答案缺了角色就不演，免得畫一張空牌
       return SELF_INFO[e.src](e, me);
     },
-    ststamp,
+    ststamp: e => STX[e.src]?.(e) || ststamp(e),
     demon: (e, me) => demon(e, me),
     saint: e => saint(e),
     mayor: e => mayor(e),
+    pub: (k, e) => PUB[k]?.(e),
+    changed: (e, me) => (me ? CHANGED[e.src]?.(e, me) : null),
+    dlc,
     // 說書人魔典；返回 null 表示交給 fx.js 舊的通用演出
     grim(e) {
-      const tb = !!ST[e.src];
+      const own = !!ST[e.src], x = STX[e.src]?.(e);
+      if (x) return x;
       switch (e.res) {
-        case 'info': return tb ? stFly(e, answerWord(e)) : null;
+        case 'info': return own ? stFly(e, e.word || answerWord(e)) : null;
         case 'reg': return e.reg ? stReg(e) : null;
         case 'fail': return stFail(e);
         case 'poison': case 'protect': case 'master':
-          return tb ? stFly(e, { poison: '中毒', protect: '保護', master: '主人' }[e.res], { poison: 'blot', protect: 'dome', master: 'tag' }[e.res]) : null;
+          return own ? stFly(e, e.word || { poison: '中毒', protect: '保護', master: '主人' }[e.res], { poison: 'blot', protect: 'dome', master: 'tag' }[e.res]) : null;
+        case 'noop': return own ? stFly(e, e.word || ACT_ICONS[e.src]?.mark || '行動') : null; // 能力正常，但什麼也沒發生（選中的不是惡魔、角色已在場……）
+        case 'charge': return ststamp({ seat: e.seat, word: '蓄力', tone: 'evil' });
         case 'kill': return e.to?.length ? stKill(e) : null;
-        case 'blocked': return !e.to?.length ? null : e.why === 'soldier' ? stSoldier(e) : stBlocked(e);
+        case 'blocked': return !e.to?.length ? null : e.why === 'soldier' ? stSoldier(e) : GUARD[e.why]?.(e) || stBlocked(e);
         case 'mayor': return e.to?.length ? stMayor(e) : null;
         case 'starpass': return e.src === 'imp' ? stStarpass(e) : null; // 方古跳到外來者身上另說
         default: return null;

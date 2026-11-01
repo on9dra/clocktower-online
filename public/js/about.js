@@ -38,7 +38,7 @@ function fbPage(ctx) {
   const letter = h('div', { class: 'ab-letter' }, h('div', { class: 'ab-to' }, '致作者：'), text,
     h('label', { class: 'ab-from' }, h('span', {}, '聯繫方式'), contact),
     h('b', { class: 'ink-stamp ab-stamp', 'aria-hidden': 'true' }, '已寄出'));
-  const send = h('button', { class: 'btn primary' }, icon('send'), '寄出');
+  const send = h('button', { class: 'btn' }, icon('send'), '寄出');
   const again = h('button', { class: 'btn' }, '再寫一封');
   send.onclick = async () => {
     const t = text.value.trim();
@@ -71,7 +71,7 @@ function sharePage() {
     h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURIComponent(url), alt: '二維碼', width: 168, height: 168, onload: e => e.target.classList.add('in') }),
     h('b', { class: 'ab-url' }, location.host),
     h('div', { class: 'ab-act' },
-      h('button', { class: 'btn primary', onclick: () => copy(`${tr('血染鐘樓')} · ${tag} ${url}`, '鏈接已複製') }, icon('send'), '複製鏈接'),
+      h('button', { class: 'btn', onclick: () => copy(`${tr('血染鐘樓')} · ${tag} ${url}`, '鏈接已複製') }, icon('send'), '複製鏈接'),
       navigator.share && h('button', { class: 'btn', onclick: () => navigator.share({ title: document.title, text: tag, url }).catch(() => {}) }, icon('share'), '分享到…')));
 }
 

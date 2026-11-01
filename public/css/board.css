@@ -645,7 +645,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
    開局後卡片收走，圓桌滑回原位，尺寸和座位都不跳 */
 .is-st .ring { transition: width .45s ease, translate .45s ease; }
 @media (min-width: 641px), (orientation: landscape) {
-  .town.picking { --a: 140px; --ab: 415px; }
+  .town.picking { --a: 140px; --ab: 445px; }
   .town.picking .ring { --r: min(var(--rw), .585 * (100cqw + 100cqh - var(--ab))); --dx: calc((100cqw - var(--r)) / 2); --dy: calc((100cqh - var(--r)) / 2);
     width: var(--r); translate: min(var(--dx), max(0px, var(--a) - var(--dx))) min(var(--dy), max(0px, var(--a) - 2 * var(--dx))); }
 }

@@ -239,7 +239,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .skd-ph.btn { height: 26px; border: 1px solid var(--skl); background: none; }
 .skd-ph.box { height: 30px; border: 1px solid var(--skl); background: none; }
 .sk-detail .btn { pointer-events: none; }
-.sk-detail .btn.primary:not(.sm) { padding: 9px 26px; font-size: 16px; letter-spacing: .1em; }
+.sk-detail .btn:not(.sm) { padding: 9px 26px; font-size: 16px; letter-spacing: .1em; }
 /* 夜晚的操作卡：放大圖裏放得下一整張 */
 .sk-night .sk-detail > * { zoom: 1.12; }
 .skd-card { display: grid; justify-items: center; gap: 9px; padding: 9px 18px 10px; background: var(--card); border: 1.5px solid var(--ink); }
@@ -294,7 +294,7 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
 .rw.quiet .rw-t > b { font-size: 17px; font-weight: 700; color: #5a5144; }
 .rw.quiet .rw-p { font-size: 18px; }
 .rw .btn.sm { padding: 5px 12px; font-size: 14px; }
-.rw .btn.primary:not(.sm) { padding: 9px 22px; font-size: 16px; letter-spacing: .1em; }
+.rw .btn:not(.sm) { padding: 9px 22px; font-size: 16px; letter-spacing: .1em; }
 
 /* 一塊：小標題 + 插圖 + 一行小字 */
 .hp-blk { display: grid; justify-items: center; gap: 10px; text-align: center; }

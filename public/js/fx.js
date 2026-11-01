@@ -153,7 +153,7 @@ function skipScene() {
   return true;
 }
 document.addEventListener('keydown', e => {
-  if (['Escape', ' ', 'Enter'].includes(e.key) && skipScene()) { e.preventDefault(); e.stopImmediatePropagation(); }
+  if (['Escape', ' '].includes(e.key) && skipScene()) { e.preventDefault(); e.stopImmediatePropagation(); }
 });
 function enqueue(sc) { queue.push(sc); if (!running) runQueue(); }
 async function runQueue() {
@@ -310,9 +310,11 @@ function release(id) {
 }
 
 // 技能演出連著信物圖形有 50KB，大廳用不到：收到第一份對局狀態時才拉，拉到之前走通用演出
-let AB = { act: () => null, grim: () => null, hasInfo: () => false, demon: () => {}, saint: () => {}, mayor: () => {}, ststamp: () => {} }, abPull = null;
-function pullAb() {
+let AB = { act: () => null, grim: () => null, hasInfo: () => false, demon: () => {}, saint: () => {}, mayor: () => {}, ststamp: () => {}, pub: () => {}, changed: () => {} }, abPull = null;
+// dlc：不是暗流湧動的房間，再拉黯月初升、夢殞春宵的演出和信物（70KB）
+function pullAb(dlc) {
   abPull ||= import('./fx-ab.js').then(m => { AB = m.abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping: () => !cur || cur.skip, ACT_ICONS: ACTS }); }, () => { abPull = null; });
+  if (dlc) abPull.then(() => AB.dlc?.());
 }
 // 座位上砸一枚大章，停一下縮成座位上的小章：座位自己的死因章接著落下（release）
 async function seatStamp(id, text, { power = 0, sound } = {}) {
@@ -548,9 +550,9 @@ const SCENES = {
     if (!dark) sky('dusk');
     await wait(300);
     sfx('night'); beat(em); ring(em, 'night', 2);
+    followBgm();
     await wait(900);
     sky('night');
-    followBgm();
     beat(title);
     await wait(1800);
     await closeCard(card);
@@ -568,9 +570,9 @@ const SCENES = {
     sky('dawn');
     await wait(220);
     sfx('dawn'); beat(em); ring(em, 'brass', 2);
+    followBgm();
     await wait(700);
     sky('day');
-    followBgm();
     beat(title);
     await wait(700);
     if (!e.deaths.length) {
@@ -590,9 +592,9 @@ const SCENES = {
   } }),
 
   // 提名：桌面壓暗，一張紙牌從下面滑上來（提名者 → 被提名者），一枚紅色「提名」印章砸在牌上。一天好幾次，不震
+  // 紙牌上來時鼓和弦樂推起來、白天的音樂退到後面；章落下的那一拍，提名音樂的第一個音同時起
   nominate: (e, s) => ({ block: true, run: async () => {
     veil(WASH.ink, 200);
-  // 紙牌上來時鼓和弦樂推起來、白天的音樂退到後面；章落下的那一拍，提名音樂的第一個音同時起
     const card = paperCard([bigToken(s, e.from, 'from'), h('div', { class: 'pc-arrow' }, icon('to')), bigToken(s, e.to, 'to')], 'face');
     cardIn(card);
     sfx('nominate'); duckBgm();
@@ -797,9 +799,9 @@ const SCENES = {
     const gain = verdict ? (verdict === 'win' ? EGG.win : EGG.lose) : 0, land = pendingEggs(gain);
     return { block: true, after: land, run: async () => {
       veil(good ? WASH.good : WASH.evil, 500);
+      followBgm();
       const chars = [...(good ? '善良獲勝' : '邪惡獲勝')].map(ch => h('span', {}, ch));
       const slot = verdict ? h('div', { class: 'pc-slot' }) : null;
-      followBgm();
       const reward = verdict ? h('div', { class: 'pc-reward' }, verdict === 'win' && gainChip('trophy', '+1'), gainChip('egg', `+${gain}`)) : null;
       const gains = reward ? [...reward.children] : [];
       const sub = s.winReason ? h('div', { class: 'pc-sub' }, s.winReason) : null;
@@ -867,6 +869,12 @@ const SCENES = {
   // 聖徒被處決落敗、鎮長獲勝：全桌一起看，接著是勝負
   saint: e => ({ block: true, run: () => AB.saint(e) }),
   mayor: e => ({ block: true, run: () => AB.mayor(e) }),
+  // 被詛咒的人發起提名、夜裏復活的人、渦流在場無人處決：全桌一起看（方案裏的公開章，不說是誰幹的）
+  curse: e => ({ block: true, holds: [e.seat], run: () => AB.pub('curse', e) }),
+  revive: e => ({ block: true, run: () => AB.pub('revive', e) }),
+  vortex: e => ({ block: true, run: () => AB.pub('vortex', e) }),
+  // 被換了角色：牌在桌上翻過去，接著是翻角色牌（不擋操作，翻角色牌才擋）
+  changed: (e, s) => ({ run: () => AB.changed(e, s.myId) }),
 
   // 自己的夜晚行動：有專門演出的角色在桌上演（fx-ab.js），其餘棋子從自己座位飛到目標身上（不擋操作）
   act: (e, s) => ({ run: () => AB.act(e, s.myId) || actChips(e, s) }),
@@ -876,7 +884,7 @@ const SCENES = {
   // 說書人魔典上的一枚章（不擋操作，排多了就跳過）
   ststamp: e => ({ lite: true, run: () => AB.ststamp(e) }),
   // 說書人魔典上的夜晚結算（不擋操作，排多了就跳過）
-  grim: e => ({ lite: true, holds: e.res === 'kill' || e.res === 'starpass' ? e.to : [], run: () => AB.grim(e) || grimScene(e) }),
+  grim: e => ({ lite: true, holds: e.dies || (e.res === 'kill' || e.res === 'starpass' ? e.to : []), run: () => AB.grim(e) || grimScene(e) }),
 };
 
 // 自己的夜晚行動（沒有專門演出的角色）：棋子從自己座位飛到目標身上
@@ -1012,7 +1020,7 @@ const turnScene = s => ({ block: true, run: async () => {
 // 演出播完後要做的事一個接一個掛上（場景自己的 after 先做）
 const chain = (sc, fn) => { const a = sc.after; sc.after = () => { a?.(); fn(); }; };
 export function onState(s) {
-  pullAb();
+  pullAb(s.scriptId !== 'tb');
   ensureScene();
   document.body.classList.toggle('my-turn', !!s.prompt);
   setFireworks(s.fireworks || null);
@@ -1078,6 +1086,7 @@ export function onState(s) {
   const pa = p.nomination?.abstain || {};
   for (const k of Object.keys(s.nomination?.abstain || {})) if (!pa[k]) { recent.voted.set(k, now); }
   if (s.nomination && s.nomination.at !== p.nomination?.at) recent.nom = now;
+  if (!running) followBgm();
 }
 
 // ———— 大廳和房間換班 ————
@@ -1086,7 +1095,6 @@ export function onState(s) {
 const calm = () => document.hidden || reduced();
 const pause = ms => new Promise(r => setTimeout(r, ms));
 const body = document.body;
-  if (!running) followBgm();
 // 各件東西進場時的樣子：[選擇器, 開頭, 延遲, 時長]。退場倒著放（K 倍速）
 const PARTS = [
   ['.topbar', { translate: '0 -100%' }, 160, 440],

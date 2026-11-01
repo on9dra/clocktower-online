@@ -73,7 +73,7 @@ export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreat
       h('div', { class: 'join' }, h('div', { class: 'join-k' }, '我是玩家'),
         h('div', { class: 'field' }, h('span', { class: 'field-k' }, '房間號'), codeBox(codeIn)),
         h('label', { class: 'field' }, h('span', { class: 'field-k' }, '暱稱'), nameIn),
-        h('button', { class: 'btn primary', onclick: join }, '加入房間')),
+        h('button', { class: 'btn', onclick: join }, '加入房間')),
       h('div', { class: 'st-line' }, '我是說書人', h('button', { class: 'btn', onclick: onCreate }, '創建房間'),
         onSolo && h('button', { class: 'btn sm ghost', onclick: onSolo }, '單人試玩 · 測試'))),
     recentList(recent, onPick),

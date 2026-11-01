@@ -12,7 +12,7 @@ export function soloBar(ctx) {
     h('select', { 'data-key': 'solo-role', onchange: e => { role = e.target.value; } },
       h('option', { value: '', selected: !role }, '隨機'),
       s.solo.map(id => h('option', { value: id, selected: id === role }, ROLES[id]?.name || id))),
-    B('重開', () => ctx.solo('restart', { role }), 'sm primary'),
+    B('重開', () => ctx.solo('restart', { role }), 'sm'),
     B('提名', () => ctx.solo('nominate'), 'sm' + (day ? '' : ' disabled')),
     B('天黑', () => ctx.solo('dusk'), 'sm' + (day ? '' : ' disabled')));
 }

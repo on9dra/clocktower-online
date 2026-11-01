@@ -221,7 +221,7 @@ function render() {
   const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (sideCollapsed(ctx) ? ' side-min' : '') },
     topbar(ctx),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar', 'data-key': 'peek', 'data-exit': true }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
-      h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
+      h('button', { class: 'btn sm', onclick: () => ctx.peek(null) }, '返回說書人視角')),
     soloBar(ctx), renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), side);
   const cur = app.querySelector(':scope > .game:not(.gone)');
   if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
@@ -277,11 +277,12 @@ setInterval(() => {
   if (k !== clockTick) { clockTick = k; if (k) render(); }
 }, 200);
 
-// 快捷鍵：回車 = 當前主操作（帶 data-hot 的按鈕：說書人的操作卡優先，再是圓桌中央、審判牌），確認框裏回車 = 確認；Esc 關閉菜單 / 彈窗 / 取消代選
+// 快捷鍵：Esc 關閉菜單 / 彈窗 / 取消代選。回車不觸發任何操作，也不重複點焦點停著的按鈕；只有輸入框裏的回車算提交
 document.addEventListener('keydown', e => {
   if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
-  if (!ctx.state) { if (e.key === 'Escape') closeModal(); return; } // 大廳：Esc 關掉「關於」
   const t = e.target, typing = t.closest && t.closest('input, textarea, select, [contenteditable]');
+  if (e.key === 'Enter' && !typing) { e.preventDefault(); return; }
+  if (!ctx.state) { if (e.key === 'Escape') closeModal(); return; } // 大廳：Esc 關掉「關於」
   const open = document.querySelector('.backdrop:not(.leaving)'), popped = document.querySelector('.popmenu:not(.leaving)');
   if (e.key === 'Escape') {
     if (popped) closeMenu();
@@ -289,12 +290,5 @@ document.addEventListener('keydown', e => {
     else if (closeSheet(ctx)) return;
     else if (closeCompose(ctx)) return;
     else if (sel.on && ctx.state.isSt) stopSelect(ctx);
-    return;
   }
-  if (e.key !== 'Enter' || typing || popped) return;
-  const hot = open ? open.querySelector('.btn.primary:not(.disabled)')
-    : ['.st-card:not(.corner)', '.center', '.trial'].map(k => document.querySelector(k + ' [data-hot]:not(.disabled)')).find(Boolean);
-  // 焦點停在別的按鈕上時也走主操作，避免回車重複點到剛剛用鼠標點過的按鈕
-  e.preventDefault();
-  if (hot) hot.click();
 });

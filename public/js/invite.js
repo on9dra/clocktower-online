@@ -15,7 +15,7 @@ export function openInvite(ctx) {
     h('div', { class: 'inv-code' }, s.code.split('').map(c => h('b', {}, c))),
     s.pass && h('div', { class: 'inv-pass', title: '房間密碼' }, icon('lock'), s.pass),
     qr(inviteUrl(s)),
-    h('button', { class: 'btn primary', onclick: () => copy(inviteUrl(s), '邀請鏈接已複製') }, icon('send'), '複製邀請鏈接'),
+    h('button', { class: 'btn', onclick: () => copy(inviteUrl(s), '邀請鏈接已複製') }, icon('send'), '複製邀請鏈接'),
     // 說書人自己換設備繼續主持用；帶著密鑰，不能發給玩家
     key && h('div', { class: 'inv-host' }, icon('key'), h('span', { class: 'grow' }, '換設備主持'),
       h('button', { class: 'btn sm', onclick: () => copy(hostUrl(s, key), '說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家') }, '複製'))),
@@ -27,6 +27,6 @@ export function openSeatLink(ctx, seat, title, token) {
   const url = `${inviteUrl(ctx.state)}&seat=${token}`;
   modal(seat.bot ? `真人頂替 ${title}` : `${title} 換設備`, h('div', { class: 'invite' },
     qr(url),
-    h('button', { class: 'btn primary', onclick: () => copy(url, `已複製，發給 ${title}`) }, icon('send'), '複製鏈接')),
+    h('button', { class: 'btn', onclick: () => copy(url, `已複製，發給 ${title}`) }, icon('send'), '複製鏈接')),
   { cls: 'invite-modal' });
 }

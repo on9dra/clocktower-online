@@ -247,10 +247,29 @@ function manualGame(roles = ['imp', 'poisoner', 'chef', 'monk', 'virgin', 'slaye
   assert.strictEqual(viewFor(r, { st: true }).mode, 'manual');
   assert.ok(r.seats.every(s => !s.role && !s.pinned));
 }
+// 說書人替人提名：等於玩家自己提名，限制一樣
+{
+  const r = manualGame();
+  const [a, b, c] = r.seats;
+  bad(r, 'nominate', { fromId: a.id, toId: b.id }); // 夜裏不行
+  ok(st(r, 'dawn'));
+  bad(r, 'nominate', { fromId: a.id, toId: 'x' });
+  ok(st(r, 'nominate', { fromId: a.id, toId: b.id }));
+  assert.deepStrictEqual([r.nomination.nominatorId, r.nomination.nomineeId], [a.id, b.id]);
+  bad(r, 'nominate', { fromId: c.id, toId: a.id }); // 投票中
+  ok(st(r, 'cancelVote'));
+  ok(st(r, 'nominate', { fromId: a.id, toId: b.id }));
+  ok(st(r, 'closeVote'));
+  bad(r, 'nominate', { fromId: a.id, toId: c.id }); // 今天提名過
+  bad(r, 'nominate', { fromId: c.id, toId: b.id }); // 今天被提名過
+  ok(st(r, 'setDead', { seatId: c.id, dead: true }));
+  bad(r, 'nominate', { fromId: c.id, toId: a.id }); // 死人不能提名
+}
 // 智能推進局用不了手動局的操作；開局後不能換模式
 {
   const r = room(7);
   ok(st(r, 'next'));
+  bad(r, 'nominate', { fromId: r.seats[0].id, toId: r.seats[1].id });
   bad(r, 'card', { seatId: r.seats[0].id, count: 1 });
   bad(r, 'remind', { seatId: r.seats[0].id, text: 'x', on: true });
   bad(r, 'setShown', { seatId: r.seats[0].id, roleId: 'imp' });

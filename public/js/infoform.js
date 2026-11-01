@@ -159,7 +159,7 @@ const icHead = (s, step) => h('div', { class: 'ic-head' },
   s.seats.some(x => x.id === step.seatId) && seatBadge(s, step.seatId, 'lg'),
   step.form.why && w({ poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', vortox: '渦流' }[step.form.why], 'evil'));
 const sendBtn = (ctx, d, { level, err }) => h('button', {
-  class: 'btn wide ' + (err ? 'disabled' : level === 0 ? 'red' : 'primary'), 'data-hot': '1',
+  class: 'btn wide ' + (err ? 'disabled' : level === 0 ? 'red' : ''),
   onclick: () => !err && ctx.st('confirm', { fields: d }),
 }, icon('send'), '發送');
 

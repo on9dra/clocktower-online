@@ -207,3 +207,11 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .pmark.shot { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; background: var(--muted); color: #fff; font-weight: 700; }
 .pmark.shot .ico { width: 12px; height: 12px; }
 .pmark.shot.fx-shot { animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }
+
+/* 黯月初升、夢殞春宵的技能演出（fx-ab-dlc.js）：打瞌睡的 Z、花瓣、女裁縫的布和針腳、剃刀的一道墨線 */
+.sp.ab > .ab-z { display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--serif); font-weight: 900; line-height: 1; color: var(--card); -webkit-text-stroke: 1px var(--ink); paint-order: stroke; }
+.ab-petal { position: fixed; background: var(--c); border: 1.5px solid var(--ink); border-radius: 80% 10% 80% 10%; pointer-events: none; }
+.ab-patch { display: block; background: var(--card) url(../img/grain.svg); border: 2px dashed var(--ink); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ink); box-sizing: border-box; }
+.sp.ab > .ab-patch { width: 100%; height: 100%; }
+.ab-stitch { background: var(--evil); border-radius: 3px; box-shadow: 0 0 0 1.5px var(--card); }
+.ab-slash { background: var(--ink); border-radius: 50%; box-shadow: 0 0 0 2px var(--card); transform-origin: 0 50%; }

@@ -1,6 +1,7 @@
 // 手動局的說書人界面：系統不懂規則，這裏只有工具。叫醒（發選人牌）、拼信息、貼標記、夜晚順序參考、判勝負
 import { h, modal, closeModal, ask, toast, seatLabel, roleToken } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
+import { COMMUNITY } from './community.js';
 import { B, selFrom, selectBar } from './flow.js';
 import { startSelect, sel } from './town.js';
 import { formula, seatBadge, mini, named, icon, w } from './glyph.js';
@@ -29,6 +30,18 @@ export function uploadScript(ctx) {
   input.click();
 }
 
+// 社區劇本：能智能推進的放前面，其餘手動。選中就是上傳這本
+export function communityScripts(ctx) {
+  const cur = ctx.state.scriptId === 'custom' && SCRIPTS.custom?.name;
+  const row = c => h('button', { class: 'comm-row' + (c.name === cur ? ' on' : ''), onclick: async () => {
+    closeModal();
+    if (c.name === cur) return;
+    await ctx.st('upload', { entries: [{ id: '_meta', name: c.name, author: c.author }, ...c.roles] });
+  } }, h('b', {}, c.name), c.small && h('i', {}, '5-6人'), h('span', {}, `${c.en} · ${c.author}`));
+  const part = (auto, title) => h('div', {}, h('h4', {}, title), COMMUNITY.filter(c => !!c.auto === auto).map(row));
+  modal('社區劇本', h('div', { class: 'comm-list' }, part(true, '智能推進'), part(false, '手動')), { wide: true });
+}
+
 // ───── 叫醒：選人牌 ─────
 const lastCard = {}; // 角色 -> 上次給他的設置（下一夜同一個角色不用重新選）
 export function openCard(ctx, seat) {
@@ -50,7 +63,7 @@ export function openCard(ctx, seat) {
     closeModal();
     ctx.st('card', { seatId: seat.id, ...c, text: text.value });
   };
-  const send = h('button', { class: 'btn primary wide', onclick: go }, icon('send'), '叫醒');
+  const send = h('button', { class: 'btn wide', onclick: go }, icon('send'), '叫醒');
   modal(`叫醒 ${seatLabel(ctx.state, seat.id)}`, h('div', { class: 'hand-form' },
     h('div', { class: 'hand-row' }, w('選', 'ink'), nums, w('人', 'ink')),
     h('div', { class: 'hand-row' }, pick, skip),
@@ -74,17 +87,37 @@ function proxyPick(ctx, c) {
     roles: c.role ? SCRIPTS[ctx.state.scriptId].roles : null, roleOptional: c.optional }, null), card: c });
 }
 
+// ───── 替人提名 ─────
+let nom = null; // { from: 提名者, to: 被提名者 }
+export const mayNominate = (s, seat) => s.phase === 'day' && !s.nomination && !s.dayOver && !seat.dead && !s.nominators.includes(seat.id);
+const nomLive = s => { const from = nom && s.seats.find(x => x.id === nom.from); return !!from && mayNominate(s, from); };
+export function startNominate(ctx, seat) { draft = null; nom = { from: seat.id, to: null }; ctx.render(); }
+function nominateCard(ctx) {
+  const s = ctx.state, { from, to } = nom;
+  const send = () => to && ctx.st('nominate', { fromId: from, toId: to });
+  return h('div', { class: 'card focus infocard' },
+    h('div', { class: 'ic-head' }, seatBadge(s, from, 'lg'), w('提名', 'bad'), to ? seatBadge(s, to, 'lg') : h('i', { class: 'op-sep' })),
+    h('div', { class: 'row' }, B('取消', () => closeCompose(ctx), 'ghost'), B('提名', send, to ? '' : 'disabled')));
+}
+
 // ───── 拼信息 ─────
 let draft = null; // { to: 座位, terms: [] }
-export function startCompose(ctx, seat) { draft = { to: seat.id, terms: [] }; ctx.render(); }
-export function closeCompose(ctx) { if (!draft) return false; draft = null; ctx.render(); return true; }
-// 給 town.js：拼信息時點桌上的座位，把這個座位加進句子
-export const composePicking = ctx => draft && {
-  can: new Set(ctx.state.seats.map(x => x.id)), on: new Set(draft.terms.filter(t => t.s).map(t => t.s)), fixed: new Set(),
-  pick: id => { draft.terms.push({ s: id }); ctx.render(); },
+export function startCompose(ctx, seat) { nom = null; draft = { to: seat.id, terms: [] }; ctx.render(); }
+export function closeCompose(ctx) { if (!draft && !nom) return false; draft = nom = null; ctx.render(); return true; }
+// 給 town.js：拼信息時點桌上的座位，把這個座位加進句子；替人提名時點的是被提名者
+export const composePicking = ctx => {
+  const s = ctx.state;
+  if (nomLive(s)) return { can: new Set(s.seats.filter(x => !s.nominees.includes(x.id)).map(x => x.id)), on: new Set([nom.to]), fixed: new Set([nom.from]),
+    pick: id => { nom.to = id; ctx.render(); } };
+  return draft && {
+    can: new Set(s.seats.map(x => x.id)), on: new Set(draft.terms.filter(t => t.s).map(t => t.s)), fixed: new Set(),
+    pick: id => { draft.terms.push({ s: id }); ctx.render(); },
+  };
 };
-// 給 town.js：圓桌中央現在要放的手動局操作卡（拼信息、代選），沒有就返回 null
+// 給 town.js：圓桌中央現在要放的手動局操作卡（替人提名、拼信息、代選），沒有就返回 null
 export function handBubble(ctx) {
+  if (nom && !nomLive(ctx.state)) nom = null; // 玩家自己先提名了、天黑了：這張卡作廢
+  if (nom) return { id: 'nominate', seatId: nom.from, card: () => nominateCard(ctx) };
   if (draft) return { id: 'compose', seatId: draft.to, card: () => composeCard(ctx) };
   const c = sel.on?.card;
   return c ? { id: 'card-' + c.id, seatId: c.seatId, card: () => selectBar(ctx, seatBadge(ctx.state, c.seatId, 'lg'), (ids, role) => ctx.st('cardPick', { seatId: c.seatId, ids, role }), true) } : null;
@@ -114,7 +147,7 @@ function composeCard(ctx) {
       ['是', '或'].map(t => B(t, () => add({ w: t }), 'sm ghost')),
       h('input', { 'data-keep': 'compose', maxlength: 40, placeholder: '數字或文字', onkeydown: e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addText(); } } })),
     h('div', { class: 'row' }, B('取消', () => closeCompose(ctx), 'ghost'),
-      B([icon('send'), '發送'], send, d.terms.length ? 'primary' : 'disabled', true)));
+      B([icon('send'), '發送'], send, d.terms.length ? '' : 'disabled')));
 }
 // 從劇本的角色裏挑一個：按陣營分行
 function rolePicker(ctx, onPick) {
@@ -168,7 +201,7 @@ export function manualNight(ctx) {
     h('div', { class: 'frm-line' }, w('今晚'), st.diedTonight.length ? [st.diedTonight.map(id => seatBadge(s, id)), w('死亡', 'bad')] : w('無人死亡', 'good')),
     cardRows(ctx),
     s.night === 1 && !hand.evilSent && B('發送互認和偽裝', () => ctx.st('evilInfo'), 'wide'),
-    B('天亮，公佈死訊', () => ctx.st('dawn'), 'primary wide', true),
+    B('天亮，公佈死訊', () => ctx.st('dawn'), 'wide'),
     winButtons(ctx));
 }
 

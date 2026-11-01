@@ -128,7 +128,7 @@ await wait(700); // 等上面刪房間的寫盤做完，免得刪到服務器的
 
 // ———— 起一個真服務器 ————
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PORT = 3900 + Math.floor(Math.random() * 500);
+const PORT = 3900 + Math.floor(Math.random() * 300); // 再往上 Windows 常常保留成系統端口，綁定會 EACCES
 const URL = `http://127.0.0.1:${PORT}`;
 // 舊版本的單文件存檔：啓動時拆成每房一個文件
 fs.rmSync(path.join(DATA, 'rooms'), { recursive: true, force: true });

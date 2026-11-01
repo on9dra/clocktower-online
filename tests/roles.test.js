@@ -7,6 +7,7 @@ import { execute, killSeat } from '../lib/rules.js';
 import { impaired, isPoisoned, isEvil, seatTags, hasEff } from '../lib/util.js';
 import { viewFor } from '../lib/view.js';
 import { trimChat } from '../public/js/infofmt.js';
+import { readFileSync } from 'fs';
 import { setup, S, ok, st, act, pl, ack } from './helpers.js';
 
 const mk = (roles, sid) => { const r = setup(roles); r.scriptId = sid; return r; };
@@ -68,19 +69,66 @@ const raw = (r, role, ids, roleId) => applyPlayerAction(r, S(r, role).pid, { act
   const ids = r.g.step.decide.options.map(o => o.id);
   assert.ok(!ids.includes(S(r, 'soldier').id) && !ids.includes(S(r, 'chef').id) && ids.includes(S(r, 'saint').id));
 }
-// 多殺的惡魔打到鎮長也問替死；沙巴洛斯接著問反芻；珀只殺一人時不會把鎮長漏掉
+// 沙巴洛斯：官方在喚醒他之前反芻，他醒來時已經復活了；多殺的惡魔打到鎮長也問替死
 {
   const r = mk(['mayor', 'shabaloth', 'chef', 'saint', 'monk', 'fool'], 'bmr');
-  r.g.shabaloth = [S(r, 'chef').id]; S(r, 'chef').dead = true;
+  r.g.shabaloth = [S(r, 'monk').id]; S(r, 'monk').dead = true;
   go(r, ['shabaloth']);
+  assert.strictEqual(r.g.step.decide.kind, 'regurgitate', '先反芻');
+  assert.strictEqual(viewFor(r, { pid: S(r, 'shabaloth').pid }).prompt, null, '他還沒醒');
+  ok(st(r, 'decide', { choice: S(r, 'monk').id }));
+  assert.ok(!S(r, 'monk').dead);
+  assert.strictEqual(r.g.step.status, 'choose', '反芻完才叫醒他');
+  assert.ok(viewFor(r, { pid: S(r, 'shabaloth').pid }).prompt);
   act(r, 'shabaloth', [S(r, 'mayor').id, S(r, 'saint').id]);
   assert.strictEqual(r.g.step.decide.kind, 'mayor');
   ok(st(r, 'decide', { choice: 'none' }));
   assert.ok(!S(r, 'mayor').dead && S(r, 'saint').dead);
-  assert.strictEqual(r.g.step.decide.kind, 'regurgitate', '替死之後接著問反芻');
-  ok(st(r, 'decide', { choice: S(r, 'chef').id }));
-  assert.ok(!S(r, 'chef').dead);
 }
+// 反芻的人當晚又被選中：又死了
+{
+  const r = mk(['chef', 'shabaloth', 'saint', 'monk', 'fool', 'gossip'], 'bmr');
+  r.g.shabaloth = [S(r, 'monk').id]; S(r, 'monk').dead = true;
+  go(r, ['shabaloth']);
+  ok(st(r, 'decide', { choice: S(r, 'monk').id }));
+  act(r, 'shabaloth', [S(r, 'monk').id, S(r, 'saint').id]);
+  assert.ok(S(r, 'monk').dead && r.g.diedTonight.includes(S(r, 'monk').id));
+}
+// 反芻的首夜角色馬上用能力，然後才叫醒沙巴洛斯
+{
+  const r = mk(['chef', 'shabaloth', 'saint', 'monk', 'fool', 'gossip'], 'bmr');
+  r.g.shabaloth = [S(r, 'chef').id]; S(r, 'chef').dead = true;
+  go(r, ['shabaloth']);
+  ok(st(r, 'decide', { choice: S(r, 'chef').id }));
+  assert.strictEqual(r.g.step.roleId, 'chef');
+  ok(st(r, 'confirm', { fields: r.g.step.form.truth }));
+  assert.deepStrictEqual([r.g.step.roleId, r.g.step.status], ['shabaloth', 'choose']);
+}
+// 沒有能力不反芻；不反芻時也照常叫醒；上一晚選的人沒死不問
+{
+  const r = mk(['chef', 'shabaloth', 'saint', 'monk', 'fool', 'gossip'], 'bmr');
+  r.g.shabaloth = [S(r, 'monk').id]; S(r, 'monk').dead = true;
+  r.g.poisoned = S(r, 'shabaloth').id;
+  go(r, ['shabaloth']);
+  r.g.poisoned = S(r, 'shabaloth').id;
+  r.g.step = null; r.g.queue = [{ roleId: 'shabaloth', seatId: S(r, 'shabaloth').id, at: 1 }]; run(r);
+  assert.strictEqual(r.g.step.status, 'choose', '中毒不反芻');
+}
+{
+  const r = mk(['chef', 'shabaloth', 'saint', 'monk', 'fool', 'gossip'], 'bmr');
+  r.g.shabaloth = [S(r, 'monk').id]; S(r, 'monk').dead = true;
+  go(r, ['shabaloth']);
+  ok(st(r, 'decide', { choice: 'none' }));
+  assert.strictEqual(r.g.step.status, 'choose');
+  assert.ok(S(r, 'monk').dead);
+}
+{
+  const r = mk(['chef', 'shabaloth', 'saint', 'monk', 'fool', 'gossip'], 'bmr');
+  r.g.shabaloth = [S(r, 'monk').id];
+  go(r, ['shabaloth']);
+  assert.strictEqual(r.g.step.status, 'choose', '上一晚選的人沒死');
+}
+// 珀只殺一人時不會把鎮長漏掉
 {
   const r = mk(['mayor', 'po', 'chef', 'saint', 'monk', 'fool'], 'bmr');
   go(r, ['po']);
@@ -338,5 +386,102 @@ const raw = (r, role, ids, roleId) => applyPlayerAction(r, S(r, role).pid, { act
   assert.strictEqual(viewFor(r, { st: true }).st.log.length, r.g.log.length, '全部都在');
   assert.strictEqual(viewFor(r, { st: true }, 0, 5).st.log.length, r.g.log.length - 5, '只發新增的');
 }
+
+// 中毒、醉酒、酒鬼沒有能力：夜晚行動只有「無效」，白天被動一個按鈕；隱士 / 間諜的登記才有兩個
+for (const [role, target, pre] of [['monk', 'chef'], ['imp', 'chef'], ['imp', 'imp'], ['innkeeper', 'chef'], ['witch', 'chef'], ['pithag', 'chef']]) {
+  const r = mk([role === 'imp' ? 'poisoner' : 'imp', role, 'chef', 'saint', 'fool', 'oracle'], 'snv');
+  go(r, [role]);
+  r.g.poisoned = S(r, role).id;
+  const ids = role === 'innkeeper' ? [S(r, 'chef').id, S(r, 'saint').id] : [S(r, target).id];
+  assert.strictEqual(applyPlayerAction(r, S(r, role).pid, { act: 'pick', ids, role: role === 'pithag' ? 'oracle' : undefined }), undefined);
+  assert.deepStrictEqual(r.g.step.decide.options.map(o => o.id), ['fail'], role);
+  assert.ok(st(r, 'decide', { choice: 'work' }), '不能判生效');
+}
+{
+  const day = roles => { const r = mk(roles, 'tb'); startDay(r); return r; };
+  let r = day(['saint', 'imp', 'poisoner', 'chef', 'monk', 'empath']);
+  r.g.poisoned = S(r, 'saint').id;
+  execute(r, S(r, 'saint'));
+  assert.ok(r.g.ruling.forced && !r.g.ruling.auto, '中毒聖徒只有繼續');
+  r = day(['scarletwoman', 'imp', 'poisoner', 'chef', 'monk', 'empath']);
+  r.g.poisoned = S(r, 'scarletwoman').id;
+  execute(r, S(r, 'imp'));
+  assert.ok(r.g.ruling.forced && !r.g.ruling.auto, '中毒紅唇女郎只有不接任');
+  r = day(['virgin', 'imp', 'poisoner', 'chef', 'monk', 'empath']);
+  r.g.poisoned = S(r, 'virgin').id;
+  ok(pl(r, 'chef', 'nominate', { targetId: S(r, 'virgin').id }));
+  assert.ok(!r.g.virginCheck, '中毒貞潔者不開小窗');
+  r = day(['virgin', 'imp', 'spy', 'chef', 'monk', 'empath']);
+  r.g.poisoned = S(r, 'virgin').id;
+  ok(pl(r, 'spy', 'nominate', { targetId: S(r, 'virgin').id }));
+  assert.ok(!r.g.virginCheck, '貞潔者中毒時，間諜也不用裁定');
+  r = day(['slayer', 'imp', 'poisoner', 'recluse', 'monk', 'empath']);
+  r.g.poisoned = S(r, 'slayer').id;
+  ok(pl(r, 'slayer', 'slay', { targetId: S(r, 'recluse').id }));
+  assert.ok(r.g.ruling.forced && !r.g.ruling.reg, '中毒獵手打隱士：沒有登記的選擇');
+  r = day(['slayer', 'imp', 'poisoner', 'recluse', 'monk', 'empath']);
+  ok(pl(r, 'slayer', 'slay', { targetId: S(r, 'recluse').id }));
+  assert.ok(!r.g.ruling.forced && r.g.ruling.reg === 'recluse', '健康獵手打隱士：兩個按鈕');
+}
+// 呆瓜：中毒時一個按鈕；選中間諜 / 隱士時兩個
+{
+  const r = mk(['chef', 'imp', 'witch', 'klutz', 'saint', 'oracle'], 'snv');
+  startDay(r);
+  r.g.poisoned = S(r, 'klutz').id;
+  execute(r, S(r, 'klutz'));
+  ok(pl(r, 'klutz', 'pick', { ids: [S(r, 'imp').id] }));
+  assert.ok(r.g.ruling.forced && !r.g.ruling.auto);
+}
+{
+  const r = mk(['chef', 'imp', 'spy', 'klutz', 'saint', 'oracle'], 'snv');
+  startDay(r);
+  execute(r, S(r, 'klutz'));
+  ok(pl(r, 'klutz', 'pick', { ids: [S(r, 'spy').id] }));
+  assert.ok(!r.g.ruling.forced && r.g.ruling.reg === 'spy');
+}
+// 月之子選中隱士 / 間諜：說書人定算不算善良
+{
+  const r = mk(['chef', 'imp', 'poisoner', 'moonchild', 'recluse', 'fool'], 'bmr');
+  startDay(r);
+  execute(r, S(r, 'moonchild'));
+  const t = S(r, 'recluse');
+  r.g.ending = true; ok(pl(r, 'moonchild', 'pick', { ids: [t.id] }));
+  r.g.queue = [{ roleId: 'moonchild', seatId: S(r, 'moonchild').id, at: 1 }]; r.g.step = null; r.g.beat = null;
+  run(r);
+  assert.strictEqual(r.g.step.decide.kind, 'moonreg');
+  ok(st(r, 'decide', { choice: 'evil' }));
+  assert.ok(!t.dead);
+}
+// 小惡魔選自己：自動接任時結果裏有接任者；沒有爪牙時寫明；旅店老闆保護時不死不傳位；標記寫「攻擊」
+{
+  const r = mk(['imp', 'baron', 'chef', 'saint', 'monk'], 'tb');
+  go(r, ['imp']);
+  ok(raw(r, 'imp', [S(r, 'imp').id]));
+  assert.strictEqual(r.g.step.result.e.heir, S(r, 'baron')?.id ?? r.seats[1].id);
+}
+{
+  const r = mk(['imp', 'scarletwoman', 'poisoner', 'chef', 'saint'], 'tb');
+  go(r, ['imp']);
+  const sw = S(r, 'scarletwoman');
+  ok(raw(r, 'imp', [S(r, 'imp').id]));
+  assert.strictEqual(r.g.step.result.e.heir, sw.id);
+  assert.strictEqual(sw.role, 'imp');
+}
+{
+  const r = mk(['imp', 'chef', 'saint', 'monk', 'empath'], 'tb');
+  go(r, ['imp']);
+  ok(raw(r, 'imp', [S(r, 'imp').id]));
+  assert.ok(r.g.step.result.e.noHeir);
+}
+{
+  const r = mk(['imp', 'baron', 'chef', 'saint', 'innkeeper'], 'bmr');
+  go(r, ['innkeeper', 'imp']);
+  const imp = S(r, 'imp');
+  ok(raw(r, 'innkeeper', [imp.id, S(r, 'chef').id]));
+  ok(st(r, 'decide', { choice: S(r, 'chef').id }));
+  ok(raw(r, 'imp', [imp.id]));
+  assert.ok(!imp.dead && imp.role === 'imp' && S(r, 'baron'), '不死不傳位');
+}
+for (const f of ['glyph', 'log', 'stepcard', 'fx-ab']) assert.ok(!readFileSync(new URL(`../public/js/${f}.js`, import.meta.url), 'utf8').includes('想殺'), f);
 
 console.log('角色清單測試通過 ✔');

@@ -112,7 +112,7 @@ const gray = (wd, cls = '') => h('i', { class: 'skd-ph ' + cls, style: { width: 
 
 // ———— 說書人指南 ————
 const ruleBtn = (r, k, text) => h('span', { class: 'setup-role ' + k }, tok(r), h('span', {}, ROLES[r].name), h('i', {}, text));
-const scripts = () => h('span', { class: 'script-pick' }, h('span', { class: 'chip on' }, '暗流湧動'), h('span', { class: 'chip' }, '黯月初升'), h('span', { class: 'chip' }, '夢殞春宵'), h('span', { class: 'chip' }, '上傳劇本'), h('span', { class: 'chip soon' }, '敬請期待'));
+const scripts = () => h('span', { class: 'script-pick' }, h('span', { class: 'chip on' }, '暗流湧動'), h('span', { class: 'chip' }, '黯月初升'), h('span', { class: 'chip' }, '夢殞春宵'), h('span', { class: 'chip' }, '社區劇本'), h('span', { class: 'chip' }, '上傳劇本'), h('span', { class: 'chip soon' }, '敬請期待'));
 const PREP = {
   key: 'prep', nav: '開局', title: '開局前',
   ico: 'gear',
@@ -120,7 +120,7 @@ const PREP = {
       zoom: { box: [-33, -30, 66, 63], detail: h('div', { class: 'skd-col' },
         gray(150),
         mk(2, fake('角色配置')),
-        mk(3, h('span', { class: 'btn primary' }, '隨機抽取'))) },
+        mk(3, h('span', { class: 'btn' }, '隨機抽取'))) },
     },
       at(-52, -32, pc(mk(1, scripts(), 'r'))), at(0, -58, mo(mk(1, scripts()))),
       at(0, -21, h('b', { class: 'sk-t' }, '準備')),
@@ -131,7 +131,7 @@ const PREP = {
     steps(
       step(1, null, '選劇本', '3 本官方，或上傳 Json'),
       step(2, scene('hp-rules', nth(0, ruleBtn('baron', 'rand', '隨機')), nth(1, ruleBtn('baron', 'lock', '必選')), nth(2, ruleBtn('baron', 'ban', '排除'))), '角色配置', '點角色切換'),
-      step(3, [h('span', { class: 'btn primary' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局', '先給座位指定角色，其餘隨機'))],
+      step(3, [h('span', { class: 'btn' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局', '先給座位指定角色，其餘隨機'))],
 };
 
 const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && h('i', { class: 'tm' }, '真'));
@@ -145,7 +145,7 @@ const NIGHT = {
         mk(1, h('span', { class: 'opt-tile fixed' }, sb(3), w('是'), mini('butler'))),
         mk(2, h('span', { class: 'opt-row' }, [2, 4, 5, 6, 7].map(n => opt(n, n === 5)))),
         h('span', { class: 'ic-preview good' }, frm(3, '和', 5, '之中有', { r: 'butler', named: true })),
-        mk(3, fake('發送', 'primary', 'send'))) },
+        mk(3, fake('發送', '', 'send'))) },
     },
       at(0, -21, h('b', { class: 'sk-t' }, '第 1 夜')),
       at(0, 5, skCard(h('i', { class: 'sk-tok' }), tph(16), tph(21), skBtn('發送', 'pri'))),
@@ -166,7 +166,7 @@ const SDAY = {
       zoom: { box: [-41, -23, 82, 46], detail: h('div', { class: 'skd-trial' },
         h('span', { class: 'skd-row' }, sb(2, 'lg'), h('b', { class: 'hp-stamp sm' }, '提名'), sb(5, 'lg')),
         h('span', { class: 'skd-row' }, h('span', { class: 'hp-timer' }, icon('timer'), '4:52'), gray(70)),
-        h('span', { class: 'skd-row foot' }, fake('取消提名', 'ghost'), fake('按當前舉手結算'), mk(1, fake('立即計票', 'primary'), 't'))) },
+        h('span', { class: 'skd-row foot' }, fake('取消提名', 'ghost'), fake('按當前舉手結算'), mk(1, fake('立即計票'), 't'))) },
     },
       at(0, 0, h('div', { class: 'sk-trial' },
         h('span', { class: 'sk-line' }, h('i', { class: 'sk-tok' }), h('b', { class: 'sk-stamp' }, '提名'), h('i', { class: 'sk-tok bad' })),
@@ -175,8 +175,8 @@ const SDAY = {
     steps(
       step(0, frm(2, { op: 'to' }, 5), '玩家自己提名'),
       step(0, h('span', { class: 'hp-timer' }, icon('timer'), '5:00'), '倒數 5 分鐘', '到點按舉著的手結算；說書人可隨時暫停或重新計時'),
-      step(1, fake('立即計票', 'primary'), '立即計票', '說書人強制玩家發起投票，玩家按順序在短時間內必須投票，數完自動結算'),
-      step(2, h('span', { class: 'hp-gal' }, icon('noose'), fake('處決5號，入夜', 'primary')), '結束白天', '處決台上的角色將死亡')),
+      step(1, fake('立即計票'), '立即計票', '說書人強制玩家發起投票，玩家按順序在短時間內必須投票，數完自動結算'),
+      step(2, h('span', { class: 'hp-gal' }, icon('noose'), fake('處決5號，入夜')), '結束白天', '處決台上的角色將死亡')),
     stub(memo(fake('取消提名', 'ghost'), sm('雙方今天可以重新提名')),
       memo(fake('按當前舉手結算'), sm('不數票直接結算')))],
 };
@@ -195,7 +195,7 @@ const AUTO_SEC = {
     block('rule', h('h4', {}, '要你裁定時'),
       h('div', { class: 'card infocard ruling' }, h('div', { class: 'rule-k' }, icon('timer'), '獵手開槍'),
         h('div', { class: 'frm-line' }, sb(3), mini('slayer'), w('射'), sb(5), mini('imp')),
-        h('div', { class: 'row' }, h('span', { class: 'btn sm primary' }, icon('check'), '命中'))),
+        h('div', { class: 'row' }, h('span', { class: 'btn sm' }, '命中'))),
       sm('卡在圓桌中央；結果唯一時只有一個按鈕')),
     line(h('span', { class: 'hp-lit' }, blank(4)), '選項是座位時', '直接點桌上的座位；固定的目標亮金圈'),
     stub(memo(icon('quill'), b('黯月初升、夢殞春宵'), sm('大多也自動')),

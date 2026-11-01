@@ -104,8 +104,7 @@ const day = r => st(r, 'next');
   const r = mk(['virgin', 'imp', 'poisoner', 'mathematician', 'empath', 'monk', 'saint']);
   day(r); poison(r, 'virgin');
   pl(r, 'empath', 'nominate', { targetId: S(r, 'virgin').id });
-  ok(st(r, 'virgin', { work: false }));
-  assert.ok(off(r, 'virgin'));
+  assert.ok(!r.g.virginCheck && off(r, 'virgin'), '中毒的貞潔者直接無事，不開小窗');
 }
 {
   const r = mk(['virgin', 'imp', 'poisoner', 'mathematician', 'empath', 'monk', 'saint']);

@@ -11,7 +11,7 @@ import { seatPicking } from './infoform.js';
 import { stepCard, decidePicking, lastWordCard } from './stepcard.js';
 import { clockState, blockLines, playerCenter, stCenter, rulingCard, reviewCard, scriptPick } from './flow.js';
 import { pickRole, pickShown, canHover, hoverSeat, leaveSeat, closePick, pickingSeat } from './setup.js';
-import { handBubble, composePicking, startCompose, openCard, openReminders } from './manual.js';
+import { handBubble, composePicking, startCompose, startNominate, mayNominate, openCard, openReminders } from './manual.js';
 import { openSeatLink } from './invite.js';
 
 // 當前的選人狀態：{ count, notSelfId, ids, key }
@@ -360,6 +360,7 @@ function stMenu(ctx, seat, title) {
   if (s.manual) {
     const evil = seat.align ? seat.align === 'evil' : !good;
     return [
+      live && mayNominate(s, seat) && { label: '替他提名', onclick: () => startNominate(ctx, seat) },
       live && { label: '叫醒', onclick: () => openCard(ctx, seat) },
       live && { label: '給信息', onclick: () => startCompose(ctx, seat) },
       live && { label: '貼標記', onclick: () => openReminders(ctx, seat) },

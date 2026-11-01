@@ -230,7 +230,7 @@ function pick(id, ids, chosen) {
   const role = seatOf(id).role;
   say('st', id, ids.length || chosen ? '你選擇了 ' + ids.map(label).join('、') + (chosen ? `【${ROLES[chosen].name}】` : '') : '你沒有使用能力',
     { info: true, night: world.night, k: 'act', src: role, f: [{ op: 'to' }, ...ids.map(x => ({ s: x })), ...(chosen ? [{ r: chosen, named: true }] : [])] });
-  if (ids.length) fx({ k: 'act', src: role, to: ids, msg: world.seq }, id);
+  if (ids.length || chosen) fx({ k: 'act', src: role, to: ids, ...(chosen && { role: chosen }), msg: world.seq }, id);
 }
 // 說書人給自己一條信息（和 lib/engine.js confirmStep 一致）：面板裏的一行 + 答案落在桌上的演出
 function giveInfo(role, form, fields) {
@@ -249,7 +249,7 @@ function asMe(role, extra) {
   world.seats.forEach(x => Object.assign(x, { dead: false, deathBy: null, fakeRole: null }));
   seatOf(ME).role = role;
   extra?.();
-  Object.assign(world, { phase: 'night', night: 2, day: 1, step: null, prompt: null, winner: null, winReason: '' });
+  Object.assign(world, { phase: 'night', night: 2, day: 1, step: null, prompt: null, winner: null, winReason: '', chat: world.chat.filter(m => !m.info) }); // 上一個角色的標記不留在桌上
   view({ me: ME }); refresh();
 }
 // 開槍（規則和 lib/day.js 一致）：真獵手打中惡魔才死人；射空只有一支箭
@@ -257,11 +257,11 @@ function slay(from, to) {
   world.shotEver.push(from);
   sys(`${label(from)} 宣稱自己是獵手，向 ${label(to)} 開槍……`, { k: 'slay', from, to });
   // 每一槍都停下等說書人裁定（真假獵手、中不中都一樣停），推薦結果：健康的真獵手打中惡魔。
-  // 結果只有一種時說書人只能確認；真獵手中毒時二選一（演示裏沒有隱士）
+  // 結果只有一種時說書人只能確認，中毒就是未中（演示裏沒有隱士，所以都是一個按鈕）
   const real = seatOf(from).role === 'slayer' && !world.slayerUsed, demon = seatOf(to).role === 'imp', bad = world.poisoned === from;
   if (seatOf(from).role === 'slayer') world.slayerUsed = true;
   world.ruling = { kind: 'slayer', seatId: from, role: seatOf(from).role, why: bad ? '中毒' : null, to, real, demon,
-    auto: real && demon && !bad, forced: !real || !demon || !bad, reg: null };
+    auto: real && demon && !bad, forced: true, reg: null };
 }
 // 說書人裁定（和 lib/day.js resolveRuling 一致）
 function resolveRuling(work) {
@@ -425,13 +425,13 @@ const SCENES = {
       ['我是中毒獵手', () => { resetDay(); Object.assign(world, { shotEver: [], slayerUsed: false, ruling: null, poisoned: ME }); view({ me: ME }); setRoles(['slayer', 'chef', 'imp', 'empath', 'poisoner', 'virgin', 'saint']); }],
       // 貞潔者被提名：投票照常開始；健康貞潔者遇上真鎮民 30 秒後（或喊計票前）自動反噬，說書人小窗裏可以提前
       ['貞潔者', () => {
-        resetDay(); Object.assign(seatOf('s6'), { role: 'virgin', fakeRole: null }); Object.assign(world, { ruling: null, poisoned: null }); view({ st: true }); nominate('s2', 's6');
+        resetDay(); Object.assign(seatOf('s6'), { role: 'virgin', fakeRole: null }); Object.assign(seatOf('s2'), { role: 'chef', fakeRole: null }); Object.assign(world, { ruling: null, poisoned: null }); view({ st: true }); nominate('s2', 's6');
         world.virginCheck = { kind: 'virgin', seatId: 's6', role: 'virgin', real: true, why: null, from: 's2', auto: true, forced: true, reg: null, due: Date.now() + 30000 };
       }],
-      // 中毒的貞潔者：說書人二選一，裁定前不能計票
-      ['中毒貞潔者', () => {
-        resetDay(); Object.assign(seatOf('s6'), { role: 'virgin', fakeRole: null }); Object.assign(world, { ruling: null, poisoned: 's6' }); view({ st: true }); nominate('s2', 's6');
-        world.virginCheck = { kind: 'virgin', seatId: 's6', role: 'virgin', real: true, why: '中毒', from: 's2', auto: false, forced: false, reg: null, due: null };
+      // 間諜提名貞潔者：可以被當作鎮民，說書人二選一，裁定前不能計票
+      ['間諜提名', () => {
+        resetDay(); Object.assign(seatOf('s6'), { role: 'virgin', fakeRole: null }); Object.assign(seatOf('s2'), { role: 'spy', fakeRole: null }); Object.assign(world, { ruling: null, poisoned: null }); view({ st: true }); nominate('s2', 's6');
+        world.virginCheck = { kind: 'virgin', seatId: 's6', role: 'virgin', real: true, why: null, from: 's2', auto: false, forced: false, reg: 'spy', due: null };
       }],
       ['酒鬼鎮長', () => {
         resetDay(); Object.assign(world, { virginCheck: null, poisoned: null });
@@ -440,7 +440,7 @@ const SCENES = {
         view({ st: true });
         world.ruling = { kind: 'mayor', seatId: 's6', role: 'mayor', why: '酒鬼', auto: false, forced: true, reg: null };
       }],
-      // 只有一個結果：健康的真獵手射平民 / 射惡魔、假獵手開槍；二選一：真獵手中毒
+      // 都只有一個結果：健康的真獵手射平民 / 射惡魔、假獵手開槍、真獵手中毒
       ['獵手·空', () => { Object.assign(world, { ruling: null, slayerUsed: false, poisoned: null }); view({ st: true }); slay('s4', 's5'); }],
       ['獵手·中', () => { Object.assign(world, { ruling: null, slayerUsed: false, poisoned: null }); view({ st: true }); slay('s4', 's3'); }],
       ['獵手中毒', () => { Object.assign(world, { ruling: null, slayerUsed: false, poisoned: 's4' }); view({ st: true }); slay('s4', 's3'); }],
@@ -556,6 +556,96 @@ const SCENES = {
         Object.assign(world, { phase: 'day', day: 4 }); refresh();
         fx({ k: 'mayor', seat: 's6' }); win('good', '僅剩三人且無人被處決，鎮長獲勝');
       }],
+    ],
+  },
+  // 黯月初升、夢殞春宵的技能演出（fx-ab-dlc.js）：一個角色一個按鈕，後面幾個是說書人魔典和全桌的
+  bmr: {
+    title: '黯月',
+    init() { world.scriptId = 'bmr'; asMe('sailor'); },
+    steps: [
+      ['水手', () => { asMe('sailor'); pick(ME, ['s4']); }],
+      ['驅魔人', () => { asMe('exorcist'); pick(ME, ['s3']); }],
+      ['旅店老闆', () => { asMe('innkeeper'); pick(ME, ['s2', 's5']); }],
+      ['賭徒', () => { asMe('gambler'); pick(ME, ['s3'], 'po'); }],
+      ['侍臣', () => { asMe('courtier'); pick(ME, [], 'tealady'); }],
+      ['教授', () => { asMe('professor', () => { seatOf('s4').dead = true; }); pick(ME, ['s4']); }],
+      ['教父', () => { asMe('godfather'); pick(ME, ['s2']); }],
+      ['魔鬼代言人', () => { asMe('devilsadvocate'); pick(ME, ['s6']); }],
+      ['刺客', () => { asMe('assassin'); pick(ME, ['s4']); }],
+      ['僵怖', () => { asMe('zombuul'); pick(ME, ['s5']); }],
+      ['普卡', () => { asMe('pukka'); pick(ME, ['s4']); }],
+      ['沙巴洛斯', () => { asMe('shabaloth'); pick(ME, ['s3', 's6']); }],
+      ['珀', () => { asMe('po'); pick(ME, ['s4']); }],
+      ['珀·蓄力', () => { asMe('po'); say('st', ME, '你今晚沒有選人：下一次可以選三人', { info: true, night: world.night, src: 'po', f: [{ r: 'po', named: true }, { w: '蓄力', k: 'evil' }] }); fx({ k: 'act', src: 'po', to: [], charge: true, msg: world.seq }, ME); }],
+      ['珀·三人', () => { asMe('po'); pick(ME, ['s2', 's4', 's6']); }],
+      ['祖母', () => { asMe('grandmother'); giveInfo('grandmother', { kind: 'role', extra: { target: '2號阿強', targetId: 's2' } }, { role: 'chef' }); }],
+      ['侍女', async () => {
+        asMe('chambermaid');
+        fx({ k: 'act', src: 'chambermaid', to: ['s3', 's5'], pick: true }, ME); refresh(); await wait(2400);
+        giveInfo('chambermaid', { kind: 'number', extra: { nbIds: ['s3', 's5'] } }, { n: 1 });
+      }],
+      ['教父首夜', () => { asMe('godfather'); say('st', ME, '在場的外來者：莽夫、修補匠', { info: true, night: world.night, src: 'godfather', f: [{ w: '外來者' }, { r: 'goon', named: true }, { r: 'tinker', named: true }] }); fx({ k: 'info', src: 'godfather', kind: 'list', roles: ['goon', 'tinker'], msg: world.seq }, ME); }],
+      ['被驅魔', () => { asMe('po'); say('st', ME, '驅魔人 4號老王 選中了你：今晚你不會被喚醒', { info: true, night: world.night, src: 'exorcist', marks: [{ seatId: 's4', r: 'exorcist', text: '驅魔人' }], f: [{ s: 's4' }, { w: '是' }, { r: 'exorcist', named: true }] }); fx({ k: 'info', src: 'exorcised', from: 's4', msg: world.seq }, ME); }],
+      ['魔典·三殺', async () => {
+        asMe('washerwoman'); view({ st: true });
+        nightKill('s2'); nightKill('s5');
+        fx({ k: 'grim', src: 'po', seat: 's3', to: ['s2', 's5', 's6'], res: 'kill', each: [{ id: 's2', res: 'kill' }, { id: 's5', res: 'kill' }, { id: 's6', res: 'blocked', why: 'protect' }] }, 'st');
+      }],
+      ['魔典·普卡', () => { asMe('washerwoman'); view({ st: true }); nightKill('s2'); fx({ k: 'grim', src: 'pukka', seat: 's3', to: ['s5'], res: 'poison', dies: ['s2'] }, 'st'); }],
+      ['茶藝師', () => { asMe('washerwoman', () => { seatOf('s6').role = 'tealady'; }); view({ st: true }); grim('po', 's3', 's6', 'blocked', { why: 'tealady' }); }],
+      ['弄臣', () => { asMe('washerwoman', () => { seatOf('s6').role = 'fool'; }); view({ st: true }); grim('shabaloth', 's3', 's6', 'blocked', { why: 'fool' }); }],
+      ['水手不死', () => { asMe('washerwoman', () => { seatOf('s6').role = 'sailor'; }); view({ st: true }); grim('assassin', 's5', 's6', 'blocked', { why: 'sailor' }); }],
+      ['吟遊詩人', () => { asMe('washerwoman', () => { seatOf('s2').role = 'minstrel'; }); view({ st: true }); fx({ k: 'ststamp', seat: 's2', word: '全場醉酒', tone: 'poison', src: 'minstrel' }, 'st'); }],
+      ['復活', () => { asMe('washerwoman'); Object.assign(world, { phase: 'day', day: 3 }); fx({ k: 'revive', seat: 's4' }); }],
+    ],
+  },
+  snv: {
+    title: '夢殞',
+    init() { world.scriptId = 'snv'; asMe('snakecharmer'); },
+    steps: [
+      ['舞蛇人', () => { asMe('snakecharmer'); pick(ME, ['s3']); }],
+      ['蛇換了我', () => { asMe('imp'); fx({ k: 'changed', src: 'snakecharmer', role: 'snakecharmer', was: 'vortox' }, ME); fx({ k: 'role', role: 'snakecharmer' }, ME); }],
+      ['女巫', () => { asMe('witch'); pick(ME, ['s4']); }],
+      ['洗腦師', () => { asMe('cerenovus'); pick(ME, ['s2'], 'oracle'); }],
+      ['麻臉巫婆', () => { asMe('pithag'); pick(ME, ['s4'], 'sage'); }],
+      ['被變身', () => { asMe('oracle'); fx({ k: 'changed', src: 'pithag', role: 'sage', was: 'oracle' }, ME); fx({ k: 'role', role: 'sage' }, ME); }],
+      ['哲學家', () => { asMe('philosopher'); say('st', ME, '你變成了神諭者', { info: true, night: world.night, k: 'role', src: 'oracle', f: [{ op: 'become' }, { r: 'oracle' }] }); fx({ k: 'act', src: 'philosopher', to: [], role: 'oracle', pick: true }, ME); fx({ k: 'role', role: 'oracle' }, ME); }],
+      ['理髮師', () => { asMe('fanggu'); say('st', ME, '你選擇了 2號阿強、5號Lily', { info: true, night: world.night, k: 'act', src: 'barber', f: [{ op: 'to' }, { s: 's2' }, { s: 's5' }] }); fx({ k: 'act', src: 'barber', to: ['s2', 's5'], msg: world.seq }, ME); }],
+      ['被理髮', () => { asMe('oracle'); fx({ k: 'changed', src: 'barber', role: 'sage', was: 'oracle' }, ME); fx({ k: 'role', role: 'sage' }, ME); }],
+      ['方古', () => { asMe('fanggu'); pick(ME, ['s4']); }],
+      ['方古跳身', () => { asMe('klutz', () => { seatOf('s3').dead = true; }); seatOf(ME).role = 'fanggu'; say('st', ME, '方古選中了你：你變成了邪惡的方古', { info: true, night: world.night, k: 'role', src: 'fanggu', f: [{ op: 'become' }, { r: 'fanggu' }] }); fx({ k: 'demon', role: 'fanggu', was: 'klutz', from: 's3', why: 'fanggu' }, ME); }],
+      ['亡骨魔', () => { asMe('vigormortis'); pick(ME, ['s5']); }],
+      ['諾-達鯴', () => { asMe('nodashii'); pick(ME, ['s2']); }],
+      ['渦流', () => { asMe('vortox'); pick(ME, ['s6']); }],
+      ['鐘錶匠', () => { asMe('clockmaker'); giveInfo('clockmaker', { kind: 'number' }, { n: 2 }); }],
+      ['數學家', () => { asMe('mathematician'); giveInfo('mathematician', { kind: 'number' }, { n: 2 }); }],
+      ['賣花·有', () => { asMe('flowergirl'); giveInfo('flowergirl', { kind: 'yesno' }, { yes: true }); }],
+      ['賣花·沒', () => { asMe('flowergirl'); giveInfo('flowergirl', { kind: 'yesno' }, { yes: false }); }],
+      ['公告員·有', () => { asMe('towncrier'); giveInfo('towncrier', { kind: 'yesno' }, { yes: true }); }],
+      ['公告員·沒', () => { asMe('towncrier'); giveInfo('towncrier', { kind: 'yesno' }, { yes: false }); }],
+      ['神諭者', () => { asMe('oracle', () => { seatOf('s4').dead = true; seatOf('s7').dead = true; }); giveInfo('oracle', { kind: 'number' }, { n: 2 }); }],
+      ['女裁縫·同', async () => {
+        asMe('seamstress');
+        fx({ k: 'act', src: 'seamstress', to: ['s2', 's6'], pick: true }, ME); refresh(); await wait(2000);
+        giveInfo('seamstress', { kind: 'yesno', extra: { ids: ['s2', 's6'] } }, { yes: true });
+      }],
+      ['女裁縫·異', () => { asMe('seamstress'); giveInfo('seamstress', { kind: 'yesno', extra: { ids: ['s3', 's6'] } }, { yes: false }); }],
+      ['築夢師', async () => {
+        asMe('dreamer');
+        fx({ k: 'act', src: 'dreamer', to: ['s5'], pick: true }, ME); refresh(); await wait(1700);
+        giveInfo('dreamer', { kind: 'dream', extra: { target: '5號Lily', targetId: 's5' } }, { good: 'savant', evil: 'witch' });
+      }],
+      ['賢者', () => { asMe('sage', () => { seatOf(ME).dead = true; }); giveInfo('sage', { kind: 'two', team: 'demon', plain: true }, { a: 's3', b: 's6', role: 'vortox' }); }],
+      ['鏡像雙子', () => { asMe('eviltwin'); say('st', ME, '你的雙子是 6號大偉【神諭者】', { info: true, night: world.night, src: 'eviltwin', marks: [{ seatId: 's6', r: 'oracle', text: '神諭者' }], f: [{ w: '雙子' }, { s: 's6' }, { w: '是' }, { r: 'oracle', named: true }] }); fx({ k: 'info', src: 'eviltwin', id: 's6', role: 'oracle', msg: world.seq }, ME); }],
+      ['被洗腦', () => { asMe('oracle'); say('st', ME, '洗腦師選中了你：明天要「瘋狂」地證明自己是【賢者】', { info: true, night: world.night, src: 'cerenovus', f: [{ w: '瘋狂', k: 'evil' }, { r: 'sage', named: true }] }); fx({ k: 'info', src: 'mad', role: 'sage', msg: world.seq }, ME); }],
+      ['魔典·跳身', () => { asMe('washerwoman', () => { seatOf('s7').role = 'klutz'; }); view({ st: true }); nightKill('s3'); fx({ k: 'grim', src: 'fanggu', seat: 's3', to: ['s7'], res: 'starpass', dies: ['s3'] }, 'st'); }],
+      ['詛咒發動', async () => {
+        asMe('washerwoman'); Object.assign(world, { phase: 'day', day: 2 }); refresh();
+        nominate('s2', 's4'); refresh(); await wait(2600);
+        Object.assign(seatOf('s2'), { dead: true, deathBy: null }); fx({ k: 'curse', seat: 's2' });
+        sys('2號阿強 死亡。', { k: 'slayhit', seat: 's2' });
+      }],
+      ['渦流勝', () => { asMe('washerwoman'); Object.assign(world, { phase: 'day', day: 3 }); fx({ k: 'vortex' }); win('evil', '渦流在場，白天無人被處決'); }],
     ],
   },
   // 黯月初升 / 夢殞春宵裏少見的信息卡和選角色（賭徒、侍臣、旅店老闆、築夢師、渦流、和平主義者）

@@ -60,7 +60,7 @@ export function openSetup(ctx) {
     ]),
     h('div', { class: 'row', style: { justifyContent: 'space-between' } },
       h('button', { class: 'btn ghost', onclick: reset }, '全部恢復隨機'),
-      h('button', { class: 'btn primary', onclick: closeModal }, '完成'))), { wide: true, cls: 'setup-modal' });
+      h('button', { class: 'btn', onclick: closeModal }, '完成'))), { wide: true, cls: 'setup-modal' });
 }
 
 const roleGrid = (ids, onPick) => h('div', { class: 'guess-grid' }, ids.map(id =>
@@ -112,7 +112,7 @@ export function pickBluff(ctx, at) {
   row.append(...slots);
   const box = modal('惡魔偽裝', h('div', {}, row,
     teamsOf(ids).map(([t, list]) => [h('div', { class: 'sheet-team', style: { color: TEAMS[t].color } }, TEAMS[t].name), h('div', { class: 'guess-grid' }, list.map(tile))]),
-    h('div', { class: 'row', style: { justifyContent: 'flex-end' } }, h('button', { class: 'btn primary', onclick: closeModal }, '完成'))), { wide: true, cls: 'bluff-modal' });
+    h('div', { class: 'row', style: { justifyContent: 'flex-end' } }, h('button', { class: 'btn', onclick: closeModal }, '完成'))), { wide: true, cls: 'bluff-modal' });
   paint();
   row.classList.add('live'); // 開彈窗時三張牌不演，之後選的才蓋章
   bluffSheet = () => {

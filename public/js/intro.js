@@ -47,7 +47,7 @@ const S = { seats: Array.from({ length: 7 }, (_, i) => ({ id: 'h' + (i + 1), nam
 const turn = () => h('div', { class: 'cx turn-pane poison' },
   h('div', { class: 'tp-head' }, roleToken('poisoner'), h('span', { class: 'tp-ico' }, icon('drop'))),
   h('div', { class: 'tp-say' }, '選擇一名玩家，使其', h('b', {}, '「中毒」')),
-  h('span', { class: 'btn primary' }, '確認'));
+  h('span', { class: 'btn' }, '確認'));
 const marked = n => h('span', { class: 'it-seat' }, h('div', { class: 'token md blank solid' }, n), h('span', { class: 'pm q' }, mini('chef')));
 const notes = () => h('div', { class: 'it-notes' },
   h('div', { class: 'it-seats' }, marked(2), marked(6)),
@@ -89,7 +89,7 @@ export function showIntro(ls, { wait, after } = {}) {
   const prev = h('button', { class: 'btn ghost it-prev', onclick: () => go(at - 1) }, '‹ 上一頁');
   // 下一張；最後一張進大廳。牌還在飛時不算：連點兩下翻到最後一張，不能連最後一張都沒看到就關掉
   const ahead = () => { if (at < pages.length - 1) go(at + 1); else if (!busy) close(); };
-  const next = h('button', { class: 'btn primary it-next', onclick: ahead });
+  const next = h('button', { class: 'btn it-next', onclick: ahead });
   const root = h('div', { class: 'intro hold', role: 'dialog', 'aria-modal': 'true', 'aria-label': tr('介紹') },
     skyLife('night'),
     h('div', { class: 'lobby-town', 'aria-hidden': 'true' }, townLife()), // 和大廳同一個小鎮：開屏接過來、收起時交回去都不換景
@@ -192,7 +192,7 @@ export function showIntro(ls, { wait, after } = {}) {
   }
   function key(e) {
     if (e.isComposing) return;
-    const k = { ArrowRight: 1, Enter: 1, ArrowLeft: -1, Escape: 0 }[e.key];
+    const k = { ArrowRight: 1, ArrowLeft: -1, Escape: 0 }[e.key];
     if (k === undefined) return;
     e.preventDefault(); e.stopPropagation();
     if (k === 0) close(); else if (k > 0) next.click(); else go(at - 1);
