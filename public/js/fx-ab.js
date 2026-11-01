@@ -382,16 +382,19 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
     const st = h('div', { class: 'ab-stamp', style: { '--c': col(tone), '--g': col(tone === 'brass' ? 'night' : 'brass'), fontSize: (fs || Math.max(18, tk * 0.42)) + 'px' } },
       h('b', { class: 'gh' }, text), h('b', {}, text));
     parent.append(st);
-    sfx(snd || 'stamp', soft ? 0.6 : 1);
     if (soft) {
       anim(st, [{ transform: 'translate(-50%,-50%) scale(1.5) rotate(-4deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-7deg)', opacity: 1 }], { duration: 360, easing: 'ease-out' });
-      await wait(300);
+      await wait(180);
+      sfx(snd || 'stamp', 0.6);
+      await wait(120);
       return st;
     }
     anim(st, [{ transform: 'translate(-50%,-50%) scale(3) rotate(-18deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(.92) rotate(-6deg)', opacity: 1, offset: 0.7 },
       { transform: 'translate(-50%,-50%) rotate(-7deg)', opacity: 1 }], { duration: 230, easing: 'cubic-bezier(.5,0,.7,1)' });
     anim(st.firstChild, [{ translate: '.16em -.12em', opacity: 0.85 }, { translate: '.16em -.12em', opacity: 0.85, offset: 0.45 }, { translate: '0 0', opacity: 0 }], { duration: 600, easing: 'cubic-bezier(.3,0,.2,1)' });
-    await wait(165);
+    await wait(125); // 聲音跟著章落定，不是跟著它起手
+    sfx(snd || 'stamp');
+    await wait(40);
     const c = cen(st);
     ring(c.x, c.y, tone, c.h * 1.6, 2.2, 440);
     burst(c.x, c.y, tone, { n: 10, R: c.w * 0.6, big: 0.7, keep: false });

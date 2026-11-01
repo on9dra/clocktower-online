@@ -1,11 +1,11 @@
-// 演出音效：除了入夜的鐘都放錄音（public/sfx），鐘用 Web Audio 現場合成；錄音沒載完、解不開時也放合成聲。默認開，頂欄喇叭一鍵靜音；「⋯ → 設置」裏還有音量、煙花、煙花聲（都記在本機）
+// 演出音效：除了入夜的鐘都放錄音（public/sfx），鐘用 Web Audio 現場合成；錄音沒載完、解不開時也放合成聲。默認開，頂欄喇叭一鍵全靜音；「⋯ → 設置」裏音效、音樂各有音量和靜音，還有煙花、煙花聲（都記在本機）
 let ac = null, master = null, bus = null, music = null;
 // 不是每個動作都配聲音：只留有情緒、或者告訴你出了大事的那些。
 // 有錄音的音效：public/sfx/<名字>.m4a，蓋掉 SOUNDS 裏的同名合成聲，響度寫在文件裏（tools/sfx-build.py）。
 // 實物聲每次音高隨機浮動一點，連著響才不像複製粘貼；樂器音的音高不動
 const WOBBLE = {};
 const sampled = (names, wobble) => names.split(' ').forEach(n => { WOBBLE[n] = wobble; });
-sampled('good evil dawn crown turn bell hum shimmer key tag', 0);
+sampled('good evil dawn crown turn bell hum shimmer key tag nominate', 0);
 sampled('stamp stab slash thud clang crack zap rope demon page tock tick swish splat caw dig splash fire fw smack sniff beat2 unlock whoosh clip cork drip flap flip hiss leaf miss rattle rumble', 0.08);
 const buffers = {}, waiting = Object.keys(WOBBLE);
 let downloading = 0;
@@ -20,12 +20,10 @@ function pump() {
   }
 }
 const LS = 'botc.mute', PREFS = 'botc.sfx';
-export const muted = () => { try { return localStorage.getItem(LS) === '1'; } catch { return false; } };
 const watchers = [];
 export const onSoundChange = fn => watchers.push(fn);
-export function setMuted(v) { try { localStorage.setItem(LS, v ? '1' : ''); } catch { /* 忽略 */ } watchers.forEach(fn => fn()); }
-// 設置：vol 音量 0–1；music 背景音樂；musicVol 音樂音量 0–1；fw 煙花；fwSound 煙花聲
-const DEF = { vol: 0.8, music: true, musicVol: 0.5, fw: true, fwSound: true };
+// 設置：sfx 音效開關；vol 音效音量 0–1；music 音樂開關；musicVol 音樂音量 0–1；fw 煙花；fwSound 煙花聲
+const DEF = { sfx: true, vol: 0.8, music: true, musicVol: 0.5, fw: true, fwSound: true };
 export function prefs() { try { return { ...DEF, ...JSON.parse(localStorage.getItem(PREFS) || '{}') }; } catch { return { ...DEF }; } }
 export function setPref(k, v) {
   const p = { ...prefs(), [k]: v };
@@ -34,6 +32,16 @@ export function setPref(k, v) {
   if (music) music.gain.value = p.musicVol;
   watchers.forEach(fn => fn());
 }
+// 全部靜音（頂欄喇叭）：再按一下回到之前的樣子。舊版的靜音記號換成兩個開關都關
+export const muted = () => { const p = prefs(); return !p.sfx && !p.music; };
+let before = null;
+export function setMuted(v) {
+  const p = prefs();
+  if (v) before = { sfx: p.sfx, music: p.music };
+  setPref('sfx', v ? false : before ? before.sfx : true);
+  setPref('music', v ? false : before ? before.music : true);
+}
+try { if (localStorage.getItem(LS) === '1') { setPref('sfx', false); setPref('music', false); } localStorage.removeItem(LS); } catch { /* 忽略 */ }
 
 // 瀏覽器要求有過用戶操作才能出聲：第一次點擊時建立
 function ctx() {
@@ -102,6 +110,7 @@ const bell = (f, at = 0, vol = 0.35) => [1, 2.76, 5.4, 8.9].forEach((k, i) => to
 
 const SOUNDS = {
   night: () => { bell(196); bell(196, 0.9, 0.25); },
+  nominate: () => { noise({ dur: 0.8, freq: 3000, vol: 0.12, to: 7000, type: 'highpass' }); tone(73, { at: 0.8, dur: 0.6, vol: 0.5, to: 60 }); },
   dawn: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, { at: i * 0.12, dur: 0.9, type: 'triangle', vol: 0.18 })),
   stab: () => { noise({ dur: 0.12, freq: 3000, vol: 0.5, type: 'highpass' }); tone(110, { dur: 0.5, type: 'square', vol: 0.25, to: 40 }); },
   thud: () => { tone(70, { dur: 0.6, vol: 0.6, to: 30 }); noise({ dur: 0.4, freq: 150, vol: 0.4, type: 'lowpass' }); },
@@ -178,7 +187,7 @@ function sample(name, k) {
 
 // k：這一聲的音量倍數（煙花這種背景聲壓低）
 export function play(name, k = 1) {
-  if (muted() || !SOUNDS[name] || !ctx() || ac.state !== 'running') return;
+  if (!prefs().sfx || !SOUNDS[name] || !ctx() || ac.state !== 'running') return;
   try {
     const rec = name === 'pageturn' ? 'page' : name;
     if (buffers[rec]) return sample(rec, k);

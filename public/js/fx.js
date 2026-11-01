@@ -11,7 +11,7 @@ import { tactile } from './tactile.js';
 import { icon, roleIcon, seatBadge, gallows, ACTS } from './glyph.js';
 import { play } from './sfx.js';
 import { ROLES, TEAMS } from './roles.js';
-import { setBgm } from './bgm.js';
+import { setBgm, duckBgm } from './bgm.js';
 import { burst, setBusy, setFireworks } from './fireworks.js';
 import { EGG } from './score.js';
 
@@ -180,7 +180,10 @@ async function runQueue() {
   }
   running = false; cur = null; skipping = false;
   rerender();
+  followBgm();
 }
+// 音樂跟著演出走：排著的演出播完才換，入夜的鐘、天亮、提名和計票的章這幾處在自己的那一拍換
+const followBgm = () => setBgm(lastState?.phase, !!lastState?.nomination);
 setBusy(() => running && !!cur?.block); // 煙花不在擋操作的演出上面放
 function skipAll() {
   skipping = true;
@@ -257,16 +260,19 @@ function beat(el, { sound, power = 0 } = {}) {
   if (power) shake(power);
 }
 // 蓋章：從大到小砸下來，落定時一圈墨線向外散開；soft 是票數不足那種慢慢落下、不震。card 是章落在的那個元素
-async function slamStamp(card, text, tone, { power = 0, sound = 'stamp', soft = false, color } = {}) {
+// land：章落定那一刻要做的事
+async function slamStamp(card, text, tone, { power = 0, sound = 'stamp', soft = false, color, land } = {}) {
   const st = h('div', { class: 'ink-stamp ' + tone, style: color ? { color } : null }, text);
   card.append(st);
-  sfx(sound, soft ? 0.6 : 1);
   anim(st, soft
     ? [{ transform: 'translate(-50%,-50%) scale(1.5) rotate(-4deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) rotate(-7deg)', opacity: 1 }]
     : [{ transform: 'translate(-50%,-50%) scale(3) rotate(-18deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(.94) rotate(-6deg)', opacity: 1, offset: 0.7 },
       { transform: 'translate(-50%,-50%) rotate(-7deg)', opacity: 1 }],
     { duration: soft ? 420 : 260, easing: soft ? 'ease-out' : 'cubic-bezier(.5,0,.7,1)' });
-  await wait(soft ? 300 : 190);
+  await wait(soft ? 200 : 140); // 聲音跟著章落定，不是跟著它起手
+  sfx(sound, soft ? 0.6 : 1);
+  land?.();
+  await wait(soft ? 100 : 50);
   if (!soft) {
     if (power) shake(power);
     ring(card, tone, 2.4, color);
@@ -544,6 +550,7 @@ const SCENES = {
     sfx('night'); beat(em); ring(em, 'night', 2);
     await wait(900);
     sky('night');
+    followBgm();
     beat(title);
     await wait(1800);
     await closeCard(card);
@@ -563,6 +570,7 @@ const SCENES = {
     sfx('dawn'); beat(em); ring(em, 'brass', 2);
     await wait(700);
     sky('day');
+    followBgm();
     beat(title);
     await wait(700);
     if (!e.deaths.length) {
@@ -584,10 +592,12 @@ const SCENES = {
   // 提名：桌面壓暗，一張紙牌從下面滑上來（提名者 → 被提名者），一枚紅色「提名」印章砸在牌上。一天好幾次，不震
   nominate: (e, s) => ({ block: true, run: async () => {
     veil(WASH.ink, 200);
+  // 紙牌上來時鼓和弦樂推起來、白天的音樂退到後面；章落下的那一拍，提名音樂的第一個音同時起
     const card = paperCard([bigToken(s, e.from, 'from'), h('div', { class: 'pc-arrow' }, icon('to')), bigToken(s, e.to, 'to')], 'face');
     cardIn(card);
-    await wait(520);
-    await slamStamp(card, '提名', 'red');
+    sfx('nominate'); duckBgm();
+    await wait(700);
+    await slamStamp(card, '提名', 'red', { land: () => setBgm('day', true, true) });
     await wait(1000);
     await closeCard(card);
   } }),
@@ -629,7 +639,7 @@ const SCENES = {
     beat(num); await wait(380);
     beat(need); row.classList.add('in'); await wait(440);
     await slamStamp(slot, { block: '上處決台', tie: '平票', fail: '票數不足' }[e.res], { block: 'red', tie: 'brass', fail: 'gray' }[e.res],
-      hit ? { power: 14 } : { soft: e.res !== 'tie' });
+      { ...(hit ? { power: 14 } : { soft: e.res !== 'tie' }), land: () => setBgm('day') });
     await wait(1300);
     fadeOut(getStage(), 380); await wait(380);
   } }),
@@ -789,6 +799,7 @@ const SCENES = {
       veil(good ? WASH.good : WASH.evil, 500);
       const chars = [...(good ? '善良獲勝' : '邪惡獲勝')].map(ch => h('span', {}, ch));
       const slot = verdict ? h('div', { class: 'pc-slot' }) : null;
+      followBgm();
       const reward = verdict ? h('div', { class: 'pc-reward' }, verdict === 'win' && gainChip('trophy', '+1'), gainChip('egg', `+${gain}`)) : null;
       const gains = reward ? [...reward.children] : [];
       const sub = s.winReason ? h('div', { class: 'pc-sub' }, s.winReason) : null;
@@ -1005,7 +1016,6 @@ export function onState(s) {
   ensureScene();
   document.body.classList.toggle('my-turn', !!s.prompt);
   setFireworks(s.fireworks || null);
-  setBgm(s.phase, !!s.nomination);
   const p = prev, id = `${s.code}:${s.isSt ? 'st' : s.myId}:${s.peek?.seatId || ''}`;
   prev = s;
   lastState = s;
@@ -1014,7 +1024,7 @@ export function onState(s) {
   const evs = s.fx || [], top = evs.length ? evs.at(-1).seq : 0;
   // 說書人代入視角、換回來：桌面內容整個換了，淡進來
   if (p && who !== id && !reduced()) requestAnimationFrame(() => document.querySelector('.town')?.animate({ opacity: [0, 1] }, 260));
-  if (!p || who !== id) { who = id; seen = Math.max(seen, top); if (!skyHold) firstSky(s.phase); return; }
+  if (!p || who !== id) { who = id; seen = Math.max(seen, top); followBgm(); if (!skyHold) firstSky(s.phase); return; }
   const now = Date.now();
   const wasDead = new Set(p.seats.filter(x => x.dead).map(x => x.id));
   const newlyDead = new Set(s.seats.filter(x => x.dead && !wasDead.has(x.id)).map(x => x.id));
@@ -1076,6 +1086,7 @@ export function onState(s) {
 const calm = () => document.hidden || reduced();
 const pause = ms => new Promise(r => setTimeout(r, ms));
 const body = document.body;
+  if (!running) followBgm();
 // 各件東西進場時的樣子：[選擇器, 開頭, 延遲, 時長]。退場倒著放（K 倍速）
 const PARTS = [
   ['.topbar', { translate: '0 -100%' }, 160, 440],

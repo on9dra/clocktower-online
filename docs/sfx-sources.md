@@ -4,7 +4,7 @@
 
 ## 樂器採樣（CC0）
 
-`key`、`good`、`evil`、`dawn`、`crown`、`turn`、`hum`、`shimmer`、`tick`、`clang` 由這兩個採樣庫的樂器做成，用了哪些在腳本的 `PACKS` 裏：
+`key`、`nominate`、`good`、`evil`、`dawn`、`crown`、`turn`、`hum`、`shimmer`、`tick`、`clang` 由這兩個採樣庫的樂器做成，用了哪些在腳本的 `PACKS` 裏：
 
 - [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE)，Versilian Studios
 - [Versilian Community Sample Library](https://github.com/sgossner/VCSL)，Versilian Studios
@@ -54,16 +54,10 @@
 
 ## 背景音樂（CC0）
 
-來自 OpenGameArt，逐條在曲目頁核對過授權字段。文件由 `tools/bgm-build.py` 做成。
+`vote.m4a` 是這個項目自己寫的譜，由 `tools/bgm-score.py` 用上面的 VSCO 2 CE 採樣渲染；其餘來自 OpenGameArt，逐條在曲目頁核對過授權字段。文件由 `tools/bgm-build.py` 做成。
 
-| 文件 | 原名 | 作者 |
-|---|---|---|
-| `day-a.m4a` | [Medieval: Market Day](https://opengameart.org/content/medieval-market-day) | RandomMind |
-| `day-b.m4a` | [Medieval: The Old Tower Inn](https://opengameart.org/content/medieval-the-old-tower-inn) | RandomMind |
-| `day-c.m4a` | [Shakkar](https://opengameart.org/content/shakkar) | zesona |
-| `night-a.m4a` | [Sirens in Darkness](https://opengameart.org/content/sirens-in-darkness) | cynicmusic |
-| `night-b.m4a` | [Mysterious](https://opengameart.org/content/mysterious) | nene |
-| `night-c.m4a` | [Dark Shrine Loop](https://opengameart.org/content/dark-shrine-loop) | qubodup |
-| `vote-a.m4a` | [Determined Pursuit (epic orchestra loop)](https://opengameart.org/content/determined-pursuit-epic-orchestra-loop) | Emma_MA |
-| `vote-b.m4a` | [Battle Theme A](https://opengameart.org/content/battle-theme-a) | cynicmusic |
-| `vote-c.m4a` | [Dramatic Boss Encounter](https://opengameart.org/content/dramatic-boss-encounter) | cynicmusic |
+| 文件 | 用在 | 原名 | 作者 |
+|---|---|---|---|
+| `day.m4a` | 白天 | [Suspicious Loop](https://opengameart.org/content/suspicious-loop) | Hazmat Harry |
+| `night.m4a` | 夜晚 | [Mysterious](https://opengameart.org/content/mysterious) | nene |
+| `vote.m4a` | 提名 | 追逼 | 自編 |

@@ -92,6 +92,4 @@ body.art .ex-noose { border-color: transparent; }
 .art-gallery .row-art { display: flex; flex-wrap: wrap; align-items: end; gap: 18px; }
 .art-gallery .row-art img { height: 96px; }
 .art-gallery .curtain-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.music-bench { align-content: center; justify-content: center; }
-.music-bench .row { display: grid; grid-template-columns: 4em repeat(3, 56px); align-items: center; gap: 8px; margin: 0; }
 .art-gallery .curtain-cmp > div { aspect-ratio: 3 / 4; background: var(--val) top left / auto 14% repeat-x, var(--drape) 0 100% / auto 100% repeat-x; }

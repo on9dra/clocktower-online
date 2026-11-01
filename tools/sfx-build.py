@@ -23,7 +23,7 @@ MASTER_DB = 20 * np.log10(0.6 * 0.8)  # sfx.js 的總音量，下面 LEVEL 是�
 LEVEL = {
     'thud': -20, 'good': -21, 'evil': -22, 'rope': -22, 'slash': -22, 'stab': -23, 'stamp': -23,
     'tock': -24, 'demon': -24, 'dawn': -24, 'zap': -24, 'beat2': -24, 'clang': -25,
-    'crack': -26, 'rumble': -26, 'tag': -26, 'crown': -27, 'turn': -27, 'splat': -27,
+    'crack': -26, 'rumble': -26, 'tag': -26, 'nominate': -24, 'crown': -27, 'turn': -27, 'splat': -27,
     'caw': -28, 'flip': -28, 'cork': -28, 'hum': -28, 'bell': -28, 'splash': -28, 'dig': -28,
     'fire': -30, 'clip': -30, 'drip': -30, 'key': -30, 'miss': -30, 'shimmer': -30, 'fw': -30, 'smack': -30, 'unlock': -30,
     'swish': -31, 'whoosh': -32, 'hiss': -32, 'rattle': -32, 'flap': -33, 'tick': -33, 'page': -34, 'sniff': -34, 'leaf': -36,
@@ -71,6 +71,12 @@ PACKS = {
     'bass': ('VSCO-2-CE', r'Strings/Solo Contrabass/SusNV/.*_v3_rr1\.wav'),
     'harp': ('VSCO-2-CE', r'Strings/Harp/KSHarp_.*\.wav'),
     'gong': ('VSCO-2-CE', r'Percussion/gongHit_p\.wav'),
+    'timphit': ('VSCO-2-CE', r'Percussion/Timpani/Timpani3_Hit_v3_rr1_Sum\.wav'),
+    'timproll': ('VSCO-2-CE', r'Percussion/Timpani/Rolls/Timpani2_Roll_v3_rr1_Sum\.wav'),
+    'cymrise': ('VSCO-2-CE', r'Percussion/susCymb1-cresc-Short_v1\.wav'),
+    'tremolo': ('VSCO-2-CE', r'Strings/Cello Section/trem/.*_v1_1\.wav'),
+    'spic': ('VSCO-2-CE', r'Strings/Cello Section/spic/spic_.*_v2_RR1\.wav'),
+    'bassspic': ('VSCO-2-CE', r'Strings/Solo Contrabass/Spic/.*_v3_rr1\.wav'),
     'marimba': ('VCSL', r'Struck Idiophones/Marimba/.*_med_01\.wav'),
     'glock': ('VCSL', r'Glockenspiel/glock_medium_.*_01\.wav'),
     'chime': ('VCSL', r'Hand Chimes/sus_.*_r01_main\.wav'),
@@ -258,8 +264,20 @@ def attack(x, sec):
     return x
 
 
+def nominate(hit=.84):
+    """提名的過渡：定音鼓滾奏和弦樂震音在屬音 A 上推起來，hit 秒時章落下打到主音 D，正好接提名音樂的第一拍（fx.js 的 nominate 按這個時間等）"""
+    n = int(SR * hit)
+    rise = lambda x: x[:n] * np.linspace(0, 1, n) ** 2.2
+    cymbal = samples('cymrise')[0][1]
+    peak = int(np.argmax(np.convolve(cymbal ** 2, np.ones(4800) / 4800, 'same')))
+    cymbal = cymbal[max(peak - n, 0):peak]
+    return layer((0, rise(one('timproll', 1, .9, .05, 110 / 121))), (0, rise(note('tremolo', 'A2', 1, .6, .05))), (hit - len(cymbal) / SR, cymbal * .5),
+                 (hit, one('timphit', 1.1, 1, .6, 146.8 / 143)), (hit, note('spic', 'D3', .5, .7, .2)), (hit, note('bassspic', 'D2', .5, .5, .2)))
+
+
 # 真實樂器疊成的結算音，和幾段錄音疊成的聲音
 MUSIC = {
+    'nominate': nominate,
     'key': lambda: arp('glock', ['A6', 'C7'], .07, .35, 1, .15),
     'tag': lambda: layer((0, clip('tock-470710', .46, .12, .05, hp=400, lp=5000) * .7), (0, note('marimba', 'A5', .24, 1, .14)), (0, note('glock', 'E7', .3, .3, .2))),
     'stamp': lambda: layer((0, clip('tock-470710', .46, .36, .12, hp=45, lp=900)), (0, clip('tock-683031', .13, .36, .14, hp=40, lp=700) * .9)),
