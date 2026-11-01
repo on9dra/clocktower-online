@@ -9,7 +9,7 @@ body.art .about-modal .modal-body { padding-top: 0; }
 /* 名帖 */
 .ab-card { display: flex; align-items: center; gap: 14px; }
 .ab-seal { display: inline-grid; place-items: center; flex: none; width: 48px; height: 48px; color: var(--evil); border: 2.5px solid currentColor;
-  box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3.5px currentColor; font: 900 20px/1 var(--serif); writing-mode: vertical-rl; rotate: -4deg; mix-blend-mode: multiply; }
+  box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3.5px currentColor; font: 900 20px/1 var(--serif); writing-mode: vertical-rl; text-orientation: upright; rotate: -4deg; mix-blend-mode: multiply; }
 .ab-seal.empty { color: var(--line-strong); border: 1.5px dashed currentColor; box-shadow: none; font-weight: 400; }
 body.art .ab-seal:not(.empty) { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
 .ab-by { display: flex; align-items: baseline; gap: 6px; }
@@ -47,6 +47,7 @@ body.art .ab-seal:not(.empty) { -webkit-mask: url(../img/art/stamp-mask.webp) ce
 .ab-codes { display: flex; justify-content: center; gap: 16px; }
 .ab-code { margin: 0; display: grid; justify-items: center; gap: 6px; color: var(--ink); text-decoration: none; font: 700 14px var(--serif); letter-spacing: .12em; }
 .ab-qr { display: grid; place-items: center; width: 124px; height: 124px; background: var(--card); border: 1px solid var(--line); object-fit: contain; }
+.ab-code:only-child .ab-qr { width: 176px; height: 176px; }
 .ab-qr.empty { background: none; border: 1.5px dashed var(--line-strong); color: var(--muted); font: 400 12px var(--sans); letter-spacing: .1em; }
 .ab-qr.go .ico { width: 34px; height: 34px; color: var(--brass); }
 a.ab-code:hover .ab-qr { background: var(--hover); }
