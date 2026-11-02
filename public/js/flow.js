@@ -217,14 +217,14 @@ function lobbyPane(ctx, next) {
   const inPlay = drafted ? s.seats.map(x => x.role).filter(changesSetup) : [];
   const due = drafted && n >= 5 && teamCounts(n, inPlay), flex = inPlay.some(id => Array.isArray(ROLES[id].setup.outsider));
   const off = t => !!due && c[t] !== due[t] && !(flex && ['outsider', 'townsfolk'].includes(t));
-  // 可能抽到、會改變外來者數量的角色（男爵 7 人以下隨機不出現）
-  const shifts = !st.draft && SCRIPTS[s.scriptId].roles.filter(id => changesSetup(id) && !rules[id] && !(id === 'baron' && n < 7));
+  // 可能抽到、會改變外來者數量的角色（男爵 7 人以下隨機不出現）。抽完淡掉但位置還在，這一行的高度不變，圓桌中央的東西不動
+  const shifts = SCRIPTS[s.scriptId].roles.filter(id => changesSetup(id) && !rules[id] && !(id === 'baron' && n < 7));
   const delta = id => { const x = ROLES[id].setup.outsider; return Array.isArray(x) ? '±1' : (x > 0 ? '+' : '') + x; };
-  // 桌面上兩塊連著放在圓桌中央；手機上圓桌裏放不下，lp-top 放圓桌上方，lp-act 放圓桌下方（board.css）
+  // 桌面上兩塊連著放在圓桌中央；手機豎屏 lp-act 和機器人放圓桌下方，其餘還在中央（board.css）
   return h('div', { class: 'cx lobby-pane' },
     h('div', { class: 'lp-top' },
       c && row(CORE.map(t => h('span', { class: 'team-n' + (off(t) ? ' off' : ''), style: { '--team': TEAMS[t].color } }, h('i'), c[t])),
-        n >= 5 && shifts && shifts.map(id => h('span', { class: 'maybe' }, mini(id), delta(id)))),
+        n >= 5 && shifts.map(id => h('span', { class: 'maybe' + (st.draft ? ' off' : '') }, mini(id), delta(id)))),
       (locked.length > 0 || banned.length > 0) && row(locked.map(id => h('span', { class: 'rule lock' }, mini(id))), banned.map(id => h('span', { class: 'rule ban' }, mini(id), icon('cross', 'rule-x')))),
       botConfig(ctx)),
     h('div', { class: 'lp-act' },

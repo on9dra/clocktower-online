@@ -651,22 +651,32 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 }
 .lp-top, .lp-act { display: contents; }
 .lp-act .row, .lp-top .row { justify-content: center; }
-/* 手機上圓桌內圈放不下這些控件：人數和機器人放圓桌上方、按鈕放下方那片空白（.center 的 50% 就是圓桌圓心），不壓座位，單手也夠得著 */
-@media (max-width: 640px) {
-  .lp-top, .lp-act { position: absolute; left: 50%; display: grid; justify-items: center; gap: 6px; width: 96vw; translate: -50% 0; }
-  .lp-top { bottom: calc(50% + 50vw); }
-  .lp-act { top: calc(50% + 50vw); }
+/* 手機豎屏：人數和桌面一樣留在圓桌內圈（圈寬一點），按鈕放下方那片空白（.center 的 50% 就是圓桌圓心），不壓座位，單手也夠得著。
+   抽完才有的偽裝和確認開局也在下方，所以圓桌一開始就讓出這一整塊：--dn 是下方要的高度，--up 讓開頂上的劇本卡。屏幕夠高時圓桌不動不縮 */
+@media (max-width: 640px) and (orientation: portrait) {
+  .town.picking { --up: 70px; --dn: 147px; }
+  .town.picking .ring { --rw: min(92cqw, 100cqh - var(--up) - var(--dn)); --lp: calc(50% + var(--rw) / 2 + 18px); --tk: clamp(34px, min(15.5cqmin, var(--rw) * .169), 62px); translate: 0 min(0px, (100cqh - var(--rw)) / 2 - var(--dn)); }
+  .town.picking .ring.crowded { --tk: clamp(30px, min(12.5cqmin, var(--rw) * .136), 50px); }
+  .town.picking .center { width: calc(var(--rw) * .6); }
+  .lobby-pane { gap: 4px; margin-top: 4px; }
+  .lp-top .frm-line { margin: 0; }
+  .lp-act { position: absolute; left: 50%; top: var(--lp); display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 6px; width: calc(100cqw - 8px); translate: -50% 0; }
   .lp-act .row { flex-wrap: nowrap; margin-top: 0; }
   .lobby-after { min-height: 0; }
   .lobby-after .frm-line { flex-wrap: nowrap; gap: 3px; font-size: 13px; white-space: nowrap; } /* 名字長時也一行，不然會把確認開局擠出屏幕 */
+  /* 機器人（測試用）借用按鈕下面預留的地方，抽完讓位：增減座位本來就會作廢抽取 */
+  .lobby-pane .bots { position: absolute; left: 50%; top: calc(var(--lp) + 44px); flex-wrap: nowrap; width: max-content; translate: -50% 0; transition: opacity .2s ease, visibility .2s; }
+  .lobby-pane:has(.lobby-after > *) .bots { opacity: 0; visibility: hidden; }
 }
-@media (max-width: 640px) and (max-height: 700px) {
-  .lp-top { gap: 2px; }
-  .lp-top .frm-line { margin: 0; }
-  .lp-act { top: calc(50% + 48vw); gap: 4px; }
+@media (max-width: 640px) and (max-height: 700px) and (orientation: portrait) {
+  .town.picking { --dn: 135px; }
+  .lp-act { gap: 4px; }
   .lobby-after { gap: 3px; }
   .lp-act .btn.big { padding: 6px 18px; }
 }
+/* 三個最長的角色名也要放得下一行：窄屏先收邊距，最窄的只留名字 */
+@media (max-width: 400px) and (orientation: portrait) { .lobby-after .bluff-pick { padding-inline: 1px; } }
+@media (max-width: 340px) and (orientation: portrait) { .lobby-after .bluff-pick .token { display: none; } }
 
 /* 輪到自己行動：圓桌中央的紙牌。行動用語義色：毒綠 / 保護、查驗藍 / 殺紅 / 主人金 */
 .turn-pane { --tone: var(--ink); gap: 10px; margin-top: 8px; padding: 12px 14px 14px; color: var(--ink); background: var(--card) url(../img/grain.svg);

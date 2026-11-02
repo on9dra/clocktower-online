@@ -119,7 +119,7 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .tb-stamp { right: 6px; font-size: 12px; }
   .seat-token > .tm { top: -3px; right: -3px; width: 16px; height: 16px; font-size: 10px; line-height: 16px; }
 }
-/* 手機上圓桌裏只留行動者：角色牌放圓桌上方、紙條和發送放下方（和準備階段 .lp-top / .lp-act 一樣），點起來不擠 */
+/* 手機上圓桌裏只留行動者：角色牌放圓桌上方、紙條和發送放下方（和準備階段的 .lp-act 一樣），點起來不擠 */
 @media (max-width: 640px) {
   /* 圓桌上下各剩多高：上面讓開頂上的座位，下面讓開底下的名牌 */
   .st-card { --up: calc(50cqh - var(--rw) / 2 - 16px); --dn: calc(50cqh - var(--rw) / 2 - 18px); }
@@ -455,7 +455,8 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .sb.me-now { background: var(--brass); color: #fff; border-color: var(--brass); animation: blink .8s infinite; }
 .team-n { display: inline-flex; align-items: center; gap: 4px; font: 700 20px var(--serif); color: var(--team); }
 .team-n i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--team); box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 9px var(--team); }
-.maybe { display: inline-flex; align-items: center; gap: 2px; font: 700 15px var(--serif); color: #3f7f86; opacity: .8; }
+.maybe { display: inline-flex; align-items: center; gap: 2px; font: 700 15px var(--serif); color: #3f7f86; opacity: .8; transition: opacity .25s ease; }
+.maybe.off { opacity: 0; }
 .rule { position: relative; display: inline-flex; }
 .rule.lock { box-shadow: 0 0 0 2px var(--brass); border-radius: 50%; }
 .rule.ban .token { opacity: .4; }
