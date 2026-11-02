@@ -220,7 +220,7 @@ function lobbyPane(ctx, next) {
   // 可能抽到、會改變外來者數量的角色（男爵 7 人以下隨機不出現）。抽完淡掉但位置還在，這一行的高度不變，圓桌中央的東西不動
   const shifts = SCRIPTS[s.scriptId].roles.filter(id => changesSetup(id) && !rules[id] && !(id === 'baron' && n < 7));
   const delta = id => { const x = ROLES[id].setup.outsider; return Array.isArray(x) ? '±1' : (x > 0 ? '+' : '') + x; };
-  // 桌面上兩塊連著放在圓桌中央；手機豎屏 lp-act 和機器人放圓桌下方，其餘還在中央（board.css）
+  // 寬屏兩塊連著放在圓桌中央；手機和窄桌面 lp-act 和機器人放到圓桌外面，其餘還在中央（board.css）
   return h('div', { class: 'cx lobby-pane' },
     h('div', { class: 'lp-top' },
       c && row(CORE.map(t => h('span', { class: 'team-n' + (off(t) ? ' off' : ''), style: { '--team': TEAMS[t].color } }, h('i'), c[t])),
