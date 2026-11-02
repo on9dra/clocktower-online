@@ -696,9 +696,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
     .lobby-pane .bots { position: absolute; left: var(--ax); top: calc(var(--lp) + var(--bt)); width: var(--aw); transition: opacity .2s ease, visibility .2s; }
     .lobby-pane:has(.lobby-after > *) .bots { opacity: 0; visibility: hidden; }
   }
-  /* 窄桌面：圓桌本來就被劇本卡推到了右下，上面那條空帶正好放按鈕。--up 是空帶的高度，空帶不夠才再把圓桌往下推、縮一點 */
+  /* 窄桌面：圓桌本來就被劇本卡推到了右下，上面那條空帶正好放按鈕。--up 是空帶的高度，空帶不夠才再把圓桌往下推、縮一點，底下留 30px 給最下面的座位 */
   @container (max-width: 760px) and (min-height: 500.5px) {
-    .town.picking .ring { --up: 152px; --r: min(var(--rw), .585 * (100cqw + 100cqh - var(--ab)), 100cqh - var(--up)); --tx: min(var(--dx), max(0px, var(--a) - var(--dx)));
+    .town.picking .ring { --up: 160px; --r: min(var(--rw), .585 * (100cqw + 100cqh - var(--ab)), 100cqh - var(--up) - 30px); --tx: min(var(--dx), max(0px, var(--a) - var(--dx)));
       --aw: calc(100cqw + 2 * var(--tx) - 248px); --ax: calc(50% - var(--aw) / 2); --lp: calc(50% - var(--r) / 2 - var(--up)); --bt: 52px;
       translate: var(--tx) min(var(--dy), max(0px, var(--a) - 2 * var(--dx), var(--up) - var(--dy))); }
   }
