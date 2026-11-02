@@ -453,7 +453,7 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .slots { display: inline-flex; gap: 6px; align-items: center; }
 .sb.empty { border-style: dashed; border-color: var(--line-strong); animation: blink 1.4s infinite; }
 .sb.me-now { background: var(--brass); color: #fff; border-color: var(--brass); animation: blink .8s infinite; }
-.team-n { display: inline-flex; align-items: center; gap: 4px; font: 700 20px var(--serif); color: var(--team); }
+.team-n { display: inline-flex; align-items: center; gap: 4px; min-width: 1.6em; font: 700 20px var(--serif); color: var(--team); } /* 定寬：抽完數字變了，這一排不跟著挪 */
 .team-n i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--team); box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 9px var(--team); }
 .maybe { display: inline-flex; align-items: center; gap: 2px; font: 700 15px var(--serif); color: #3f7f86; opacity: .8; transition: opacity .25s ease; }
 .maybe.off { opacity: 0; }
@@ -603,6 +603,14 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .script-card .chip.up { margin: 0 0 0 3px; }
   .script-card .soon { display: none; }
   .script-card .sc-mode .chip { padding-inline: 10px; }
+}
+/* 手機橫屏：卡片不能比桌面高。矮得放不下時和豎屏一樣省掉標題和虛線格 */
+@media (min-width: 641px), (orientation: landscape) {
+  @container (orientation: landscape) and (max-height: 500px) { .script-card { max-height: calc(100cqh - 4px); overflow-y: auto; scrollbar-width: none; } }
+  @container (orientation: landscape) and (max-height: 310px) {
+    .script-card b, .script-card .soon { display: none; }
+    .script-card .chip.up { margin-top: 2px; }
+  }
 }
 /* 配比對不上的陣營：虛線圈標出來，不攔 */
 .team-n.off { outline: 1.5px dashed var(--evil); outline-offset: 2px; border-radius: 3px; }
