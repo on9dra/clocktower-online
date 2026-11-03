@@ -51,6 +51,21 @@ for (const [script, def] of Object.entries(SCRIPTS)) {
   }
 }
 
+// 測試條換劇本：內置的和能智能推進的社區劇本都能重開，手動的不行
+{
+  const room = createSolo(PID, '測試', {});
+  for (const script of ['bmr', 'snv', 'tb']) {
+    assert.strictEqual(soloOp(room, PID, { op: 'restart', script }), undefined, script);
+    assert.strictEqual(room.scriptId, script);
+    assert.ok(room.seats.every(s => SCRIPTS[script].roles.includes(s.role)), `${script} 的角色全是這本劇本的`);
+  }
+  const c = COMMUNITY.find(x => x.auto);
+  assert.strictEqual(soloOp(room, PID, { op: 'restart', script: 'c' + c.id, role: c.roles[0] }), undefined);
+  assert.strictEqual(room.scriptId, 'custom');
+  assert.strictEqual(me(room).role, c.roles[0]);
+  assert.strictEqual(soloOp(room, PID, { op: 'restart', script: 'c' + COMMUNITY.find(x => !x.auto).id }), '劇本不存在');
+}
+
 // 普通房間不能用
 const room = createSolo(PID, '測試', {});
 room.solo = false;

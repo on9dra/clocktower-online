@@ -117,7 +117,7 @@ const pl2 = (r, role, ids) => applyPlayerAction(r, S(r, role).pid, { act: 'pick'
   act(r, 'imp', [S(r, 'imp').id]);
   assert.strictEqual(S(r, 'imp').dead, false);
 }
-// A5 順時針計票：從被提名者的下一位開始；數過的人不能再改
+// A5 順時針計票：從被提名者的下一位開始；輪到誰誰選，選了立刻輪到下一位；定下的人不能再改；還沒輪到的可以預選
 {
   const r = setup(['chef', 'imp', 'poisoner', 'monk', 'soldier', 'saint']);
   st(r, 'next');
@@ -126,9 +126,25 @@ const pl2 = (r, role, ids) => applyPlayerAction(r, S(r, role).pid, { act: 'pick'
   const c = r.nomination.clock;
   assert.strictEqual(c.order[0], S(r, 'soldier').id);
   assert.strictEqual(c.order.at(-1), S(r, 'monk').id);
-  c.at = Date.now() - 2 * c.step - 10; // 時鐘已經過了前兩位（跳過立即計票的全屏提示）
-  assert.ok(pl(r, 'soldier', 'vote', { up: true }), '數過的人不能改');
-  ok(pl(r, 'chef', 'vote', { up: true }));
+  ok(pl(r, 'saint', 'vote', { v: 'yes' }));
+  ok(pl(r, 'soldier', 'vote', { v: 'yes' }));
+  assert.strictEqual(c.k, 0, '全屏提示還沒播完：只是預選，不算輪過');
+  c.at = Date.now() - 10; // 跳過全屏提示
+  const at = c.at;
+  ok(pl(r, 'soldier', 'vote', { v: null }));
+  assert.strictEqual(c.k, 0, '取消不算選了');
+  ok(pl(r, 'soldier', 'vote', { v: 'yes' }));
+  assert.strictEqual(c.k, 1, '輪到自己時點了：立刻輪到下一位');
+  assert.ok(c.at > at, '下一位的倒數從現在開始');
+  assert.ok(pl(r, 'soldier', 'vote', { v: 'abstain' }), '定下的人不能改');
+  ok(pl(r, 'chef', 'vote', { v: 'yes' }));
+  assert.strictEqual(c.k, 1, '沒輪到的人只是預選');
+  for (const id of c.order.slice(1)) {
+    const seat = r.seats.find(s => s.id === id);
+    ok(pl(r, seat.role, 'vote', { v: seat.role === 'saint' ? 'abstain' : 'yes' }));
+  }
+  assert.strictEqual(r.nomination, null, '最後一位選完自動結算');
+  assert.strictEqual(r.history.at(-1).count, 5, '聖徒改成棄權，其餘五票');
 }
 // A6 管家：主人沒舉手時不能舉手；主人最後放下手，管家的票不算
 {

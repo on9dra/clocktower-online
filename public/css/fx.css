@@ -151,8 +151,10 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
    放不下時整張縮小（town.js fitTableCard）。貞潔者小窗貼桌面左上角；提名期間的裁定卡蓋在審判牌上（.st-over）。正在行動的座位外圈金線擴散 */
 .st-card { --rw: min(100cqw, 100cqh); width: max-content; max-width: calc(var(--rw) * .58); max-height: calc(var(--rw) * .56); margin: 8px auto 0;
   padding: 0 10px 14px; overflow: auto; scrollbar-width: thin; text-align: left; pointer-events: auto; }
-.center:has(> .st-card) { width: auto; }
-.st-card > .card { margin: 0; box-shadow: 0 12px 28px #0005; }
+.center:has(> .st-card) { width: max-content; }
+.st-card > .card { position: relative; margin: 0; box-shadow: 0 12px 28px #0005; }
+.st-card .ic-head { padding-right: 40px; } /* 右上角是「收起」 */
+.st-card > .card .btn.wide { position: sticky; bottom: 0; z-index: 1; } /* 選項多得要滾動時，發送也一直看得見 */
 .st-card.fresh > .card { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
 .town > .st-card.corner { position: absolute; left: 0; top: 0; z-index: 9; margin: 0; max-width: 30%; }
 .st-over { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; pointer-events: none; }
@@ -173,7 +175,7 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 @keyframes acting { from { transform: scale(1); opacity: .9; } 70%, to { transform: scale(1.45); opacity: 0; } }
 @media (max-width: 860px) {
   /* 手機上圓桌中間放不下標題和卡：有卡時只留卡（和玩家輪到自己時一樣） */
-  .st-card { --rw: min(92cqw, 100cqh); max-width: calc(var(--rw) * .64); max-height: calc(var(--rw) * .52); margin-top: 0; padding: 0 4px 8px; }
+  .st-card { --rw: min(96cqw, 100cqh - 10px); max-width: calc(var(--rw) * .64); max-height: calc(var(--rw) * .52); margin-top: 0; padding: 0 4px 8px; }
   .center:has(> .st-card) .phase-title { display: none; }
 }
 

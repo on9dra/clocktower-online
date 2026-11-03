@@ -9,6 +9,7 @@ import { syncPrompt } from './flow.js';
 import { progressBar } from './progress.js';
 import { onState, ensureScene, setRender, heldView } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
+import { countPop } from './trial.js';
 import { topbar } from './topbar.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { onEggs } from './egg.js';
@@ -145,12 +146,23 @@ const ctx = {
 };
 
 // ———— 投票（規則和 lib/day.js 一致）————
-const VOTE_WINDOW = 5 * 60 * 1000, CALL_MS = 3200;
+const VOTE_WINDOW = 5 * 60 * 1000, CALL_MS = 3200, VOTE_STEP = 5000, BOT_TURN = 800;
 function setVote(id, v) {
   const n = world.nomination;
   if (!n) return;
+  const c = n.clock, k = c ? c.order.indexOf(id) : -1;
+  if (k >= 0 && k < c.k) return;
   n.votes[id] = v === 'yes';
   if (v === 'abstain') n.abstain[id] = true; else delete n.abstain[id];
+  if (v && c?.order[c.k] === id && Date.now() >= c.at) nextTurn();
+}
+// 這一位定下來，輪到下一位：沒表態的算棄權，走完自動結算
+function nextTurn() {
+  const n = world.nomination, c = n.clock, id = c.order[c.k];
+  if (!n.votes[id] && !n.abstain[id]) { n.votes[id] = false; n.abstain[id] = true; }
+  c.k += 1;
+  c.at = Date.now();
+  if (c.k >= c.order.length) closeVote();
 }
 function pauseTimer() {
   const n = world.nomination;
@@ -198,7 +210,7 @@ function startCount() {
   if (world.virginCheck && !world.virginCheck.forced) return toast('請先裁定貞潔者是否反噬');
   if (virginFirst()) return;
   const n = world.nomination, s = world.seats, i = s.findIndex(x => x.id === n.nomineeId);
-  n.clock = { order: s.map((_, k) => s[(i + 1 + k) % s.length]).filter(x => !x.dead || !x.voteUsed).map(x => x.id), at: Date.now() + CALL_MS, step: 1200 };
+  n.clock = { order: s.map((_, k) => s[(i + 1 + k) % s.length]).filter(x => !x.dead || !x.voteUsed).map(x => x.id), k: 0, at: Date.now() + CALL_MS, step: VOTE_STEP };
   fx({ k: 'callvote', to: n.nomineeId });
   sys('說書人提出立即計票。', { k: 'count' });
 }
@@ -213,14 +225,18 @@ function closeVote() {
   fx({ k: 'votes', to: n.nomineeId, count, need, voters, res });
   sys(`${label(n.nomineeId)} 得到 ${count} 票（至少需要 ${need} 票）。`, { k: 'votes', to: n.nomineeId, n: count, need, res, voters });
 }
-// 計票時鐘走完 / 投票倒數到點（暫停時不算）自動結算
+// 計票時到點輪到下一位（別的座位想一下就定）；投票倒數到點（暫停時不算）自動結算
 setInterval(() => {
   if (world?.virginCheck?.due && Date.now() > world.virginCheck.due) { resolveVirgin(true); refresh(); return; }
   if (world?.phase === 'ended' && world.mvp && !world.mvp.done) { if (Date.now() > world.mvp.closesAt) { closeMvp(); refresh(); } else render(); return; }
   const n = world?.nomination;
   if (!n) return;
-  const due = Math.min(n.clock ? n.clock.at + n.clock.order.length * n.clock.step + 400 : Infinity, n.paused == null ? n.deadline : Infinity);
-  if (Date.now() > due) { closeVote(); refresh(); } else render();
+  const c = n.clock;
+  if (c) {
+    if (Date.now() > c.at + (c.order[c.k] === who.me ? c.step : BOT_TURN)) { nextTurn(); refresh(); } else render();
+    return;
+  }
+  if (n.paused == null && Date.now() > n.deadline) { closeVote(); refresh(); } else render();
 }, 200);
 
 // ———— 夜晚、勝負 ————
@@ -604,7 +620,8 @@ const SCENES = {
     init() { world.scriptId = 'snv'; asMe('snakecharmer'); },
     steps: [
       ['舞蛇人', () => { asMe('snakecharmer'); pick(ME, ['s3']); }],
-      ['蛇換了我', () => { asMe('imp'); fx({ k: 'changed', src: 'snakecharmer', role: 'snakecharmer', was: 'vortox' }, ME); fx({ k: 'role', role: 'snakecharmer' }, ME); }],
+      ['蛇換到惡魔', () => { asMe('snakecharmer', () => { seatOf('s3').role = 'vortox'; }); seatOf(ME).role = 'vortox'; seatOf('s3').role = 'snakecharmer'; say('st', ME, `你選擇了 ${label('s3')}`, { info: true, night: world.night, k: 'act', src: 'snakecharmer', f: [{ op: 'to' }, { s: 's3' }], marks: [{ seatId: 's3', r: 'snakecharmer' }] }); fx({ k: 'act', src: 'snakecharmer', to: ['s3'], swap: { role: 'vortox', gave: 'snakecharmer' }, msg: world.seq }, ME); fx({ k: 'role', role: 'vortox' }, ME); }],
+      ['蛇換了我', () => { asMe('vortox'); seatOf(ME).role = 'snakecharmer'; fx({ k: 'changed', src: 'snakecharmer', role: 'snakecharmer', was: 'vortox' }, ME); fx({ k: 'role', role: 'snakecharmer' }, ME); }],
       ['女巫', () => { asMe('witch'); pick(ME, ['s4']); }],
       ['洗腦師', () => { asMe('cerenovus'); pick(ME, ['s2'], 'oracle'); }],
       ['麻臉巫婆', () => { asMe('pithag'); pick(ME, ['s4'], 'sage'); }],
@@ -833,7 +850,7 @@ function render() {
     h('div', { class: 'demo-top' }, !bare && demoBar(), topbar(ctx)),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar' }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm primary', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    renderHud(ctx), town, renderBluffs(ctx), scene === 'art' && gallery && artGallery()), progressBar(ctx), side);
+    renderHud(ctx), town, renderBluffs(ctx), scene === 'art' && gallery && artGallery(), countPop(ctx)), progressBar(ctx), side);
   const cur = app.firstElementChild;
   if (cur && cur.classList.contains('game')) morph(cur, tree); else app.replaceChildren(tree);
   fitTableCard();

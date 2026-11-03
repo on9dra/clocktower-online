@@ -22,8 +22,8 @@ body.art .skyline-night { background-image: url(../img/art/town-near-night.webp)
 
 /* A5 空座、A6 名牌 */
 body.art .token.blank { border: 0; box-shadow: none; background: url(../img/art/seat-empty.webp) center / 100% 100% no-repeat; }
-body.art .plate { border: solid transparent; border-width: 3px 9px; border-radius: 0; padding: 0 1px;
-  border-image: url(../img/art/plate.webp) 56 190 fill / 3px 9px stretch; background: none; }
+body.art .plate { --pf: clamp(5px, calc(var(--c) * .09), 9px); border: solid transparent; border-width: 2px var(--pf); border-radius: 0; padding: 0 1px;
+  border-image: url(../img/art/plate.webp) 56 190 fill / 2px var(--pf) stretch; background: none; }
 body.art .seat.onblock .plate { border-image-source: url(../img/art/plate-evil.webp); }
 
 /* A8 牌背 */

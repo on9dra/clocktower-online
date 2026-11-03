@@ -5,7 +5,7 @@ import { applyStOp, applyPlayerAction, joinPlayer } from '../lib/ops.js';
 import { startNight, run } from '../lib/engine.js';
 import { startDay, nominate } from '../lib/day.js';
 import { execute } from '../lib/rules.js';
-import { impaired, isEvil, alignOf, seatTags } from '../lib/util.js';
+import { impaired, isEvil, alignOf, seatTags, addEff, FOREVER } from '../lib/util.js';
 import { teamCounts } from '../public/js/roles.js';
 import { truthLevel } from '../public/js/infofmt.js';
 import { setup, S, act, st, ok, atReview, ack } from './helpers.js';
@@ -243,6 +243,75 @@ function finish(r, until) {
   assert.strictEqual(sc.role, 'nodashii');
   assert.strictEqual(nd.role, 'snakecharmer');
   assert.ok(isEvil(sc) && !isEvil(nd) && impaired(r, nd));
+}
+
+// 舞蛇人第二夜換到惡魔：舞蛇人排在惡魔前面，新惡魔當晚就醒，原惡魔不醒
+{
+  const r = mk(['snakecharmer', 'chef', 'vortox', 'witch', 'saint', 'empath'], 'snv');
+  const sc = S(r, 'snakecharmer'), v = S(r, 'vortox'), chef = S(r, 'chef');
+  startNight(r);
+  assert.strictEqual(r.g.night, 2);
+  finish(r, 'snakecharmer');
+  pick(r, 'snakecharmer', [v.id]);
+  finish(r, 'vortox');
+  assert.strictEqual(r.g.step?.roleId, 'vortox', '新惡魔當晚行動');
+  assert.strictEqual(r.g.step.seatId, sc.id);
+  pick(r, 'vortox', [chef.id]);
+  finish(r);
+  assert.ok(chef.dead, '新惡魔殺了人');
+}
+
+// 第一夜換到惡魔：夢殞春宵的惡魔首夜不行動，也不多出一步
+{
+  const r = mk(['snakecharmer', 'chef', 'vortox', 'witch', 'saint', 'empath'], 'snv');
+  const sc = S(r, 'snakecharmer'), v = S(r, 'vortox');
+  r.g.night = 0; startNight(r);
+  assert.strictEqual(r.g.night, 1);
+  finish(r, 'snakecharmer');
+  pick(r, 'snakecharmer', [v.id]);
+  assert.strictEqual(sc.role, 'vortox');
+  assert.ok(!r.g.queue.some(q => q.seatId === sc.id && q.roleId === 'vortox'));
+}
+
+// 邪惡的舞蛇人（麻臉巫婆變的）換到惡魔：兩人都還是邪惡（官方例子）
+{
+  const r = mk(['snakecharmer', 'chef', 'fanggu', 'witch', 'saint', 'empath'], 'snv');
+  const sc = S(r, 'snakecharmer'), fg = S(r, 'fanggu');
+  sc.align = 'evil';
+  startNight(r);
+  finish(r, 'snakecharmer');
+  pick(r, 'snakecharmer', [fg.id]);
+  assert.ok(isEvil(sc) && isEvil(fg) && impaired(r, fg));
+}
+
+// 哲學家拿舞蛇人的能力換到惡魔：原惡魔變成中毒的哲學家（官方例子），真舞蛇人酒醒
+{
+  const r = mk(['philosopher', 'chef', 'vortox', 'witch', 'saint', 'snakecharmer', 'empath'], 'snv');
+  const ph = S(r, 'philosopher'), v = S(r, 'vortox'), real = S(r, 'snakecharmer');
+  startNight(r);
+  pick(r, 'philosopher', [], 'snakecharmer');
+  assert.ok(impaired(r, real), '真舞蛇人醉酒');
+  finish(r, 'snakecharmer');
+  ok(applyStOp(r, { op: 'skip' })); // 先輪到真舞蛇人
+  assert.strictEqual(r.g.step.seatId, ph.id);
+  pick(r, 'snakecharmer', [v.id]);
+  assert.strictEqual(ph.role, 'vortox');
+  assert.strictEqual(v.role, 'philosopher');
+  assert.ok(impaired(r, v) && !isEvil(v) && isEvil(ph));
+  assert.ok(!impaired(r, real), '哲學家沒了能力，真舞蛇人酒醒');
+}
+
+// 舞蛇人換到亡骨魔：爪牙鄰居的毒跟著新亡骨魔，不因為原亡骨魔沒了角色就解開
+{
+  const r = mk(['snakecharmer', 'witch', 'oracle', 'vigormortis', 'saint', 'empath'], 'snv');
+  const sc = S(r, 'snakecharmer'), vg = S(r, 'vigormortis'), oracle = S(r, 'oracle');
+  addEff(r, oracle.id, 'poison', 'vigormortis', FOREVER, vg.id, { live: true });
+  assert.ok(impaired(r, oracle));
+  startNight(r);
+  finish(r, 'snakecharmer');
+  pick(r, 'snakecharmer', [vg.id]);
+  assert.strictEqual(sc.role, 'vigormortis');
+  assert.ok(impaired(r, oracle), '新亡骨魔能力正常，毒還在');
 }
 
 // 哲學家：選在場的角色，原持有者醉酒；麻臉巫婆變人不改陣營

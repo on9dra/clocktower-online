@@ -1,6 +1,7 @@
 // 黯月初升、夢殞春宵的技能演出：和暗流湧動同一套規矩（總則見 fx-ab.js 開頭），只有不是暗流湧動的房間才下載。
 // 自己的戲：壓暗 → 信物從自己的牌裏升起 → 每個角色自己的一套（不靠連線）→ 答案落在桌心停一會 → 收進面板，或落到對應座位旁邊。
-// 不露餡：賭徒、教授、舞蛇人、驅魔人只演出手，不演結果；被選中的人什麼都不演，規則要他知道的（被驅魔、瘋狂、換角色、雙子）才有自己的一段，
+// 不露餡：賭徒、教授、驅魔人只演出手，不演結果；舞蛇人沒換到一樣只演出手，換到惡魔自己當場知道，就地換牌。
+// 被選中的人什麼都不演，規則要他知道的（被驅魔、瘋狂、換角色、雙子）才有自己的一段，
 // 而且不從哪個座位來：換角色的東西都從桌心來，不洩露是誰幹的。口頭發動的（造謠者、雜耍藝人、月之子、呆瓜、博學者、藝術家）不演。
 import { PROPS_DLC } from './props-dlc.js';
 
@@ -493,9 +494,10 @@ export function dlcFx(T) {
   });
 
   // ———— 夢殞春宵：選人 ————
-  // 舞蛇人：排笛吹起，音符飄起，蛇從自己牌裏游到目標面前立起來嗅一嗅。是不是惡魔這裏看不出來，換了的話另有一段（CHANGED）
+  // 舞蛇人：排笛吹起，音符飄起，蛇從自己牌裏游到目標面前立起來嗅一嗅，蓋「查驗」。
+  // 選中惡魔（e.swap）接著演：蛇撲上去，兩張牌繞著彼此游到對方座位，自己的牌翻成惡魔；然後蛇咬一口，對方中毒
   const snakecharmer = scene(async (e, me) => {
-    const ti = e.to[0], m = at(me), [tt] = cast(me, [ti]);
+    const ti = e.to[0], m = at(me), [tt] = cast(me, [ti]), own = tokOf(me);
     await wait(320);
     const fl = await emerge('pan-flute', 'brass', me, { size: k(1), snd: 'hum' }), q = posOf(fl);
     for (let i = 0; i < 6; i++) later(i * 170, () => floatUp('musical-notes', 'brass', q.x + rand(-0.4, 0.4) * T.tk, q.y - k(0.4), k(0.34), 900));
@@ -510,6 +512,30 @@ export function dlcFx(T) {
     sfx('hiss'); wiggle(sn, 0.8); squash(tt, 0.4); ring(at(ti).x, at(ti).y, 'good', k(1.2), 1.7, 440);
     await wait(460);
     await seatStamp(ti, '查驗', 'good', { mark: mark('snakecharmer') });
+    if (e.swap) {
+      const p = at(ti);
+      wash(EVIL_WASH, 360); fade(fl, 300);
+      sfx('hiss'); wiggle(sn, 1); squash(tt, 0.7); ring(p.x, p.y, 'evil', k(1.3), 1.9); burst(p.x, p.y, 'evil', { n: 10, R: k(0.8), keep: false });
+      await wait(420);
+      const mine = roleCard(e.swap.gave, m.x, m.y, T.tk), theirs = roleCard(e.swap.role, p.x, p.y, T.tk);
+      theirs.style.opacity = 0;
+      anim(theirs, [{ transform: 'scale(.7)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: 'ease-out' });
+      await wait(320);
+      stop(theirs); theirs.style.opacity = 1;
+      sfx('swish');
+      await Promise.all([slither(mine, p, 820), slither(theirs, m, 820)]);
+      const land = toSeat(mine, ti, 0, rOf(e.swap.gave));
+      later(130, () => fade(theirs, 200));
+      squash(own, 0.8); await flipTo(own, e.swap.role);
+      ring(m.x, m.y, 'evil', k(1.4), 2.1); burst(m.x, m.y, 'evil', { n: 10, R: k(0.9), keep: false });
+      await wait(360);
+      await seatStamp(me, '交換', 'evil', { hold: 420 });
+      await land;
+      await moveTo(sn, { x: p.x, y: p.y - k(0.1) }, 150, { lift: 0, ease: 'cubic-bezier(.7,0,1,.5)' });
+      sfx('hiss'); sfx('thud', 0.5); squash(tt, 0.9); develop(blot(p.x, p.y, 'poison', k(1.3), 0.55), 400); fade(sn, 240);
+      await wait(320);
+      await seatStamp(ti, '中毒', 'poison', { hold: 420 });
+    }
     await finish();
   });
 
@@ -1032,7 +1058,7 @@ export function dlcFx(T) {
   });
 
   // ———— 被換了角色：東西都從桌心來，不洩露是誰幹的；牌翻過去，接著是翻角色牌 ————
-  const changed = (name, tone, word, hit) => scene(async (e, me) => {
+  const changed = (name, tone, word, hit, mood = 'evil') => scene(async (e, me) => {
     const m = at(me), mid = T.mid, c = EVIL_WASH;
     wash(c); const own = lift(me, false, e.was || null);
     await wait(320);
@@ -1042,16 +1068,17 @@ export function dlcFx(T) {
     await hit(pr, m, own);
     await wait(200);
     await flipTo(own, e.role);
-    ring(m.x, m.y, 'evil', k(1.4), 2.1); burst(m.x, m.y, 'evil', { n: 10, R: k(0.9), keep: false });
+    ring(m.x, m.y, mood, k(1.4), 2.1); burst(m.x, m.y, mood, { n: 10, R: k(0.9), keep: false });
     await wait(380);
-    await seatStamp(me, word, 'evil', { hold: 420 });
+    await seatStamp(me, word, mood, { hold: 420 });
     await finish();
   });
   const CHANGED = {
-    snakecharmer: changed('snake', 'good', '交換', async (pr, m, own) => {
+    // 只有原惡魔走這一段：蛇咬一口，牌翻成舞蛇人，中毒
+    snakecharmer: changed('snake', 'good', '中毒', async (pr, m, own) => {
       sfx('swish'); await slither(pr, { x: m.x, y: m.y - k(0.25) }, 620);
-      sfx('hiss'); wiggle(pr, 0.8); squash(own, 0.6); fade(pr, 240);
-    }),
+      sfx('hiss'); wiggle(pr, 0.8); squash(own, 0.6); develop(blot(m.x, m.y, 'poison', k(1.3), 0.55), 400); fade(pr, 240);
+    }, 'poison'),
     barber: changed('razor', 'evil', '交換', async (pr, m, own) => {
       await fly(pr, { x: m.x, y: m.y - k(0.5) }, 420, 'evil', { lift: k(0.6) });
       sfx('slash'); slashAt(m); squash(own, 0.9); burst(m.x, m.y, 'evil', { n: 8, R: k(0.8), keep: false }); fade(pr, 220);

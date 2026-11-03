@@ -297,6 +297,7 @@ console.log('規則測試全部通過 ✔');
   assert.ok(n.clock.at >= Date.now() + CALL_MS - 50, '立即計票：先播全屏提示，時鐘稍後才開始');
   assert.strictEqual(r.fx.at(-1).k, 'callvote', '給所有人推全屏提示');
   assert.ok(st(r, 'pauseTimer'), '計票開始後不能暫停');
+  assert.strictEqual(countDue(r), n.clock.at + n.clock.step, '計票時看當前這一位，不看 5 分鐘倒數');
   console.log('投票倒數 ✔');
 }
 // 自動結算的計時器：到點結算；倒數被重置會換一個新的到點時刻
@@ -316,6 +317,42 @@ console.log('規則測試全部通過 ✔');
   assert.strictEqual(r.nomination, null, '到點自動結算');
   assert.strictEqual(changed, 1);
   console.log('自動結算計時器 ✔');
+}
+// 立即計票到點：預選過的按預選，什麼都沒選的算棄權；走完自動結算
+{
+  const { countTick } = await import('../lib/day.js');
+  const r = setup(['chef', 'imp', 'poisoner', 'monk', 'soldier', 'saint']);
+  st(r, 'next');
+  ok(pl(r, 'chef', 'nominate', { targetId: S(r, 'monk').id }));
+  ok(pl(r, 'soldier', 'vote', { v: 'yes' }));
+  ok(pl(r, 'saint', 'vote', { v: 'abstain' }));
+  ok(st(r, 'startCount'));
+  const c = r.nomination.clock;
+  c.step = 30; // 跳過全屏提示，每一位 30 毫秒
+  c.at = Date.now();
+  let changed = 0;
+  const tick = () => { changed++; if (r.nomination) countTick(r, tick); };
+  countTick(r, tick);
+  await new Promise(res => setTimeout(res, 800));
+  assert.strictEqual(r.nomination, null, '一個一個到點，走完自動結算');
+  assert.strictEqual(changed, c.order.length);
+  assert.strictEqual(r.history.at(-1).count, 1, '到點按預選');
+  assert.strictEqual(r.g.log.at(-1).e.abstain.length, c.order.length - 1, '其餘都算棄權');
+  // 等裁定時到點：這一位重新計時，不算棄權
+  const r2 = setup(['chef', 'imp', 'poisoner', 'monk', 'soldier', 'saint']);
+  st(r2, 'next');
+  ok(pl(r2, 'chef', 'nominate', { targetId: S(r2, 'monk').id }));
+  ok(st(r2, 'startCount'));
+  const c2 = r2.nomination.clock;
+  c2.step = 20;
+  c2.at = Date.now();
+  r2.g.ruling = { kind: 'slayer' };
+  countTick(r2, () => {});
+  await new Promise(res => setTimeout(res, 150));
+  assert.strictEqual(c2.k, 0, '裁定中不輪到下一位');
+  assert.ok(!r2.nomination.abstain[c2.order[0]], '裁定中不算棄權');
+  r2.nomination = null;
+  console.log('立即計票到點 ✔');
 }
 // 死因：處決、獵手、夜殺分別記下（座位上蓋對應的章）；玩家視角夜裏看不到今晚的死因
 {

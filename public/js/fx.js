@@ -22,6 +22,9 @@ export const heldAlive = id => held.has(id);
 // 提名演出還沒播完：審判牌和提名箭頭先不出，播完再落到桌上
 let nomHold = 0;
 export const nomHeld = () => nomHold > 0;
+// 喊立即計票的全屏提示還沒播完：輪到自己的那張牌等它收起再上來
+let callHold = 0;
+export const callHeld = () => callHold > 0;
 // 射空的演出還沒播完：射手座位上「射 N 號失敗」的標籤先不出，等「未中」章飛過去
 const shotHold = new Set();
 export const shotHeld = x => shotHold.has(x.from + '>' + x.to);
@@ -32,6 +35,10 @@ export const msgShownAt = m => msgShown.get(m.seq) || 0;
 // 翻角色牌的演出還沒播完：左上角面板空著（虛線圈），等中間的牌飛進去；落定後名字和能力淡入（hudFx）
 let roleHold = 0;
 export const roleHeld = () => roleHold > 0;
+// 換了角色：狀態先到，牌要在演出裏才翻過去。這段時間自己座位上還是舊牌（town.js）
+let faceWas = null;
+export const heldFace = () => faceWas;
+const faceDone = () => { faceWas = null; rerender(); };
 export function hudFx() {
   const el = Date.now() - recent.hud;
   return el < 600 ? { '--fx-delay': `-${el}ms` } : null;
@@ -116,12 +123,12 @@ export function nomFx() {
 export const syncDelay = period => ({ '--fx-delay': `-${Date.now() % period}ms` });
 
 // 計票時鐘每數過一人（桌面重繪時調用）：滴答一聲；舉了手的人，座位上的手章按下去
-let clockAt = 0, clockK = 0;
+let clockNom = 0, clockK = 0;
 export function clockFx(s, ck) {
   const c = s.nomination?.clock;
   if (!c || !ck) return;
   // 中途進來（重連 / 換視角）不補播已經數過的
-  if (c.at !== clockAt) { clockAt = c.at; clockK = ck.k > 1 ? ck.k : 0; }
+  if (s.nomination.at !== clockNom) { clockNom = s.nomination.at; clockK = ck.k > 1 ? ck.k : 0; }
   const k = Math.min(ck.k, c.order.length);
   let up = null;
   for (; clockK < k; clockK++) {
@@ -1040,13 +1047,16 @@ export function onState(s) {
   const fresh = evs.filter(e => e.seq > seen && (!e.at || e.at > s.serverNow - 20000));
   seen = Math.max(seen, top);
   const shownBefore = blkOverride !== undefined ? blkOverride : liveBlock(p);
-  let blkScene = null;
+  let blkScene = null, lead = null;
   for (const e of fresh) {
     const sc = SCENES[e.k]?.(e, s, p);
     if (!sc) continue;
+    if (e.k === 'role' && lead && p.myRole && p.myRole !== s.myRole) { faceWas = p.myRole; chain(lead, faceDone); } // 前面那段把牌翻完才換
+    if (e.k === 'act' || e.k === 'changed') lead = sc;
     sc.holds = (sc.holds || []).filter(x => newlyDead.has(x));
     sc.holds.forEach(x => { held.add(x); newlyDead.delete(x); });
     if (e.k === 'nominate') { nomHold++; chain(sc, () => { nomHold--; recent.nom = Date.now(); rerender(); }); }
+    if (e.k === 'callvote') { callHold++; chain(sc, () => { callHold--; rerender(); }); }
     if (e.k === 'slay' && !e.hit) {
       const key = e.from + '>' + e.to;
       shotHold.add(key);

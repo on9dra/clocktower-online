@@ -4,7 +4,7 @@
 import { h, roleToken, modal } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
 import { formula, formulaSeats, mini, w, icon, tag, ACTS } from './glyph.js';
-import { roleHeld, hudFx, msgHeld, msgShownAt } from './fx.js';
+import { roleHeld, hudFx, msgHeld, msgShownAt, nightHeld } from './fx.js';
 
 const ui = { hover: null, pin: null, fresh: new Map(), openFor: null }; // fresh：消息 id -> 到達時間；openFor：選人時手動展開的那一步
 const SMALL = '(max-width: 1180px)'; // 和 hud.css 裏選人時收起的寬度一致
@@ -70,8 +70,8 @@ export function renderHud(ctx) {
   const s = ctx.state;
   if (s.isSt || !s.myRole || s.phase === 'lobby') return null;
   const r = ROLES[s.myRole], min = collapsed(ctx);
-  // 選人時自動收起（寬屏不生效，見 hud.css .hud.pick）
-  const pick = !min && !!s.prompt && ui.openFor !== s.prompt.stepId;
+  // 選人時自動收起（寬屏不生效，見 hud.css .hud.pick）。手機上收起會讓圓桌上移，所以和選人牌一起等前面的演出播完
+  const pick = !min && !!s.prompt && !nightHeld() && ui.openFor !== s.prompt.stepId;
   const toggle = () => {
     if (pick && matchMedia(SMALL).matches) { ui.openFor = s.prompt.stepId; ctx.render(); } else setCollapsed(ctx, !min);
   };
@@ -104,7 +104,7 @@ export function renderBluffs(ctx) {
   if (s.isSt || !s.bluffs?.length || s.phase === 'ended' || roleHeld()) return null;
   const min = ctx.ls.get('botc.bluffs') === 'min', set = v => { ctx.ls.set('botc.bluffs', v ? 'min' : ''); ctx.render(); };
   const show = id => modal(ROLES[id].name, h('div', { class: 'bl-ab' }, roleToken(id), h('p', {}, ROLES[id].ability)));
-  return h('aside', { class: 'bluffs' + (min ? ' min' : '') + (s.prompt ? ' pick' : ''), 'data-key': 'bluffs', 'data-exit': true, onclick: min ? () => set(false) : null },
+  return h('aside', { class: 'bluffs' + (min ? ' min' : '') + (s.prompt && !nightHeld() ? ' pick' : ''), 'data-key': 'bluffs', 'data-exit': true, onclick: min ? () => set(false) : null },
     h('div', { class: 'bl-head' }, tag('bluff'), h('span', { class: 'bl-minis' }, s.bluffs.map(id => mini(id))),
       h('span', { class: 'bl-sub' }, '這些角色不在場，需要時可以偽裝成他們'),
       h('button', { class: 'hud-x bl-x', onclick: e => { e.stopPropagation(); set(true); } }, '收起')),

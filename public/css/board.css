@@ -22,22 +22,25 @@ button.room .btn { margin-left: 8px; }
 .board { grid-area: board; display: flex; min-height: 0; min-width: 0; }
 /* .town 是尺寸容器：圓桌取剩下的寬高裏小的那個 */
 .town { flex: 1; display: grid; place-items: center; padding: 6px; min-height: 0; min-width: 0; container-type: size; }
-.ring { --rw: min(100cqw, 100cqh); position: relative; width: var(--rw); aspect-ratio: 1; }
+/* 座位互不相壓：頭像、名牌都按相鄰座位的距離 --c 算（--s 是 town.js 給的 sin(π / 人數)，.82 是座位圈的直徑）。
+   鬆的時候頭像佔 --c 的六成；擠的時候頭像放到七成二，名牌騎到自己頭像的下沿上（.plate 的 margin-top），不佔鄰座的地方。
+   每一對鄰座都壓不到：上面座位名牌的下角離下面座位的頭像最近，margin-top 就是按這個角算的，人數、屏幕怎麼變都成立 */
+.ring { --rw: min(100cqw, 100cqh); position: relative; width: var(--rw); aspect-ratio: 1;
+  --c: calc(var(--r, var(--rw)) * .82 * var(--s, .38)); --tk-max: min(96px, calc(var(--r, var(--rw)) * .15));
+  --tk: clamp(28px, max(calc(var(--c) * .6), min(calc(var(--c) * .72), 49px)), var(--tk-max));
+  --pw: min(calc(var(--c) * .85), calc(var(--r, var(--rw)) * .24), 124px); --ph: clamp(15px, calc(var(--c) * .27), 22px);
+  --pm: min(3px, calc(var(--c) - var(--tk) * 1.235 - var(--ph))); }
 .ring::before { content: ""; position: absolute; inset: 8%; border: 1.5px dashed var(--line-strong); border-radius: 50%; }
 body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { border-color: #5b6275; }
 
-.seat { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 124px; cursor: pointer; }
-/* 寬屏：頭像按相鄰座位的間距縮放（--n 人數，town.js），15 人局名牌和頭像不互相壓 */
+.seat { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: var(--pw); cursor: pointer; }
+.seat .token:not(.sm):not(.xs) { width: var(--tk); height: var(--tk); flex: none; }
 @media (min-width: 861px) {
-  .ring { --sp: calc(min(100cqw, 100cqh) * 2.5 / var(--n, 8)); --tk: clamp(44px, calc(var(--sp) * .6), 96px); }
-  .seat { width: clamp(64px, calc(var(--sp) * .96), 124px); }
-  .seat .token:not(.sm):not(.xs) { width: var(--tk); height: var(--tk); }
   .seat .token .token-name, .ring.crowded .token .token-name { font-size: clamp(9px, calc(var(--tk) * .145), 14px); }
-  .plate { max-width: 100%; }
 }
 .seat-token { position: relative; }
 /* 說書人看到的假身份：頭像右下角一枚虛線框的小副牌，下面寫名字；懸停看能力 */
-.fake-badge { position: absolute; right: -28px; bottom: 4px; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 58%; cursor: help; }
+.fake-badge { position: absolute; right: calc(var(--tk) * -.22); bottom: 4px; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 50%; cursor: help; }
 .seat .fake-badge .token.xs { width: 100%; height: auto; aspect-ratio: 1; font-size: inherit; border-style: dashed; box-shadow: 0 0 0 2px var(--card), inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px var(--team); }
 .fake-name { margin-top: -5px; padding: 0 4px; background: var(--card); border: 1.2px dashed var(--ink); border-radius: 3px;
   font: 700 11px/1.35 var(--serif); color: var(--ink); white-space: nowrap; }
@@ -53,17 +56,25 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .dead-stamp { position: absolute; left: 50%; top: 50%; z-index: 1; transform: translate(-50%, -50%) rotate(-12deg); pointer-events: none;
   padding: 1px 3px 2px 7px; color: var(--evil); font: 900 17px/1.1 var(--serif); letter-spacing: .2em; white-space: nowrap;
   border: 2px solid currentColor; border-radius: 3px; box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px currentColor; mix-blend-mode: multiply; }
-.ghost-vote { position: absolute; left: 50%; top: -15px; z-index: 2; width: 28px; height: 28px; transform: translateX(-50%) rotate(-10deg); color: var(--brass); pointer-events: none; }
+.ghost-vote { position: absolute; left: 50%; top: calc(var(--tk) * -.1); z-index: 2; width: clamp(16px, calc(var(--tk) * .42), 28px); aspect-ratio: 1; transform: translateX(-50%) rotate(-10deg); color: var(--brass); pointer-events: none; }
 .ghost-vote .ico { width: 100%; height: 100%; }
 .hand { position: absolute; right: -14px; top: -6px; background: var(--brass); color: #fff; font-size: 11px; padding: 1px 5px; border-radius: 2px; }
 .guess { opacity: .45; }
-.plate { margin-top: 6px; display: flex; gap: 5px; align-items: center; max-width: 118px; background: var(--card); border: 1px solid var(--ink); border-radius: 3px; padding: 0 7px; font-size: 13px; }
+.plate { position: relative; z-index: 1; box-sizing: border-box; height: var(--ph); margin-top: var(--pm); display: flex; gap: 3px; align-items: center; max-width: 100%;
+  background: var(--card); border: 1px solid var(--ink); border-radius: 3px; padding: 0 3px; font-size: clamp(10px, calc(var(--c) * .17), 13px); line-height: 1.15; white-space: nowrap; }
 .plate b { font-family: var(--serif); }
 .plate .pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .plate .off { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); flex: none; }
 .fake { font-size: 11px; color: #d8cfb9; margin-top: 2px; }
 .phase-day .fake, .phase-lobby .fake, .phase-ended .fake { color: var(--muted); }
-.tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: 3px; max-width: 130px; }
+.tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+/* 標記（說書人的提示、玩家的推理、積分）從頭像朝圓心那一邊掛出去（--ux、--uy 是座位的方向，town.js）：
+   不把座位頂高，頭像不跟著挪，朝裏也碰不到兩邊的鄰座。上半圈的座位朝裏是往下，要越過自己的名牌 */
+.seat-more { position: absolute; z-index: 3; left: calc(50% - var(--ux) * (var(--tk) / 2 + 3px));
+  top: calc(var(--tk) / 2 - var(--uy) * (var(--tk) / 2 + 3px) + max(0px, -1 * var(--uy) * (var(--ph) + var(--pm))));
+  translate: calc(-50% - 50% * var(--ux)) calc(-50% - 50% * var(--uy)); display: flex; flex-direction: column; align-items: center; gap: 2px; width: max-content; }
+.seat-more:empty { display: none; }
+.seat-more :is(.tags, .pmarks) { margin-top: 0; max-width: max(80px, calc(var(--tk) * 1.6)); }
 .tag { font-size: 11px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 2px; padding: 0 4px; }
 .tag.bad { border-color: var(--evil); color: var(--evil); }
 
@@ -138,9 +149,14 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .prog { grid-area: prog; container-type: inline-size; min-width: 0; padding: 0 16px; position: relative; z-index: 2; }
 .prog.day { --th0: #2a262273; --th1: var(--brass); --ring: var(--brass); --edge: #e6deced9; }
 .prog.night { --th0: #efe5cc73; --th1: #d6b462; --ring: #e2c272; --edge: #141826c0; }
-.pg { --pad: 20px; --stp: calc((100cqw - 2 * var(--pad)) / (var(--n) - 1)); --pn: clamp(13px, calc(var(--stp) - 8px), 30px);
+.pg { --pad: 20px; --stp: max(var(--stp0, 0px), calc((100cqw - 2 * var(--pad)) / (var(--n) - 1))); --pn: clamp(13px, calc(var(--stp) - 8px), 30px);
   --ps: calc(var(--pn) * 1.16); --ty: 5px; --sag: clamp(4px, calc(var(--stp) * .3), 22px);
-  position: relative; height: calc(var(--ty) + var(--pn) * 1.42 + 6px); }
+  position: relative; height: calc(var(--ty) + var(--pn) * 1.42 + 6px); cursor: pointer; }
+/* 牌多到放不下（--stp0 是牌距下限）：兩端的章釘在紙卡上，中間的牌在 .pg-roll 裏滾，滾到章底下淡掉。
+   .pg-roll 比紙卡大一圈，當前這張抽出來的部分才不會被裁掉 */
+.pg-roll { position: absolute; scrollbar-width: none; overscroll-behavior: contain; }
+.pg-roll::-webkit-scrollbar { display: none; }
+.pg-track { position: relative; }
 .pg-seg { position: absolute; z-index: 0; top: calc(var(--ty) - 1px); left: calc(var(--pad) + var(--i) * var(--stp)); width: var(--stp); height: var(--sag);
   transition: left .5s ease, width .5s ease, height .5s ease; animation: pg-fade .4s ease calc(var(--i) * 45ms + .1s) backwards; }
 @keyframes pg-fade { from { opacity: 0; } }
@@ -205,20 +221,23 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .pg-seal.sun { color: var(--brass); }
 .pg-it.seal.done > :not(.pg-knot) { opacity: 1; filter: none; }
 .pg::before { content: ""; position: absolute; inset: 0; background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); }
-/* 寬屏：進度條不在桌面下方，是桌面右邊一張窄長的紙卡（這一欄開局前也留著，開局時圓桌不跳）。紙卡高度跟著牌數走，白天每多一次提名長一格，封頂 60%。
+/* 寬屏：進度條不在桌面下方，是桌面右邊一張窄長的紙卡（這一欄開局前也留著，開局時圓桌不跳）。紙卡高度跟著牌數走，白天每多一次提名長一格，最長到這一欄放得下為止（再放不下才滾）。
    兩端的日月章騎在紙卡上下邊上，線是紙上的一道豎線，牌貼在紙上不晃，當前這張從條上抽出來一截朝向圓桌 */
 @media (min-width: 1000px) {
   .game { --pw: 96px; grid-template-columns: minmax(0, 1fr) var(--pw) 340px; grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "top top top" "board prog side"; }
   .game.side-min { grid-template-columns: minmax(0, 1fr) var(--pw) 44px; }
   .prog { container-type: size; display: grid; place-items: center; padding: 0; }
   .prog.day, .prog.night { --th0: #2a262266; --th1: var(--brass); --ring: var(--brass); --edge: transparent; }
-  .pg { --h: min(60cqh, calc(var(--n) * 46px)); --pad: 7px; --stp: calc((var(--h) - 2 * var(--pad)) / (var(--n) - 1)); --pn: clamp(18px, calc(var(--stp) - 5px), 32px);
-    --ps: clamp(26px, calc(var(--stp) * 1.2), 38px); --sag: 3px; width: 62px; height: var(--h); translate: 0 -3cqh; transition: height .5s ease; }
+  .pg { --h: min(calc(100cqh - 72px), calc(var(--n) * 46px)); --pad: 7px; --stp: max(22px, calc((var(--h) - 2 * var(--pad)) / (var(--n) - 1))); --pn: clamp(18px, calc(var(--stp) - 5px), 32px);
+    --ps: clamp(26px, calc(var(--stp) * 1.2), 38px); --sag: 3px; width: 62px; height: var(--h); translate: 0 calc((var(--h) - 100cqh) * .05); transition: height .5s ease; }
+  .pg-roll { inset: 0 -17px; overflow: hidden auto; touch-action: pan-y; mask: linear-gradient(#0000, #000 16px calc(100% - 16px), #0000); }
+  .pg-track { height: calc(2 * var(--pad) + (var(--n) - 1) * var(--stp)); }
   .pg-seg { top: calc(var(--pad) + var(--i) * var(--stp)); left: calc(50% + 1.5px); rotate: 90deg; transform-origin: 0 0; transition: top .5s ease, width .5s ease; }
   .pg-it { top: calc(var(--pad) + var(--i) * var(--stp)); left: 50%; margin-top: calc(var(--pn) / -2); transform-origin: 50% 50%;
     transition: scale .3s cubic-bezier(.2, .9, .3, 1.4) .42s, top .5s ease, left .3s ease .42s; animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards; }
   .pg-it.now { left: calc(50% - 14px); scale: 1.3; animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards, pg-tug .55s cubic-bezier(.3, 1.6, .5, 1) .4s; }
   .pg-it.seal { margin-top: calc(var(--ps) / -2); }
+  .pg-it.seal:last-child { top: calc(100% - var(--pad)); }
   .pg-it.seal.now { left: 50%; scale: 1.12; }
   .pg-knot { display: none; }
   .pg-tag { left: 80%; top: 50%; bottom: auto; translate: 0 -50%; height: 15px; padding: 0 3px; font-size: 11px; }
@@ -228,24 +247,56 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 @media (max-width: 999px) {
   .prog { padding: 8px 18px max(8px, env(safe-area-inset-bottom)); }
   .prog.day, .prog.night { --th0: #2a262266; --th1: var(--brass); --ring: var(--brass); --edge: transparent; }
-  .pg { --pad: 9px; --pn: clamp(16px, calc(var(--stp) - 3px), 30px); --ps: clamp(24px, calc(var(--pn) * 1.2), 34px); --h: calc(var(--pn) + 20px);
+  .pg { --pad: 9px; --stp0: 33px; --pn: clamp(16px, calc(var(--stp) - 3px), 30px); --ps: clamp(24px, calc(var(--pn) * 1.2), 34px); --h: calc(var(--pn) + 20px);
     --ty: calc((var(--h) - var(--pn)) / 2); --sag: 3px; height: var(--h); }
+  .pg-roll { inset: -16px 0 -4px; overflow: auto hidden; touch-action: pan-x; mask: linear-gradient(90deg, #0000 8px, #000 26px calc(100% - 26px), #0000 calc(100% - 8px)); }
+  .pg-track { width: calc(2 * var(--pad) + (var(--n) - 1) * var(--stp)); height: var(--h); margin-top: 16px; }
   .pg-seg { top: calc(var(--h) / 2 - 1px); }
   .pg-it { transition: scale .3s cubic-bezier(.2, .9, .3, 1.4) .42s, left .5s ease, top .3s ease .42s; animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards; }
   .pg-it.now { top: calc(var(--ty) - 10px); animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards, pg-tug .55s cubic-bezier(.3, 1.6, .5, 1) .4s; }
   .pg-it.seal, .pg-it.seal.now { top: calc((var(--h) - var(--ps)) / 2); }
+  .pg-it.seal:last-child { left: calc(100% - var(--pad)); }
   .pg-knot { display: none; }
   .pg-it.done > .pg-tag { opacity: 1; filter: none; }
 }
 /* 橫屏手機：高度金貴，橫條壓扁 */
 @media (max-width: 999px) and (max-height: 520px) {
   .prog { padding: 3px 18px 4px; }
-  .pg { --pn: clamp(16px, calc(var(--stp) - 3px), 24px); --ps: clamp(22px, calc(var(--pn) * 1.15), 28px); --h: calc(var(--pn) + 12px); }
+  .pg { --stp0: 27px; --pn: clamp(16px, calc(var(--stp) - 3px), 24px); --ps: clamp(22px, calc(var(--pn) * 1.15), 28px); --h: calc(var(--pn) + 12px); }
   .pg-it.now { top: calc(var(--ty) - 5px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .pg-it, .pg-it.now, .pg-it.seal, .pg-it.seal.now, .pg-it.now::after, .pg-it.now::before, .pg-seg { animation: none; }
   .pg-t1, .pg-it, .pg-seg { transition: none; }
+}
+/* 點開紙卡：完整的一張表。夜晚兩欄，一根線串著牌，先下後右；白天一欄，一次提名一行 */
+.modal.pg-modal { min-width: 0; } /* 長名字不能把彈窗撐出屏幕，在行裏省略 */
+.pg-modal .modal-head > span { display: flex; align-items: center; gap: 8px; }
+.pg-modal .pg-seal { width: 30px; height: 30px; }
+.pg-list.night { columns: 2; column-gap: 14px; }
+.pg-list.day .pg-row { min-height: 34px; }
+.pg-row { position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 38px; padding-left: 4px; break-inside: avoid; font-size: 14px; }
+.pg-row > .token.xs { position: relative; flex: none; width: 30px; height: 30px; box-sizing: border-box; }
+.pg-row > .ico { flex: none; width: 22px; height: 22px; color: var(--brass); }
+.pg-row > .sb { flex: none; font-size: 15px; }
+.pg-list.night .pg-row::before { content: ''; position: absolute; left: 18px; top: 0; bottom: 0; width: 1.5px; background: var(--line-strong); }
+.pg-list.night .pg-row:first-child::before { top: 50%; }
+.pg-list.night .pg-row:last-child::before { bottom: 50%; }
+.pg-list.night .pg-row.done::before { width: 2px; background: var(--brass); }
+.pg-list.night .pg-row.done > :not(.pg-tag) { opacity: .5; filter: grayscale(.75); }
+.pg-row.now > :first-child { outline: 2px solid var(--brass); outline-offset: 2px; }
+.pg-row.now .pg-who b, .pg-row.now > b { color: var(--brass); }
+.pg-row.ghost > .token { border-style: dashed; box-shadow: none; background: #e6decea6; }
+.pg-row.ghost > .token .token-icon { opacity: .45; }
+.pg-row.ghost .pg-who b { color: var(--muted); font-weight: 400; }
+.pg-who { display: grid; min-width: 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pg-who b { overflow: hidden; text-overflow: ellipsis; }
+.pg-who i { font-style: normal; font-size: 11px; color: var(--muted); }
+.pg-row .pg-tag { position: static; flex: none; translate: none; height: 19px; margin-left: auto; padding: 0 4px; font-size: 12px; }
+@media (max-height: 520px) {
+  .modal.pg-modal { width: min(640px, 100%); }
+  .pg-list.night { columns: 3; }
+  .pg-row { min-height: 35px; }
 }
 .btn.big { padding: 10px 22px; font-size: 15px; }
 .steps { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -334,13 +385,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   /* 桌面：.town 是尺寸容器，圓桌取寬高裏小的那個；頭像跟著圓桌大小縮放（--tk） */
   .town { flex: 1; contain: layout; padding: 4px; }
   /* 左右留一點邊：3 點、9 點方向的名牌不被屏幕邊緣切掉 */
-  .ring { --rw: min(92cqw, 100cqh); --tk: clamp(34px, 15.5cqmin, 62px); }
-  .ring.crowded { --tk: clamp(30px, 12.5cqmin, 50px); }
-  .seat { width: calc(var(--tk) * 1.35); }
-  .seat .token:not(.sm):not(.xs) { width: var(--tk); height: var(--tk); }
+  .ring { --rw: min(96cqw, 100cqh - 10px); }
   .seat .token .token-name { font-size: clamp(8px, calc(var(--tk) * .17), 11px); padding: 0 2px; }
-  .ring.crowded .token .token-name { display: none; }
-  .plate { font-size: 11px; padding: 0 4px; max-width: calc(var(--tk) * 1.35); margin-top: 4px; }
+  .ring.crowded .token .token-name, .ring.crowded .fake-name { display: none; }
   .tags, .fake { display: none; }
   .phase-title { font-size: clamp(16px, 5.5cqmin, 24px); letter-spacing: 2px; }
   .phase-sub { font-size: 12px; }
@@ -367,7 +414,8 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .peekbar { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 10px; align-items: center;
   background: var(--brass); color: #fff; padding: 5px 6px 5px 14px; border-radius: 4px; font-weight: 600; white-space: nowrap; animation: slip-in .24s ease-out; }
 .solobar { left: auto; right: 8px; transform: none; padding: 4px 6px; gap: 6px; }
-.solobar select { font: inherit; font-size: 13px; max-width: 110px; }
+.solobar select { font: inherit; font-size: 13px; max-width: 110px; min-width: 0; }
+@media (max-width: 480px) { .solobar { gap: 4px; } .solobar select { flex: 1 1 0; max-width: none; } .solobar .btn { flex: none; padding-inline: 7px; } }
 .board { position: relative; }
 .preview { margin: 8px 0 0; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 4px; font-size: 13px; }
 .preview.good { border: 1.5px solid var(--good); }
@@ -396,9 +444,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .lastnight { font-family: var(--serif); font-weight: 700; color: var(--evil); }
 .clockline { font-weight: 700; color: var(--brass); }
 
-/* 座位：今天的提名情況、計票時鐘 */
-.daytags { display: flex; gap: 3px; margin-top: 3px; }
-.daytags span { font-size: 10.5px; line-height: 15px; padding: 0 4px; border-radius: 2px; background: var(--ink); color: var(--card); white-space: nowrap; }
+/* 座位：今天的提名情況（貼在自己頭像頂上的小章）、計票時鐘 */
+.daytags { position: absolute; z-index: 2; left: 50%; top: calc(var(--tk) * .02); translate: calc(-50% - var(--ux) * var(--uy) * var(--tk) * .6) 0; display: flex; gap: 1px; }
+.daytags span { padding: 0 2px; border-radius: 2px; background: var(--ink); color: var(--card); font-size: clamp(9px, calc(var(--tk) * .2), 11px); line-height: 1.3; white-space: nowrap; }
 .seat.clock .token { outline: 4px solid var(--brass); outline-offset: 4px; }
 .seat.clock .plate { background: var(--brass); color: #fff; border-color: var(--brass); }
 .seat.counted .plate { opacity: .6; }
@@ -425,10 +473,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 @media (max-width: 860px) {
   .center { width: 42%; }
   .center.has-nom .phase-title, .center.has-nom .phase-sub { display: none; }
-  .vmark { width: 22px; height: 22px; right: -7px; top: -6px; }
-  .vmark .ico { width: 13px; height: 13px; }
   .vbtn { padding: 8px 12px; font-size: 15px; }
-  .daytags span { font-size: 9px; line-height: 13px; padding: 0 2px; }
   .seat.clock .token { outline-width: 3px; outline-offset: 2px; }
   .chat-pop { max-width: 120px; font-size: 13px; padding: 2px 7px; }
   .center .chat-pop { font-size: 14px; padding: 4px 10px; }
@@ -442,9 +487,11 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .nom-line line { stroke: #b3261e; stroke-width: .7; stroke-linecap: round; stroke-dasharray: 2.2 1.4; animation: nomdash 1s linear infinite; }
 @keyframes nomdash { to { stroke-dashoffset: -3.6; } }
 .seat.nominator .token { outline: 3px dashed var(--evil); outline-offset: 3px; }
-.vmark { position: absolute; right: -10px; top: -8px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; z-index: 2;
+/* 舉手的小章貼在頭像頂上，選上面鄰座不在的那一側：右下、左上兩個象限靠左，其餘靠右 */
+.vmark { --side: clamp(-1, calc(var(--ux) * var(--uy) * -6), 1); position: absolute; left: calc(50% + var(--side) * var(--tk) * .36); top: 0; translate: -50% -15%;
+  box-sizing: border-box; width: clamp(18px, calc(var(--tk) * .42), 30px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; z-index: 2;
   border: 2px solid var(--card); box-shadow: 0 2px 6px #0005; color: #fff; }
-.vmark .ico { width: 17px; height: 17px; }
+.vmark .ico { width: 62%; height: 62%; }
 .vmark.yes { background: #c9962c; }
 .vmark.no { background: #6b7280; }
 .vbtn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; border: 2px solid; background: var(--card); font: 700 16px var(--serif); letter-spacing: .08em; cursor: pointer; }
@@ -548,7 +595,8 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .tr-clock .sb { font-size: 16px; transition: transform .2s, background .2s; }
 .tr-clock .sb.past { background: var(--line); color: var(--muted); }
 .tr-clock .sb.past.up { background: var(--brass); border-color: var(--brass); color: var(--card); }
-.tr-clock .sb.now { background: var(--ink); color: var(--card); transform: scale(1.3); }
+.tr-clock .sb.now { background: var(--evil); border-color: var(--evil); color: var(--card); transform: scale(1.3); }
+.tr-clock .sb.mine { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (max-width: 860px) {
   .trial { width: calc(100% - 12px); max-height: calc(100% - 12px); gap: 8px; padding: 10px; border-radius: 10px; }
   .tr-who .token { width: 60px; height: 60px; }
@@ -585,6 +633,96 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .tr-tbtn { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1.5px solid var(--ink); border-radius: 50%; background: var(--card); color: var(--ink); cursor: pointer; }
 .tr-tbtn .ico { width: 15px; height: 15px; }
 .tr-tbtn:hover { background: var(--ink); color: var(--card); }
+/* 立即計票：審判牌紅框，倒數換成正在選的人 + 大數字 + 燒著的導火索 */
+body.art .trial.counting { --mark: var(--evil); }
+.trial.counting { border-color: var(--evil); }
+.tr-stamp[data-key=count] { animation: tr-in .34s cubic-bezier(.2,1.4,.4,1) both; }
+.tr-count { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 2px 2px 10px; }
+.tr-turn { display: flex; align-items: center; gap: 8px; min-width: 0; font: 800 18px var(--serif); animation: slip-in .22s ease-out; }
+.tr-turn .sb { flex: none; font-size: 22px; }
+.tr-turn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-sec { font: 900 44px/1 var(--serif); font-variant-numeric: tabular-nums; animation: tr-bump .3s cubic-bezier(.2,1.5,.4,1); }
+.fs-n.tr-sec { font-size: 20px; color: var(--evil); }
+.tr-count.low .tr-sec { color: var(--evil); }
+/* 導火索：--lit 之後開始燒，--burn 燒完；燒過的地方留一道焦痕，火頭在 b 的右端 */
+.fuse { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; display: block; clip-path: inset(-12px 0); background: repeating-linear-gradient(90deg, var(--line-strong) 0 5px, #0000 5px 9px); }
+.fuse b { position: absolute; inset: 0; background: var(--ink); animation: fuse-burn var(--burn) linear var(--lit) forwards; }
+.fuse b::after { content: ""; position: absolute; right: -5px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: #f2a33a; box-shadow: 0 0 0 2px #c8431a, 0 0 8px 3px #e8691f; animation: fuse-spark .22s steps(2) infinite; }
+@keyframes fuse-burn { to { transform: translateX(-100%); } }
+@keyframes fuse-spark { 50% { transform: scale(.72); opacity: .8; } }
+.tr-count.low .fuse b { background: var(--evil); }
+
+/* 輪到自己：一張選票蓋在桌心，審判牌讓開，壓暗從中間往外淡掉，座位還看得見。
+   掛在 .board 上不掛 .town：手機橫屏角色卡佔了上面，.town 只剩一條放不下；寬屏角色卡在左邊，留出這一欄才對著桌心 */
+.trial { transition: opacity .18s ease, scale .18s ease; }
+.board:has(> .vt-pop:not(.out)) .trial { opacity: 0; scale: .96; pointer-events: none; }
+.vt-pop { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 8px; box-sizing: border-box; background: radial-gradient(closest-side, #2a2622d0 45%, #2a262200) no-repeat content-box; animation: vt-veil .2s ease-out; }
+@media (min-width: 861px) and (min-height: 521px) { .board:has(> .hud:not(.min)) > .vt-pop { padding-left: 332px; } }
+@keyframes vt-veil { from { opacity: 0; } }
+.vt-pop.out { opacity: 0; pointer-events: none; transition: opacity .22s ease-in; }
+.vt-pop.out .vt-card { translate: 0 18px; transition: translate .22s ease-in; }
+.pc.vt-card { display: grid; gap: 10px; width: min(460px, 100%); box-sizing: border-box; max-height: 100%; padding: 14px 18px 16px; rotate: -1deg; animation: vt-in .34s cubic-bezier(.2,.9,.3,1.05) both; }
+@keyframes vt-in { from { transform: translateY(46vh) rotate(5deg); opacity: 0; } }
+body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
+.vt-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.vt-top h2 { margin: 0; font: 900 clamp(40px, 11vmin, 58px)/1 var(--serif); letter-spacing: .08em; color: var(--evil); }
+.vt-n { display: inline-flex; align-items: center; gap: 4px; font: 900 26px/1 var(--serif); font-variant-numeric: tabular-nums; }
+.vt-n .ico { width: 24px; height: 24px; color: var(--brass); }
+.vt-n i { font-style: normal; font-size: 17px; color: var(--muted); }
+.vt-card .fuse { position: relative; height: 5px; }
+.vt-mid { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px; min-height: 124px; }
+.vt-sec { justify-self: center; font: 900 clamp(96px, 30vmin, 132px)/1 var(--serif); font-variant-numeric: tabular-nums; animation: vt-beat .3s cubic-bezier(.2,1.5,.4,1); }
+@keyframes vt-beat { from { transform: scale(1.5); opacity: .4; } }
+.vt-pop.low .vt-sec { color: var(--evil); animation-name: vt-beat-low; animation-duration: .38s; }
+@keyframes vt-beat-low { from { transform: scale(1.9); } }
+.vt-who { display: grid; justify-items: center; gap: 6px; min-width: 0; max-width: 150px; }
+.vt-who .token { width: 96px; height: 96px; outline: 3px solid var(--evil); outline-offset: 3px; }
+.vt-who .token.blank { font-size: 34px; }
+.vt-who span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 15px var(--serif); }
+.vt-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* 兩枚大章：雙線章框，預選過的那枚是蓋實的 */
+.vt-btn { --c: var(--brass); position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 76px; padding: 6px 8px; cursor: pointer; background: none; color: var(--c);
+  font: 900 30px/1 var(--serif); letter-spacing: .12em; border: 3px solid currentColor; border-radius: 6px; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px currentColor; transition: transform .1s, background .12s, color .12s; }
+.vt-btn.gray { --c: var(--muted); }
+.vt-btn .ico { width: 30px; height: 30px; }
+.vt-btn small { position: absolute; right: 8px; top: 7px; font: 800 12px var(--serif); letter-spacing: .04em; }
+.vt-btn.on { background: var(--c); color: var(--card); box-shadow: inset 0 0 0 3px var(--c), inset 0 0 0 4.5px var(--card); }
+.vt-btn:hover { transform: rotate(-2deg) scale(1.03); }
+.vt-btn:active { transform: scale(.96); }
+.vt-btn.disabled { opacity: .35; pointer-events: none; }
+.vt-pop.low .fuse b { background: var(--evil); }
+.vt-pop.settled :is(.vt-btn, .vt-sec) { opacity: .3; transition: opacity .2s; }
+.vt-pop.settled .vt-btn { pointer-events: none; }
+.vt-pop.settled .fuse b, .vt-pop.settled .fuse b::after { animation-play-state: paused; }
+.vt-stamp { font-size: clamp(54px, 15vmin, 84px); z-index: 3; animation: vt-stamp .26s cubic-bezier(.5,0,.7,1) both; }
+@keyframes vt-stamp { from { transform: translate(-50%,-50%) scale(3) rotate(-18deg); opacity: 0; } 70% { transform: translate(-50%,-50%) scale(.94) rotate(-6deg); opacity: 1; } }
+/* 手機：頭像和數字都收一點；橫屏矮屏：左右兩欄，數字和章各佔一邊 */
+@media (max-width: 480px) {
+  .pc.vt-card { gap: 6px; padding: 10px 10px 12px; }
+  .vt-mid { min-height: 0; gap: 8px; }
+  .vt-who .token { width: 72px; height: 72px; }
+  .vt-btn { min-height: 66px; font-size: 26px; }
+  .vt-btn .ico { width: 26px; height: 26px; }
+}
+@media (max-height: 520px) {
+  .pc.vt-card { width: min(620px, 100%); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 14px; padding: 6px 10px 8px; }
+  .vt-top, .vt-card .fuse { grid-column: 1 / -1; }
+  .vt-top h2 { font-size: 30px; }
+  .vt-mid { min-height: 0; gap: 8px; }
+  .vt-sec { font-size: 76px; }
+  .vt-who .token { width: 60px; height: 60px; }
+  .vt-who span { font-size: 12px; }
+  .vt-btns { grid-template-columns: 1fr; gap: 6px; }
+  .vt-btn { min-height: 54px; font-size: 22px; }
+  .vt-btn .ico { width: 22px; height: 22px; }
+}
+@media (max-width: 860px) {
+  .tr-count { padding-bottom: 7px; }
+  .tr-turn { gap: 5px; font-size: 14px; }
+  .tr-turn .sb { font-size: 16px; }
+  .tr-sec { font-size: 32px; }
+}
+
 /* 棄權欄的「僅你與說書人可見」 */
 .tr-priv { display: flex; align-items: center; gap: 3px; margin: -4px 0 6px; font: 600 11.5px var(--sans); color: var(--muted); white-space: nowrap; }
 .tr-priv .ico { width: 14px; height: 14px; }
@@ -624,7 +762,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .blk { transform: translate(-50%, -54%) scale(.62); }
   .blk-ret .token { width: 56px; height: 56px; }
 }
-@media (max-width: 860px) { .dead-stamp { font-size: 11px; padding: 0 2px 1px 5px; border-width: 1.5px; } .ghost-vote { width: 20px; height: 20px; top: -11px; } }
+/* 橫屏手機寬度超過 860 也一樣擠：和豎屏手機一樣不畫說書人的小標籤、牌上的字 */
+@media (max-height: 520px) { .tags, .fake, .ring.crowded .token .token-name { display: none; } }
+@media (max-width: 860px) { .dead-stamp { font-size: 11px; padding: 0 2px 1px 5px; border-width: 1.5px; } }
 
 /* 審判牌上的投票按鈕（欄頂） */
 .tr-k .vbtn { padding: 6px 14px; font-size: 15px; gap: 5px; min-width: 96px; justify-content: center; }
@@ -637,13 +777,18 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .cx .frm-line { justify-content: center; font-size: 16px; }
 .cx > .row { justify-content: center; }
 .lobby-pane .bots { margin-top: 0; justify-content: center; }
-/* 抽完才有內容的一塊：高度定死（名字長時偽裝佔兩行也放得下），內容出來時上面的按鈕不動 */
-.lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 123px; }
+/* 抽完才有內容的一塊：高度定死（名字長時偽裝佔兩行也放得下），內容出來時上面的按鈕不動。空著的時候不擋底下的座位 */
+.lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 123px; pointer-events: none; }
+.lobby-after > * { pointer-events: auto; }
 .lobby-after > * { animation: l-rise .3s ease backwards; }
 .lobby-after > .row { margin-top: 0; animation-delay: .08s; }
 /* 劇本卡占桌面左上角。桌子是圓的，角上本來就空：左邊空位夠就不動；不夠先把圓桌往右下推，還不夠才縮到圓剛好擦過卡片的右下角（--ab 是這個角的 x + y）。
    開局後卡片收走，圓桌滑回原位，尺寸和座位都不跳 */
 .is-st .ring { transition: width .45s ease, translate .45s ease; }
+/* 圓桌變小時頭像、名牌按新的間距一起縮，不跳 */
+.is-st .seat { transition: width .45s ease; }
+.is-st .seat .token:not(.sm):not(.xs) { transition: width .45s ease, height .45s ease, transform .15s ease, box-shadow .2s ease; }
+.is-st .seat .plate { transition: opacity .4s ease, height .45s ease, margin-top .45s ease; }
 @media (min-width: 641px), (orientation: landscape) {
   .town.picking { --a: 140px; --ab: 445px; }
   .town.picking .ring { --r: min(var(--rw), .585 * (100cqw + 100cqh - var(--ab))); --dx: calc((100cqw - var(--r)) / 2); --dy: calc((100cqh - var(--r)) / 2);
@@ -760,7 +905,43 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .tp-say { font: 700 17px/1.45 var(--serif); }
 .tp-say b { color: var(--tone); font-size: 1.15em; white-space: nowrap; }
 .turn-pane .slots { font-size: 26px; }
-.center:has(.turn-pane) .phase-sub { display: none; }
+.center:has(.turn-pane) .phase-sub, .center:has(.fold-stub) .phase-sub { display: none; }
+.turn-pane { position: relative; }
+.center > .cx { margin-inline: auto; }
+/* 牌壓著座位時永遠是座位在上面：看得見、點得到（牌一般不會碰到，town.js fitTableCard 按座位留出來的地方排牌） */
+.ring:has(> .center > :is(.turn-pane, .st-card)) .seat { z-index: 4; }
+/* 放不下：「第 N 夜」讓給牌，在牌底下淡掉；牌收起來時再淡回來 */
+.phase-title { transition: opacity .25s ease; }
+.center.tight .phase-title { position: absolute; inset: 0 0 auto; opacity: 0; pointer-events: none; }
+.center.tight .phase-sub { display: none; }
+/* 沒有牌時中間的按鈕不撐寬：空白的地方別佔著（town.js 按實際大小排），準備階段按鈕排得開，抽完不變寬 */
+.center:has(> .cx:not(.lobby-pane, .turn-pane, .fold-stub)) { width: max-content; max-width: 46%; }
+/* 橫版：圓心左右比上下寬。角色牌和要說的話一行，選中的人和按鈕一行 */
+.center.tight:has(> .flat) { width: max-content; }
+.turn-pane.flat { grid-template-columns: auto minmax(0, 1fr) auto; justify-items: start; align-items: center; gap: 4px 8px; width: max-content; max-width: calc(var(--rw) * .62); text-align: left; }
+.flat .tp-head { position: relative; display: block; }
+.flat .tp-head .token { width: 44px; height: 44px; }
+.flat .tp-head .token .token-name { display: none; }
+.flat .tp-ico { position: absolute; right: -7px; bottom: -5px; width: 24px; height: 24px; }
+.flat .tp-say { grid-column: 2 / -1; font-size: 14.5px; line-height: 1.3; }
+.flat .tp-picks { flex-wrap: nowrap; justify-content: center; justify-self: center; margin: 0; }
+.flat .slots { font-size: 18px; }
+.flat > .btn.big { justify-self: stretch; min-height: 40px; padding: 4px 16px; font-size: 14.5px; }
+.flat > .fold-x { position: static; align-self: center; }
+/* 收起：一張窄紙條，和桌心紙條同一種撕邊 */
+.fold-x { z-index: 1; }
+.fold-stub { --card: #e6dece; --ink: #2a2622; --muted: #635a4c; --line: #c2b7a1; --line-strong: #92866f; --good: #2f5d8a; --evil: #8a1c1c; --brass: #7f6320; --lit: #eddfb4;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; width: max-content; max-width: calc(var(--rw) * .6); margin-inline: auto; padding: 5px 12px; color: var(--ink);
+  background: var(--card) url(../img/grain.svg); font-family: var(--serif);
+  clip-path: polygon(0 0, 100% 0, 99% 25%, 100% 50%, 99% 75%, 100% 100%, 0 100%, 1% 75%, 0 50%, 1% 25%); animation: bubble-in .28s .08s cubic-bezier(.2,.9,.3,1.2) backwards; }
+.center:has(> .fold-stub) { width: max-content; filter: drop-shadow(0 4px 8px #0006); }
+.fs-lead { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; font-size: 20px; }
+.fs-lead .slots { font-size: 18px; }
+.fs-lead .ico { width: 16px; height: 16px; }
+.fs-lead .tr-k { margin: 0; }
+.fs-n { font: 700 18px var(--serif); }
+.trial { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); } /* 展開時從紙條撐開；剛提名時是下面的 fx-pop */
+.fold-stub .btn.sm { padding: 3px 10px; }
 @media (max-width: 860px) {
   /* 手機上圓桌中間放不下標題和牌：輪到自己時只留牌，免得壓到下面的座位 */
   .center:has(.turn-pane) .phase-title { display: none; }
@@ -773,6 +954,27 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .turn-pane .btn.big { min-height: 44px; padding: 5px 22px; font-size: 14.5px; }
   .turn-pane .role-slot { min-height: 40px; }
   .cx .btn.sm { min-height: 40px; }
+}
+/* 手機：桌子小，圓桌中間只放得下兩三個字。牌放圓桌下面一條，圓桌往上讓（和說書人拆開的卡一樣），不壓座位，字和按鈕也不用縮 */
+@media (max-width: 640px) {
+  .ring { transition: translate .45s ease, width .45s ease; }
+  .ring:has(> .center > .turn-pane) { translate: 0 calc(24px + var(--rw) / 2 - 50cqh); }
+  .center:has(> .turn-pane) .phase-title { display: block; }
+  .center > .turn-pane { position: absolute; left: 50%; top: calc(50% + var(--rw) / 2 + 18px); translate: -50% 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+    gap: 4px 8px; box-sizing: border-box; width: 96vw; margin: 0; text-align: left; }
+  .center > .turn-pane .tp-head { position: relative; display: block; flex: none; }
+  .center > .turn-pane .tp-ico { position: absolute; right: -7px; bottom: -5px; width: 22px; height: 22px; }
+  .center > .turn-pane .tp-say { flex: 1 1 100px; font-size: 14px; }
+  .center > .turn-pane .tp-picks { flex-wrap: nowrap; margin: 0; }
+  .center > .turn-pane:has(.role-slot, .sb + .sb) .tp-say { flex-basis: calc(100% - 64px); } /* 選兩樣的：選中的和確認排到第二行 */
+  .center > .turn-pane .fold-x { display: none; }
+}
+/* 矮手機：桌子小一點（人多時少縮一點，免得名牌疊在一起），偽裝條等選完再回來 */
+@media (max-width: 640px) and (max-height: 720px) and (orientation: portrait) {
+  .ring:has(> .center > .turn-pane) { --rw: min(96cqw, 100cqh - 150px); }
+  .ring.crowded:has(> .center > .turn-pane:not(:has(.role-slot, .sb + .sb))) { --rw: min(96cqw, 100cqh - 120px); }
+  .board:has(.turn-pane) > .bluffs { opacity: 0; pointer-events: none; }
+  .bluffs { transition: opacity .25s ease; }
 }
 
 /* 獵手：其他活著的人頭上（左上角）一個瞄準鈕，點開先講規則再開槍 */

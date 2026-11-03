@@ -2,14 +2,14 @@
 import { h, menu, roleToken, toast, seatLabel, ask, prompt2, modal, closeModal } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { openChat, chatUnread, pickGuess, guesses, notes, addNote, clearNotes, infoMarksBySeat, markView, actMarksBySeat, actMarkView } from './side.js';
-import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs, nightHeld } from './fx.js';
+import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs, nightHeld, heldFace } from './fx.js';
 import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './scores.js';
-import { mini, tag, icon, roleIcon, gallows, demonMark, w } from './glyph.js';
+import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge } from './glyph.js';
 import { hudLinked } from './hud.js';
-import { trialPanel } from './trial.js';
+import { trialPanel, trialStub } from './trial.js';
 import { seatPicking } from './infoform.js';
 import { stepCard, decidePicking, lastWordCard } from './stepcard.js';
-import { clockState, blockLines, playerCenter, stCenter, rulingCard, reviewCard, scriptPick } from './flow.js';
+import { clockState, blockLines, playerCenter, stCenter, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub } from './flow.js';
 import { pickRole, pickShown, canHover, hoverSeat, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { handBubble, composePicking, startCompose, startNominate, mayNominate, openCard, openReminders } from './manual.js';
 import { openSeatLink } from './invite.js';
@@ -39,7 +39,7 @@ export function renderTown(ctx) {
   // 爪牙 / 惡魔信息裏得知的邪惡隊友：頭像直接換成陣營牌（座位下面就不再重複標）
   const team = Object.fromEntries(Object.entries(auto).flatMap(([id, ks]) => ks.filter(k => k.t).slice(0, 1).map(k => [id, k.t])));
   const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), num = id => s.seats.findIndex(x => x.id === id) + 1;
-  const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--n': n } }); // --n：按人數縮放頭像（board.css）
+  const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--s': Math.sin(Math.PI / Math.max(n, 2)).toFixed(4) } }); // --s：按相鄰座位的距離定大小（board.css）
   const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s), aimed = stepTargets(s);
   const hoverPick = s.isSt && !s.peek && s.phase === 'lobby' && canHover(); // 準備階段：懸停頭像就能選角色（setup.js）
   // 準備階段說書人桌上的牌：帶 key，換了角色是一張新牌，蓋下來（hud.css）
@@ -82,7 +82,7 @@ export function renderTown(ctx) {
     // 坐上處決台的人：座位上只留一個虛線空位，頭像在圓桌中間
     const token = seatAway(s, seat.id) ? h('div', { class: 'token md blank away' }, i + 1)
       : seat.role ? dealt(seat.role)
-        : seat.mine && s.myRole ? roleToken(s.myRole)
+        : seat.mine && s.myRole ? roleToken(heldFace() || s.myRole)
           : team[seat.id] ? teamToken(team[seat.id])
             : g[seat.id] ? h('div', { class: 'guess' }, roleToken(g[seat.id]))
               : h('div', { class: 'token md blank' }, i + 1);
@@ -92,7 +92,8 @@ export function renderTown(ctx) {
     const nominated = s.phase === 'day' && s.nominators.includes(seat.id), nominee = s.phase === 'day' && s.nominees.includes(seat.id);
     ring.append(h('div', {
       class: cls.join(' '), 'data-key': seat.id,
-      style: { left: 50 + 41 * Math.cos(ang) + '%', top: 50 + 41 * Math.sin(ang) + '%', ...(died && died.style), ...(nom && nom.nomineeId === seat.id ? syncDelay(1600) : {}) },
+      // --ux、--uy：座位在圓桌上的方向，標記朝圓心掛（board.css .seat-more）
+      style: { left: 50 + 41 * Math.cos(ang) + '%', top: 50 + 41 * Math.sin(ang) + '%', '--ux': Math.cos(ang).toFixed(3), '--uy': Math.sin(ang).toFixed(3), ...(died && died.style), ...(nom && nom.nomineeId === seat.id ? syncDelay(1600) : {}) },
       onclick: e => onSeat(ctx, seat, e.currentTarget),
     },
     h('div', { class: 'seat-token', onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
@@ -110,13 +111,13 @@ export function renderTown(ctx) {
       aim && !seat.mine && !dead && h('button', { class: 'aim-btn', title: '開槍', onclick: e => { e.stopPropagation(); aimAsk(ctx, seat); } }, icon('aim')),
       // 上一局的贏家頭上戴陣營皇冠；終局後的 MVP 投票：右上角的星星
       seatCrown(seat),
-      voting && mvpButton(ctx, seat)),
+      voting && mvpButton(ctx, seat),
+      (nominated || nominee) && h('div', { class: 'daytags' },
+        nominated && h('span', { title: '今天已經提名過' }, '已提'), nominee && h('span', { title: '今天已經被提名過' }, '被提'))),
     h('div', { class: 'plate' },
       h('b', {}, i + 1), h('span', { class: 'pname' }, seat.name),
       !seat.online && h('i', { class: 'off', title: '離線' }), mvpTag(seat)),
-    s.phase === 'lobby' && scoreRow(seat),
-    (nominated || nominee) && h('div', { class: 'daytags' },
-      nominated && h('span', { title: '今天已經提名過' }, '已提名'), nominee && h('span', { title: '今天已經被提名過' }, '已被提名')),
+    h('div', { class: 'seat-more' }, s.phase === 'lobby' && scoreRow(seat),
     s.isSt && seat.tags && seat.tags.length > 0 && h('div', { class: 'tags' },
       seat.tags.map(t => {
         // 手動局自己貼的標記：點一下取下
@@ -129,7 +130,7 @@ export function renderTown(ctx) {
       !s.isSt && (acts[seat.id] || []).map(actMarkView),
       team[seat.id] && g[seat.id] && h('span', { class: 'pm q', title: '你的猜測' }, mini(g[seat.id])),
       (auto[seat.id] || []).filter(k => !k.t).map(markView),
-      (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t)))));
+      (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t))))));
   });
 
   // 說書人的操作卡和玩家輪到自己時的牌一樣，放在圓桌中央「第 N 夜 / 天」下面；貞潔者小窗貼桌面左上角，不擋計票；
@@ -150,7 +151,8 @@ export function renderTown(ctx) {
     !blk && !mid && sub && h('div', { class: 'phase-sub' }, sub),
     !s.isSt && (pop('st', '說書人') || pub('st', '公告')),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
-    mid ? cardEl(b) : s.isSt ? stCenter(ctx) : (!blk || s.prompt) && playerCenter(ctx),
+    mid ? cardEl(ctx, b, true) : s.isSt ? stCenter(ctx) : (!blk || s.prompt) && playerCenter(ctx),
+    showNom && trialStub(ctx),
     s.phase === 'ended' && mvpPane(ctx),
   ));
   if (blk) ring.append(blockSeat(ctx, blk));
@@ -163,7 +165,7 @@ export function renderTown(ctx) {
   }
   if (showNom) ring.append(nomLine(s, nom));
   const picking = s.isSt && !s.peek && s.phase === 'lobby';
-  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(b)), b && b.side && cardEl(b));
+  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), picking && scriptPick(ctx), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(ctx, b)), b && b.side && cardEl(ctx, b));
 }
 
 // 觀眾席：桌子右下角一張小紙條，寫前幾個名字，點開看全部。手機上只剩眼睛和人數（board.css）
@@ -186,23 +188,83 @@ function stBubble(ctx) {
   const ruling = s.isSt && !s.peek && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
   const side = !!ruling && !s.st.ruling;
   const word = s.isSt && !s.peek && s.phase === 'day' && !ruling && s.st.lastWord; // 月之子、呆瓜、心上人死後的選擇
-  return step ? { id: step.id, seatId: step.seatId, card: () => (step.status === 'review' ? reviewCard(ctx) : stepCard(ctx)) }
+  return step ? { id: step.id, seatId: step.seatId, roleId: step.roleId, stage: step.status, card: () => (step.status === 'review' ? reviewCard(ctx) : stepCard(ctx)) }
     : ruling ? { id: `rule-${ruling.kind}-${ruling.seatId}`, seatId: ruling.seatId, ruling, side, card: () => (side ? rulingCard(ctx, ruling, 'virgin') : rulingCard(ctx)) }
       : word ? { id: 'word-' + word.seatId, seatId: word.seatId, side: true, card: () => lastWordCard(ctx, word) } : null;
 }
-// 圓桌中間放不下的卡（築夢師這種一整排角色牌）：整張縮小到放得下（最小 60%），再不行才滾動。畫完後調用
-export function fitTableCard() {
-  const el = document.querySelector('.st-card:not(.corner)'), card = el && el.firstElementChild;
-  if (!card) return;
-  card.style.zoom = '';
-  if (getComputedStyle(el).overflowY === 'visible') return; // 手機上角色牌和紙條在圓桌外面（hud.css），不用縮
-  const k = Math.min(el.clientHeight / el.scrollHeight, el.clientWidth / el.scrollWidth);
-  if (k < 1) card.style.zoom = Math.max(0.6, k * 0.98).toFixed(3);
+
+// 座位讓出來的地方：一張 w × h 的牌最大能放到幾倍還碰不到任何座位（頭像、名牌、標記），放在圓心上下哪裏最大。
+// 人數是單數時上下不對稱，往空的那邊挪一點能放大不少。按佈局位置算，發牌、死亡這些演出的位移不影響；留的 16px 是選中時的金圈
+function seatRoom(ring, w, h) {
+  const c = ring.offsetWidth / 2, parts = [], o = ring.getBoundingClientRect();
+  for (const seat of ring.querySelectorAll('.seat')) for (const el of seat.children) {
+    if (!el.offsetWidth) continue;
+    const more = el.classList.contains('seat-more') && el.getBoundingClientRect(); // 標記靠 translate 擺位，offsetLeft 量不到
+    const x = more ? more.left - o.left : seat.offsetLeft - seat.offsetWidth / 2 + el.offsetLeft, y = more ? more.top - o.top : seat.offsetTop - seat.offsetHeight / 2 + el.offsetTop;
+    parts.push({ dx: Math.max(x - c, c - x - el.offsetWidth), y: y - c, b: y + el.offsetHeight - c });
+  }
+  let best = { k: -Infinity, shift: 0 };
+  for (const i of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8]) { // 從圓心往外試，一樣大時不挪
+    const shift = Math.round(c * i * .02);
+    const k = Math.min(1, ...parts.map(p => Math.max((p.dx * 2 - 16) / w, (Math.max(p.y - shift, shift - p.b) * 2 - 16) / h)));
+    if (k > best.k + .001) best = { k, shift };
+  }
+  return best;
 }
-function cardEl(b) {
+// 圓桌中間的東西不壓座位：放得下就原樣；放不下先讓掉「第 N 夜」，玩家的牌再換成橫版（圓心左右比上下寬），還不夠才整張縮小（最小 60%）。
+// 再不行牌就在留出來的高度裏滾動，座位也在牌上面（board.css），並且可以收起。審判牌上的裁定卡只管別超出框。畫完後調用
+export function fitTableCard() {
+  const turn = document.querySelector('.center > .turn-pane:not(.leaving)'), st = document.querySelector('.st-card:not(.corner):not(.leaving)');
+  const middle = document.querySelector('.center:not(.has-blk)'); // 沒有牌：準備、天亮、白天的按鈕，連標題一起算
+  const el = turn || st || middle, card = turn || st?.firstElementChild || middle;
+  if (!card) return;
+  const center = el.closest('.center'), ring = center?.parentElement;
+  card.style.zoom = card.style.width = el.style.maxHeight = el.style.overflowY = '';
+  turn?.classList.remove('flat');
+  if (center) { center.classList.remove('tight'); center.style.translate = ''; }
+  const css = getComputedStyle(el);
+  if (el !== middle && css.position === 'absolute' || (el === st && css.overflowY === 'visible')) return; // 手機上卡拆開在圓桌上下、橫屏在圓桌旁邊（hud.css），不用縮
+  const width = () => (el === st ? Math.max(card.offsetWidth, card.scrollWidth) : card.offsetWidth); // 一排角色牌可能比卡寬
+  let room = center ? seatRoom(ring, width(), center.offsetHeight) : { k: 1 };
+  if (center && room.k < 1) {
+    center.classList.add('tight');
+    room = seatRoom(ring, width(), card.offsetHeight);
+    if (turn && room.k < .85) { // 縮一點還好看，縮多了不如橫過來
+      turn.classList.add('flat');
+      room = seatRoom(ring, width(), card.offsetHeight);
+    }
+  }
+  const k = el === st ? Math.min(room.k, el.clientHeight / el.scrollHeight, el.clientWidth / el.scrollWidth) : room.k;
+  if (k < 1) {
+    const w = width(), z = Math.max(el === middle ? 0.72 : 0.6, k * 0.98); // 準備、白天的按鈕縮多了不好點，讓一點座位
+    card.style.width = w + 'px'; // 定住版面：不然縮小之後寬度又撐回去，裏面重新排
+    card.style.zoom = z.toFixed(3);
+    if (center && el !== center && k * .98 < .6) { // 縮到頭還放不下：在座位留出來的高度裏滾動
+      let h = card.offsetHeight * z;
+      while ((room = seatRoom(ring, w * z, h)).k < 1 && h > 80) h -= 8;
+      el.style.maxHeight = h + 'px';
+      el.style.overflowY = 'auto';
+    }
+  }
+  if (!center) return;
+  // 把牌的中心擺到算好的位置（.center 裏還有標題，卡有外邊距）
+  const box = center.classList.contains('tight') ? (el.style.maxHeight ? el : card) : center;
+  const a = box.getBoundingClientRect(), r = ring.getBoundingClientRect();
+  center.style.translate = `0 ${Math.round(room.shift + r.top + r.height / 2 - a.top - a.height / 2)}px`;
+}
+addEventListener('resize', fitTableCard);
+
+function cardEl(ctx, b, foldable) {
+  const key = b.id + (b.stage || '');
+  if (foldable && isFolded(key)) {
+    lastBubble = null; // 展開時照常播放出現的動畫
+    return foldStub(ctx, key, b.roleId && mini(b.roleId), b.seatId && seatBadge(ctx.state, b.seatId));
+  }
   const fresh = lastBubble !== b.id; // 只在新步驟出現時播放展開動畫，重繪不重播
   lastBubble = b.id;
-  return h('section', { class: 'st-card' + (b.side ? ' corner' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id, 'data-exit': true }, b.card());
+  const card = b.card();
+  if (foldable) card.append(foldButton(ctx, key));
+  return h('section', { class: 'st-card' + (b.side ? ' corner' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id, 'data-exit': true }, card);
 }
 // 當前步驟已經定下的目標（旅店老闆選的兩人、築夢師查的人……）：桌上金圈標出來
 function stepTargets(s) {

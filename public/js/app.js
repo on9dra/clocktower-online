@@ -19,6 +19,7 @@ import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
 import { askPass } from './roompass.js';
 import { soloBar } from './solo.js';
+import { countPop } from './trial.js';
 import { chime, locked, wake } from './sfx.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
@@ -222,7 +223,7 @@ function render() {
     topbar(ctx),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar', 'data-key': 'peek', 'data-exit': true }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    soloBar(ctx), renderHud(ctx), town, renderBluffs(ctx)), progressBar(ctx), side);
+    soloBar(ctx), renderHud(ctx), town, renderBluffs(ctx), countPop(ctx)), progressBar(ctx), side);
   const cur = app.querySelector(':scope > .game:not(.gone)');
   if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
   fitTableCard();
@@ -268,11 +269,11 @@ sock.on('connect', () => {
 sock.on('disconnect', why => { if (why !== 'io client disconnect') toast('連接斷開，正在重連…'); });
 sock.on('bye', bye);
 setRender(render);
-// 計票時鐘走到下一位時重繪（數到誰、誰的手已經定下）；投票倒數、MVP 倒數每秒重繪
+// 計票倒數、投票倒數、MVP 倒數每秒重繪
 let clockTick = null;
 setInterval(() => {
   const n = ctx.state?.nomination, c = n?.clock, m = ctx.state?.mvpVote, f = ctx.state?.st?.step;
-  const k = c ? `${c.at}:${Math.floor((ctx.now() - c.at) / c.step)}` : n ? `t${n.paused ?? Math.ceil((n.deadline - ctx.now()) / 1000)}`
+  const k = c ? `${c.k}:${Math.ceil((c.at + c.step - ctx.now()) / 1000)}` : n ? `t${n.paused ?? Math.ceil((n.deadline - ctx.now()) / 1000)}`
     : m && !m.done ? `m${Math.ceil((m.closesAt - ctx.now()) / 1000)}` : f?.status === 'fake' ? `f${Math.floor(ctx.now() / 500)}` : null;
   if (k !== clockTick) { clockTick = k; if (k) render(); }
 }, 200);

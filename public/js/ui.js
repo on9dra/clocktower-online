@@ -69,7 +69,9 @@ function exit(n) {
   n.was = n.getBoundingClientRect();
   Object.assign(n.style, { position: 'absolute', inset: 'auto', left: l + 'px', top: t + 'px', width: w + 'px', height: ht + 'px', margin: 0, pointerEvents: 'none' });
   n.classList.add('leaving');
-  n.animate([{ opacity: 1 }, { opacity: 0, translate: '0 12px' }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
+  // 圓桌中間的牌收起 / 展開時（flow.js setFold）：牌縮進小紙條，小紙條撐開成牌
+  const to = n.getAttribute('data-exit') !== 'fold' ? { translate: '0 12px' } : { scale: n.classList.contains('fold-stub') ? 1.4 : .25 };
+  n.animate([{ opacity: 1 }, { opacity: 0, ...to }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
   setTimeout(() => n.remove(), 200);
   return true;
 }
@@ -109,8 +111,9 @@ export function modal(title, body, { wide = false, cls = '', from = null, away =
     { duration: 380, easing: 'cubic-bezier(.2, .8, .3, 1)' });
   return box;
 }
+export const modalOpen = box => openModal === box.parentElement; // 這張彈窗還是開著的那張（沒關、沒被換掉）
 // 紙抬起來淡掉，遮罩跟著退（fx.css）。換一張彈窗時舊的照樣這麼走，新的同時落下來
-const dropModal = () => { if (openModal) { leaveDom(openModal, 220); openModal = null; } };
+const dropModal =() => { if (openModal) { leaveDom(openModal, 220); openModal = null; } };
 export function closeModal() {
   const back = openModal, to = back?.away?.();
   if (!to?.isConnected || !to.offsetParent || still()) return dropModal();

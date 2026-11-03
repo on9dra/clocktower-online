@@ -11,13 +11,13 @@ export const B = (label, onclick, cls = '') => h('button', { class: 'btn ' + cls
 export const voteCount = nom => Object.values(nom.votes).filter(Boolean).length;
 export const needVotes = s => Math.max(s.required, (s.topCount || 0) + 1);
 
-// 計票時鐘：k 是已經數過的人數，current 是正在數的座位；pending：說書人剛喊立即計票、全屏提示還沒播完
+// 計票時鐘：k 是已經定下的人數，current 是正在選的座位，left 是這一位還剩的毫秒數；pending：說書人剛喊立即計票、全屏提示還沒播完
 export function clockState(ctx) {
   const c = ctx.state.nomination?.clock;
   if (!c) return null;
-  if (ctx.now() < c.at) return { k: 0, current: null, done: false, pending: true, locked: () => false };
-  const k = Math.max(0, Math.floor((ctx.now() - c.at) / c.step));
-  return { k, current: c.order[k] || null, done: k >= c.order.length, locked: id => c.order.indexOf(id) > -1 && c.order.indexOf(id) < k };
+  const pending = !c.k && ctx.now() < c.at;
+  return { k: c.k, current: pending ? null : c.order[c.k] || null, done: c.k >= c.order.length, pending, left: pending ? c.step : Math.max(0, c.at + c.step - ctx.now()),
+    locked: id => c.order.indexOf(id) > -1 && c.order.indexOf(id) < c.k };
 }
 
 const row = (...kids) => h('div', { class: 'frm-line' }, kids);
@@ -50,6 +50,18 @@ const confirmPick = (onDone, cls = '') => {
   return B(skip ? '不使用' : '確認', () => { if (!pickOk(on)) return; const v = [...on.ids], r = on.role; sel.on = null; onDone(v, r); },
     (ok ? (skip ? 'ghost ' : '') : 'disabled ') + cls);
 };
+
+// 圓桌中間的牌可以收成一張小紙條，把桌面讓出來。只管這一步：下一步（或這一步換了狀態）的牌照常攤開
+let foldedKey = null;
+export const isFolded = key => foldedKey === key;
+function setFold(ctx, key) {
+  document.querySelector('.center > :is(.turn-pane, .st-card, .fold-stub), .town > .trial')?.setAttribute('data-exit', 'fold');
+  foldedKey = key;
+  ctx.render();
+}
+export const foldButton = (ctx, key) => h('button', { class: 'hud-x fold-x', onclick: () => setFold(ctx, key) }, '收起');
+export const foldStub = (ctx, key, ...kids) => h('div', { class: 'cx fold-stub', 'data-key': 'fold-' + key, 'data-exit': true },
+  h('div', { class: 'fs-lead' }, kids), B('展開', () => setFold(ctx, null), 'sm ghost'));
 
 // 選人模式下的確認卡（說書人代選時的操作卡用）：lead 是行動者的角色牌和座位號
 export function selectBar(ctx, lead, onDone, canCancel) {
@@ -276,11 +288,14 @@ function turnPane(ctx) {
   // 這一步的角色（理髮師死後惡魔替他選人時是理髮師）
   const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = !s.prompt.manual && ACTS[rid]; // 手動局的牌是說書人寫的，不用角色自己的說法
   const say = (typeof a?.say === 'function' ? a.say(s.prompt) : a?.say) || [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
+  const key = 'turn-' + s.prompt.stepId, send = cls => confirmPick((ids, role) => ctx.act('pick', { ids, role }), cls);
+  // 收起時選好了也能直接確認，不用再展開一次
+  if (isFolded(key)) return foldStub(ctx, key, rid && mini(rid), slots(ctx), roleSlot(ctx), send('sm'));
   return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : ''), 'data-key': 'turn', 'data-exit': true },
     h('div', { class: 'tp-head' }, rid && roleToken(rid), rid && ACTS[rid] && h('span', { class: 'tp-ico' }, actIcon(rid))),
     h('div', { class: 'tp-say' }, say.map((t, i) => (i % 2 ? h('b', {}, `「${t}」`) : t))),
     h('div', { class: 'row tp-picks' }, slots(ctx), roleSlot(ctx)),
-    confirmPick((ids, role) => ctx.act('pick', { ids, role }), 'big'));
+    send('big'), foldButton(ctx, key));
 }
 
 // 投票按鈕（放在審判牌兩欄的頂上）：贊成計票、棄權不計票（只有自己和說書人看得到），再點一次取消。不是玩家時返回 null
@@ -288,7 +303,7 @@ export function voteButtons(ctx) {
   const s = ctx.state, nom = s.nomination, ck = clockState(ctx), me = s.seats.find(x => x.mine);
   if (!me || s.isSt || s.peek) return null;
   const up = !!nom.votes[s.myId], no = !!nom.abstain?.[s.myId];
-  const locked = ck && ck.locked(s.myId), yesOff = (me.dead && me.voteUsed) || locked, noOff = locked && up;
+  const locked = ck && ck.locked(s.myId), yesOff = (me.dead && me.voteUsed) || locked, noOff = locked;
   const btn = (k, on, off, ico, text, v, n) => h('button', {
     class: `vbtn ${k}` + (on ? ' on' : '') + (off ? ' disabled' : ''),
     onclick: () => !off && ctx.act('vote', { v: on ? null : v }) }, icon(ico), text, h('i', {}, n));

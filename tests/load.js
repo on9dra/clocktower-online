@@ -81,7 +81,7 @@ function startPlayer(code, pid, i) {
     }
     if (v.nomination?.clock && v.nomination.at !== nomAt) {
       nomAt = v.nomination.at;
-      if (Math.random() < 0.6) later(0.5, 3, () => timed(s, 'pl:act', { act: 'vote', v: 'yes' }));
+      if (Math.random() < 0.6) later(0.5, 3, () => timed(s, 'pl:act', { act: 'vote', v: 'yes' })); // 預選：輪到時按它定下
     }
   });
   // 偶爾打字聊天（語音在騰訊會議，文字聊天不多）

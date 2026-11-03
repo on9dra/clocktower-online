@@ -52,11 +52,24 @@ const toStep = (r, role) => { for (let i = 0; i < 30 && r.g.step?.roleId !== rol
   startNight(r); toStep(r, 'snakecharmer');
   const me = S(r, 'snakecharmer').id, demon = S(r, 'vortox').id;
   pick(r, 'snakecharmer', [demon]);
-  const list = fxOf(r, me).slice(-3).map(e => e.k);
-  assert.deepStrictEqual(list, ['act', 'changed', 'role']);
+  assert.deepStrictEqual(fxOf(r, me).slice(-2).map(e => e.k), ['act', 'role'], '換牌在自己的演出裏，不再走桌心來的那段');
   assert.ok(r.fx.every((e, i) => !i || e.seq > r.fx[i - 1].seq), '序號遞增');
   assert.deepStrictEqual(fxOf(r, demon).slice(-2).map(e => e.k), ['changed', 'role'], '原惡魔只看到自己被換');
-  assert.strictEqual(fxOf(r, me, 'act').at(-1).to[0], demon);
+  assert.ok(!fxOf(r, demon, 'changed').at(-1).swap && !fxOf(r, demon, 'changed').at(-1).from, '原惡魔看不出是誰換的');
+  const e = fxOf(r, me, 'act').at(-1);
+  assert.strictEqual(e.to[0], demon);
+  assert.deepStrictEqual(e.swap, { role: 'vortox', gave: 'snakecharmer' });
+  assert.deepStrictEqual(r.chat.find(m => m.seq === e.msg).marks, [{ seatId: demon, r: 'snakecharmer' }], '對方現在是舞蛇人，記在他座位旁邊');
+}
+
+// 舞蛇人沒換到（選的不是惡魔、選中惡魔但中毒）：演出一模一樣，看不出區別
+{
+  const r = mk(['snakecharmer', 'chef', 'vortox', 'witch', 'saint', 'empath'], 'snv');
+  startNight(r); toStep(r, 'snakecharmer');
+  const me = S(r, 'snakecharmer').id;
+  pick(r, 'snakecharmer', [S(r, 'chef').id]);
+  assert.ok(!fxOf(r, me, 'act').at(-1).swap);
+  assert.deepStrictEqual(fxOf(r, me).slice(-1).map(e => e.k), ['act']);
 }
 
 // 哲學家：書翻完才翻牌
