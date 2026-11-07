@@ -229,4 +229,17 @@ const vigorKill = (r, t) => {
   assert.strictEqual(applyPlayerAction(r, j.pid, { act: 'juggle', targetId: S(r, 'nodashii').id, role: 'nodashii' }), '只能在第一個白天猜');
 }
 
+// 麻臉巫婆變出鏡像雙子：當場互認一次。以前還會在雙子的首夜位置再配一次，對手可能換人，兩名邪惡玩家都以為自己是雙子
+{
+  const r = mk(['pithag', 'oracle', 'dreamer', 'nodashii', 'flowergirl', 'clockmaker', 'seamstress', 'savant'], 'snv');
+  const fg = S(r, 'flowergirl');
+  startNight(r);
+  toStep(r, 'pithag');
+  pick(r, [fg.id], 'eviltwin');
+  toStep(r, 'none');
+  const told = r.chat.filter(m => m.src === 'eviltwin' && m.night === 2 && /雙子是|是鏡像雙子/.test(m.text));
+  assert.strictEqual(told.length, 2, '雙子和對手各收到一次');
+  assert.ok(told.some(m => m.to === r.g.twin.evil), '收到的對手就是記錄的那一位');
+}
+
 console.log('dlc play regressions ok');
