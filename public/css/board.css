@@ -407,15 +407,10 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 }
 @keyframes sheet-in { from { transform: translateY(40%); opacity: 0; } }
 @keyframes sheet-out { to { transform: translateY(100%); } }
-.bots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
-.bots select { width: auto; }
 .small { font-size: 12px; }
 
 .peekbar { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 10px; align-items: center;
   background: var(--brass); color: #fff; padding: 5px 6px 5px 14px; border-radius: 4px; font-weight: 600; white-space: nowrap; animation: slip-in .24s ease-out; }
-.solobar { left: auto; right: 8px; transform: none; padding: 4px 6px; gap: 6px; }
-.solobar select { font: inherit; font-size: 13px; max-width: 110px; min-width: 0; }
-@media (max-width: 480px) { .solobar { gap: 4px; } .solobar select { flex: 1 1 0; max-width: none; } .solobar .btn { flex: none; padding-inline: 7px; } }
 .board { position: relative; }
 .preview { margin: 8px 0 0; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 4px; font-size: 13px; }
 .preview.good { border: 1.5px solid var(--good); }
@@ -776,7 +771,6 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .cx { display: grid; justify-items: center; gap: 8px; margin-top: 10px; pointer-events: auto; }
 .cx .frm-line { justify-content: center; font-size: 16px; }
 .cx > .row { justify-content: center; }
-.lobby-pane .bots { margin-top: 0; justify-content: center; }
 /* 抽完才有內容的一塊：高度定死（名字長時偽裝佔兩行也放得下），內容出來時上面的按鈕不動。空著的時候不擋底下的座位 */
 .lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 123px; pointer-events: none; }
 .lobby-after > * { pointer-events: auto; }
@@ -815,9 +809,6 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
   .lp-act .row { flex-wrap: nowrap; margin-top: 0; }
   .lobby-after { height: auto; }
   .lobby-after .frm-line { flex-wrap: nowrap; gap: 3px; font-size: 13px; white-space: nowrap; } /* 名字長時也一行，不然會把確認開局擠出屏幕 */
-  /* 機器人（測試用）借用按鈕下面預留的地方，抽完讓位：增減座位本來就會作廢抽取 */
-  .lobby-pane .bots { position: absolute; left: 50%; top: calc(var(--lp) + 44px); flex-wrap: nowrap; width: max-content; translate: -50% 0; transition: opacity .2s ease, visibility .2s; }
-  .lobby-pane:has(.lobby-after > *) .bots { opacity: 0; visibility: hidden; }
 }
 @media (max-width: 640px) and (max-height: 700px) and (orientation: portrait) {
   .town.picking { --dn: 135px; }
@@ -829,7 +820,7 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 @media (max-width: 400px) and (orientation: portrait) { .lobby-after .bluff-pick { padding-inline: 1px; } }
 @media (max-width: 340px) and (orientation: portrait) { .lobby-after .bluff-pick .token { display: none; } }
 /* 另外兩種內圈放不下按鈕的桌面：手機橫屏（看桌面尺寸，大屏手機還留著側欄）和窄桌面。辦法和豎屏一樣，人數留在內圈，按鈕拿到圓桌外面。
-   --ax、--lp、--aw 是按鈕這一塊的左邊、上沿、寬，--bt 是機器人的位置。內容都從上沿往下排，抽完按鈕不動 */
+   --ax、--lp、--aw 是按鈕這一塊的左邊、上沿、寬。內容都從上沿往下排，抽完按鈕不動 */
 @media (min-width: 641px), (orientation: landscape) {
   @container (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
     .lobby-pane { gap: 4px; margin-top: 4px; }
@@ -838,13 +829,11 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
     .lp-act .row { margin-top: 0; }
     .lobby-after { height: auto; }
     .lobby-after .frm-line { font-size: 13px; white-space: nowrap; }
-    .lobby-pane .bots { position: absolute; left: var(--ax); top: calc(var(--lp) + var(--bt)); width: var(--aw); transition: opacity .2s ease, visibility .2s; }
-    .lobby-pane:has(.lobby-after > *) .bots { opacity: 0; visibility: hidden; }
   }
   /* 窄桌面：圓桌本來就被劇本卡推到了右下，上面那條空帶正好放按鈕。--up 是空帶的高度，空帶不夠才再把圓桌往下推、縮一點，底下留 30px 給最下面的座位 */
   @container (max-width: 760px) and (min-height: 500.5px) {
     .town.picking .ring { --up: 160px; --r: min(var(--rw), .585 * (100cqw + 100cqh - var(--ab)), 100cqh - var(--up) - 30px); --tx: min(var(--dx), max(0px, var(--a) - var(--dx)));
-      --aw: calc(100cqw + 2 * var(--tx) - 248px); --ax: calc(50% - var(--aw) / 2); --lp: calc(50% - var(--r) / 2 - var(--up)); --bt: 52px;
+      --aw: calc(100cqw + 2 * var(--tx) - 248px); --ax: calc(50% - var(--aw) / 2); --lp: calc(50% - var(--r) / 2 - var(--up));
       translate: var(--tx) min(var(--dy), max(0px, var(--a) - 2 * var(--dx), var(--up) - var(--dy))); }
   }
   /* 手機橫屏：排成 劇本卡 | 圓桌 | 按鈕 */
@@ -856,19 +845,17 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
     .lp-top .rule .token { width: 20px; height: 20px; }
   }
   /* 右邊放得下就一排排橫著放，和豎屏一樣 */
-  @container (orientation: landscape) and (max-height: 500px) and (min-width: 780px) { .town.picking .ring { --aw: 312px; --lp: calc(50% - 62px); --bt: 44px; } }
+  @container (orientation: landscape) and (max-height: 500px) and (min-width: 780px) { .town.picking .ring { --aw: 312px; --lp: calc(50% - 62px); } }
   @container (max-width: 760px) and (min-height: 500.5px), (orientation: landscape) and (max-height: 500px) and (min-width: 780px) {
-    .lp-act .row, .lobby-pane .bots { flex-wrap: nowrap; }
+    .lp-act .row { flex-wrap: nowrap; }
     .lobby-after .frm-line { flex-wrap: nowrap; gap: 3px; }
     .lobby-after .bluff-pick { padding-inline: 1px; }
   }
   /* 大屏手機還留著側欄，右邊窄：按鈕豎著排，偽裝只留名字 */
   @container (orientation: landscape) and (max-height: 500px) and (max-width: 779.9px) {
-    .town.picking .ring { --aw: 150px; --lp: calc(50% - 104px); --bt: 118px; }
+    .town.picking .ring { --aw: 150px; --lp: calc(50% - 104px); }
     .lp-act { gap: 4px; }
-    .lp-act .row, .lobby-pane .bots { gap: 4px; }
-    .lobby-pane .bots select { width: 62px; padding-inline: 2px; }
-    .lobby-pane .bots .btn { padding-inline: 6px; }
+    .lp-act .row { gap: 4px; }
     .lp-act .btn { padding: 5px 10px; font-size: 13px; }
     .lp-act .btn.big { padding: 5px 16px; font-size: 14px; }
     .lobby-after { gap: 4px; }

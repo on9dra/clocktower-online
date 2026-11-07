@@ -18,7 +18,6 @@ import { openInvite } from './invite.js';
 import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
 import { askPass } from './roompass.js';
-import { soloBar } from './solo.js';
 import { countPop } from './trial.js';
 import { chime, locked, wake } from './sfx.js';
 
@@ -35,10 +34,6 @@ const params = new URLSearchParams(location.search);
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
 let pid = LS.get('botc.pid');
 if (!pid) { pid = newId(); LS.set('botc.pid', pid); }
-// ?as=player：每個標籤頁一個獨立玩家（方便一個人在同一瀏覽器裏測試）
-if (params.get('as') === 'player') {
-  try { pid = sessionStorage.getItem('botc.pid') || newId(); sessionStorage.setItem('botc.pid', pid); } catch { /* 忽略 */ }
-}
 // 說書人恢復鏈接（?room=1234&st=密鑰）：記下密鑰，再從地址欄去掉
 if (params.get('room') && params.get('st')) { LS.set('botc.st.' + params.get('room'), params.get('st')); params.delete('st'); }
 // 說書人發的換設備鏈接（?room=1234&r=…&seat=…）：連上後接過那個座位
@@ -58,7 +53,6 @@ export const ctx = {
     return new Promise(res => sock.emit('pl:act', { act, ...args }, done(res)));
   },
   peek: seatId => new Promise(res => sock.emit('st:peek', { seatId }, done(res))),
-  solo: (op, args = {}) => new Promise(res => sock.emit('solo:op', { op, ...args }, done(res))),
   // 觀戰的人入座（準備階段有空位時）
   sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst, true),
   // 說書人解散房間
@@ -70,7 +64,7 @@ export const ctx = {
 
 function setUrl(code, inst) {
   const u = new URL(location.href);
-  u.search = code ? `?room=${code}` + (inst ? `&r=${inst}` : '') + (params.get('as') ? `&as=${params.get('as')}` : '') : '';
+  u.search = code ? `?room=${code}` + (inst ? `&r=${inst}` : '') : '';
   history.replaceState(null, '', u);
 }
 function enter(code, st, inst = '') {
@@ -109,18 +103,7 @@ function fail(err, code = '') {
   toast(err);
   toLobby(code);
 }
-function startSolo(opts = {}) {
-  const name = LS.get('botc.name') || '玩家';
-  LS.set('botc.name', name);
-  sock.emit('solo:create', { pid, name, ...opts }, r => (r.ok ? enter(r.code, false, r.inst) : fail(r.error)));
-}
 function resume() {
-  // ?solo[=人數][&role=imp][&script=tb]：開一局單人試玩，地址欄換成房間鏈接，刷新回到這一局
-  if (params.has('solo') && !session) {
-    const solo = { count: params.get('solo'), role: params.get('role'), script: params.get('script') };
-    ['solo', 'role', 'script'].forEach(k => params.delete(k));
-    return startSolo(solo);
-  }
   const code = (session && session.code) || params.get('room');
   if (!code) return lobby();
   const inst = (session && session.inst) || params.get('r') || '';
@@ -130,7 +113,7 @@ function resume() {
     // 鏈接失效了也照常進房：有座位回座位，沒有就觀戰 / 入座
     return sock.emit('pl:claim', { code, inst, pid, token }, r => (r.ok ? enter(code, false, inst) : (toast(r.error), resume())));
   }
-  const key = params.get('as') === 'player' ? null : LS.get('botc.st.' + code);
+  const key = LS.get('botc.st.' + code);
   if (key) return sock.emit('st:join', { code, stKey: key }, r => {
     if (r.ok) return enter(code, true, inst);
     // 房號換了一個房間，本機記著的是舊房間的密鑰：丟掉，當玩家進
@@ -179,7 +162,6 @@ function lobby(code = params.get('room') || '') {
     code, name: LS.get('botc.name') || '',
     // 從邀請鏈接來、第一次填暱稱：房間號沒改的話帶上鏈接裏的實例標識
     onJoin: (c, name) => joinPlayer(c, name, c === params.get('room') ? params.get('r') || '' : ''), onCreate: create,
-    onSolo: () => startSolo(),
     onPick: pick,
     onIntro: () => showIntro(LS),
     onAbout: () => openAbout(ctx),
@@ -223,7 +205,7 @@ function render() {
     topbar(ctx),
     h('main', { class: 'board' }, s.peek && h('div', { class: 'peekbar', 'data-key': 'peek', 'data-exit': true }, `正在以 ${s.peek.label} 的視角查看（只讀）`,
       h('button', { class: 'btn sm', onclick: () => ctx.peek(null) }, '返回說書人視角')),
-    soloBar(ctx), renderHud(ctx), town, renderBluffs(ctx), countPop(ctx)), progressBar(ctx), side);
+    renderHud(ctx), town, renderBluffs(ctx), countPop(ctx)), progressBar(ctx), side);
   const cur = app.querySelector(':scope > .game:not(.gone)');
   if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
   fitTableCard();
@@ -260,11 +242,11 @@ sock.on('state', s => {
   window.boot.ready();
 });
 // 大廳畫出來不用等連上服務器（連接要好幾個往返），點按鈕發的請求 socket.io 會存著，連上再發；邀請鏈接、回房間才要等
-let early = !params.get('room') && !params.has('solo');
+let early = !params.get('room');
 if (early) lobby();
 sock.on('connect', () => {
   if (early) { early = false; return; }
-  (session || params.get('room') || params.has('solo') ? resume() : lobby());
+  (session || params.get('room') ? resume() : lobby());
 });
 sock.on('disconnect', why => { if (why !== 'io client disconnect') toast('連接斷開，正在重連…'); });
 sock.on('bye', bye);

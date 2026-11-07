@@ -89,15 +89,6 @@ const seatOf = (r, pid) => r.seats.find(s => s.pid === pid);
   ok(claimSeat(r, 'phone3', t2));
   assert.deepStrictEqual(r.banned, []);
 }
-// 真人頂替機器人：座位不再是機器人，拿到一份新檔案
-{
-  const r = room(2);
-  ok(st(r, 'addBots', { count: 3 }));
-  const bot = r.seats.find(s => s.pid.startsWith('bot:'));
-  ok(claimSeat(r, 'human', st(r, 'seatLink', { seatId: bot.id }).token));
-  assert.strictEqual(bot.pid, 'human');
-  assert.deepStrictEqual(r.players.human, { eggs: EGG.start, wins: 0, mvp: 0 });
-}
 // 反覆進出不會堆檔案
 {
   const r = room(0);
@@ -216,7 +207,8 @@ try {
 
   // 移出：被移出的連接收到 bye，刷新再進被拒
   let v = until(stS, x => x.seats.length === 3);
-  await call(stS, 'st:op', { op: 'addBots', count: 1 });
+  const extra = i => call(conn('10.0.3.' + i), 'pl:join', { code: R.code, inst: R.inst, pid: 'pid-x' + i, name: 'x' + i });
+  await extra(1);
   const seat2 = (await v).seats.find(s => s.name === '乙');
   const kicked = once(p2, 'bye');
   assert.ok((await call(stS, 'st:op', { op: 'kick', seatId: seat2.id })).ok);
@@ -225,7 +217,7 @@ try {
 
   // 換設備：新設備接過座位，舊設備收到 bye
   v = until(stS, x => x.seats.length === 5);
-  await call(stS, 'st:op', { op: 'addBots', count: 3 });
+  for (const i of [2, 3, 4]) await extra(i);
   const seat1 = (await v).seats.find(s => s.name === '甲');
   const link = await call(stS, 'st:op', { op: 'seatLink', seatId: seat1.id });
   assert.ok(link.ok && link.token);

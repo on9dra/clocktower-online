@@ -25,7 +25,7 @@ export function openInvite(ctx) {
 // 說書人給某個座位發的鏈接：新設備打開（或掃碼）就接過這個座位，原設備退出
 export function openSeatLink(ctx, seat, title, token) {
   const url = `${inviteUrl(ctx.state)}&seat=${token}`;
-  modal(seat.bot ? `真人頂替 ${title}` : `${title} 換設備`, h('div', { class: 'invite' },
+  modal(`${title} 換設備`, h('div', { class: 'invite' },
     qr(url),
     h('button', { class: 'btn', onclick: () => copy(url, `已複製，發給 ${title}`) }, icon('send'), '複製鏈接')),
   { cls: 'invite-modal' });

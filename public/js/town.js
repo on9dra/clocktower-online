@@ -403,8 +403,8 @@ function stMenu(ctx, seat, title) {
   // 紅鯡魚只在有占卜師（含以為自己是占卜師的酒鬼）時才有
   const ft = s.seats.some(x => x.role === 'fortuneteller' || x.fakeRole === 'fortuneteller');
   const herring = ft && good && st.redHerring !== seat.id && { label: '設為占卜師的紅鯡魚', onclick: () => ctx.st('setRedHerring', { seatId: seat.id }) };
-  // 換設備 / 換人頂替 / 真人接手機器人：新設備打開鏈接就接過這個座位
-  const relink = { label: [icon('key', 'menu-ico'), seat.bot ? '真人頂替' : '換設備'],
+  // 換設備 / 換人頂替：新設備打開鏈接就接過這個座位
+  const relink = { label: [icon('key', 'menu-ico'), '換設備'],
     onclick: () => ctx.st('seatLink', { seatId: seat.id }).then(r => r.ok && openSeatLink(ctx, seat, title, r.token)) };
   const shown = seat.role && s.mode === 'manual' && { label: '玩家看到的角色', onclick: () => pickShown(ctx, seat) };
   if (s.phase === 'lobby') return [
@@ -416,7 +416,7 @@ function stMenu(ctx, seat, title) {
     { label: '← 前移', onclick: () => ctx.st('moveSeat', { seatId: seat.id, dir: -1 }) },
     { label: '後移 →', onclick: () => ctx.st('moveSeat', { seatId: seat.id, dir: 1 }) },
     relink,
-    { label: '移出房間', danger: true, onclick: () => ask(seat.bot ? `把 ${title} 移出房間？` : `把 ${title} 移出房間？他不能再進來。`, () => ctx.st('kick', { seatId: seat.id }), '移出') },
+    { label: '移出房間', danger: true, onclick: () => ask(`把 ${title} 移出房間？他不能再進來。`, () => ctx.st('kick', { seatId: seat.id }), '移出') },
   ];
   const live = s.phase !== 'ended', poisoned = st.poisoned === seat.id;
   if (s.manual) {

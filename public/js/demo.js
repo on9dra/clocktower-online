@@ -72,7 +72,7 @@ function viewOf() {
     code: world.code || 'DEMO', inst: world.inst || '', locked: !!world.pass, pass: who.st ? world.pass || '' : undefined, watchers: world.watchers || [],
     gameId: 'demo', isSt, myId, serverNow: Date.now(), stOnline: true, scriptId: world.scriptId,
     phase: world.phase, night: world.night, day: world.day,
-    seats: world.seats.map(x => ({ id: x.id, name: x.name, online: true, dead: shown(x), deathBy: shown(x) ? x.deathBy || null : null, voteUsed: x.voteUsed, mine: x.id === myId, bot: !!x.bot, ...score(x),
+    seats: world.seats.map(x => ({ id: x.id, name: x.name, online: true, dead: shown(x), deathBy: shown(x) ? x.deathBy || null : null, voteUsed: x.voteUsed, mine: x.id === myId, ...score(x),
       ...(isSt || world.phase === 'ended' ? { role: x.role, fakeRole: x.fakeRole || null, tags: x.tags || [] } : {}) })),
     myRole: me ? (me.role === 'drunk' ? me.fakeRole : me.role) : null, master: null, slayerUsed: world.shotEver.includes(myId),
     prompt: !isSt && world.prompt && world.prompt.seatId === myId ? world.prompt : null,

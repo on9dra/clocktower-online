@@ -218,7 +218,7 @@ export function scriptPick(ctx) {
     h('div', { class: 'sc-group sc-mode' }, mode('auto', '智能推進'), mode('manual', '手動')));
 }
 
-// 準備（圓桌中央）：各陣營人數（陣營色圓牌 + 數字），必選 / 排除的角色牌，預覽時的惡魔偽裝，機器人，開局按鈕
+// 準備（圓桌中央）：各陣營人數（陣營色圓牌 + 數字），必選 / 排除的角色牌，預覽時的惡魔偽裝，開局按鈕
 function lobbyPane(ctx, next) {
   const s = ctx.state, st = s.st, n = s.seats.length, rules = st.roleRules;
   const locked = Object.keys(rules).filter(id => rules[id] === 'lock'), banned = Object.keys(rules).filter(id => rules[id] === 'ban');
@@ -232,34 +232,18 @@ function lobbyPane(ctx, next) {
   // 可能抽到、會改變外來者數量的角色（男爵 7 人以下隨機不出現）。抽完淡掉但位置還在，這一行的高度不變，圓桌中央的東西不動
   const shifts = SCRIPTS[s.scriptId].roles.filter(id => changesSetup(id) && !rules[id] && !(id === 'baron' && n < 7));
   const delta = id => { const x = ROLES[id].setup.outsider; return Array.isArray(x) ? '±1' : (x > 0 ? '+' : '') + x; };
-  // 寬屏兩塊連著放在圓桌中央；手機和窄桌面 lp-act 和機器人放到圓桌外面，其餘還在中央（board.css）
+  // 寬屏兩塊連著放在圓桌中央；手機和窄桌面 lp-act 放到圓桌外面，其餘還在中央（board.css）
   return h('div', { class: 'cx lobby-pane' },
     h('div', { class: 'lp-top' },
       c && row(CORE.map(t => h('span', { class: 'team-n' + (off(t) ? ' off' : ''), style: { '--team': TEAMS[t].color } }, h('i'), c[t])),
         n >= 5 && shifts.map(id => h('span', { class: 'maybe' + (st.draft ? ' off' : '') }, mini(id), delta(id)))),
-      (locked.length > 0 || banned.length > 0) && row(locked.map(id => h('span', { class: 'rule lock' }, mini(id))), banned.map(id => h('span', { class: 'rule ban' }, mini(id), icon('cross', 'rule-x')))),
-      botConfig(ctx)),
+      (locked.length > 0 || banned.length > 0) && row(locked.map(id => h('span', { class: 'rule lock' }, mini(id))), banned.map(id => h('span', { class: 'rule ban' }, mini(id), icon('cross', 'rule-x'))))),
     h('div', { class: 'lp-act' },
       // 這一排抽沒抽都在原位、不換字（人不夠時置灰不隱藏），說書人的手不用重新找按鈕；抽完只在下面多出來，位置預先留好，圓桌中央的居中不會把這排頂走
       btns(B('打亂座位', () => ctx.st('shuffleSeats'), 'ghost' + (n > 1 ? '' : ' disabled')), B('角色配置', () => openSetup(ctx)),
         B('隨機抽取', () => ctx.st('draft'), n >= 5 ? '' : 'disabled')),
       h('div', { class: 'lobby-after' }, st.draft && [row(tag('bluff'), st.bluffs.map((id, i) => h('button', { class: 'bluff-pick' + (st.bluffPins?.[i] ? ' pinned' : ''), title: '指定', onclick: () => pickBluff(ctx, i) }, named(id)))),
         btns(B('取消', () => ctx.st('undraft'), 'ghost'), next('確認開局'))])));
-}
-
-// 測試用：加機器人補位。機器人夜晚自動選人、投票時隨機舉手
-function botConfig(ctx) {
-  const s = ctx.state;
-  const bots = s.seats.filter(x => x.bot).length;
-  const room = 15 - s.seats.length;
-  const count = h('select', { 'data-keep': 'botCount' },
-    [...Array(Math.max(room, 0)).keys()].map(i => h('option', { value: i + 1, selected: i + 1 === Math.min(Math.max(7 - s.seats.length, 1), room) || null }, `${i + 1} 個`)));
-  // 讀頁面上的那個下拉框（差量更新會保留用戶選過的值）
-  const add = () => ctx.st('addBots', { count: document.querySelector('[data-keep=botCount]')?.value || 1 });
-  return h('div', { class: 'bots' },
-    room > 0 && count,
-    room > 0 && B('加入機器人', add, 'sm'),
-    bots > 0 && B(`移除 ${bots} 個機器人`, () => ctx.st('removeBots'), 'sm ghost'));
 }
 
 // 玩家：輪到自己行動時建立本地的選人狀態（桌面和圓桌中央的確認牌要用到），其他時候清掉

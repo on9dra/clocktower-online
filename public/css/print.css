@@ -75,7 +75,7 @@ body.art .score-tbl td { border-bottom: 0; background: var(--r-dash) 0 100% / 60
 body.art .pg::before { --fw: 14px; background: #e8e0d0 var(--paper-tex) 0 0 / 320px; border: var(--fw) solid transparent; border-image: url(../img/press/card.webp) 56 / var(--fw) round; border-radius: 6px; box-shadow: var(--card-edge-s), 5px 10px 20px #0a0d1866; }
 @media (max-width: 999px) { body.art .pg::before { --fw: 9px; border-radius: 4px; } }
 @media (max-width: 999px) and (max-height: 520px) { body.art .pg::before { --fw: 5px; } }
-/* 矮手機：圓桌上方的空白要留給人數和機器人，劇本卡去掉版框 */
+/* 矮手機：圓桌上方的空白要留給人數，劇本卡去掉版框 */
 @media (max-width: 640px) and (max-height: 700px) {
   body.art .town .script-card { padding: 1px; border: 1.5px solid var(--ink); border-image: none; border-radius: 3px; }
 }

@@ -190,18 +190,6 @@ const pl2 = (r, role, ids) => applyPlayerAction(r, S(r, role).pid, { act: 'pick'
   const rh = r.seats.find(s => s.id === r.g.redHerring);
   assert.ok(rh && rh.role !== 'imp' && rh.role !== 'fortuneteller', '換出占卜師後補紅鯡魚');
 }
-// A15 機器人按座位號起名
-{
-  const { createRoom } = await import('../lib/store.js');
-  const { joinPlayer } = await import('../lib/ops.js');
-  const room = createRoom();
-  joinPlayer(room, 'h1', '真人');
-  ok(st(room, 'addBots', { count: 6 }));
-  assert.deepStrictEqual(room.seats.map(s => s.name), ['真人', '機器人2', '機器人3', '機器人4', '機器人5', '機器人6', '機器人7']);
-  ok(st(room, 'kick', { seatId: room.seats[2].id }));
-  ok(st(room, 'moveSeat', { seatId: room.seats[0].id, dir: 1 }));
-  room.seats.forEach((s, i) => s.name !== '真人' && assert.strictEqual(s.name, `機器人${i + 1}`));
-}
 // A16 夜晚順序表：只有今晚第一格空著時假裝叫醒一分鐘，後面的空格直接跳過；勾了「本局不再假裝」之後都不假裝；玩家的進度條只有劇本順序
 {
   const { nightProgress, pretendTick, PRETEND_MS } = await import('../lib/engine.js');

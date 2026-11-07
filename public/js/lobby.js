@@ -51,7 +51,7 @@ export function codeBox(input) {
 }
 
 // recent：服務器確認還在的最近房間（帶 phase、n），onPick 回到它；onIntro 重新打開第一次來時的介紹；onAbout 打開關於（投喂、反饋、分享、說明）
-export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreate, onSolo, onPick, onIntro, onAbout }) {
+export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreate, onPick, onIntro, onAbout }) {
   const codeIn = h('input', { value: code, inputmode: 'numeric', autocomplete: 'off', 'aria-label': '房間號' });
   const nameIn = h('input', { value: name, maxlength: 12 });
   const join = () => {
@@ -74,8 +74,7 @@ export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreat
         h('div', { class: 'field' }, h('span', { class: 'field-k' }, '房間號'), codeBox(codeIn)),
         h('label', { class: 'field' }, h('span', { class: 'field-k' }, '暱稱'), nameIn),
         h('button', { class: 'btn', onclick: join }, '加入房間')),
-      h('div', { class: 'st-line' }, '我是說書人', h('button', { class: 'btn', onclick: onCreate }, '創建房間'),
-        onSolo && h('button', { class: 'btn sm ghost', onclick: onSolo }, '單人試玩 · 測試'))),
+      h('div', { class: 'st-line' }, '我是說書人', h('button', { class: 'btn', onclick: onCreate }, '創建房間'))),
     recentList(recent, onPick),
     h('div', { class: 'lobby-town', 'aria-hidden': 'true' }, townLife()));
 }

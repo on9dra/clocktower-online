@@ -8,10 +8,9 @@ import qrcode from 'qrcode-generator';
 import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import * as store from './lib/store.js';
-import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, createSolo, soloOp, WATCH, BAD_PASS } from './lib/ops.js';
+import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH, BAD_PASS } from './lib/ops.js';
 import { scriptPayload } from './lib/script.js';
 import { viewFor } from './lib/view.js';
-import { isBot, botTick } from './lib/bots.js';
 import { countTick, virginTick } from './lib/day.js';
 import { mvpTick } from './lib/score.js';
 import { pretendTick } from './lib/engine.js';
@@ -109,10 +108,9 @@ function broadcast(room) {
   room.stOnline = list.some(s => s.data.st);
   // 觀眾席：同一個人開了幾個標籤頁只坐一個位置
   room.watchers = [...new Map(list.filter(s => s.data.watch).map(s => [s.data.pid, { pid: s.data.pid, name: s.data.name }])).values()];
-  for (const seat of room.seats) seat.online = isBot(seat) || online.has(seat.pid);
+  for (const seat of room.seats) seat.online = online.has(seat.pid);
   for (const s of list) emitState(s, room);
   store.save(room);
-  botTick(room, broadcast);
   countTick(room, broadcast);
   virginTick(room, broadcast);
   mvpTick(room, broadcast);
@@ -148,23 +146,6 @@ io.on('connection', socket => {
     socket.data = { code: room.code, st: true };
     reply(cb, { code: room.code, stKey: room.stKey, inst: room.inst });
     broadcast(room);
-  }));
-
-  // 單人試玩：機器人當說書人，自己當玩家
-  socket.on('solo:create', handle(({ pid, name, count, role, script }, cb) => {
-    if (badPid(pid)) return reply(cb, '缺少玩家標識');
-    if (!allow('create:' + ip, LIMIT.create)) return reply(cb, '建房太頻繁，請稍後再試');
-    if (!store.makeSpace(code => socketsOf(code).length > 0)) return reply(cb, '房間已滿，請稍後再試');
-    const room = createSolo(pid, String(name ?? ''), { count, role, script });
-    if (typeof room === 'string') return reply(cb, room);
-    socket.data = { code: room.code, pid, name: String(name ?? '').trim().slice(0, 12) };
-    done(room, cb, { code: room.code, inst: room.inst });
-  }));
-
-  socket.on('solo:op', handle((op, cb) => {
-    const room = store.get(socket.data.code);
-    if (!room) return reply(cb, '未加入房間');
-    done(room, cb, soloOp(room, socket.data.pid, op));
   }));
 
   socket.on('st:join', handle(({ code, stKey }, cb) => {
