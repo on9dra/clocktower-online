@@ -28,8 +28,8 @@ export function stepCard(ctx) {
   }
   if (step.status === 'choose') {
     const seat = s.seats.find(x => x.id === step.seatId), online = seat && seat.online;
-    return h('div', { class: 'card infocard' },
-      head(s, step, h('span', { class: 'waiting' + (online ? '' : ' off') }, online ? [h('i'), h('i'), h('i')] : icon('none'))),
+    return h('div', { class: 'card infocard spread' },
+      h('div', { class: 'ic-top' }, head(s, step, h('span', { class: 'waiting' + (online ? '' : ' off') }, online ? [h('i'), h('i'), h('i')] : icon('none')))),
       h('div', { class: 'row' },
         B('代為選擇', () => startSelect(ctx, selFrom(step.id, step.choose, step.seatId))),
         B('跳過', () => ask(`跳過 ${step.title} 的行動？`, () => ctx.st('skip'), '跳過'), 'ghost')));
@@ -63,13 +63,14 @@ function ackCard(ctx, step) {
 }
 
 // 假裝叫醒：沒有人醒（不在場 / 今晚不醒 / 已經做完），停一會兒再往下走，玩家看不出這一格是空的。
-// 計時條走完自動繼續（服務端計時，app.js 每半秒重繪一次），說書人也可以直接繼續
+// 計時條走完自動繼續（服務端計時，app.js 每半秒重繪一次），說書人也可以直接繼續。
+// 手機上和信息卡一樣拆開（hud.css .spread）：誰、計時條在圓桌中間，「本局不再假裝」和繼續在圓桌下方（代為選擇那張卡也是）
 function pretendCard(ctx, step) {
   const left = Math.min(1, Math.max(0, (step.due - ctx.now()) / Math.max(1, step.due - step.at)));
-  return h('div', { class: 'card infocard pretend' },
-    h('div', { class: 'ic-head' }, step.roleId in GROUP ? w(GROUP[step.roleId], 'ink') : named(step.roleId), w(PRETEND[step.why], 'muted')),
-    h('div', { class: 'pt-row' }, icon('moon', 'pt-moon'), w('假裝叫醒', 'ink'),
-      h('i', { class: 'pt-bar' }, h('i', { style: { width: (left * 100).toFixed(1) + '%' } }))),
+  return h('div', { class: 'card infocard pretend spread' },
+    h('div', { class: 'ic-top' }, h('div', { class: 'ic-head' }, step.roleId in GROUP ? w(GROUP[step.roleId], 'ink') : named(step.roleId), w(PRETEND[step.why], 'muted')),
+      h('div', { class: 'pt-row' }, icon('moon', 'pt-moon'), w('假裝叫醒', 'ink'),
+        h('i', { class: 'pt-bar' }, h('i', { style: { width: (left * 100).toFixed(1) + '%' } })))),
     h('div', { class: 'row' },
       h('label', { class: 'pt-off' }, h('input', { type: 'checkbox', class: 'switch', checked: ctx.state.st.noPretend || null, onchange: e => ctx.st('noPretend', { on: e.target.checked }) }), w('本局不再假裝', 'muted')),
       B('繼續', () => ctx.st('pretend'))));

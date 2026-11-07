@@ -146,10 +146,11 @@ function term(s, t) {
 // 間諜看到的魔典：座位號 + 角色小牌（死亡變灰、酒鬼帶他以為的角色），再加魔典上的提示標記：中毒毒滴、被保護盾牌，其餘寫字
 const GRIM_ICO = { 中毒: ['drop', 'poison'], 醉酒: ['drop', 'drunk'], 被保護: ['shield', 'good'] };
 const grimTag = t => (GRIM_ICO[t] ? h('span', { class: 'grim-ico', title: t }, icon(...GRIM_ICO[t])) : h('span', { class: 'grim-tag' + (t === '紅鯡魚' ? ' herring' : '') }, t));
+// 標記包一層（平時 display: contents，排法不變）：說書人的卡上標記豎著排在角色牌右邊（fx.css），格子矮，整本魔典放得下不用滾
 function grimGrid(s, rows) {
   return h('span', { class: 'grim' }, rows.map(([id, r, st = {}]) => h('span', { class: 'grim-cell' + (st.dead ? ' dead' : '') },
     seatBadge(s, id), mini(r), st.fake && mini(st.fake, 'fake'),
-    (st.tags || (st.poison ? ['中毒'] : [])).filter(t => t !== '死亡票已用').map(grimTag))));
+    h('span', { class: 'grim-tags' }, (st.tags || (st.poison ? ['中毒'] : [])).filter(t => t !== '死亡票已用').map(grimTag)))));
 }
 
 export const formula = (s, terms, cls = '') => h('span', { class: 'frm ' + cls }, (terms || []).map(t => term(s, t)));

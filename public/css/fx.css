@@ -152,6 +152,16 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .st-card { --rw: min(100cqw, 100cqh); width: max-content; max-width: calc(var(--rw) * .58); max-height: calc(var(--rw) * .56); margin: 8px auto 0;
   padding: 0 10px 14px; overflow: auto; scrollbar-width: thin; text-align: left; pointer-events: auto; }
 .center:has(> .st-card) { width: max-content; }
+.ring > .center > .st-card { --rw: inherit; } /* 圓桌中央的卡和圓桌用同一個尺寸：圓桌為卡讓位縮小時（hud.css），卡上下兩塊跟著貼過去 */
+/* 間諜的魔典：格子寬一點，座位號、角色牌一排，標記豎著疊在右邊（一枚標記一行，不再折成兩半），一格只有一兩行高。
+   太長的標記在自己的格子裏換行，不壓到隔壁格 */
+.st-card .grim { grid-template-columns: repeat(auto-fill, minmax(9.2em, 1fr)); gap: 6px 8px; }
+.st-card .ic-preview > .frm:has(> .grim) { width: 100%; } /* 式子按內容收窄的話魔典只排得出一列：撐滿紙條，按寬度排列數 */
+.st-card .grim-cell { flex-wrap: nowrap; align-items: flex-start; gap: 3px; min-width: 0; }
+.st-card .grim-cell > :not(.grim-tags) { margin-block: 1px; }
+.st-card .grim-tags { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding-top: 2px; }
+.st-card .grim-tags:empty { display: none; }
+.st-card .grim-tag { max-width: 100%; box-sizing: border-box; font-size: 12px; white-space: normal; overflow-wrap: anywhere; }
 .st-card > .card { position: relative; margin: 0; box-shadow: 0 12px 28px #0005; }
 .st-card .ic-head { padding-right: 40px; } /* 右上角是「收起」 */
 .st-card > .card .btn.wide { position: sticky; bottom: 0; z-index: 1; } /* 選項多得要滾動時，發送也一直看得見 */

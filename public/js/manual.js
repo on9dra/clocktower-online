@@ -95,9 +95,10 @@ export function startNominate(ctx, seat) { draft = null; nom = { from: seat.id, 
 function nominateCard(ctx) {
   const s = ctx.state, { from, to } = nom;
   const send = () => to && ctx.st('nominate', { fromId: from, toId: to });
-  return h('div', { class: 'card focus infocard' },
-    h('div', { class: 'ic-head' }, seatBadge(s, from, 'lg'), w('提名', 'bad'), to ? seatBadge(s, to, 'lg') : h('i', { class: 'op-sep' })),
-    h('div', { class: 'row' }, B('取消', () => closeCompose(ctx), 'ghost'), B('提名', send, to ? '' : 'disabled')));
+  // 手機上拆開（hud.css .spread）：誰提名誰在圓桌中間，按鈕在下方
+  return h('div', { class: 'card focus infocard spread' },
+    h('div', { class: 'ic-top' }, h('div', { class: 'ic-head' }, seatBadge(s, from, 'lg'), w('提名', 'bad'), to ? seatBadge(s, to, 'lg') : h('i', { class: 'op-sep' }))),
+    h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, B('取消', () => closeCompose(ctx), 'ghost'), B('提名', send, to ? '' : 'disabled'))));
 }
 
 // ───── 拼信息 ─────
@@ -136,18 +137,20 @@ function composeCard(ctx) {
     if (!d.terms.length) return;
     ctx.st('inform', { seatId: d.to, terms: d.terms }).then(r => r.ok && closeCompose(ctx));
   };
-  return h('div', { class: 'card focus infocard compose' },
-    h('div', { class: 'ic-head' }, seatBadge(s, d.to, 'lg'), w('給信息', 'ink')),
-    h('div', { class: 'ic-preview' + (d.terms.length ? '' : ' empty') }, d.terms.length
-      ? h('span', { class: 'frm big' }, d.terms.map((t, i) => h('button', { class: 'cp-term', 'data-key': i + (t.s || t.r || t.w || t.n), title: '移除',
-        onclick: () => { d.terms.splice(i, 1); ctx.render(); } }, formula(s, [t]))))
-      : h('span', { class: 'frm' }, h('i', { class: 'op-sep' }))),
-    h('div', { class: 'opt-row cp-tools' },
-      B('角色', () => rolePicker(ctx, r => add({ r, named: true })), 'sm'),
-      ['是', '或'].map(t => B(t, () => add({ w: t }), 'sm ghost')),
-      h('input', { 'data-keep': 'compose', maxlength: 40, placeholder: '數字或文字', onkeydown: e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addText(); } } })),
-    h('div', { class: 'row' }, B('取消', () => closeCompose(ctx), 'ghost'),
-      B([icon('send'), '發送'], send, d.terms.length ? '' : 'disabled')));
+  // 手機上拆開（hud.css .spread）：給誰在圓桌中間，拼好的句子和工具在上方，發送在下方
+  return h('div', { class: 'card focus infocard compose spread' },
+    h('div', { class: 'ic-top' }, h('div', { class: 'ic-head' }, seatBadge(s, d.to, 'lg'), w('給信息', 'ink'))),
+    h('div', { class: 'ic-body' },
+      h('div', { class: 'ic-preview' + (d.terms.length ? '' : ' empty') }, d.terms.length
+        ? h('span', { class: 'frm big' }, d.terms.map((t, i) => h('button', { class: 'cp-term', 'data-key': i + (t.s || t.r || t.w || t.n), title: '移除',
+          onclick: () => { d.terms.splice(i, 1); ctx.render(); } }, formula(s, [t]))))
+        : h('span', { class: 'frm' }, h('i', { class: 'op-sep' }))),
+      h('div', { class: 'opt-row cp-tools' },
+        B('角色', () => rolePicker(ctx, r => add({ r, named: true })), 'sm'),
+        ['是', '或'].map(t => B(t, () => add({ w: t }), 'sm ghost')),
+        h('input', { 'data-keep': 'compose', maxlength: 40, placeholder: '數字或文字', onkeydown: e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addText(); } } }))),
+    h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, B('取消', () => closeCompose(ctx), 'ghost'),
+      B([icon('send'), '發送'], send, d.terms.length ? '' : 'disabled'))));
 }
 // 從劇本的角色裏挑一個：按陣營分行
 function rolePicker(ctx, onPick) {
@@ -194,15 +197,17 @@ export function openReminders(ctx, seat) {
 export const winButtons = ctx => h('div', { class: 'row hand-win' }, [['good', '善良獲勝'], ['evil', '邪惡獲勝']].map(([team, text]) =>
   B(text, () => ask(`判定${text}，結束本局？`, () => ctx.st('win', { team }), text), 'sm ghost')));
 
-// 手動局的夜晚：今晚的死者、發出去的牌、首夜互認，天亮
+// 手動局的夜晚：今晚的死者、發出去的牌、首夜互認，天亮。
+// 互認發過以後按鈕置灰留在原處：不讓下面的「天亮」頂上來，連點兩下就天亮了。手機上拆開（hud.css .spread）：死者在圓桌中間，發出去的牌在上方，按鈕在下方
 export function manualNight(ctx) {
   const s = ctx.state, st = s.st, hand = st.hand;
-  return h('div', { class: 'card focus infocard' },
-    h('div', { class: 'frm-line' }, w('今晚'), st.diedTonight.length ? [st.diedTonight.map(id => seatBadge(s, id)), w('死亡', 'bad')] : w('無人死亡', 'good')),
-    cardRows(ctx),
-    s.night === 1 && !hand.evilSent && B('發送互認和偽裝', () => ctx.st('evilInfo'), 'wide'),
-    B('天亮，公佈死訊', () => ctx.st('dawn'), 'wide'),
-    winButtons(ctx));
+  return h('div', { class: 'card focus infocard spread' },
+    h('div', { class: 'ic-top' }, h('div', { class: 'frm-line' }, w('今晚'), st.diedTonight.length ? [st.diedTonight.map(id => seatBadge(s, id)), w('死亡', 'bad')] : w('無人死亡', 'good'))),
+    hand.cards.length > 0 && h('div', { class: 'ic-body' }, cardRows(ctx)),
+    h('div', { class: 'ic-foot hand-foot' },
+      s.night === 1 && B('發送互認和偽裝', () => ctx.st('evilInfo'), 'wide' + (hand.evilSent ? ' disabled' : '')),
+      B('天亮，公佈死訊', () => ctx.st('dawn'), 'wide'),
+      winButtons(ctx)));
 }
 
 // ───── 側欄：夜晚順序參考 ─────

@@ -206,15 +206,19 @@ export function infoForm(ctx, step) {
   const set = patch => { Object.assign(d, patch); ctx.render(); };
   const body = form.kind === 'two' ? twoBody(s, step, d, set) : form.kind === 'dream' ? dreamBody(s, step, d, set)
     : form.kind === 'text' ? null : choiceBody(s, step, d, set);
-  const v = verdict(s, form, d), { level } = v;
+  const v = verdict(s, form, d), { level } = v, terms = level < 0 ? null : infoFormula(form, d);
+  const slip = t => h('div', { class: 'ic-preview ' + (level < 0 ? 'empty' : ['bad', 'alt', 'good'][level]) },
+    t ? formula(s, t, 'big') : h('span', { class: 'frm' }, h('i', { class: 'op-sep' })));
+  // 間諜的魔典沒有選項、又高：手機上擺在圓桌上方（拆開時 ic-body 的位置）；換行後面的惡魔偽裝是短短一行，和發送並排在下方，
+  // 發送和別的信息卡在同一個地方，上方也少佔一行
+  const br = form.kind === 'text' && terms ? terms.findIndex(t => t.op === 'br') : -1;
+  const top = form.kind === 'text' && slip(br < 0 ? terms : terms.slice(0, br)), bottom = form.kind !== 'text' ? slip(terms) : br >= 0 && slip(terms.slice(br + 1));
   return h('div', { class: 'card focus infocard spread' + (form.free ? ' free' : '') },
     icHead(s, step),
     goonLine(s, step),
     form.open && eventList(s, form),
     form.extra?.guesses && guessList(s, form.extra.guesses),
     body && h('div', { class: 'ic-body' }, body),
-    h('div', { class: 'ic-foot' },
-      h('div', { class: 'ic-preview ' + (level < 0 ? 'empty' : ['bad', 'alt', 'good'][level]) },
-        level < 0 ? h('span', { class: 'frm' }, h('i', { class: 'op-sep' })) : formula(s, infoFormula(form, d), 'big')),
-      sendBtn(ctx, d, v)));
+    top && h('div', { class: 'ic-body' }, top),
+    h('div', { class: 'ic-foot' }, bottom, sendBtn(ctx, d, v)));
 }

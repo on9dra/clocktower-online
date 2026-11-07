@@ -39,7 +39,7 @@ export function renderTown(ctx) {
   // 爪牙 / 惡魔信息裏得知的邪惡隊友：頭像直接換成陣營牌（座位下面就不再重複標）
   const team = Object.fromEntries(Object.entries(auto).flatMap(([id, ks]) => ks.filter(k => k.t).slice(0, 1).map(k => [id, k.t])));
   const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), num = id => s.seats.findIndex(x => x.id === id) + 1;
-  const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--s': Math.sin(Math.PI / Math.max(n, 2)).toFixed(4) } }); // --s：按相鄰座位的距離定大小（board.css）
+  const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--s': Math.sin(Math.PI / Math.max(n, 2)).toFixed(4), ...(s.isSt ? fitStyle() : {}) } }); // --s：按相鄰座位的距離定大小（board.css）
   const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s), aimed = stepTargets(s);
   const hoverPick = s.isSt && !s.peek && s.phase === 'lobby' && canHover(); // 準備階段：懸停頭像就能選角色（setup.js）
   // 準備階段說書人桌上的牌：帶 key，換了角色是一張新牌，蓋下來（hud.css）
@@ -223,7 +223,9 @@ export function fitTableCard() {
   turn?.classList.remove('flat');
   if (center) { center.classList.remove('tight'); center.style.translate = ''; }
   const css = getComputedStyle(el);
-  if (el !== middle && css.position === 'absolute' || (el === st && css.overflowY === 'visible')) return; // 手機上卡拆開在圓桌上下、橫屏在圓桌旁邊（hud.css），不用縮
+  if (el === st && css.position === 'absolute') return fitBeside(st, ring); // 橫屏卡在圓桌旁邊（hud.css）
+  if (el === st && css.overflowY === 'visible') return fitAround(st, ring); // 手機上卡拆開在圓桌上下
+  if (el !== middle && css.position === 'absolute') return; // 玩家的牌在圓桌下面 / 旁邊，不用縮
   const width = () => (el === st ? Math.max(card.offsetWidth, card.scrollWidth) : card.offsetWidth); // 一排角色牌可能比卡寬
   let room = center ? seatRoom(ring, width(), center.offsetHeight) : { k: 1 };
   if (center && room.k < 1) {
@@ -254,6 +256,39 @@ export function fitTableCard() {
 }
 addEventListener('resize', fitTableCard);
 
+// 圓桌為說書人的卡讓位：量到的數記在這裏，畫圓桌時一起帶上（renderTown），重繪時不會先丟掉再補回來，圓桌不閃
+const fit = { bh: 0, fh: 0, rk: 1, key: '' };
+const fitStyle = () => ({ '--bh': fit.bh + 'px', '--fh': fit.fh + 'px', '--rk': fit.rk });
+// 手機豎屏：卡拆成圓桌上方（選項）、下方（預覽和按鈕）兩塊，量出兩塊各要多高，圓桌該縮多少、往哪邊挪在 CSS 裏算（hud.css --bh、--fh）
+function fitAround(st, ring) {
+  const up = st.querySelector('.ic-body, .tb-roles'), dn = st.querySelector('.ic-foot, .tb-foot, .spread > .row');
+  if (!ring || !dn || getComputedStyle(dn).position !== 'absolute') return;
+  const bh = up ? Math.ceil(up.scrollHeight) : 0, fh = Math.ceil(dn.offsetHeight);
+  if (bh === fit.bh && fh === fit.fh) return;
+  Object.assign(fit, { bh, fh });
+  for (const [k, v] of Object.entries(fitStyle())) ring.style.setProperty(k, v);
+}
+// 手機橫屏：卡在圓桌右邊。選項多得卡裏放不下時圓桌一點點縮小（--rk，最小六成），卡跟著變寬、一行多放幾個，不用在卡裏滾。
+// 縮了也不見矮的內容（間諜的魔典）不白縮：取放得下的最大一檔，都放不下就取最矮的那檔裏最大的。
+// 換了一步、換了屏幕大小才從原大小重新算；同一步裏只會再縮，不來回跳
+function fitBeside(st, ring) {
+  const card = st.firstElementChild, key = st.dataset.key + card?.className + innerWidth + 'x' + innerHeight;
+  if (!ring || !card) return;
+  const set = k => { fit.rk = k; ring.style.setProperty('--rk', k); };
+  // 卡裏要滾的地方：卡本身上下滾，或者裏面某一塊橫著滾（手動局發出去的牌一行擺不下）
+  const wide = e => e.scrollWidth - e.clientWidth > 1 && /auto|scroll/.test(getComputedStyle(e).overflowX) ? e.scrollWidth - e.clientWidth : 0;
+  const over = () => Math.max(card.scrollHeight - card.clientHeight, ...[...card.querySelectorAll('*')].map(wide));
+  if (fit.key !== key) { fit.key = key; set(1); }
+  if (over() <= 1) return;
+  let best = { k: fit.rk, o: over() };
+  for (let k = Math.round(fit.rk * 100 - 4) / 100; k >= .6 && best.o > 1; k = Math.round(k * 100 - 4) / 100) {
+    set(k);
+    const o = over();
+    if (o < best.o - 1) best = { k, o };
+  }
+  set(best.k);
+}
+
 function cardEl(ctx, b, foldable) {
   const key = b.id + (b.stage || '');
   if (foldable && isFolded(key)) {
@@ -263,6 +298,7 @@ function cardEl(ctx, b, foldable) {
   const fresh = lastBubble !== b.id; // 只在新步驟出現時播放展開動畫，重繪不重播
   lastBubble = b.id;
   const card = b.card();
+  if (b.side) card.classList.remove('spread'); // 角上的小窗（代選月之子的目標等）不拆開：拆開是圍著圓桌擺的
   if (foldable) card.append(foldButton(ctx, key));
   return h('section', { class: 'st-card' + (b.side ? ' corner' : '') + (fresh ? ' fresh' : ''), 'data-key': 'bubble-' + b.id, 'data-exit': true }, card);
 }

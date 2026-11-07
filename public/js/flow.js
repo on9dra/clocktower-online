@@ -63,12 +63,13 @@ export const foldButton = (ctx, key) => h('button', { class: 'hud-x fold-x', onc
 export const foldStub = (ctx, key, ...kids) => h('div', { class: 'cx fold-stub', 'data-key': 'fold-' + key, 'data-exit': true },
   h('div', { class: 'fs-lead' }, kids), B('展開', () => setFold(ctx, null), 'sm ghost'));
 
-// 選人模式下的確認卡（說書人代選時的操作卡用）：lead 是行動者的角色牌和座位號
+// 選人模式下的確認卡（說書人代選時的操作卡用）：lead 是行動者的角色牌和座位號。
+// 手機上和信息卡一樣拆開（hud.css .spread）：行動者和選中的座位在圓桌中間，選角色的格子在上方，取消、確認在下方（確認在右，和發送同一個位置）
 export function selectBar(ctx, lead, onDone, canCancel) {
-  return h('div', { class: 'card focus infocard' },
-    h('div', { class: 'ic-head' }, lead),
-    h('div', { class: 'opt-row' }, slots(ctx), roleSlot(ctx)),
-    h('div', { class: 'row' }, confirmPick(onDone), canCancel && B('取消', () => stopSelect(ctx), 'ghost')));
+  return h('div', { class: 'card focus infocard spread' },
+    h('div', { class: 'ic-top' }, h('div', { class: 'ic-head' }, lead), h('div', { class: 'opt-row' }, slots(ctx))),
+    sel.on.roles && h('div', { class: 'ic-body' }, h('div', { class: 'opt-row' }, roleSlot(ctx))),
+    h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, canCancel && B('取消', () => stopSelect(ctx), 'ghost'), confirmPick(onDone))));
 }
 
 // 處決台現狀（桌面中央也用）
