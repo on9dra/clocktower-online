@@ -207,7 +207,6 @@
         guard.done();
         el.classList.remove('slow');
         store.set('botc.boot');
-        more();
         if (quiet) {
           handed(); el.remove();
           // 桌面第一幀要畫一陣子，淡入等它畫完才開始，不然還沒看到就演完了
@@ -216,7 +215,7 @@
           delete root.dataset.boot;
           return requestAnimationFrame(() => requestAnimationFrame(() => fade.play()));
         }
-        // 瀏覽器要用戶點過才讓出聲：進大廳時停在小鎮上等一下。能出聲（切繁簡、離開房間的刷新）、靜音的不用等，邀請鏈接直接進房間也不等
+        // 瀏覽器要用戶點過才讓出聲：進大廳時停在小鎮上等一下（這時不補對局的圖，大廳裏用不著，見 more）。能出聲（切繁簡、離開房間的刷新）、靜音的不用等，邀請鏈接直接進房間也不等
         if (!inRoom && window.boot.locked && window.boot.locked()) gate(); else strike(250);
       };
       const gate = () => {
@@ -394,9 +393,17 @@
       stars.onload = stars.onerror = () => { got(); el.classList.add('starry'); };
       stars.src = 'img/stars.svg';
       MUST.forEach(n => load(n, got));
-      // 剩下的等第一屏到齊才在後台補齊（end），兩張兩張來，不和第一屏搶那點帶寬；停在點擊進入時也在補
-      const rest = inRoom ? LATER : [...GAME, ...LATER];
-      const more = () => { let i = 0; const next = () => { if (i < rest.length) load(rest[i++], next); }; next(); next(); };
+      // 對局的圖（約 0.9MB）大廳裏用不著，不跟著開屏下：要進房間了（app.js 在點加入、創建、回到房間時調 boot.more()）才在後台補，
+      // 開屏揭開之前不補，不和第一屏搶那點帶寬。兩張兩張來，桌面的先；桌面那批到齊時兌現，音效接著下（sfx.js loadSfx），不和桌面搶。
+      // 直接點鏈接進房間的，桌面的圖第一屏已經等過了，揭開就兌現
+      let warm = null;
+      window.boot.more = () => warm || (warm = out.then(() => new Promise(ok => {
+        const list = inRoom ? LATER : [...GAME, ...LATER];
+        let i = 0, need = inRoom ? 0 : GAME.length;
+        if (!need) ok();
+        const next = () => { if (i < list.length) load(list[i++], () => { if (--need === 0) ok(); next(); }); };
+        next(); next();
+      })));
       // 開屏裏沒有的雲、烏鴉、炊煙這時才登場（ambient.css）；演完去掉，之後再打開介紹接著同一片天，不重演
       out.then(() => { root.dataset.sky = 'in'; setTimeout(() => delete root.dataset.sky, 9000); });
     }

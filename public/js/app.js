@@ -19,7 +19,7 @@ import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
 import { askPass } from './roompass.js';
 import { countPop } from './trial.js';
-import { chime, locked, wake } from './sfx.js';
+import { chime, locked, wake, loadSfx } from './sfx.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
 Object.assign(window.boot, { locked, chime: ms => chime('night', ms) }); // 開屏結束時鐘響兩下，和音波同拍
@@ -114,6 +114,7 @@ function refuse() {
 // 有密碼的房間：本機記著輸對過的，先用它試；不對再問。stay：觀戰的人入座，關掉密碼框還留在房間裏
 const NEED_PASS = '請輸入房間密碼', BAD_PASS = '房間密碼不對';
 async function joinPlayer(code, name, inst = '', stay = false) {
+  window.boot.more(); // 要進房間了：對局的圖在後台補起來（開屏 index.html）
   if (name) LS.set('botc.name', name);
   const key = 'botc.pass.' + code;
   const go = pass => new Promise(res => sock.emit('pl:join', { code, inst, pid, name, pass }, res));
@@ -145,6 +146,7 @@ function fail(err, code = '') {
 function resume() {
   const code = (session && session.code) || params.get('room');
   if (!code) return lobby();
+  window.boot.more();
   const inst = (session && session.inst) || params.get('r') || '';
   if (claimToken) {
     const token = claimToken;
@@ -190,12 +192,15 @@ function lobby(code = params.get('room') || '') {
   ctx.state = ctx.live = null;
   ensureScene();
   if (room) { resetFx(); resetSide(); chat = []; sel.on = null; closeCompose(ctx); closeMenu(); }
-  const create = () => sock.emit('st:create', {}, r => {
-    if (!r.ok) return toast(r.error);
-    LS.set('botc.st.' + r.code, r.stKey);
-    fresh = true;
-    enter(r.code, true, r.inst);
-  });
+  const create = () => {
+    window.boot.more();
+    sock.emit('st:create', {}, r => {
+      if (!r.ok) return toast(r.error);
+      LS.set('botc.st.' + r.code, r.stKey);
+      fresh = true;
+      enter(r.code, true, r.inst);
+    });
+  };
   const pick = r => { session = { code: r.code, inst: r.inst }; resume(); };
   const page = renderLobby({
     code, name: LS.get('botc.name') || '',
@@ -266,7 +271,7 @@ function leave() {
   lobby();
 }
 
-let stLog = [];
+let stLog = [], heard = false; // heard：音效開始下了沒有
 sock.on('state', s => {
   if (s.custom) installScript(s.custom); // 上傳的劇本：先把角色登記好，後面畫什麼都查得到
   chat = trimChat(s.chatReset ? s.chat : chat.concat(s.chat));
@@ -279,6 +284,8 @@ sock.on('state', s => {
   if (fresh) { fresh = false; dealt.then(() => { if (ctx.state) openInvite(ctx); }); } // 剛建好房間：桌面擺好就把房間號、二維碼亮出來
   onEggs(s); // 桌面畫好之後再扔，按座位現在的位置飛
   window.boot.ready();
+  // 第一次進房間：音效等桌面的圖到齊再下（開屏 boot.more），不和桌面搶帶寬
+  if (!heard) { heard = true; window.boot.more().then(() => loadSfx()); }
 });
 // 大廳畫出來不用等連上服務器（連接要好幾個往返），點按鈕發的請求 socket.io 會存著，連上再發；邀請鏈接、回房間才要等
 let early = !params.get('room');
