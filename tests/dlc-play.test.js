@@ -242,4 +242,30 @@ const vigorKill = (r, t) => {
   assert.ok(told.some(m => m.to === r.g.twin.evil), '收到的對手就是記錄的那一位');
 }
 
+// 哲學家拿了不在場的賢者：他還是哲學家，賢者不算在場。麻臉巫婆之後變出賢者能成功，新賢者醉酒；變出哲學家則無事發生
+{
+  const r = mk(['philosopher', 'oracle', 'dreamer', 'nodashii', 'pithag', 'clockmaker', 'seamstress', 'savant'], 'snv');
+  const ph = S(r, 'philosopher'), or = S(r, 'oracle'), sv = S(r, 'savant');
+  r.g.night = 0; r.g.day = 0;
+  startNight(r);
+  toStep(r, 'philosopher');
+  pick(r, [], 'sage');
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  ok(applyStOp(r, { op: 'next' }));
+  toStep(r, 'pithag');
+  pick(r, [or.id], 'sage');
+  assert.strictEqual(or.role, 'sage', '賢者不在場，變得出來');
+  assert.ok(impaired(r, or), '新賢者醉酒');
+  ok(applyStOp(r, { op: 'setPoison', seatId: ph.id }));
+  assert.ok(!impaired(r, or), '哲學家中毒時清醒');
+  ok(applyStOp(r, { op: 'setPoison', seatId: null }));
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  ok(applyStOp(r, { op: 'next' }));
+  toStep(r, 'pithag');
+  pick(r, [sv.id], 'philosopher');
+  assert.strictEqual(sv.role, 'savant', '哲學家在場：無事發生');
+}
+
 console.log('dlc play regressions ok');
