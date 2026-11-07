@@ -165,7 +165,7 @@ export const ACTS = {
   imp: { ico: 'pitchfork', tone: 'evil', mark: '攻擊', say: ['選擇一名玩家，使其', '死亡'] },
   butler: { ico: 'key', tone: 'brass', mark: '主人', say: ['選擇一名其他玩家作為你的', '主人'] },
   fortuneteller: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇兩名玩家，查驗其中有沒有', '惡魔'] },
-  ravenkeeper: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名玩家，得知他的', '角色'] },
+  ravenkeeper: { ico: 'eye', tone: 'good', mark: '查驗', say: ['你在今晚死去。選擇一名玩家，得知他的', '角色'] }, // 只有夜裏死了才醒，牌上要說，不然他不知道自己為什麼醒
   // 黯月初升
   sailor: { ico: 'drop', tone: 'brass', mark: '對飲', say: ['選擇一名存活的玩家：你或他', '醉酒'] },
   chambermaid: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇兩名其他存活的玩家，得知今晚幾人', '醒來'] },

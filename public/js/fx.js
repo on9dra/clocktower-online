@@ -66,6 +66,12 @@ function thaw() {
   frozen = null;
   rerender();
 }
+// 終局：桌面在勝負卡底下換成終局（身份翻開），淡進來，不在壓暗的那層後面硬切
+function thawSoft() {
+  if (!frozen) return;
+  thaw();
+  if (!reduced()) requestAnimationFrame(() => document.querySelector('.town')?.animate({ opacity: [0.3, 1] }, 480));
+}
 // 背景的日夜（body[data-phase]）：入夜 / 天亮的演出接管時先不跟著狀態變，演出按節拍切（黃昏 → 夜、黎明 → 白天），播完再對齊
 let skyHold = 0;
 const sky = v => { document.body.dataset.phase = v === 'lobby' ? 'night' : v; }; // 開局前的房間也是夜色，和大廳接得上
@@ -804,7 +810,7 @@ const SCENES = {
     const me = s.seats.find(x => x.mine);
     const verdict = !s.isSt && me?.role ? (team(me.role) === e.team ? 'win' : 'lose') : null;
     const gain = verdict ? (verdict === 'win' ? EGG.win : EGG.lose) : 0, land = pendingEggs(gain);
-    return { block: true, after: land, run: async () => {
+    const scene = { block: true, after: land, run: async () => {
       veil(good ? WASH.good : WASH.evil, 500);
       followBgm();
       const chars = [...(good ? '善良獲勝' : '邪惡獲勝')].map(ch => h('span', {}, ch));
@@ -819,6 +825,7 @@ const SCENES = {
       hide(...chars, ...gains, sub);
       cardIn(card, 520);
       await wait(560);
+      scene.cover?.(); // 紙牌蓋住了桌面：底下的桌面這時才換成終局（onState 裏的 frozen）
       for (const [k, ch] of chars.entries()) {
         const last = k === chars.length - 1;
         beat(ch, { power: last && !good ? 12 : 0 });
@@ -843,6 +850,7 @@ const SCENES = {
       await wait(reward ? 3000 : 4200);
       fadeOut(getStage(), 700); await wait(700);
     } };
+    return scene;
   },
 
   // MVP 揭曉：星星印記、當選人的大牌一張張落下，金色「MVP」章，票數；自己當選的話再落一枚「雞蛋 +5」飛進頂欄。
@@ -1051,6 +1059,10 @@ export function onState(s) {
   for (const e of fresh) {
     const sc = SCENES[e.k]?.(e, s, p);
     if (!sc) continue;
+    // 勝負：終局狀態一到，絞刑架還在落、勝負卡還沒蓋上來，圓桌中間已經寫著「善良獲勝」、全場身份也翻開了。
+    // 整段演出期間桌面和側欄停在上一刻（同開新局拉幕的 frozen），勝負卡蓋住桌面的那一拍（sc.cover）再換成終局，淡進來；
+    // 頁面在後台時演出直接跳到結尾，不會走到 cover，所以勝負這段播完也解凍一次
+    if (e.k === 'win' && !frozen) { frozen = p; sc.cover = thawSoft; chain(sc, thawSoft); }
     if (e.k === 'role' && lead && p.myRole && p.myRole !== s.myRole) { faceWas = p.myRole; chain(lead, faceDone); } // 前面那段把牌翻完才換
     if (e.k === 'act' || e.k === 'changed') lead = sc;
     sc.holds = (sc.holds || []).filter(x => newlyDead.has(x));

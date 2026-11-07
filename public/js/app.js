@@ -210,14 +210,15 @@ function lobby(code = params.get('room') || '') {
     onIntro: () => showIntro(LS),
     onAbout: () => openAbout(ctx),
   });
-  // 控件等開屏揭開才出來；第一次來先看介紹，介紹收起才出來
+  // 控件等開屏揭開才出來；第一次來先看介紹，介紹收起才出來。
+  // 從邀請鏈接來的（房間號已經填好）是來入座的，朋友在等：不先看介紹（介紹講的是給說書人的好處），也不記成看過，下次自己打開網站再看
   const show = () => page.classList.remove('pre');
   page.classList.add('pre');
   if (room) backToLobby(app, page, show);
   else {
     document.body.dataset.phase = 'lobby';
     app.replaceChildren(page);
-    if (introSeen(LS)) window.boot.out.then(show);
+    if (introSeen(LS) || code) window.boot.out.then(show);
     else showIntro(LS, { wait: window.boot.out, after: show });
   }
   // 最近的房間：問服務器哪些還在、走到哪了；不在的從本機記錄裏去掉

@@ -40,6 +40,12 @@ textarea { resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 /* 手機瀏覽器聚焦 16px 以下的輸入框會把整頁放大，還不縮回來；不鎖 viewport，雙指縮放照常能用 */
 @media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
+/* 觸屏上的小按鈕（MVP 星、瞄準、收起、彈窗的 ✕、大廳右上角那排）：看起來不變，手指點的範圍往外擴一圈（透明的 ::after） */
+@media (pointer: coarse) {
+  :is(.modal-head .icon-btn, .lang-lobby .btn) { position: relative; }
+  :is(.mvp-btn, .aim-btn, .hud-x, .modal-head .icon-btn, .lang-lobby .btn)::after { content: ""; position: absolute; inset: -8px; }
+  .lang-lobby .btn::after { inset: -8px -3px; } /* 三個挨著，橫向不擴，免得點到隔壁 */
+}
 .muted { color: var(--muted); }
 .warn { color: var(--evil); }
 .pre { white-space: pre-wrap; word-break: break-word; }
@@ -107,6 +113,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 /* 登場：開屏揭開的那一刻接上——字標和小鎮本來就在，印章蓋下、標語浮現，表單和按鈕從紙上立起來（和開屏小鎮同一個動作），
    旗子最後插上（ambient.css）。.pre 時都停在開頭，等開屏或介紹揭開；只回填開頭（backwards），演完不佔著 transform，懸停才傾斜得了 */
 .lobby .lobby-seal { animation: l-stamp .3s cubic-bezier(.5, 0, .7, 1) backwards; }
+/* 印章停在開頭時放大 2.6 倍（透明），窄屏上伸出屏幕右邊把整頁撐寬，第一次來看介紹的那段時間能左右拖動：橫向裁掉（clip 不讓大廳變成滾動容器） */
+.lobby { overflow-x: clip; }
 .lobby .lobby-tag { animation: l-rise .45s ease .14s backwards; }
 .lobby .join { transform-origin: 50% 100%; animation: l-up .72s cubic-bezier(.2, .8, .3, 1) .24s backwards; }
 .lobby .st-line { transform-origin: 50% 100%; animation: l-up .6s cubic-bezier(.2, .8, .3, 1) .42s backwards; }
@@ -132,7 +140,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 /* 矮窗口別留那麼多底：大廳一滾動，小鎮就掉到屏幕外，還多一條滾動條 */
 @media (max-height: 760px) and (min-width: 861px) { .lobby { padding-bottom: 34vh; gap: 24px; } }
 @media (max-width: 860px) {
-  .lobby { padding: 5vh 16px calc(20vh + 28px); gap: 22px; }
+  .lobby { padding: max(5vh, 46px) 16px calc(20vh + 28px); gap: 22px; } /* 頂上至少讓出右上角那排「介紹 關於 繁體」，矮屏不壓字標 */
   .lobby-seal { left: calc(50% + 112px); font-size: 12px; }
   .lobby-tag { font-size: 14px; letter-spacing: .14em; }
   .join { grid-template-columns: minmax(0, 1fr); }
