@@ -11,11 +11,11 @@ const mk = (roles, sid) => { const r = setup(roles); r.scriptId = sid; return r;
 const pick = (r, ids, role) => { ok(applyStOp(r, { op: 'pick', ids, role })); ack(r); };
 // 往下走到 role 的步驟（不是假裝叫醒、不是結果卡）：別人的選人跳過，信息按真相給（渦流在場給錯的），裁定選最後一項
 const answer = f => (!f.vortox ? f.truth : f.kind === 'number' ? { n: (f.truth.n + 1) % (f.max + 1) } : { yes: !f.truth.yes });
-function toStep(r, role) {
+function toStep(r, role, seat) {
   for (let k = 0; k < 60; k++) {
     const s = r.g.step;
     if (!s || s.status === 'review' || r.phase !== 'night') return null;
-    if (s.roleId === role && !['fake', 'ack'].includes(s.status)) return s;
+    if (s.roleId === role && !['fake', 'ack'].includes(s.status) && (!seat || s.seatId === seat.id)) return s;
     ok(applyStOp(r, s.status === 'ack' ? { op: 'ack' } : s.status === 'decide' ? { op: 'decide', choice: s.decide.options.at(-1).id }
       : s.status === 'confirm' ? { op: 'confirm', fields: answer(s.form) } : s.status === 'fake' ? { op: 'pretend' } : { op: 'skip' }));
   }
@@ -102,6 +102,30 @@ function dayVote(r, from, to, voters) {
   assert.ok(impaired(r, dr), '新的亡骨魔能力正常，毒還在');
   ok(applyStOp(r, { op: 'setDead', seatId: cm.id, dead: true }));
   assert.ok(!impaired(r, dr), '新的亡骨魔死了才解毒');
+}
+
+// 瘋子以為自己是沙巴洛斯：他每晚在真惡魔之前醒，他選的人不能蓋掉真沙巴洛斯上一晚選的人（反芻的候選）
+{
+  const r = mk(['professor', 'lunatic', 'shabaloth', 'godfather', 'tinker', 'sailor', 'chambermaid'], 'bmr');
+  const lu = S(r, 'lunatic'), sh = S(r, 'shabaloth'), [prof, cm, gf, sailor] = ['professor', 'chambermaid', 'godfather', 'sailor'].map(x => S(r, x));
+  lu.fakeRole = 'shabaloth';
+  startNight(r);
+  toStep(r, 'shabaloth', lu);
+  ok(applyStOp(r, { op: 'pick', ids: [gf.id, sailor.id] }));
+  ok(applyStOp(r, { op: 'decide', choice: 'fail' }));
+  toStep(r, 'shabaloth', sh);
+  pick(r, [prof.id, cm.id]);
+  assert.ok(prof.dead && cm.dead);
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  sailor.dead = true; // 白天別的原因死了，瘋子今晚又選他
+  ok(applyStOp(r, { op: 'next' }));
+  toStep(r, 'shabaloth', lu);
+  ok(applyStOp(r, { op: 'pick', ids: [gf.id, sailor.id] }));
+  ok(applyStOp(r, { op: 'decide', choice: 'fail' }));
+  const prep = toStep(r, 'shabaloth', sh);
+  assert.strictEqual(prep.decide?.kind, 'regurgitate');
+  assert.deepStrictEqual(prep.decide.options.map(o => o.id), ['none', prof.id, cm.id], '候選是真沙巴洛斯上一晚選中的人');
 }
 
 console.log('dlc play regressions ok');
