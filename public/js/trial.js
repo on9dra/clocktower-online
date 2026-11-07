@@ -46,7 +46,7 @@ export function trialPanel(ctx) {
   // 棄權欄頂下一行小字：別人看不到
   const side = (k, label, ico, list) => h('div', { class: 'tr-side ' + k },
     vb ? h('div', { class: 'tr-k' }, vb[k](list.length)) : h('div', { class: 'tr-k' }, icon(ico), label, h('i', {}, list.length)),
-    k === 'no' && h('div', { class: 'tr-priv' }, icon('hidden'), s.isSt ? '僅本人與說書人可見' : '僅你與說書人可見'),
+    k === 'no' && (s.isSt || s.myId) && h('div', { class: 'tr-priv' }, icon('hidden'), s.isSt ? '僅本人與說書人可見' : '僅你與說書人可見'), // 觀戰的人不投票，不用跟他說
     h('div', { class: 'tr-chips' }, list.map(chip)));
   return h('div', { class: 'trial' + (nomFx() ? ' fx-pop' : '') + (ck ? ' counting' : ''), style: nomFx(), 'data-key': 'trial', 'data-exit': true },
     h('div', { class: 'tr-head' }, who(nom.nominatorId, 'from'),

@@ -30,6 +30,8 @@ export function topbar(ctx) {
   const more = e => menu(e.currentTarget, narrow() ? SCRIPTS[s.scriptId]?.name + (s.mode === 'manual' ? ' · 手動' : '') : null, [
     narrow() && { label: '規則與流程', onclick: help },
     narrow() && { label: [icon(muted() ? 'sound' : 'mute', 'menu-ico'), muted() ? '打開聲音' : '全部靜音'], onclick: sound },
+    // 很窄的手機上觀戰的頂欄放不下獎盃（hud.css），積分榜收到這裏
+    !me && !s.isSt && matchMedia('(max-width: 374px)').matches && { label: [icon('trophy', 'menu-ico'), '積分榜'], onclick: () => openBoard(ctx) },
     stKey && { label: '複製說書人鏈接（換設備主持用）',
       onclick: () => copy(hostUrl(s, stKey), '說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家') },
     { label: getLang() === 'sc' ? '切換到繁體' : '切换到简体', onclick: () => { setLang(getLang() === 'sc' ? 'tc' : 'sc'); location.reload(); } },
@@ -62,7 +64,7 @@ export function topbar(ctx) {
     s.isSt || s.peek ? h('span', { class: 'who' }, '說書人') : me ? h('span', { class: 'who' }, me.name)
       : h('span', { class: 'watch-tag' }, icon('eye'), '觀戰'),
     // 自己的雞蛋數（點開積分榜）；結算時雞蛋飛進來跳一下「+N」。說書人是獎盃
-    me ? eggPill(ctx, me) : h('button', { class: 'btn sm ghost icon-only', title: '積分榜', onclick: () => openBoard(ctx) }, icon('trophy')),
+    me ? eggPill(ctx, me) : h('button', { class: 'btn sm ghost icon-only board-btn', title: '積分榜', onclick: () => openBoard(ctx) }, icon('trophy')),
     h('button', { class: 'btn sm ghost icon-only sound', title: muted() ? '打開聲音' : '全部靜音', onclick: sound }, icon(muted() ? 'mute' : 'sound')),
     h('button', { class: 'btn sm help', onclick: help }, '規則與流程'),
     sheetTabs(ctx),

@@ -201,6 +201,17 @@ const msgView = (s, m) => {
     h('div', { class: 'pre' }, m.text));
 };
 const msgsOf = (s, ch) => s.chat.filter(m => channelOf(s, m) === ch && !(m.info && !s.isSt) && m.k !== 'act');
+// 手機上點輸入框彈出鍵盤：可視區變矮，消息列表停在原位，最新的幾條被擋在下面。鍵盤升起的那段時間裏一直把列表貼到底
+// （visualViewport 不是頁面裏的節點，直接掛監聽，0.9 秒後摘掉）
+function pinOnKeyboard(e) {
+  const list = e.target.closest('.composer')?.parentElement?.querySelector('.msgs');
+  if (!list) return;
+  const stick = () => { list.scrollTop = list.scrollHeight; };
+  const vv = window.visualViewport;
+  stick();
+  vv?.addEventListener('resize', stick);
+  setTimeout(() => { stick(); vv?.removeEventListener('resize', stick); }, 900);
+}
 // 輸入框：差量更新會保留頁面上已有的輸入框，所以發送時讀頁面上的那個。每一頁一個節點，翻頁時字不會帶到別的頻道
 function composer(ctx, ch, btn, hint) {
   const s = ctx.state, key = 'chat-' + ch;
@@ -212,7 +223,7 @@ function composer(ctx, ch, btn, hint) {
   };
   return h('div', { class: 'row composer', 'data-key': key },
     h('input', { 'data-keep': key, maxlength: 500, placeholder: hint, value: ui.drafts[ch] || '',
-      oninput: e => { ui.drafts[ch] = e.target.value; },
+      oninput: e => { ui.drafts[ch] = e.target.value; }, onfocus: pinOnKeyboard,
       onkeydown: e => { if (e.key === 'Enter' && !e.isComposing) send(); } }),
     h('button', { class: 'btn', onclick: send }, btn));
 }
