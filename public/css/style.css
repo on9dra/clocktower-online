@@ -169,6 +169,23 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 99; background: var(--ink); color: var(--card); padding: 8px 16px; border-radius: 4px; max-width: 90vw; }
 @media (max-width: 860px) { .toast { bottom: 64px; } } /* 手機底部是進度條 */
 
+/* 斷線（app.js syncNet）：一張紙條從屏幕上沿垂下來，掛在左上角（對局裏壓著房間號，斷線時它也用不著），連回來縮回去。
+   三個墨點一個個點上，再一起擦掉 */
+.net-off { position: fixed; z-index: 120; top: 0; left: 8px; display: flex; align-items: baseline; gap: 4px; padding: 10px 10px 8px 13px;
+  background: var(--card) url(../img/grain.svg); color: var(--ink); border: 1.5px solid var(--ink); border-top: 0; box-shadow: 0 6px 14px #0006;
+  font: 700 14px/1 var(--serif); letter-spacing: .2em; rotate: -1.5deg; transform-origin: 50% 0; animation: net-in .55s cubic-bezier(.3, 1.45, .5, 1) backwards; }
+.net-off.leaving { animation: net-out .32s ease-in forwards; }
+@keyframes net-in { from { translate: 0 -130%; } }
+@keyframes net-out { to { translate: 0 -130%; } }
+.net-off i { width: 4px; height: 4px; background: currentColor; opacity: 0; animation: 1.6s steps(1) infinite; }
+.net-off i:nth-of-type(1) { animation-name: net-d1; }
+.net-off i:nth-of-type(2) { animation-name: net-d2; }
+.net-off i:nth-of-type(3) { animation-name: net-d3; }
+@keyframes net-d1 { 25%, 100% { opacity: 1; } }
+@keyframes net-d2 { 45%, 100% { opacity: 1; } }
+@keyframes net-d3 { 65%, 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .net-off, .net-off.leaving { animation: none; } .net-off i { animation: none; opacity: 1; } }
+
 /* 角色牌：雙圈印章 */
 .token {
   --team: var(--ink);

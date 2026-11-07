@@ -24,10 +24,11 @@ const watchers = [];
 export const onSoundChange = fn => watchers.push(fn);
 // 設置：sfx 音效開關；vol 音效音量 0–1；music 音樂開關；musicVol 音樂音量 0–1；fw 煙花；fwSound 煙花聲
 const DEF = { sfx: true, vol: 0.8, music: true, musicVol: 0.5, fw: true, fwSound: true };
-export function prefs() { try { return { ...DEF, ...JSON.parse(localStorage.getItem(PREFS) || '{}') }; } catch { return { ...DEF }; } }
+let kept = null; // 存不進 localStorage（Safari 無痕、關了存儲的 WebView）時記在這裏：這一頁裏靜音、音量照樣算數
+export function prefs() { if (kept) return { ...DEF, ...kept }; try { return { ...DEF, ...JSON.parse(localStorage.getItem(PREFS) || '{}') }; } catch { return { ...DEF }; } }
 export function setPref(k, v) {
   const p = { ...prefs(), [k]: v };
-  try { localStorage.setItem(PREFS, JSON.stringify(p)); } catch { /* 忽略 */ }
+  try { localStorage.setItem(PREFS, JSON.stringify(p)); kept = null; } catch { kept = p; }
   if (master) master.gain.value = 0.6 * p.vol;
   if (music) music.gain.value = p.musicVol;
   watchers.forEach(fn => fn());
