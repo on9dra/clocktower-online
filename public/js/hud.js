@@ -5,9 +5,11 @@ import { h, roleToken, modal } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
 import { formula, formulaSeats, mini, w, icon, tag, ACTS } from './glyph.js';
 import { roleHeld, hudFx, msgHeld, msgShownAt, nightHeld } from './fx.js';
+import { openTrial } from './trial.js';
 
 const ui = { hover: null, pin: null, fresh: new Map(), openFor: null }; // fresh：消息 id -> 到達時間；openFor：選人時手動展開的那一步
 const SMALL = '(max-width: 1180px)'; // 和 hud.css 裏選人時收起的寬度一致
+const LAND = '(max-width: 1180px) and (max-height: 500px) and (orientation: landscape)'; // 矮橫屏：面板和偽裝卡貼在圓桌兩邊（hud.css）
 const FRESH_MS = 3200;
 
 const collapsed = ctx => ctx.ls.get('botc.hud') === 'min';
@@ -72,10 +74,12 @@ export function renderHud(ctx) {
   const s = ctx.state;
   if (s.isSt || !s.myRole || s.phase === 'lobby') return null;
   const r = ROLES[s.myRole], min = collapsed(ctx);
-  // 選人時自動收起（寬屏不生效，見 hud.css .hud.pick）。手機上收起會讓圓桌上移，所以和選人牌一起等前面的演出播完
-  const pick = !min && !!s.prompt && !nightHeld() && ui.openFor !== s.prompt.stepId;
+  // 選人時自動收起（寬屏不生效，見 hud.css .hud.pick）。手機上收起會讓圓桌上移，所以和選人牌一起等前面的演出播完。
+  // 矮橫屏上面板佔著左邊整條，攤開的審判牌被它蓋住半邊（贊成的人看不到），審判期間也收起。這一步 / 這張審判牌裏點牌可以再打開
+  const why = s.prompt && !nightHeld() ? s.prompt.stepId : matchMedia(LAND).matches ? openTrial(s) : null;
+  const pick = !min && why != null && ui.openFor !== why;
   const toggle = () => {
-    if (pick && matchMedia(SMALL).matches) { ui.openFor = s.prompt.stepId; ctx.render(); } else setCollapsed(ctx, !min);
+    if (pick && matchMedia(SMALL).matches) { ui.openFor = why; ctx.render(); } else setCollapsed(ctx, !min);
   };
   // 演出還沒播完的那一行也排進去但看不見（mk-held）：演出把答案送到它的位置，落定時正好接上
   const rows = hudRows(s, true);

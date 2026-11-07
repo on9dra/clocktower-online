@@ -12,6 +12,8 @@ import { play } from './sfx.js';
 // 計票開始是新的一步：收起的審判牌重新攤開
 const foldKey = nom => 'trial-' + nom.nominatorId + nom.nomineeId + (nom.clock ? '-count' : '');
 const seconds = ck => Math.ceil(ck.left / 1000);
+// 審判牌攤在桌上時是哪一張（收起、演出還沒播完、沒有提名時為空）：矮橫屏上玩家的角色面板要給它讓位（hud.js）
+export const openTrial = s => (s.nomination && !nomHeld() && !isFolded(foldKey(s.nomination)) ? foldKey(s.nomination) : null);
 
 // 審判牌收起來時桌心一張紙條：誰提名誰、票數，玩家還能接著投票
 export function trialStub(ctx) {
