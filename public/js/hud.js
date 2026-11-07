@@ -41,6 +41,8 @@ export function onInfo(ctx, s, render) {
   const now = Date.now();
   rows.forEach(m => ui.fresh.set(m.id, now));
   if (collapsed(ctx)) ctx.ls.set('botc.hud', '');
+  // 列表是最新的一晚在最上：新信息到了滾回頂上（這次重繪之後），往下翻著看舊信息時也不會錯過
+  requestAnimationFrame(() => document.querySelector('.hud-list')?.scrollTo({ top: 0, behavior: 'smooth' }));
   setTimeout(render, FRESH_MS + 50); // 高亮結束後重繪一次
 }
 
@@ -92,7 +94,8 @@ export function renderHud(ctx) {
     !min && h('div', { class: 'hud-body' },
       h('div', { class: 'hud-name' }, r.name, h('span', { class: 'hud-team' }, TEAMS[r.team].name, s.myWas && ` · 原${ROLES[s.myWas].name}`, s.myAlign && [' · ', w(s.myAlign === 'evil' ? '現為邪惡' : '現為善良', s.myAlign)])),
       h('div', { class: 'hud-ab' }, r.ability),
-      groups.length > 0 && h('div', { class: 'hud-list', 'data-scroll': 'hud' }, groups.map(g => h('div', { class: 'hud-night' },
+      // 不掛 data-scroll：那是聊天、日誌那種「貼底」列表，這裏最新的在最上，貼底就把剛到的信息滾出去了
+      groups.length > 0 && h('div', { class: 'hud-list' }, groups.map(g => h('div', { class: 'hud-night' },
         h('div', { class: 'hud-n' }, g.n ? `第 ${g.n} 夜` : '開局'),
         h('div', { class: 'hud-rows' }, g.rows.slice().reverse().map(m => rowView(ctx, m))))))));
 }
@@ -102,7 +105,9 @@ export function renderHud(ctx) {
 export function renderBluffs(ctx) {
   const s = ctx.state;
   if (s.isSt || !s.bluffs?.length || s.phase === 'ended' || roleHeld()) return null;
-  const min = ctx.ls.get('botc.bluffs') === 'min', set = v => { ctx.ls.set('botc.bluffs', v ? 'min' : ''); ctx.render(); };
+  // 矮的豎屏手機（Safari 帶工具欄、小屏安卓）：整張偽裝卡排在圓桌下面會把圓桌擠得很小，沒表過態就先收成一條，點開才是整張
+  const pref = ctx.ls.get('botc.bluffs'), short = matchMedia('(max-width: 860px) and (max-height: 600px) and (orientation: portrait)').matches;
+  const min = (pref == null ? (short ? 'min' : '') : pref) === 'min', set = v => { ctx.ls.set('botc.bluffs', v ? 'min' : ''); ctx.render(); };
   const show = id => modal(ROLES[id].name, h('div', { class: 'bl-ab' }, roleToken(id), h('p', {}, ROLES[id].ability)));
   return h('aside', { class: 'bluffs' + (min ? ' min' : '') + (s.prompt && !nightHeld() ? ' pick' : ''), 'data-key': 'bluffs', 'data-exit': true, onclick: min ? () => set(false) : null },
     h('div', { class: 'bl-head' }, tag('bluff'), h('span', { class: 'bl-minis' }, s.bluffs.map(id => mini(id))),

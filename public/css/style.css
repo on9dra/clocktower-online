@@ -40,6 +40,12 @@ textarea { resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
 /* 手機瀏覽器聚焦 16px 以下的輸入框會把整頁放大，還不縮回來；不鎖 viewport，雙指縮放照常能用 */
 @media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
+/* 觸屏上的小按鈕（MVP 星、瞄準、收起、彈窗的 ✕、大廳右上角那排）：看起來不變，手指點的範圍往外擴一圈（透明的 ::after） */
+@media (pointer: coarse) {
+  :is(.modal-head .icon-btn, .lang-lobby .btn) { position: relative; }
+  :is(.mvp-btn, .aim-btn, .hud-x, .modal-head .icon-btn, .lang-lobby .btn)::after { content: ""; position: absolute; inset: -8px; }
+  .lang-lobby .btn::after { inset: -8px -3px; } /* 三個挨著，橫向不擴，免得點到隔壁 */
+}
 .muted { color: var(--muted); }
 .warn { color: var(--evil); }
 .pre { white-space: pre-wrap; word-break: break-word; }
@@ -107,6 +113,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 /* 登場：開屏揭開的那一刻接上——字標和小鎮本來就在，印章蓋下、標語浮現，表單和按鈕從紙上立起來（和開屏小鎮同一個動作），
    旗子最後插上（ambient.css）。.pre 時都停在開頭，等開屏或介紹揭開；只回填開頭（backwards），演完不佔著 transform，懸停才傾斜得了 */
 .lobby .lobby-seal { animation: l-stamp .3s cubic-bezier(.5, 0, .7, 1) backwards; }
+/* 印章停在開頭時放大 2.6 倍（透明），窄屏上伸出屏幕右邊把整頁撐寬，第一次來看介紹的那段時間能左右拖動：橫向裁掉（clip 不讓大廳變成滾動容器） */
+.lobby { overflow-x: clip; }
 .lobby .lobby-tag { animation: l-rise .45s ease .14s backwards; }
 .lobby .join { transform-origin: 50% 100%; animation: l-up .72s cubic-bezier(.2, .8, .3, 1) .24s backwards; }
 .lobby .st-line { transform-origin: 50% 100%; animation: l-up .6s cubic-bezier(.2, .8, .3, 1) .42s backwards; }
@@ -132,7 +140,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 /* 矮窗口別留那麼多底：大廳一滾動，小鎮就掉到屏幕外，還多一條滾動條 */
 @media (max-height: 760px) and (min-width: 861px) { .lobby { padding-bottom: 34vh; gap: 24px; } }
 @media (max-width: 860px) {
-  .lobby { padding: 5vh 16px calc(20vh + 28px); gap: 22px; }
+  .lobby { padding: max(5vh, 46px) 16px calc(20vh + 28px); gap: 22px; } /* 頂上至少讓出右上角那排「介紹 關於 繁體」，矮屏不壓字標 */
   .lobby-seal { left: calc(50% + 112px); font-size: 12px; }
   .lobby-tag { font-size: 14px; letter-spacing: .14em; }
   .join { grid-template-columns: minmax(0, 1fr); }
@@ -168,6 +176,31 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .popmenu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 99; background: var(--ink); color: var(--card); padding: 8px 16px; border-radius: 4px; max-width: 90vw; }
 @media (max-width: 860px) { .toast { bottom: 64px; } } /* 手機底部是進度條 */
+
+/* 斷線（app.js syncNet）：一張紙條從屏幕上沿垂下來，掛在左上角（對局裏壓著房間號，斷線時它也用不著），連回來縮回去。
+   三個墨點一個個點上，再一起擦掉 */
+.net-off { position: fixed; z-index: 120; top: 0; left: 8px; display: flex; align-items: baseline; gap: 4px; padding: 10px 10px 8px 13px;
+  background: var(--card) url(../img/grain.svg); color: var(--ink); border: 1.5px solid var(--ink); border-top: 0; box-shadow: 0 6px 14px #0006;
+  font: 700 14px/1 var(--serif); letter-spacing: .2em; rotate: -1.5deg; transform-origin: 50% 0; animation: net-in .55s cubic-bezier(.3, 1.45, .5, 1) backwards; }
+.net-off.leaving { animation: net-out .32s ease-in forwards; }
+@keyframes net-in { from { translate: 0 -130%; } }
+@keyframes net-out { to { translate: 0 -130%; } }
+.net-off i { width: 4px; height: 4px; background: currentColor; opacity: 0; animation: 1.6s steps(1) infinite; }
+.net-off i:nth-of-type(1) { animation-name: net-d1; }
+.net-off i:nth-of-type(2) { animation-name: net-d2; }
+.net-off i:nth-of-type(3) { animation-name: net-d3; }
+@keyframes net-d1 { 25%, 100% { opacity: 1; } }
+@keyframes net-d2 { 45%, 100% { opacity: 1; } }
+@keyframes net-d3 { 65%, 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .net-off, .net-off.leaving { animation: none; } .net-off i { animation: none; opacity: 1; } }
+/* 複製不了（http 頁面沒有剪貼板接口、瀏覽器也不讓 execCommand）：文字選好擺在一張紙上，自己長按複製；點別處收起（topbar.js copy） */
+.copy-src { position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.copy-hand { position: fixed; left: 50%; bottom: 24px; z-index: 99; width: min(420px, 90vw); transform: translateX(-50%); padding: 10px 12px; background: var(--card) url(../img/grain.svg);
+  border: 1.5px solid var(--ink); box-shadow: 0 6px 18px #0005; animation: slip-in .24s cubic-bezier(.2, 1.2, .4, 1); }
+.copy-hand.leaving { animation: slip-out .2s ease-in forwards; }
+.copy-hand textarea { display: block; resize: none; border: 0; border-bottom: 1px dashed var(--line-strong); border-radius: 0; background: none; font: 13px/1.5 monospace; word-break: break-all; }
+.copy-hand textarea:focus { outline: 0; }
+@media (max-width: 860px) { .copy-hand { bottom: 64px; } }
 
 /* 角色牌：雙圈印章 */
 .token {

@@ -1,5 +1,5 @@
-/* 關於（js/about.js）：頂上作者名帖——紅名章 + 署名 + 社交賬號，下面一道雙線；四頁沿左邊翻。
-   投喂是一張小票（底邊鋸齒），反饋是一頁橫線信紙（寄出蓋「已寄出」章），說明是細線分行的表。空著的署名、賬號、收款碼是虛線佔位 */
+/* 關於（js/about.js）：頂上作者名帖——紅名章 + 署名 + 社交賬號，下面一道雙線；三頁沿左邊翻。
+   說明是細線分行的表，反饋是一頁橫線信紙（寄出蓋「已寄出」章），分享是本站二維碼。空著的署名、賬號是虛線佔位 */
 .about-modal { width: min(500px, 100%); }
 .about-modal .modal-head { align-items: flex-start; padding-bottom: 12px; border-bottom: 3px double var(--ink); }
 body.art .about-modal .modal-head { padding: 0 4px 12px; }
@@ -22,8 +22,8 @@ body.art .ab-seal:not(.empty) { -webkit-mask: url(../img/art/stamp-mask.webp) ce
 .ab-link i { font-style: normal; color: var(--muted); }
 .ab-link.empty { color: var(--muted); border: 1px dashed var(--line-strong); }
 
-/* 頁籤：一排四格，當前那格墨底 */
-.ab-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1.5px solid var(--ink); }
+/* 頁籤：一排等寬格（幾頁就幾格），當前那格墨底 */
+.ab-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-bottom: 1.5px solid var(--ink); }
 .ab-tab { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 2px 7px; background: none; border: 0; color: var(--muted);
   font: 700 14px var(--serif); letter-spacing: .12em; }
 .ab-tab + .ab-tab { border-left: 1px solid var(--line); }
@@ -35,23 +35,6 @@ body.art .ab-seal:not(.empty) { -webkit-mask: url(../img/art/stamp-mask.webp) ce
 .ab-stage { position: relative; height: min(340px, 58vh); perspective: 1800px; overflow: hidden; touch-action: pan-y; }
 .ab-page { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px 2px 8px; overflow: auto; transform-origin: left center; backface-visibility: hidden; }
 .ab-page.leaf { z-index: 2; background: var(--card) url(../img/grain.svg); box-shadow: 14px 0 22px #2a262233; }
-
-/* 投喂：一張白小票從頁籤底下吐出來 */
-.ab-page.ab-p-tip { place-items: start center; padding-top: 0; }
-.ab-slip { --z: 7px; width: min(320px, 100%); display: grid; justify-items: center; gap: 12px; padding: 20px 16px calc(16px + var(--z));
-  background: var(--card); border: solid var(--line-strong); border-width: 0 1px;
-  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--z)) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--z) * 2) var(--z) repeat-x;
-  mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--z)) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--z) * 2) var(--z) repeat-x; }
-.ab-slip { animation: ab-print .55s cubic-bezier(.3, .9, .4, 1) both; }
-@keyframes ab-print { from { clip-path: inset(0 0 100% 0); translate: 0 -30px; } to { clip-path: inset(0); } }
-.ab-codes { display: flex; justify-content: center; gap: 16px; }
-.ab-code { margin: 0; display: grid; justify-items: center; gap: 6px; color: var(--ink); text-decoration: none; font: 700 14px var(--serif); letter-spacing: .12em; }
-.ab-qr { display: grid; place-items: center; width: 124px; height: 124px; background: var(--card); border: 1px solid var(--line); object-fit: contain; }
-.ab-code:only-child .ab-qr { width: 176px; height: 176px; }
-.ab-qr.empty { background: none; border: 1.5px dashed var(--line-strong); color: var(--muted); font: 400 12px var(--sans); letter-spacing: .1em; }
-.ab-qr.go .ico { width: 34px; height: 34px; color: var(--brass); }
-a.ab-code:hover .ab-qr { background: var(--hover); }
-.ab-thanks { width: 100%; margin: 0; padding: 10px 0 0 .45em; text-align: center; border-top: 1.5px dashed var(--line-strong); font: 900 16px var(--serif); letter-spacing: .45em; }
 
 /* 反饋：橫線信紙，字寫在線上 */
 .ab-fb { width: 100%; align-self: start; display: grid; gap: 10px; }
@@ -102,13 +85,10 @@ a.ab-code:hover .ab-qr { background: var(--hover); }
   .ab-tab { gap: 3px; font-size: 13px; letter-spacing: .04em; }
   .ab-tab .ico { width: 15px; height: 15px; }
   .ab-stage { height: min(360px, 60vh); }
-  .ab-slip { padding-inline: 10px; }
-  .ab-codes { gap: 10px; }
-  .ab-qr { width: 104px; height: 104px; }
   .ab-share .inv-qr { width: 150px; height: 150px; }
   .ab-nk { padding-right: 8px; font-size: 14px; }
 }
 
 /* 二維碼是現生成的，到了淡入 */
-.inv-qr, img.ab-qr { opacity: 0; transition: opacity .4s ease; }
-.inv-qr.in, img.ab-qr.in { opacity: 1; }
+.inv-qr { opacity: 0; transition: opacity .4s ease; }
+.inv-qr.in { opacity: 1; }

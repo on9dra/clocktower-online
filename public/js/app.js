@@ -1,5 +1,5 @@
 // 入口：連接、身份持久化、大廳、整體渲染
-import { h, toast, closeModal, morph, closeMenu } from './ui.js';
+import { h, toast, closeModal, morph, closeMenu, leaveDom } from './ui.js';
 import { renderTown } from './town.js';
 import { renderSide, sideCollapsed, closeSheet, resetSide } from './side.js';
 import { syncPrompt } from './flow.js';
@@ -19,16 +19,19 @@ import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
 import { askPass } from './roompass.js';
 import { countPop } from './trial.js';
-import { chime, locked, wake } from './sfx.js';
+import { chime, locked, wake, loadSfx } from './sfx.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
 Object.assign(window.boot, { locked, chime: ms => chime('night', ms) }); // 開屏結束時鐘響兩下，和音波同拍
 wake();
 
+// 本機記錄。存不進去（Safari 無痕、關了存儲的 WebView）時記在內存裏：這一頁裏斷線重連，說書人密鑰、輸過的房間密碼都還在，刷新才丟。
+// 存進去了就以 localStorage 為準（別的標籤頁刪掉的不會被內存裏的舊值頂回來）
+const mem = new Map();
 const LS = {
-  get: k => { try { return localStorage.getItem(k); } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* 隱私模式 */ } },
-  del: k => { try { localStorage.removeItem(k); } catch { /* 隱私模式 */ } },
+  get: k => { if (mem.has(k)) return mem.get(k); try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); mem.delete(k); } catch { mem.set(k, String(v)); } },
+  del: k => { mem.delete(k); try { localStorage.removeItem(k); } catch { /* 隱私模式 */ } },
 };
 const params = new URLSearchParams(location.search);
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
@@ -42,23 +45,31 @@ params.delete('seat');
 
 const sock = io();
 let session = null, chat = [], fresh = false, dealt = null; // session：{ code, inst, st }；fresh：剛建好房間，桌面擺好（dealt）時彈邀請
+let linked = false, everOn = false; // linked：這個連接已經（重新）進了房間；everOn：連上過服務器
 const done = res => r => { if (!r.ok) toast(r.error); res(r); };
+const OFF = '正在重連，請稍候', SLOW = '網絡不通，請稍後再試';
+// 房間裏的操作。斷線、或者連回來還沒重新進房間時不發：socket.io 會先存著，連上後服務器還不認得這個連接，回「無權限」「未加入房間」，
+// 點了等於白點。直接告訴他在重連。發出去 10 秒沒回音也算失敗，回調照樣回來，按鈕不會一直鎖著
+const send = (ev, data) => new Promise(res => {
+  if (!online()) { refuse(); return res({ ok: false, error: OFF }); }
+  sock.timeout(10000).emit(ev, data, (err, r) => done(res)(err ? { ok: false, error: SLOW } : r));
+});
 export const ctx = {
   state: null, ls: LS, offset: 0,
   now: () => Date.now() + ctx.offset, // 與服務器對齊的時間（計票時鐘用）
-  st: (op, args = {}) => new Promise(res => sock.emit('st:op', { op, ...args }, done(res))),
+  st: (op, args = {}) => send('st:op', { op, ...args }),
   act: (act, args = {}) => {
     // 說書人代入視角時只能看，不能替玩家操作
     if (ctx.state && ctx.state.peek) { toast('代入視角中只能查看'); return Promise.resolve({ ok: false }); }
-    return new Promise(res => sock.emit('pl:act', { act, ...args }, done(res)));
+    return send('pl:act', { act, ...args });
   },
-  peek: seatId => new Promise(res => sock.emit('st:peek', { seatId }, done(res))),
+  peek: seatId => send('st:peek', { seatId }),
   // 觀戰的人入座（準備階段有空位時）
   sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst, true),
   // 說書人解散房間
   close: () => ctx.st('close').then(r => r.ok && bye('closed')),
-  // 意見反饋（關於面板）：斷線時等 8 秒
-  feedback: d => new Promise(res => sock.timeout(8000).emit('feedback', d, (err, r) => res(err ? { ok: false, error: '網絡不通，請稍後再試' } : r))),
+  // 意見反饋（關於面板）：斷線時不發（存著連上再發，人已經重寄過一封了），發出去等 8 秒
+  feedback: d => new Promise(res => (sock.connected ? sock.timeout(8000).emit('feedback', d, (err, r) => res(err ? { ok: false, error: SLOW } : r)) : res({ ok: false, error: SLOW }))),
   render, leave,
 };
 
@@ -69,13 +80,41 @@ function setUrl(code, inst) {
 }
 function enter(code, st, inst = '') {
   session = { code, st, inst };
+  linked = true;
+  syncNet();
   setUrl(code, inst);
   if (inst) rememberRoom(LS, { code, inst });
+}
+
+// 斷線：左上角從屏幕上沿垂下一張「重連中」紙條（壓在房間號上，斷線時它也用不著），連回來、重新進了房間才收回去。
+// 一閃就連上的不出來；沒連上時點了房間裏的操作，紙條晃一下
+let slip = null, slipT = null;
+const online = () => sock.connected && (!session || linked);
+// wait：等多久再掛出來；已經在等的不重新計時（剛連上、還沒回到房間時不會因此提前冒出來）
+function syncNet(wait = 0) {
+  if (online()) {
+    clearTimeout(slipT); slipT = null;
+    if (slip) { leaveDom(slip, 320); slip = null; }
+    return;
+  }
+  if (slip || slipT) return;
+  slipT = setTimeout(() => {
+    slipT = null;
+    if (online() || slip) return;
+    slip = h('div', { class: 'net-off', role: 'status' }, everOn ? '重連中' : '連接中', h('i'), h('i'), h('i'));
+    document.body.append(slip);
+  }, wait);
+}
+function refuse() {
+  toast(OFF);
+  if (slip) slip.animate([{ rotate: '-1.5deg' }, { rotate: '4deg' }, { rotate: '-4deg' }, { rotate: '2deg' }, { rotate: '-1.5deg' }], { duration: 420, easing: 'ease-out' });
+  else { clearTimeout(slipT); slipT = null; syncNet(); }
 }
 
 // 有密碼的房間：本機記著輸對過的，先用它試；不對再問。stay：觀戰的人入座，關掉密碼框還留在房間裏
 const NEED_PASS = '請輸入房間密碼', BAD_PASS = '房間密碼不對';
 async function joinPlayer(code, name, inst = '', stay = false) {
+  window.boot.more(); // 要進房間了：對局的圖在後台補起來（開屏 index.html）
   if (name) LS.set('botc.name', name);
   const key = 'botc.pass.' + code;
   const go = pass => new Promise(res => sock.emit('pl:join', { code, inst, pid, name, pass }, res));
@@ -95,6 +134,7 @@ async function joinPlayer(code, name, inst = '', stay = false) {
 // 進不去：回大廳，地址欄清掉（斷線重連時不再拿它重試），房間號留在輸入框裏
 function toLobby(code = '') {
   session = null;
+  syncNet();
   params.delete('room'); params.delete('r');
   setUrl('');
   lobby(code);
@@ -106,6 +146,7 @@ function fail(err, code = '') {
 function resume() {
   const code = (session && session.code) || params.get('room');
   if (!code) return lobby();
+  window.boot.more();
   const inst = (session && session.inst) || params.get('r') || '';
   if (claimToken) {
     const token = claimToken;
@@ -151,12 +192,15 @@ function lobby(code = params.get('room') || '') {
   ctx.state = ctx.live = null;
   ensureScene();
   if (room) { resetFx(); resetSide(); chat = []; sel.on = null; closeCompose(ctx); closeMenu(); }
-  const create = () => sock.emit('st:create', {}, r => {
-    if (!r.ok) return toast(r.error);
-    LS.set('botc.st.' + r.code, r.stKey);
-    fresh = true;
-    enter(r.code, true, r.inst);
-  });
+  const create = () => {
+    window.boot.more();
+    sock.emit('st:create', {}, r => {
+      if (!r.ok) return toast(r.error);
+      LS.set('botc.st.' + r.code, r.stKey);
+      fresh = true;
+      enter(r.code, true, r.inst);
+    });
+  };
   const pick = r => { session = { code: r.code, inst: r.inst }; resume(); };
   const page = renderLobby({
     code, name: LS.get('botc.name') || '',
@@ -166,14 +210,15 @@ function lobby(code = params.get('room') || '') {
     onIntro: () => showIntro(LS),
     onAbout: () => openAbout(ctx),
   });
-  // 控件等開屏揭開才出來；第一次來先看介紹，介紹收起才出來
+  // 控件等開屏揭開才出來；第一次來先看介紹，介紹收起才出來。
+  // 從邀請鏈接來的（房間號已經填好）是來入座的，朋友在等：不先看介紹（介紹講的是給說書人的好處），也不記成看過，下次自己打開網站再看
   const show = () => page.classList.remove('pre');
   page.classList.add('pre');
   if (room) backToLobby(app, page, show);
   else {
     document.body.dataset.phase = 'lobby';
     app.replaceChildren(page);
-    if (introSeen(LS)) window.boot.out.then(show);
+    if (introSeen(LS) || code) window.boot.out.then(show);
     else showIntro(LS, { wait: window.boot.out, after: show });
   }
   // 最近的房間：問服務器哪些還在、走到哪了；不在的從本機記錄裏去掉
@@ -227,7 +272,7 @@ function leave() {
   lobby();
 }
 
-let stLog = [];
+let stLog = [], heard = false; // heard：音效開始下了沒有
 sock.on('state', s => {
   if (s.custom) installScript(s.custom); // 上傳的劇本：先把角色登記好，後面畫什麼都查得到
   chat = trimChat(s.chatReset ? s.chat : chat.concat(s.chat));
@@ -240,15 +285,25 @@ sock.on('state', s => {
   if (fresh) { fresh = false; dealt.then(() => { if (ctx.state) openInvite(ctx); }); } // 剛建好房間：桌面擺好就把房間號、二維碼亮出來
   onEggs(s); // 桌面畫好之後再扔，按座位現在的位置飛
   window.boot.ready();
+  // 第一次進房間：音效等桌面的圖到齊再下（開屏 boot.more），不和桌面搶帶寬
+  if (!heard) { heard = true; window.boot.more().then(() => loadSfx()); }
 });
 // 大廳畫出來不用等連上服務器（連接要好幾個往返），點按鈕發的請求 socket.io 會存著，連上再發；邀請鏈接、回房間才要等
 let early = !params.get('room');
 if (early) lobby();
 sock.on('connect', () => {
+  everOn = true;
+  syncNet(); // 在大廳的連上就算好了；在房間裏的要等重新進了房間（enter）
   if (early) { early = false; return; }
   (session || params.get('room') ? resume() : lobby());
 });
-sock.on('disconnect', why => { if (why !== 'io client disconnect') toast('連接斷開，正在重連…'); });
+// 斷線：服務器重啓、網絡斷了，socket.io 自己重連，連上後 resume() 回到房間。自己離開房間時的斷開不算
+sock.on('disconnect', why => {
+  linked = false;
+  if (why !== 'io client disconnect') syncNet(800);
+});
+// 一直沒連上（服務器起不來、網絡不通）：開屏揭開幾秒後也掛出紙條，不然點什麼都沒反應
+window.boot.out.then(() => syncNet(4000));
 sock.on('bye', bye);
 setRender(render);
 // 計票倒數、投票倒數、MVP 倒數每秒重繪

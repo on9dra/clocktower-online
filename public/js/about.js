@@ -1,5 +1,6 @@
-// 關於：頂上是作者的名帖（紅名章、署名、社交賬號），下面四頁——投喂、反饋、分享、說明，換頁沿左邊翻（同介紹）。
-// 大廳右上角「關於」、對局裏「⋯ → 反饋 · 關於」打開；署名、賬號、收款碼在 author.js 填，空著的是虛線佔位
+// 關於：頂上是作者的名帖（紅名章、署名、社交賬號），下面三頁——說明、反饋、分享，換頁沿左邊翻（同介紹）。
+// 大廳右上角「關於」打開在說明頁、對局裏「⋯ → 反饋 · 關於」打開在反饋頁；署名、賬號在 author.js 填，空著的是虛線佔位。
+// 不收打賞：官方的社區內容政策不許拿粉絲作品賺錢，投喂頁拿掉了
 import { h, modal, toast } from './ui.js';
 import { icon } from './glyph.js';
 import { tr, getLang } from './lang.js';
@@ -21,15 +22,6 @@ function card() {
       h('div', { class: 'ab-by' }, h('b', { class: 'ab-name' + (a.name ? '' : ' empty') }, a.name || '署名'), h('small', {}, '製')),
       h('div', { class: 'ab-links' }, a.links.map(link))));
 }
-
-// 投喂：一張小票，收款碼並排，撕線下一句謝謝
-const tipPage = () => h('div', { class: 'ab-slip' },
-  h('div', { class: 'ab-codes' }, AUTHOR.tip.map(t => t.url
-    ? ext('ab-code', t.url, h('span', { class: 'ab-qr go' }, icon('out')), h('b', {}, t.name))
-    : h('figure', { class: 'ab-code' },
-      t.img ? h('img', { class: 'ab-qr', src: t.img, alt: t.name, onload: e => e.target.classList.add('in') }) : h('span', { class: 'ab-qr empty' }, '收款碼'),
-      h('figcaption', {}, t.name)))),
-  h('p', { class: 'ab-thanks' }, '謝謝投喂'));
 
 // 反饋：一頁信紙，寄出後蓋「已寄出」；切到別的頁再回來，沒寄的字還在
 function fbPage(ctx) {
@@ -75,10 +67,10 @@ function sharePage() {
       navigator.share && h('button', { class: 'btn', onclick: () => navigator.share({ title: document.title, text: tag, url }).catch(() => {}) }, icon('share'), '分享到…')));
 }
 
-// 說明：本站是什麼、不是什麼
+// 說明：本站是什麼、不是什麼。第一行直說：免費、不商用、粉絲做的，不是官方
 const NOTES = [
-  ['mask', '非官方', '粉絲自製，與 The Pandemonium Institute 無關，也未獲其認可。遊戲名、角色名和能力文字歸其所有，請勿商用。'],
-  ['book', '免費開源', ['代碼和原創美術以 MIT 許可發布，', ext('', AUTHOR.repo, 'GitHub')]],
+  ['mask', '粉絲自製', '免費、非商業的社區工具，不是官方產品。與 The Pandemonium Institute 無關，也未獲其認可；遊戲名、角色名和能力文字歸其所有。'],
+  ['book', '開源', ['代碼和原創美術以 MIT 許可發布，', ext('', AUTHOR.repo, 'GitHub')]],
   ['unlock', '免註冊', '房間三天沒有動靜自動刪除，聊天記錄一起刪掉。'],
   ['talk', '沒有語音', '請配合騰訊會議、微信語音等。'],
 ];
@@ -86,10 +78,10 @@ const notePage = () => h('div', { class: 'ab-notes' }, NOTES.map(([ico, k, v], i
   h('b', { class: 'ab-nk', style: { '--i': i } }, icon(ico), k),
   h('span', { class: 'ab-nv', style: { '--i': i } }, v)]));
 
-const PAGES = [['tip', 'cup', '投喂', tipPage], ['fb', 'letter', '反饋', fbPage], ['share', 'share', '分享', sharePage], ['note', 'book', '說明', notePage]];
+const PAGES = [['note', 'book', '說明', notePage], ['fb', 'letter', '反饋', fbPage], ['share', 'share', '分享', sharePage]];
 
-// start：先翻到哪一頁（tip / fb / share / note）
-export function openAbout(ctx, start = 'tip') {
+// start：先翻到哪一頁（note / fb / share）
+export function openAbout(ctx, start = 'note') {
   const pages = PAGES.map(([k, , , make]) => h('section', { class: 'ab-page ab-p-' + k }, make(ctx)));
   let at = Math.max(0, PAGES.findIndex(p => p[0] === start)), land = null, x0 = null; // land：讓正在翻的那頁立刻落地
   const stage = h('div', { class: 'ab-stage' });

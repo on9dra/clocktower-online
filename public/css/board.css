@@ -74,10 +74,12 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .phase-day .fake, .phase-lobby .fake, .phase-ended .fake { color: var(--muted); }
 .tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
 /* 標記（說書人的提示、玩家的推理、積分）從頭像朝圓心那一邊掛出去（--ux、--uy 是座位的方向，town.js）：
-   不把座位頂高，頭像不跟著挪，朝裏也碰不到兩邊的鄰座。上半圈的座位朝裏是往下，要越過自己的名牌 */
-.seat-more { position: absolute; z-index: 3; left: calc(50% - var(--ux) * (var(--tk) / 2 + 3px));
-  top: calc(var(--tk) / 2 - var(--uy) * (var(--tk) / 2 + 3px) + max(0px, -1 * var(--uy) * (var(--ph) + var(--pm))));
-  translate: calc(-50% - 50% * var(--ux)) calc(-50% - 50% * var(--uy)); display: flex; flex-direction: column; align-items: center; gap: 2px; width: max-content; }
+   不把座位頂高，頭像不跟著挪，朝裏也碰不到兩邊的鄰座。
+   上半圈離正上方 66° 以內的座位（--up 為 1）朝裏是往下，名牌就在頭像正下方，斜著掛出去會壓住名牌的一頭：整串掛到名牌下面，橫向照樣朝圓心錯開 */
+.seat-more { --up: clamp(0, (-1 * var(--uy) - .4) * 1000, 1); position: absolute; z-index: 3; left: calc(50% - var(--ux) * (var(--tk) / 2 + 3px));
+  top: calc((1 - var(--up)) * (var(--tk) / 2 - var(--uy) * (var(--tk) / 2 + 3px) + max(0px, -1 * var(--uy) * (var(--ph) + var(--pm))))
+    + var(--up) * (var(--tk) + var(--pm) + var(--ph) + 2px));
+  translate: calc(-50% - 50% * var(--ux)) calc((1 - var(--up)) * (-50% - 50% * var(--uy))); display: flex; flex-direction: column; align-items: center; gap: 2px; width: max-content; }
 .seat-more:empty { display: none; }
 .seat-more :is(.tags, .pmarks) { margin-top: 0; max-width: max(80px, calc(var(--tk) * 1.6)); }
 .tag { font-size: 11px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 2px; padding: 0 4px; }

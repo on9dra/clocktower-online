@@ -22,7 +22,7 @@ export function stopSelect(ctx) { sel.on = null; ctx.render(); }
 
 // 圓桌中間的小字：說書人在桌邊說話的口吻（玩家和說書人各一句；觀戰的人沒有座位，不叫他閉眼、提名）
 const PHASE = s => ({
-  lobby: ['準備'],
+  lobby: ['準備', s.isSt ? null : '等說書人開局'],
   night: [`第 ${s.night} 夜`, !s.isSt ? (s.myId ? '閉上眼，輪到你時我會叫你' : '大家都閉上了眼') : s.st?.step?.status === 'review' ? '天快亮了，核對一下今晚' : '按順序叫醒他們'],
   dawn: ['天亮了', s.isSt ? '準備好就開始白天' : '睜開眼，聽聽昨晚發生了什麼'],
   day: [`第 ${s.day} 天`, s.dayOver ? '今天已經處決過人了' : '討論時間'],
@@ -109,14 +109,15 @@ export function renderTown(ctx) {
         title: nom.votes[seat.id] ? '贊成' : '棄權' }, icon(nom.votes[seat.id] ? 'hand' : 'abstain')),
       !seat.mine && (pop(seat.id) || pub(seat.id, '公共')),
       aim && !seat.mine && !dead && h('button', { class: 'aim-btn', title: '開槍', onclick: e => { e.stopPropagation(); aimAsk(ctx, seat); } }, icon('aim')),
-      // 上一局的贏家頭上戴陣營皇冠；終局後的 MVP 投票：右上角的星星
+      // 上一局的贏家頭上戴陣營皇冠；終局後的 MVP 投票：右上角的星星；當選的 MVP 章蓋在頭像左下角（放名牌裏會把名字擠沒）
       seatCrown(seat),
       voting && mvpButton(ctx, seat),
+      mvpTag(seat),
       (nominated || nominee) && h('div', { class: 'daytags' },
         nominated && h('span', { title: '今天已經提名過' }, '已提'), nominee && h('span', { title: '今天已經被提名過' }, '被提'))),
     h('div', { class: 'plate' },
       h('b', {}, i + 1), h('span', { class: 'pname' }, seat.name),
-      !seat.online && h('i', { class: 'off', title: '離線' }), mvpTag(seat)),
+      !seat.online && h('i', { class: 'off', title: '離線' })),
     h('div', { class: 'seat-more' }, s.phase === 'lobby' && scoreRow(seat),
     s.isSt && seat.tags && seat.tags.length > 0 && h('div', { class: 'tags' },
       seat.tags.map(t => {
