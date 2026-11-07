@@ -44,6 +44,11 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .seat .fake-badge .token.xs { width: 100%; height: auto; aspect-ratio: 1; font-size: inherit; border-style: dashed; box-shadow: 0 0 0 2px var(--card), inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px var(--team); }
 .fake-name { margin-top: -5px; padding: 0 4px; background: var(--card); border: 1.2px dashed var(--ink); border-radius: 3px;
   font: 700 11px/1.35 var(--serif); color: var(--ink); white-space: nowrap; }
+/* 手機上頭像小，副牌下面那行名字會蓋住頭像上的角色名（酒鬼）：只留虛線小牌，挪到右肩，頭像下沿的字露出來 */
+@media (max-width: 860px), (max-height: 520px) {
+  .fake-badge { top: 24%; bottom: auto; right: calc(var(--tk) * -.28); width: 44%; }
+  .fake-badge .fake-name { display: none; }
+}
 .ring.crowded .token .token-name { font-size: 12px; }
 .seat.mine .token { outline: 3px solid var(--brass); outline-offset: 3px; }
 .seat.nominee .token { outline: 3px solid var(--evil); outline-offset: 3px; }
