@@ -5,13 +5,17 @@ from opencc import OpenCC
 
 root = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 cc = OpenCC('t2s')
+# OpenCC 不轉、但大陸該換的字。逐字表做不了按詞轉換，這裏直接指定（對照過最新的 OpenCC 和維基的繁簡表）：
+#   暱→昵：OpenCC 當它們是異體字，不轉（大廳的「暱稱」、改名框）
+#   著→着：OpenCC 按詞才轉。界面裏的「著」都是「接著、活著、舉著」這種，大陸寫「着」；以後界面裏要寫「著名、顯著」得換個說法
+OVERRIDE = {'暱': '昵', '著': '着'}
 chars = set()
 for pattern in ('public/js/*.js', 'lib/*.js', 'public/index.html'):
     for path in glob.glob(os.path.join(root, pattern)):
         if path.endswith('t2s.js'):
             continue
         chars |= {c for c in open(path, encoding='utf-8').read() if ord(c) > 0x2e80}
-pairs = sorted((c, cc.convert(c)) for c in chars)
+pairs = sorted((c, OVERRIDE.get(c) or cc.convert(c)) for c in chars)
 pairs = [(t, s) for t, s in pairs if t != s and len(s) == 1]
 t = ''.join(p[0] for p in pairs)
 s = ''.join(p[1] for p in pairs)
