@@ -23,7 +23,9 @@ SOFTWARE.
 -------------------------------------------------------------------------------
 
 This license covers the source code and the original artwork in this
-repository (public/img, art-src). It does not grant any rights to
+repository (public/img, art-src). The fonts in public/fonts are subsets of
+Noto Serif SC / TC under the SIL Open Font License 1.1 (public/fonts/OFL.txt);
+the sounds and music are CC0 (docs/sfx-sources.md). It does not grant any rights to
 "Blood on the Clocktower", its character names, ability text or other
 intellectual property, which belong to The Pandemonium Institute.
 This is an unofficial, non-commercial fan project and is not affiliated

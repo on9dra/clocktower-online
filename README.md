@@ -162,4 +162,4 @@ GPT 生成的美术素材放在 `public/img/art/`，样式集中在 `public/css/
 
 ## 许可
 
-代码与原创美术：MIT（见 [LICENSE](LICENSE)）。欢迎提 issue 和 PR，提交前请跑一遍 `npm test`。游戏本身的知识产权归 The Pandemonium Institute 所有，本项目仅供非商业的线上娱乐。
+代码与原创美术：MIT（见 [LICENSE](LICENSE)）。字体是 Noto Serif SC / TC 的子集，SIL OFL 1.1（见 [public/fonts/OFL.txt](public/fonts/OFL.txt)）；音效和音乐是 CC0（见 [docs/sfx-sources.md](docs/sfx-sources.md)）。欢迎提 issue 和 PR，提交前请跑一遍 `npm test`。游戏本身的知识产权归 The Pandemonium Institute 所有，本项目仅供非商业的线上娱乐。
