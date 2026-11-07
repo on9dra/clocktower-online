@@ -89,11 +89,17 @@ body.art .pg::before { --fw: 14px; background: #e8e0d0 var(--paper-tex) 0 0 / 32
   body.art .turn-pane { --fw: 9px; padding: 2px 4px 4px; } /* 圓桌下面一條，版框細一號 */
   body.art .join { padding: 3px 4px 5px; }
   body.art .infocard.ruling.corner { padding: 2px 4px; }
+  body.art .town > .st-card.corner > .card { --fw: 9px; } /* 頂上的貞潔者小窗：版框細一號，下面的審判牌多一點高度 */
   /* 收起的角色牌、偽裝條不是卡片，不吃上面的圓角 */
   body.art .hud:is(.min, .pick) { border-radius: 50%; }
   body.art .bluffs:is(.min, .pick) { border-radius: 999px; }
   /* 信息卡拆開擺在圓桌上下：外框不要了，圓桌中間只留一小張寫著是誰 */
   body.art .card.spread { background: none; border: 0; border-image: none; box-shadow: none; padding: 0; }
+}
+/* 橫屏矮的手機：說書人的審判牌、頂上的貞潔者小窗版框細一號，高度留給內容和按鈕 */
+@media (max-height: 520px) and (orientation: landscape) {
+  body.art .is-st .trial { --fw: 15px; padding: 2px 4px; }
+  body.art .town > .st-card.corner > .card { --fw: 12px; }
 }
 /* 手機上「收起」貼著角，別壓到能力說明 */
 body.art .hud-x { right: 0; top: 0; }

@@ -207,12 +207,25 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 /* 手機：審判牌佔滿桌面，小窗橫著壓在頂上一條，審判牌讓到底下 */
 @media (max-width: 860px) {
   .town > .st-card.corner { left: 4px; right: 4px; top: 4px; width: auto; max-width: none; max-height: none; padding: 0; }
-  .town:has(> .st-card.corner) > .trial { margin-bottom: 6px; max-height: calc(100% - 96px); }
+  .town:has(> .st-card.corner) > .trial { margin-bottom: 6px; max-height: calc(100% - 86px); } /* 小窗兩行約 70px 高（print.css 細版框） */
   .infocard.ruling.corner { grid-template-columns: 1fr auto; align-items: center; padding: 6px 10px; gap: 2px 8px; }
   .infocard.ruling.corner .row { grid-column: 2; grid-row: 1 / 3; margin: 0; flex-wrap: nowrap; }
   .infocard.ruling.corner .frm-line { flex-wrap: nowrap; margin: 0; font-size: 16px; white-space: nowrap; }
   .infocard.ruling.corner .frm-line .rn b { display: none; } /* 標題已經寫了是貞潔者 */
   .infocard.ruling.corner .btn { min-height: 40px; }
+}
+@media (max-width: 340px) { .infocard.ruling.corner .v-left .w { display: none; } } /* 最窄的手機：只留計時圖標和秒數，不鑽到「立即反噬」底下 */
+/* 橫屏矮：小窗在頂上排成一行（標題、誰提名誰、倒數、按鈕），審判牌在下面少讓一點高度，按鈕都留在屏幕上 */
+@media (max-height: 520px) and (orientation: landscape) {
+  .town > .st-card.corner { left: 4px; right: 4px; top: 4px; width: auto; max-width: none; max-height: none; padding: 0; overflow: visible; }
+  .infocard.ruling.corner { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; padding: 4px 10px; gap: 2px 12px; }
+  .infocard.ruling.corner > :not(.row) { grid-column: auto; margin: 0; white-space: nowrap; }
+  .infocard.ruling.corner .row { grid-column: 3; grid-row: 1; margin: 0; flex-wrap: nowrap; }
+  .infocard.ruling.corner .frm-line { flex-wrap: nowrap; font-size: 16px; }
+  .infocard.ruling.corner .frm-line .rn b { display: none; }
+  .infocard.ruling.corner .btn { min-height: 40px; }
+  .town:has(> .st-card.corner) > .trial { margin-bottom: 6px; max-height: calc(100% - 66px); }
+  .is-st .town:has(> .st-card.corner) > .trial { height: calc(100% - 66px); } /* 說書人的審判牌定高（board.css），名單才會變矮 */
 }
 
 /* 射空的人：所有人視角都標「射 N 號失敗」，「未中」章飛過來時按上去 */

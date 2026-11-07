@@ -615,6 +615,71 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .tr-acts { gap: 6px; padding-top: 6px; } .tr-acts .btn { min-height: 38px; padding: 5px 9px; font-size: 13px; }
   .tr-clock .sb { font-size: 13px; }
 }
+/* 說書人的審判牌在手機上：控件一個都不藏進牌裏滾。牌整體收一號；還放不下時只有名單（贊成、棄權、未表態）變矮、在自己那塊裏滾，
+   計時鈕、收起和最下面一排按鈕一直看得見。最下面一排放不下一行時兩兩一行、等寬 */
+@media (max-width: 860px), (max-height: 520px) {
+  .is-st .trial { display: flex; flex-direction: column; overflow: hidden; }
+  .is-st .trial > * { flex: none; }
+  .is-st .trial > :is(.tr-body, .tr-foot) { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  /* 名單在滾的時候，欄名和票數停在頂上；票數一直整個露著 */
+  .is-st .tr-body :is(.tr-k, .tr-mid) { position: sticky; top: 0; z-index: 1; background: var(--card) var(--paper-tex) 0 0 / 320px; }
+  .is-st .trial > .tr-body { min-height: 62px; }
+  .is-st .tr-mid { padding-top: 3px; }
+  .is-st .trial > .tr-foot { padding-bottom: 4px; } /* 計票時正在選的那枚放大一圈，不撐出滾動 */
+  .is-st .tr-priv { white-space: normal; line-height: 1.25; } /* 窄屏上這行小字折行，不把棄權一欄撐寬 */
+  .is-st .tr-acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5em), 1fr)); }
+  .is-st .tr-acts .btn { min-height: 44px; }
+  .is-st .tr-tbtn { width: 32px; height: 32px; }
+}
+@media (max-width: 860px) and (max-height: 720px) and (orientation: portrait) {
+  .is-st .trial { gap: 4px; }
+  .is-st .tr-tbtn { width: 30px; height: 30px; }
+  .is-st .tr-who { gap: 3px; }
+  .is-st .tr-who .token { width: 40px; height: 40px; }
+  .is-st .tr-who .token .token-name { display: none; }
+  .is-st .tr-plate { line-height: 1.2; }
+  .is-st .tr-verb .ico { width: 22px; height: 22px; }
+  .is-st .tr-stamp { font-size: 15px; }
+  .is-st :is(.tr-body, .tr-foot, .tr-acts) { padding-top: 4px; }
+  .is-st .tr-chips { gap: 4px; }
+  .is-st .tr-chip { height: 20px; }
+  .is-st .tr-num { font-size: 38px; line-height: 1; }
+  .is-st .tr-auto { padding: 0 0 4px; }
+  /* 被提名者的紅圈不碰頂上的版框，也不鑽到右上角「收起」底下：頭一排往左讓出收起的寬度 */
+  .is-st .tr-head { padding: 3px 30px 0 0; }
+  .is-st .tr-who.to .token { outline-offset: 2px; }
+}
+/* 橫屏矮：左邊誰提名誰和計時，右邊票數和未表態，最下面一排按鈕。牌不夠高時和豎屏一樣只有名單變矮、在自己那塊裏滾：
+   牌定高佔滿桌面（高度不定的網格不會按最大高度分行），名單是滾動容器、最小高度是 0，剩下的高度平分給上兩排，誰提名誰、計時、按鈕一直整個露著 */
+@media (max-height: 520px) and (orientation: landscape) {
+  .is-st .trial { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "head body" "time foot" "acts acts"; gap: 6px 18px; align-items: center;
+    width: calc(100% - 12px); height: calc(100% - 12px); max-height: none; padding: 6px 10px; overflow: hidden; }
+  .is-st .trial > .tr-head { grid-area: head; padding-top: 5px; } /* 被提名者的紅圈不碰頂上的版框 */
+  .is-st .tr-who.to .token { outline-offset: 2px; }
+  .is-st .trial > .tr-body { grid-area: body; align-self: stretch; padding-top: 6px; }
+  .is-st .trial > :is(.tr-auto, .tr-count) { grid-area: time; min-height: min-content; }
+  .is-st .trial > .tr-foot { grid-area: foot; align-self: stretch; padding-top: 6px; }
+  .is-st .trial > .tr-acts { grid-area: acts; padding-top: 6px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8em), 1fr)); }
+  .is-st .tr-side { min-width: 0; }
+  .is-st .tr-who { gap: 4px; min-width: 0; max-width: 100%; }
+  .is-st .tr-who .token { width: 48px; height: 48px; }
+  .is-st .tr-who .token .token-name { display: none; }
+  .is-st .tr-plate { max-width: 100%; box-sizing: border-box; padding: 1px 6px; font-size: 12px; }
+  .is-st .tr-verb .ico { width: 24px; height: 24px; }
+  .is-st .tr-stamp { font-size: 16px; padding: 3px 4px 4px 8px; }
+  .is-st .tr-k { margin-bottom: 4px; font-size: 12px; }
+  .is-st .tr-chip { height: 22px; max-width: min(110px, 100%); box-sizing: border-box; padding: 0 5px; font-size: 11.5px; gap: 3px; }
+  .is-st .tr-num { font-size: 40px; }
+  .is-st .tr-mid { min-width: 64px; }
+  .is-st .tr-slots i { width: 10px; height: 10px; }
+  .is-st .tr-auto { padding: 2px 0 6px; }
+  .is-st .tr-acts .btn { padding: 5px 9px; font-size: 13px; }
+}
+/* 大屏手機橫屏還留著側欄，牌只有五百多寬：票數那一欄寬一點，右上角讓出「收起」，不壓「棄權」 */
+@media (min-width: 861px) and (max-height: 520px) and (orientation: landscape) {
+  .is-st .trial { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
+  .is-st .trial > .tr-body { padding-right: 40px; }
+}
 
 /* 投票倒數（提名後 5 分鐘）：墨色，最後 30 秒變紅，暫停時變灰；說書人旁邊兩個圓鈕：暫停 / 繼續、重置 */
 .tr-auto { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 4px 0 8px; color: var(--ink); overflow: hidden; }
