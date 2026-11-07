@@ -50,7 +50,7 @@ export function codeBox(input) {
   return h('label', { class: 'code-box' }, cells, input);
 }
 
-// recent：服務器確認還在的最近房間（帶 phase、n），onPick 回到它；onIntro 重新打開第一次來時的介紹；onAbout 打開關於（投喂、反饋、分享、說明）
+// recent：服務器確認還在的最近房間（帶 phase、n），onPick 回到它；onIntro 重新打開第一次來時的介紹；onAbout 打開關於（說明、反饋、分享）
 export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreate, onPick, onIntro, onAbout }) {
   const codeIn = h('input', { value: code, inputmode: 'numeric', autocomplete: 'off', 'aria-label': '房間號' });
   const nameIn = h('input', { value: name, maxlength: 12 });
