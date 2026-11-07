@@ -185,6 +185,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 @keyframes net-d2 { 45%, 100% { opacity: 1; } }
 @keyframes net-d3 { 65%, 100% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .net-off, .net-off.leaving { animation: none; } .net-off i { animation: none; opacity: 1; } }
+/* 複製不了（http 頁面沒有剪貼板接口、瀏覽器也不讓 execCommand）：文字選好擺在一張紙上，自己長按複製；點別處收起（topbar.js copy） */
+.copy-src { position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.copy-hand { position: fixed; left: 50%; bottom: 24px; z-index: 99; width: min(420px, 90vw); transform: translateX(-50%); padding: 10px 12px; background: var(--card) url(../img/grain.svg);
+  border: 1.5px solid var(--ink); box-shadow: 0 6px 18px #0005; animation: slip-in .24s cubic-bezier(.2, 1.2, .4, 1); }
+.copy-hand.leaving { animation: slip-out .2s ease-in forwards; }
+.copy-hand textarea { display: block; resize: none; border: 0; border-bottom: 1px dashed var(--line-strong); border-radius: 0; background: none; font: 13px/1.5 monospace; word-break: break-all; }
+.copy-hand textarea:focus { outline: 0; }
+@media (max-width: 860px) { .copy-hand { bottom: 64px; } }
 
 /* 角色牌：雙圈印章 */
 .token {

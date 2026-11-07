@@ -1,6 +1,6 @@
 // 頂欄：房間號、規則、身份；其餘收進 ⋯ 菜單（放棄本局放最後並標紅）。手機上側欄的標籤也放在這裏（點開底部抽屜），
 // 劇本名、音效、規則收進 ⋯，⋯ 永遠在屏幕裏
-import { h, toast, ask, menu } from './ui.js';
+import { h, toast, ask, menu, leaveDom } from './ui.js';
 import { muted, setMuted } from './sfx.js';
 import { icon } from './glyph.js';
 import { getLang, setLang } from './lang.js';
@@ -13,7 +13,36 @@ import { openInvite, hostUrl } from './invite.js';
 import { openAbout } from './about.js';
 import { openPass } from './roompass.js';
 
-export const copy = (text, msg) => navigator.clipboard.writeText(text).then(() => toast(msg, 3500), () => toast(text, 8000));
+// 複製：navigator.clipboard 只在 https（和 localhost）裏有，深圳那台用 IP 走 http 就沒有——退回藏起來的文本框 + execCommand。
+// 還是不行就把文字選好擺在底下一張紙上，自己長按複製；點別處收起
+export function copy(text, msg) {
+  const ok = () => toast(msg, 3500);
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(ok, () => copyBy(text, ok));
+  copyBy(text, ok);
+  return Promise.resolve();
+}
+let hand = null;
+function copyBy(text, ok) {
+  const ta = h('textarea', { class: 'copy-src', readonly: true, 'aria-hidden': 'true' });
+  ta.value = text;
+  document.body.append(ta);
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let copied = false;
+  try { copied = document.execCommand('copy'); } catch { /* 不支持 */ }
+  ta.remove();
+  if (copied) return ok();
+  if (hand) leaveDom(hand, 200);
+  const box = h('textarea', { readonly: true, rows: Math.min(4, Math.ceil(text.length / 40)), 'aria-label': '複製' });
+  box.value = text;
+  const el = hand = h('div', { class: 'copy-hand' }, box);
+  const off = e => { if (el.contains(e.target)) return; document.removeEventListener('pointerdown', off, true); if (hand === el) hand = null; leaveDom(el, 200); };
+  document.body.append(el);
+  box.focus();
+  box.select();
+  box.setSelectionRange(0, text.length);
+  setTimeout(() => document.addEventListener('pointerdown', off, true), 0);
+}
 
 function eggPill(ctx, me) {
   const gain = eggGainFx();
