@@ -1,7 +1,8 @@
 // 黯月初升 / 夢殞春宵逐個角色試玩時找到的問題（試玩本身走真服務器和 socket，這裏只把修好的規則釘住）。
 // 用法：node tests/dlc-play.test.js
 import assert from 'assert';
-import { applyStOp } from '../lib/ops.js';
+import { applyStOp, applyPlayerAction } from '../lib/ops.js';
+import { viewFor } from '../lib/view.js';
 import { startNight } from '../lib/engine.js';
 import { startDay, nominate, vote, closeVote } from '../lib/day.js';
 import { impaired, seatTags } from '../lib/util.js';
@@ -176,6 +177,56 @@ const vigorKill = (r, t) => {
   pick(r, [wi.id], 'oracle');
   assert.strictEqual(wi.role, 'oracle');
   assert.strictEqual(toStep(r, 'oracle', wi), null, '死掉的前女巫不會以神諭者身份醒來');
+}
+
+// 理髮師：惡魔把築夢師和神諭者換了，兩人換到的角色順序在理髮師後面，今晚按新角色醒（以前兩個都不醒）
+{
+  const r = mk(['dreamer', 'barber', 'witch', 'nodashii', 'oracle', 'clockmaker', 'seamstress'], 'snv');
+  const dr = S(r, 'dreamer'), or = S(r, 'oracle');
+  startNight(r);
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  ok(applyStOp(r, { op: 'execute', seatId: S(r, 'barber').id }));
+  ok(applyStOp(r, { op: 'next' }));
+  toStep(r, 'barber');
+  pick(r, [dr.id, or.id]);
+  assert.deepStrictEqual([dr.role, or.role], ['oracle', 'dreamer']);
+  assert.ok(toStep(r, 'dreamer', or), '新的築夢師今晚醒');
+  ok(applyStOp(r, { op: 'pick', ids: [S(r, 'nodashii').id] }));
+  ok(applyStOp(r, { op: 'confirm', fields: r.g.step.form.truth }));
+  assert.ok(toStep(r, 'oracle', dr), '新的神諭者今晚醒');
+}
+
+// 哲學家第 2 夜才拿雜耍藝人的能力：他的第一個白天是第 2 天，第 3 夜得知猜對幾個（以前只認第 1 天、第 2 夜，永遠猜不了）
+{
+  const r = mk(['philosopher', 'oracle', 'dreamer', 'nodashii', 'witch', 'clockmaker', 'seamstress'], 'snv');
+  const ph = S(r, 'philosopher'), nd = S(r, 'nodashii');
+  r.g.day = 1; // 真實對局裏第 2 夜之前過了第 1 天
+  startNight(r);
+  toStep(r, 'philosopher');
+  pick(r, [], 'juggler');
+  assert.strictEqual(toStep(r, 'juggler', ph), null, '今晚不醒：還沒有猜過');
+  ok(applyStOp(r, { op: 'dawn' }));
+  assert.strictEqual(viewFor(r, { pid: ph.pid }).juggleLeft, 5);
+  ok(applyPlayerAction(r, ph.pid, { act: 'juggle', targetId: nd.id, role: 'nodashii' }));
+  ok(applyPlayerAction(r, ph.pid, { act: 'juggle', targetId: S(r, 'oracle').id, role: 'witch' }));
+  ok(applyStOp(r, { op: 'execute', seatId: S(r, 'clockmaker').id }));
+  ok(applyStOp(r, { op: 'next' }));
+  assert.strictEqual(viewFor(r, { pid: ph.pid }).juggleLeft, 0);
+  const s = toStep(r, 'juggler', ph);
+  assert.ok(s, '第 3 夜醒來');
+  assert.strictEqual(s.form.truth.n, 1);
+}
+// 開局就是雜耍藝人的照舊：只在第 1 天猜，第 2 夜得知
+{
+  const r = mk(['juggler', 'oracle', 'dreamer', 'nodashii', 'witch', 'clockmaker', 'seamstress'], 'snv');
+  const j = S(r, 'juggler');
+  r.g.day = 1;
+  startNight(r);
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  assert.strictEqual(r.g.day, 2);
+  assert.strictEqual(applyPlayerAction(r, j.pid, { act: 'juggle', targetId: S(r, 'nodashii').id, role: 'nodashii' }), '只能在第一個白天猜');
 }
 
 console.log('dlc play regressions ok');
