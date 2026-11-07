@@ -18,6 +18,7 @@ import { tr } from './lang.js';
 import { formatInfo, infoFormula, infoMarks, infoAnswer, answerSeats } from './infofmt.js';
 import { renderLobby } from './lobby.js';
 import { openInvite } from './invite.js';
+import { loadSfx } from './sfx.js';
 
 const LS = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -862,6 +863,7 @@ function render() {
 
 ensureScene();
 setRender(render);
+loadSfx(); // 演示頁就是一局對局：錄音一開始就下（遊戲裏要進了房間才下）
 go(scene);
 (async () => {
   for (const i of RUN) {

@@ -8,11 +8,19 @@ const sampled = (names, wobble) => names.split(' ').forEach(n => { WOBBLE[n] = w
 sampled('good evil dawn crown turn bell hum shimmer key tag nominate', 0);
 sampled('stamp stab slash thud clang crack zap rope demon page tock tick swish splat caw dig splash fire fw smack sniff beat2 unlock whoosh clip cork drip flap flip hiss leaf miss rattle rumble', 0.08);
 const buffers = {}, waiting = Object.keys(WOBBLE);
-let downloading = 0;
-// 服務器帶寬只有 2Mbps 上下，一次下三個，不和圖片搶
+let downloading = 0, urgent = 0, all = false; // urgent：waiting 前面有幾個是急著要的
+// 錄音一共約 0.5MB，服務器帶寬只有 2Mbps 上下：不跟著開屏下，大廳裏用不著。進了房間、桌面的圖到齊後才全部下（app.js 調 loadSfx()）；
+// 大廳裏要響的（反饋寄出的章、規則書翻頁）先下那一個，這一次先放合成聲。一次下三個，不和圖片搶
+export function loadSfx(name) {
+  if (!ctx()) return;
+  if (!name) all = true;
+  else { const i = waiting.indexOf(name); if (i >= urgent) { waiting.splice(i, 1); waiting.splice(urgent++, 0, name); } }
+  pump();
+}
 function pump() {
-  while (downloading < 3 && waiting.length) {
+  while (downloading < 3 && waiting.length && (all || urgent)) {
     const name = waiting.shift();
+    if (urgent) urgent--;
     downloading++;
     fetch(`sfx/${name}.m4a`).then(r => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
       .then(b => ac.decodeAudioData(b)).then(b => { buffers[name] = b; }).catch(() => { /* 退回合成聲 */ })
@@ -24,10 +32,11 @@ const watchers = [];
 export const onSoundChange = fn => watchers.push(fn);
 // 設置：sfx 音效開關；vol 音效音量 0–1；music 音樂開關；musicVol 音樂音量 0–1；fw 煙花；fwSound 煙花聲
 const DEF = { sfx: true, vol: 0.8, music: true, musicVol: 0.5, fw: true, fwSound: true };
-export function prefs() { try { return { ...DEF, ...JSON.parse(localStorage.getItem(PREFS) || '{}') }; } catch { return { ...DEF }; } }
+let kept = null; // 存不進 localStorage（Safari 無痕、關了存儲的 WebView）時記在這裏：這一頁裏靜音、音量照樣算數
+export function prefs() { if (kept) return { ...DEF, ...kept }; try { return { ...DEF, ...JSON.parse(localStorage.getItem(PREFS) || '{}') }; } catch { return { ...DEF }; } }
 export function setPref(k, v) {
   const p = { ...prefs(), [k]: v };
-  try { localStorage.setItem(PREFS, JSON.stringify(p)); } catch { /* 忽略 */ }
+  try { localStorage.setItem(PREFS, JSON.stringify(p)); kept = null; } catch { kept = p; }
   if (master) master.gain.value = 0.6 * p.vol;
   if (music) music.gain.value = p.musicVol;
   watchers.forEach(fn => fn());
@@ -43,7 +52,7 @@ export function setMuted(v) {
 }
 try { if (localStorage.getItem(LS) === '1') { setPref('sfx', false); setPref('music', false); } localStorage.removeItem(LS); } catch { /* 忽略 */ }
 
-// 瀏覽器要求有過用戶操作才能出聲：第一次點擊時建立
+// 瀏覽器要求有過用戶操作才能出聲：第一次點擊時建立（開屏的鐘要準時，app.js 一起來就 wake() 先建好）
 function ctx() {
   if (!ac) {
     const C = window.AudioContext || window.webkitAudioContext;
@@ -52,7 +61,6 @@ function ctx() {
     master = ac.createGain();
     master.gain.value = 0.6 * prefs().vol;
     master.connect(ac.destination);
-    pump();
   }
   if (ac.state === 'suspended') ac.resume();
   return ac;
@@ -191,6 +199,7 @@ export function play(name, k = 1) {
   try {
     const rec = name === 'pageturn' ? 'page' : name;
     if (buffers[rec]) return sample(rec, k);
+    if (Object.hasOwn(WOBBLE, rec)) loadSfx(rec); // 錄音還沒下：這一次放合成聲，先把它要回來
     if (k !== 1) { bus = ac.createGain(); bus.gain.value = k; bus.connect(master); }
     SOUNDS[name]();
   } catch { /* 音效失敗不影響遊戲 */ } finally { bus = null; }
