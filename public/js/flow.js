@@ -8,6 +8,22 @@ import { seatBadge, mini, icon, actIcon, tag, named, w, ACTS } from './glyph.js'
 import { nightHeld } from './fx.js';
 
 export const B = (label, onclick, cls = '') => h('button', { class: 'btn ' + cls, onclick }, label);
+
+// 說書人夜晚操作卡的按鈕（確認、發送、跳過、繼續、裁定、代選、天亮）：手機上連點兩下，第二下會落到緊接著出現的下一張卡上
+// （服務器先推新狀態、再回覆）。發出去到回覆前一律不再發，回覆後再擋一小會兒，這時候還來不及看清新卡，點到的只能是誤觸
+let inFlight = false, coolUntil = 0;
+export const stepLock = () => (inFlight ? ' disabled' : '');
+export function stepOp(ctx, op, args) {
+  if (inFlight || Date.now() < coolUntil) return Promise.resolve({ ok: false });
+  inFlight = true;
+  ctx.render();
+  return ctx.st(op, args).then(r => {
+    inFlight = false;
+    coolUntil = Date.now() + 450;
+    ctx.render();
+    return r;
+  });
+}
 export const voteCount = nom => Object.values(nom.votes).filter(Boolean).length;
 export const needVotes = s => Math.max(s.required, (s.topCount || 0) + 1);
 
@@ -173,7 +189,7 @@ export function reviewCard(ctx) {
       row(w('今晚'), st.diedTonight.length ? [st.diedTonight.map(id => seatBadge(s, id)), w('死亡', 'bad')] : w('無人死亡', 'good')),
       row(w('中毒', 'evil'), seatsOr(st.poisonList), st.drunkList?.length > 0 && [sep, w('醉酒', 'evil'), seatsOr(st.drunkList)],
         h('i', { class: 'op-sep' }), w('保護', 'good'), seatsOr(st.protectList)))),
-    h('div', { class: 'ic-foot' }, B('天亮，公佈死訊', () => ctx.st('dawn'), 'wide')));
+    h('div', { class: 'ic-foot' }, B('天亮，公佈死訊', () => stepOp(ctx, 'dawn'), 'wide' + stepLock())));
 }
 
 // 結束白天前說清楚會發生什麼，避免誤點直接入夜

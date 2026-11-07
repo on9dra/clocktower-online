@@ -2,7 +2,7 @@
 import { h, modal, closeModal, ask, toast, seatLabel, roleToken } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { COMMUNITY } from './community.js';
-import { B, selFrom, selectBar } from './flow.js';
+import { B, selFrom, selectBar, stepOp, stepLock } from './flow.js';
 import { startSelect, sel } from './town.js';
 import { formula, seatBadge, mini, named, icon, w } from './glyph.js';
 
@@ -206,7 +206,7 @@ export function manualNight(ctx) {
     hand.cards.length > 0 && h('div', { class: 'ic-body' }, cardRows(ctx)),
     h('div', { class: 'ic-foot hand-foot' },
       s.night === 1 && B('發送互認和偽裝', () => ctx.st('evilInfo'), 'wide' + (hand.evilSent ? ' disabled' : '')),
-      B('天亮，公佈死訊', () => ctx.st('dawn'), 'wide'),
+      B('天亮，公佈死訊', () => stepOp(ctx, 'dawn'), 'wide' + stepLock()),
       winButtons(ctx)));
 }
 

@@ -1,7 +1,7 @@
 // 說書人的夜晚操作卡：和玩家輪到自己時的牌一樣，在圓桌中央「第 N 夜」下面（town.js 放置）；天亮前核對是 flow.js reviewCard
 import { h, ask } from './ui.js';
 import { sel, startSelect } from './town.js';
-import { selectBar, selFrom, B, PRETEND } from './flow.js';
+import { selectBar, selFrom, B, PRETEND, stepOp, stepLock } from './flow.js';
 import { infoForm } from './infoform.js';
 import { seatBadge, mini, icon, named, w, formula, ACTS } from './glyph.js';
 import { actRow, goonLine } from './log.js';
@@ -24,7 +24,7 @@ const head = (s, step, extra) => h('div', { class: 'ic-head' }, mini(step.roleId
 export function stepCard(ctx) {
   const s = ctx.state, step = s.st.step;
   if (sel.on && sel.on.key === step.id) {
-    return selectBar(ctx, [mini(step.roleId), seatBadge(s, step.seatId, 'lg')], (ids, role) => ctx.st('pick', { ids, role }), true);
+    return selectBar(ctx, [mini(step.roleId), seatBadge(s, step.seatId, 'lg')], (ids, role) => stepOp(ctx, 'pick', { ids, role }), true);
   }
   if (step.status === 'choose') {
     const seat = s.seats.find(x => x.id === step.seatId), online = seat && seat.online;
@@ -32,7 +32,7 @@ export function stepCard(ctx) {
       h('div', { class: 'ic-top' }, head(s, step, h('span', { class: 'waiting' + (online ? '' : ' off') }, online ? [h('i'), h('i'), h('i')] : icon('none')))),
       h('div', { class: 'row' },
         B('代為選擇', () => startSelect(ctx, selFrom(step.id, step.choose, step.seatId))),
-        B('跳過', () => ask(`跳過 ${step.title} 的行動？`, () => ctx.st('skip'), '跳過'), 'ghost')));
+        B('跳過', () => ask(`跳過 ${step.title} 的行動？`, () => stepOp(ctx, 'skip'), '跳過'), 'ghost' + stepLock())));
   }
   if (step.status === 'ack') return ackCard(ctx, step);
   if (step.status === 'decide') return decideCard(ctx, step);
@@ -59,7 +59,7 @@ function ackCard(ctx, step) {
     : picks.length ? [w('選了', 'ink'), picks.map(id => seatBadge(s, id))] : w('沒有使用能力', 'muted');
   return h('div', { class: 'card focus infocard spread' },
     h('div', { class: 'ic-top' }, head(s, step), h('div', { class: 'frm big' }, what), goonLine(s, step)),
-    h('div', { class: 'ic-foot' }, B('確認', () => ctx.st('ack'), 'wide')));
+    h('div', { class: 'ic-foot' }, B('確認', () => stepOp(ctx, 'ack'), 'wide' + stepLock())));
 }
 
 // 假裝叫醒：沒有人醒（不在場 / 今晚不醒 / 已經做完），停一會兒再往下走，玩家看不出這一格是空的。
@@ -73,7 +73,7 @@ function pretendCard(ctx, step) {
         h('i', { class: 'pt-bar' }, h('i', { style: { width: (left * 100).toFixed(1) + '%' } })))),
     h('div', { class: 'row' },
       h('label', { class: 'pt-off' }, h('input', { type: 'checkbox', class: 'switch', checked: ctx.state.st.noPretend || null, onchange: e => ctx.st('noPretend', { on: e.target.checked }) }), w('本局不再假裝', 'muted')),
-      B('繼續', () => ctx.st('pretend'))));
+      B('繼續', () => stepOp(ctx, 'pretend'), stepLock())));
 }
 const GROUP = { minioninfo: '爪牙信息', demoninfo: '惡魔信息' };
 
@@ -86,7 +86,7 @@ function decideCard(ctx, step) {
       h('div', { class: 'frm big' }, (step.picks || []).length > 0 && [w(ACTS[step.roleId]?.mark || '選了', 'ink'),
         step.picks.map(id => seatBadge(s, id)), h('i', { class: 'op-sep' })], seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil')), goonLine(s, step)),
     // 沒有能力，只有「無效」：官方說書人不能讓它生效
-    h('div', { class: 'ic-foot' }, B('無效', () => ctx.st('decide', { choice: 'fail' }), 'wide')));
+    h('div', { class: 'ic-foot' }, B('無效', () => stepOp(ctx, 'decide', { choice: 'fail' }), 'wide' + stepLock())));
   const face = o => {
     const seat = s.seats.find(x => x.id === o.id);
     return seat ? [seatBadge(s, seat.id), mini(seat.role)] : o.id === 'none' ? icon('none') : w(o.label, 'ink');
@@ -99,5 +99,5 @@ function decideCard(ctx, step) {
     h('div', { class: 'ic-body' }, h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
     }, face(o))))),
-    h('div', { class: 'ic-foot' }, h('button', { class: 'btn wide' + (cur ? '' : ' disabled'), onclick: () => cur && ctx.st('decide', { choice: cur }) }, '確定')));
+    h('div', { class: 'ic-foot' }, h('button', { class: 'btn wide' + (cur ? stepLock() : ' disabled'), onclick: () => cur && stepOp(ctx, 'decide', { choice: cur }) }, '確定')));
 }

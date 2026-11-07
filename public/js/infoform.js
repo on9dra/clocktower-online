@@ -7,6 +7,7 @@ import { ROLES, TEAMS, CORE } from './roles.js';
 import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
 import { formula, seatBadge, mini, named, evilNum, icon, w } from './glyph.js';
 import { sinceDawn, goonLine } from './log.js';
+import { stepOp, stepLock } from './flow.js';
 
 const drafts = {}; // stepId -> 說書人當前的選擇
 const others = (s, step) => s.seats.filter(x => x.id !== step.seatId).map(x => x.id);
@@ -159,8 +160,8 @@ const icHead = (s, step) => h('div', { class: 'ic-head' },
   s.seats.some(x => x.id === step.seatId) && seatBadge(s, step.seatId, 'lg'),
   step.form.why && w({ poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', vortox: '渦流' }[step.form.why], 'evil'));
 const sendBtn = (ctx, d, { level, err }) => h('button', {
-  class: 'btn wide ' + (err ? 'disabled' : level === 0 ? 'red' : ''),
-  onclick: () => !err && ctx.st('confirm', { fields: d }),
+  class: 'btn wide ' + (err ? 'disabled' : (level === 0 ? 'red' : '') + stepLock()),
+  onclick: () => !err && stepOp(ctx, 'confirm', { fields: d }),
 }, icon('send'), '發送');
 
 // 桌心的角色牌 + 中下方的紙條（ON_TABLE）。在場的角色排前面；能力正常只列合規的，中毒 / 酒鬼全部列出
