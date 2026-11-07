@@ -788,7 +788,7 @@ function artGallery() {
     h('div', { class: 'curtain-cmp' }, ['curtain-drape-vivid', 'curtain-drape'].map(n => h('div', { style: { '--drape': `url(img/art/${n}.webp)`, '--val': `url(img/art/${n.replace('drape', 'valance')}.webp)` } }))));
 }
 const params = new URLSearchParams(location.search);
-let scene = SCENES[params.get('s')] ? params.get('s') : 'vote';
+let scene = Object.hasOwn(SCENES, params.get('s') ?? '') ? params.get('s') : 'vote'; // 只認自己的場景：?s=constructor 之類的會查到原型上
 // 截圖用（tools/shots.sh）：bare 去掉演示條，run=2,3 打開後依次點這幾步
 const bare = params.has('bare'), RUN = (params.get('run') || '').split(',').filter(Boolean).map(Number);
 

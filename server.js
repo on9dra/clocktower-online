@@ -15,6 +15,7 @@ import { countTick, virginTick } from './lib/day.js';
 import { mvpTick } from './lib/score.js';
 import { pretendTick } from './lib/engine.js';
 import { allow } from './lib/limit.js';
+import { guard } from './lib/util.js';
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -29,7 +30,8 @@ const LIMIT = {
   feedback: [3, 10 * 60 * 1000], // 每個 IP 的反饋：連寄 3 封，之後每 10 分鐘 1 封
 };
 const SLOW = '操作太頻繁，請稍後再試';
-const PID = /^[\w-]{1,64}$/;
+// 玩家標識會拿來當對象的鍵（積分檔案、MVP 投票）：__proto__ 之類的名字會改到所有對象共用的原型上
+const PID = /^(?!(?:__proto__|constructor|prototype)$)[\w-]{1,64}$/;
 
 const app = express();
 app.use(compression()); // 服務器帶寬只有 2Mbps 上下，JS、CSS 壓縮後剩四分之一
@@ -109,7 +111,10 @@ function broadcast(room) {
   // 觀眾席：同一個人開了幾個標籤頁只坐一個位置
   room.watchers = [...new Map(list.filter(s => s.data.watch).map(s => [s.data.pid, { pid: s.data.pid, name: s.data.name }])).values()];
   for (const seat of room.seats) seat.online = online.has(seat.pid);
-  for (const s of list) emitState(s, room);
+  // 一個連接的狀態出錯不能拖累同房間的其他人，更不能帶走整個進程
+  for (const s of list) {
+    try { emitState(s, room); } catch (e) { console.error('推送狀態出錯', room.code, e); }
+  }
   store.save(room);
   countTick(room, broadcast);
   virginTick(room, broadcast);
@@ -216,7 +221,8 @@ io.on('connection', socket => {
   socket.on('st:peek', handle(({ seatId }, cb) => {
     const room = store.get(socket.data.code);
     if (!room || !socket.data.st) return reply(cb, '無權限');
-    socket.data.peek = seatId || null;
+    // 只收這個房間裏的座位號：別的東西存進來，之後每次推送拼字符串都會出錯
+    socket.data.peek = typeof seatId === 'string' && room.seats.some(s => s.id === seatId) ? seatId : null;
     reply(cb);
     emitState(socket, room);
   }));
@@ -232,7 +238,7 @@ io.on('connection', socket => {
 
   socket.on('disconnect', () => {
     const room = store.get(socket.data && socket.data.code);
-    if (room) setTimeout(() => broadcast(room), 50);
+    if (room) setTimeout(guard(() => broadcast(room)), 50);
   });
 });
 
@@ -241,4 +247,10 @@ store.load();
 setInterval(() => store.sweep(code => socketsOf(code).length > 0), 3600 * 1000).unref();
 // 退出前把還沒寫盤的房間寫完
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { store.flushSync(); process.exit(0); });
+// 最後一道防線：漏網的錯誤記下來，房間寫完盤再退出，由 systemd 拉起來從存檔恢復（不寫盤會丟最後半秒的改動）
+process.on('uncaughtException', e => {
+  console.error('未捕獲的錯誤', e);
+  try { store.flushSync(); } finally { process.exit(1); }
+});
+process.on('unhandledRejection', e => console.error('未處理的 Promise 拒絕', e));
 server.listen(PORT, () => console.log(`血染鐘樓魔典已啓動: http://localhost:${PORT}`));

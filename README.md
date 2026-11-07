@@ -4,7 +4,7 @@
 
 **在线试玩：https://tianheile.cc**（创建房间，把房间号发给朋友）
 
-当前版本：**1.0**（2026-11-07），更新记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本：**1.0.1**（2026-11-07），更新记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ![白天](docs/img/screenshot-day.webp)
 ![夜晚](docs/img/screenshot-night.webp)

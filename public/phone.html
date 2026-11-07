@@ -25,14 +25,20 @@
     // 和 demo.js 的 SCENES 一致（美術場景不用在手機上看）
     const SCENES = [['vote', '提名與投票'], ['day', '裁定'], ['night', '夜晚'], ['ability', '技能'], ['bmr', '黯月'], ['snv', '夢殞'], ['scripts', '劇本'], ['end', '終局'], ['room', '房間']];
     const bar = document.getElementById('bar'), phones = document.getElementById('phones');
-    let scene = new URLSearchParams(location.search).get('s') || 'vote';
+    // 地址欄裏的場景只認列表裏的：這頁和遊戲同一個域名，任意值拼進 HTML 就能讀走本機存的說書人密鑰
+    const asked = new URLSearchParams(location.search).get('s');
+    let scene = SCENES.some(([k]) => k === asked) ? asked : 'vote';
     function go(k) {
       scene = k;
-      history.replaceState(null, '', '?s=' + k);
+      history.replaceState(null, '', '?s=' + encodeURIComponent(k));
       bar.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === k));
       phones.replaceChildren(...SIZES.map(([w, h, name]) => {
         const box = document.createElement('div'); box.className = 'phone';
-        box.innerHTML = `<iframe src="demo.html?s=${k}" width="${w}" height="${h}"></iframe><b>${name} · ${w}×${h}</b>`;
+        const frame = document.createElement('iframe');
+        Object.assign(frame, { src: 'demo.html?s=' + encodeURIComponent(k), width: w, height: h });
+        const cap = document.createElement('b');
+        cap.textContent = `${name} · ${w}×${h}`;
+        box.append(frame, cap);
         return box;
       }));
     }

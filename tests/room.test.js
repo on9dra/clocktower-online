@@ -119,7 +119,8 @@ await wait(700); // 等上面刪房間的寫盤做完，免得刪到服務器的
 
 // ———— 起一個真服務器 ————
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PORT = 3900 + Math.floor(Math.random() * 300); // 再往上 Windows 常常保留成系統端口，綁定會 EACCES
+// 再往上 Windows 常常保留成系統端口，綁定會 EACCES；這一段裏的 4045、4190 在 fetch 的禁用端口名單上（報 bad port），跳過
+const PORT = (p => (p === 4045 || p === 4190 ? p + 1 : p))(3900 + Math.floor(Math.random() * 300));
 const URL = `http://127.0.0.1:${PORT}`;
 // 舊版本的單文件存檔：啓動時拆成每房一個文件
 fs.rmSync(path.join(DATA, 'rooms'), { recursive: true, force: true });
@@ -238,6 +239,19 @@ try {
   assert.strictEqual((await watchView).myId, null);
   assert.deepStrictEqual((await stView).watchers, [{ name: '看', mine: false }], '觀眾席只有名字，不帶 pid');
   assert.ok(!(await call(w, 'pl:act', { act: 'chat', to: 'all', text: 'x' })).ok, '觀戰不能發言');
+
+  // 加固：代入視角收到怪東西、原型鏈上的操作名、保留字當玩家標識，都不能讓服務器出事
+  const callT = (s, ev, data) => Promise.race([call(s, ev, data), wait(3000).then(() => ({ ok: false, error: '超時' }))]);
+  assert.ok((await callT(stS, 'st:peek', { seatId: { toString: 1 } })).ok);
+  const probe = conn('10.0.5.1');
+  assert.ok((await callT(probe, 'pl:join', { code: R.code, inst: R.inst, pid: 'pid-probe', name: '探' })).ok);
+  probe.close(); // 斷線後延遲推送：以前在這裏拼字符串拋錯，沒人接住，整個進程退出
+  await wait(300);
+  assert.ok((await callT(conn('10.0.5.2'), 'rooms:info', { list: [] })).ok, '服務器還活著');
+  const dump = await callT(stS, 'st:op', { op: 'constructor' });
+  assert.ok(!dump.ok && !dump.stKey && !dump.seats, '原型鏈上的名字不是操作，不回傳房間');
+  assert.match((await callT(conn('10.0.5.3'), 'pl:join', { code: R.code, inst: R.inst, pid: '__proto__', name: 'x' })).error, /標識/, '保留字不能當玩家標識');
+  assert.ok((await callT(stS, 'st:peek', { seatId: null })).ok);
 
   // 最近的房間：實例標識對上的才回答
   const info = await call(conn('10.0.3.1'), 'rooms:info', { list: [{ code: R.code, inst: R.inst }, { code: made[0].code, inst: 'ffffff' }] });
