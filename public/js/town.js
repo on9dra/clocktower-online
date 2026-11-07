@@ -238,7 +238,9 @@ export function fitTableCard() {
       room = seatRoom(ring, width(), card.offsetHeight);
     }
   }
-  const k = el === st ? Math.min(room.k, el.clientHeight / el.scrollHeight, el.clientWidth / el.scrollWidth) : room.k;
+  // 說書人的卡外面還有一圈內邊距：縮放後的牌要放進的是內邊距裏面那塊，不然寬出幾像素，冒出橫向滾動條
+  const pad = (a, b) => parseFloat(css[a]) + parseFloat(css[b]);
+  const k = el === st ? Math.min(room.k, (el.clientHeight - pad('paddingTop', 'paddingBottom')) / card.offsetHeight, (el.clientWidth - pad('paddingLeft', 'paddingRight')) / width()) : room.k;
   if (k < 1) {
     const w = width(), z = Math.max(el === middle ? 0.72 : 0.6, k * 0.98); // 準備、白天的按鈕縮多了不好點，讓一點座位
     card.style.width = w + 'px'; // 定住版面：不然縮小之後寬度又撐回去，裏面重新排
