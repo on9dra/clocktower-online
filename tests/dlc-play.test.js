@@ -128,4 +128,54 @@ function dayVote(r, from, to, voters) {
   assert.deepStrictEqual(prep.decide.options.map(o => o.id), ['none', prof.id, cm.id], '候選是真沙巴洛斯上一晚選中的人');
 }
 
+// 亡骨魔殺死鏡像雙子：雙子保留能力，善良雙子之後被處決照樣邪惡獲勝（官方：死雙子沒有能力，亡骨魔讓爪牙保留能力）
+const vigorKill = (r, t) => {
+  toStep(r, 'vigormortis');
+  pick(r, [t.id]);
+  if (r.g.step?.decide?.kind === 'neighbor') ok(applyStOp(r, { op: 'decide', choice: r.g.step.decide.options.at(-1).id }));
+  assert.ok(t.dead && t.keep);
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+};
+{
+  const r = mk(['eviltwin', 'oracle', 'dreamer', 'vigormortis', 'sage', 'clockmaker', 'seamstress'], 'snv');
+  const et = S(r, 'eviltwin');
+  r.g.night = 0; r.g.day = 0;
+  startNight(r);
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  const good = r.seats.find(s => s.id === r.g.twin.good);
+  ok(applyStOp(r, { op: 'next' }));
+  vigorKill(r, et);
+  ok(applyStOp(r, { op: 'execute', seatId: good.id }));
+  assert.deepStrictEqual([r.phase, r.winner], ['ended', 'evil'], '善良雙子被處決，邪惡獲勝');
+}
+// 亡骨魔失去能力，死雙子保留的能力跟著沒了：善良雙子被處決，遊戲繼續
+{
+  const r = mk(['eviltwin', 'oracle', 'dreamer', 'vigormortis', 'sage', 'clockmaker', 'seamstress'], 'snv');
+  const et = S(r, 'eviltwin'), vg = S(r, 'vigormortis');
+  r.g.night = 0; r.g.day = 0;
+  startNight(r);
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  const good = r.seats.find(s => s.id === r.g.twin.good);
+  ok(applyStOp(r, { op: 'next' }));
+  vigorKill(r, et);
+  ok(applyStOp(r, { op: 'setPoison', seatId: vg.id }));
+  ok(applyStOp(r, { op: 'execute', seatId: good.id }));
+  assert.strictEqual(r.phase, 'day', '亡骨魔中毒：雙子沒有能力');
+}
+// 麻臉巫婆把亡骨魔保留能力的死女巫變成神諭者：換了角色就沒有能力，不會再醒（官方麻臉巫婆例子）
+{
+  const r = mk(['witch', 'pithag', 'dreamer', 'vigormortis', 'sage', 'clockmaker', 'seamstress'], 'snv');
+  const wi = S(r, 'witch');
+  startNight(r);
+  vigorKill(r, wi);
+  ok(applyStOp(r, { op: 'next' }));
+  toStep(r, 'pithag');
+  pick(r, [wi.id], 'oracle');
+  assert.strictEqual(wi.role, 'oracle');
+  assert.strictEqual(toStep(r, 'oracle', wi), null, '死掉的前女巫不會以神諭者身份醒來');
+}
+
 console.log('dlc play regressions ok');
