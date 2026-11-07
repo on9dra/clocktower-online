@@ -251,6 +251,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
     --ty: calc((var(--h) - var(--pn)) / 2); --sag: 3px; height: var(--h); }
   .pg-roll { inset: -16px 0 -4px; overflow: auto hidden; touch-action: pan-x; mask: linear-gradient(90deg, #0000 8px, #000 26px calc(100% - 26px), #0000 calc(100% - 8px)); }
   .pg-track { width: calc(2 * var(--pad) + (var(--n) - 1) * var(--stp)); height: var(--h); margin-top: 16px; }
+  /* 滾動條比紙卡高出的那一截（給抽出來的當前牌）是透明的，壓在桌面底邊上：點擊穿過去，桌面底下的按鈕點得到；牌本身照常能點、能滑 */
+  .pg-roll { pointer-events: none; }
+  .pg-track { pointer-events: auto; }
   .pg-seg { top: calc(var(--h) / 2 - 1px); }
   .pg-it { transition: scale .3s cubic-bezier(.2, .9, .3, 1.4) .42s, left .5s ease, top .3s ease .42s; animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards; }
   .pg-it.now { top: calc(var(--ty) - 10px); animation: pg-hang .55s cubic-bezier(.3, 1.5, .5, 1) calc(var(--i) * 45ms) backwards, pg-tug .55s cubic-bezier(.3, 1.6, .5, 1) .4s; }
