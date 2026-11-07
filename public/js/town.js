@@ -155,6 +155,8 @@ export function renderTown(ctx) {
     showNom && trialStub(ctx),
     s.phase === 'ended' && mvpPane(ctx),
   ));
+  // 說書人手機上：白天中間放不下標題（fitTableCard 的 .tight）或中間是絞刑架時，「第 N 天」寫到圓桌外面的空白裏（board.css）
+  if (s.isSt && !s.peek && s.phase === 'day') ring.append(h('div', { class: 'phase-alt', 'data-key': 'phase-alt' }, title));
   if (blk) ring.append(blockSeat(ctx, blk));
   // 被擠下台 / 被平票擠下的人：從圓桌中間飛回自己的座位
   for (const seat of s.seats) {

@@ -969,6 +969,14 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .phase-title { transition: opacity .25s ease; }
 .center.tight .phase-title { position: absolute; inset: 0 0 auto; opacity: 0; pointer-events: none; }
 .center.tight .phase-sub { display: none; }
+/* 說書人的手機：白天中間放不下「第 N 天」、或者中間是絞刑架時，日子寫到圓桌外面——豎屏在圓桌上方的空白，橫屏在圓桌右邊。和標題一起淡進淡出 */
+.phase-alt { display: none; }
+@media (max-width: 860px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
+  .ring > .phase-alt { display: block; position: absolute; left: 50%; bottom: calc(100% + 10px); translate: -50% 0; font: 700 clamp(16px, 5.5cqmin, 24px) var(--serif);
+    letter-spacing: 2px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
+  .ring:has(> .center:is(.tight, .has-blk)) > .phase-alt { opacity: 1; }
+}
+@media (max-height: 520px) and (orientation: landscape) { .ring > .phase-alt { left: calc(100% + 18px); bottom: auto; top: 50%; translate: 0 -50%; } }
 /* 沒有牌時中間的按鈕不撐寬：空白的地方別佔著（town.js 按實際大小排），準備階段按鈕排得開，抽完不變寬 */
 .center:has(> .cx:not(.lobby-pane, .turn-pane, .fold-stub)) { width: max-content; max-width: 46%; }
 /* 橫版：圓心左右比上下寬。角色牌和要說的話一行，選中的人和按鈕一行 */
