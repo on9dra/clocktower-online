@@ -228,6 +228,18 @@ const vigorKill = (r, t) => {
   assert.strictEqual(r.g.day, 2);
   assert.strictEqual(applyPlayerAction(r, j.pid, { act: 'juggle', targetId: S(r, 'nodashii').id, role: 'nodashii' }), '只能在第一個白天猜');
 }
+// 死了的雜耍藝人不再顯示「公開猜」（服務端本來就不收）
+{
+  const r = mk(['juggler', 'oracle', 'dreamer', 'nodashii', 'witch', 'clockmaker', 'seamstress'], 'snv');
+  const j = S(r, 'juggler');
+  r.g.night = 0; r.g.day = 0;
+  startNight(r);
+  toStep(r, 'none');
+  ok(applyStOp(r, { op: 'dawn' }));
+  assert.strictEqual(viewFor(r, { pid: j.pid }).juggleLeft, 5);
+  ok(applyStOp(r, { op: 'execute', seatId: j.id }));
+  assert.strictEqual(viewFor(r, { pid: j.pid }).juggleLeft, 0);
+}
 
 // 麻臉巫婆變出鏡像雙子：當場互認一次。以前還會在雙子的首夜位置再配一次，對手可能換人，兩名邪惡玩家都以為自己是雙子
 {
@@ -266,6 +278,26 @@ const vigorKill = (r, t) => {
   toStep(r, 'pithag');
   pick(r, [sv.id], 'philosopher');
   assert.strictEqual(sv.role, 'savant', '哲學家在場：無事發生');
+}
+
+// 珀醉酒時不選人（蓄力）：自己看到的蓄力演出和健康時一樣，以為自己是珀的瘋子也一樣（以前只有健康的珀有，等於告訴他中毒了）
+{
+  const r = mk(['po', 'lunatic', 'gossip', 'moonchild', 'tealady', 'fool', 'assassin', 'minstrel', 'sailor'], 'bmr');
+  const po = S(r, 'po'), lu = S(r, 'lunatic');
+  lu.fakeRole = 'po';
+  ok(applyStOp(r, { op: 'setPoison', seatId: po.id }));
+  startNight(r);
+  const charged = seat => r.fx.some(e => e.aud === seat.id && e.k === 'act' && e.charge);
+  toStep(r, 'po', lu);
+  ok(applyStOp(r, { op: 'pick', ids: [] }));
+  ok(applyStOp(r, { op: 'decide', choice: 'fail' }));
+  assert.ok(charged(lu), '瘋子蓄力有演出');
+  r.g.poisoned = po.id;
+  toStep(r, 'po', po);
+  ok(applyStOp(r, { op: 'pick', ids: [] }));
+  assert.strictEqual(r.g.step.decide?.kind, 'ability');
+  ok(applyStOp(r, { op: 'decide', choice: 'fail' }));
+  assert.ok(charged(po), '中毒的珀蓄力有演出');
 }
 
 console.log('dlc play regressions ok');
