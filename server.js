@@ -1,6 +1,7 @@
 // 血染鐘樓線上魔典 —— 服務端：房間管理 + 按身份過濾後的狀態同步
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import http from 'http';
 import express from 'express';
 import compression from 'compression';
@@ -48,6 +49,43 @@ app.get('/qr.svg', (req, res) => {
   res.type('image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 ${m} ${m}" shape-rendering="crispEdges">`
     + `<rect x="-3" y="-3" width="${m}" height="${m}" fill="#fffdf3"/><path fill="#2a2622" d="${d}"/></svg>`);
+});
+// 管理員看在線情況：/admin?key=…，密鑰放在 data/admin.key（不進 git，改了不用重啓）。沒有密鑰文件或對不上一律 404
+const ADMIN_KEY = path.join(process.env.DATA_DIR || path.join(ROOT, 'data'), 'admin.key');
+const PHASE = { lobby: '大廳', night: '夜晚', dawn: '天亮', day: '白天', ended: '已結束' };
+const esc = s => String(s).replace(/[&<>"]/g, c => `&#${c.charCodeAt(0)};`);
+const ago = ms => ms < 60e3 ? '剛剛' : ms < 3600e3 ? `${Math.floor(ms / 60e3)} 分鐘` : ms < 86400e3 ? `${Math.floor(ms / 3600e3)} 小時` : `${Math.floor(ms / 86400e3)} 天`;
+function adminOk(req) {
+  let key = '';
+  try { key = fs.readFileSync(ADMIN_KEY, 'utf8').trim(); } catch { return false; }
+  const got = Buffer.from(String(req.query.key || '')), want = Buffer.from(key);
+  return key.length >= 16 && got.length === want.length && crypto.timingSafeEqual(got, want);
+}
+app.get('/admin', (req, res) => {
+  const addr = String(req.socket.remoteAddress).replace(/^::ffff:/, ''), fwd = req.headers['x-forwarded-for'];
+  const ip = fwd && PRIVATE.test(addr) ? String(fwd).split(',').pop().trim() : addr;
+  if (!allow('miss:' + ip, LIMIT.miss, 0)) return res.status(404).end();
+  if (!adminOk(req)) { allow('miss:' + ip, LIMIT.miss); return res.status(404).end(); }
+  const socks = [...io.sockets.sockets.values()], now = Date.now();
+  const rows = store.all().map(r => {
+    const list = socks.filter(s => s.data.code === r.code);
+    const pids = new Set(list.map(s => s.data.pid));
+    return { r, st: list.some(s => s.data.st), on: r.seats.filter(x => pids.has(x.pid)).length,
+      watch: new Set(list.filter(s => s.data.watch).map(s => s.data.pid)).size, idle: now - (r.updatedAt || r.createdAt) };
+  }).sort((a, b) => (b.st + b.on + b.watch > 0) - (a.st + a.on + a.watch > 0) || a.idle - b.idle);
+  const live = rows.filter(x => x.st || x.on || x.watch);
+  const people = live.reduce((n, x) => n + x.st + x.on + x.watch, 0);
+  const lobby = socks.filter(s => !s.data.code).length;
+  const tr = rows.map(({ r, st, on, watch, idle }) => `<tr class="${st || on || watch ? 'live' : ''}"><td>${esc(r.code)}</td><td>${PHASE[r.phase] || esc(r.phase)}${r.phase === 'night' ? ` · 第${r.g.night}夜` : r.phase === 'day' || r.phase === 'dawn' ? ` · 第${r.g.day}天` : ''}</td>`
+    + `<td>${st ? '●' : '○'}</td><td>${on}/${r.seats.length}</td><td>${watch || ''}</td><td>${ago(idle)}</td></tr>`).join('');
+  res.set('Cache-Control', 'no-store').set('X-Robots-Tag', 'noindex').type('html').send(`<!doctype html><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="30"><title>在線 ${people}</title>
+<style>body{margin:0;padding:16px;background:#f3ecdc;color:#2a2622;font:15px/1.5 system-ui,sans-serif}
+.big{display:flex;gap:28px;margin:4px 0 18px}.big b{display:block;font-size:40px;line-height:1}.big span{font-size:13px;opacity:.6}
+table{border-collapse:collapse;width:100%;max-width:640px}th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #2a262222}
+th{font-size:12px;opacity:.6;font-weight:normal}tr:not(.live){opacity:.45}tr.live td:first-child{font-weight:bold}</style>
+<div class="big"><div><b>${people}</b><span>在線人數</span></div><div><b>${live.length}</b><span>有人的房間</span></div><div><b>${lobby}</b><span>大廳</span></div></div>
+<table><tr><th>房號</th><th>階段</th><th>說書人</th><th>玩家</th><th>觀眾</th><th>上次動靜</th></tr>${tr}</table>`);
 });
 // 圖片、音效一天內不再問服務器，過期後先用舊的、後台更新；HTML、JS、CSS 每次都驗證，一部署就是新版
 const IMG = /\.(webp|svg|m4a)$/;
