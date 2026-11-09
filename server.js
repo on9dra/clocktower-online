@@ -60,17 +60,22 @@ function adminOk(req) {
   const got = Buffer.from(String(req.query.key || '')), want = Buffer.from(key);
   return key.length >= 16 && got.length === want.length && crypto.timingSafeEqual(got, want);
 }
-app.get('/admin', (req, res) => {
+function reqIp(req) {
   const addr = String(req.socket.remoteAddress).replace(/^::ffff:/, ''), fwd = req.headers['x-forwarded-for'];
-  const ip = fwd && PRIVATE.test(addr) ? String(fwd).split(',').pop().trim() : addr;
+  return fwd && PRIVATE.test(addr) ? String(fwd).split(',').pop().trim() : addr;
+}
+app.get('/admin', (req, res) => {
+  const ip = reqIp(req);
   if (!allow('miss:' + ip, LIMIT.miss, 0)) return res.status(404).end();
   if (!adminOk(req)) { allow('miss:' + ip, LIMIT.miss); return res.status(404).end(); }
   const socks = [...io.sockets.sockets.values()], now = Date.now();
   const rooms = store.all().map(r => ({ r, ...stats.presence(r, socks), idle: now - (r.updatedAt || r.createdAt) }))
     .sort((a, b) => (b.st + b.on + b.watch > 0) - (a.st + a.on + a.watch > 0) || a.idle - b.idle);
   res.set('Cache-Control', 'no-store').set('X-Robots-Tag', 'noindex').type('html').send(adminPage({
-    rooms, lobby: socks.filter(s => !s.data.code).length, samples: stats.read('samples', 30), games: stats.read('games', 30), running: stats.running() }));
+    rooms, lobby: socks.filter(s => !s.data.code).length, samples: stats.read('samples', 30), visits: stats.read('visits', 30), games: stats.read('games', 30), running: stats.running() }));
 });
+// 訪問人次：只數打開首頁（帶房號的邀請鏈接也是首頁）
+app.get(['/', '/index.html'], (req, res, next) => { guard(stats.visit)(reqIp(req), String(req.headers['user-agent'] || '')); next(); });
 // 圖片、音效一天內不再問服務器，過期後先用舊的、後台更新；HTML、JS、CSS 每次都驗證，一部署就是新版
 const IMG = /\.(webp|svg|m4a)$/;
 app.use(express.static(path.join(ROOT, 'public'), { setHeaders: (res, file) => {
