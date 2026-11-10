@@ -7,7 +7,7 @@ import { progressBar } from './progress.js';
 import { sel, stopSelect, fitTableCard, arrowFit } from './town.js';
 import { syncSetup, closePick } from './setup.js';
 import { closeRolePanel } from './rolepick.js';
-import { topbar } from './topbar.js';
+import { topbar, fitTopbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView, intoRoom, backToLobby, resetFx } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
 import { installScript } from './roles.js';
@@ -266,6 +266,7 @@ function render() {
     renderHud(ctx), town, renderBluffs(ctx), countPop(ctx)), progressBar(ctx), side);
   const cur = app.querySelector(':scope > .game:not(.gone)');
   if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
+  fitTopbar();
   fitTableCard();
   if (arrowFit()) return render(); // 輪到誰的箭頭頭頂放不下：挪到頭像旁邊，趁還沒畫到屏幕上重畫一次
   syncSetup(ctx);
@@ -323,6 +324,7 @@ sock.on('disconnect', why => {
 window.boot.out.then(() => syncNet(4000));
 sock.on('bye', bye);
 setRender(render);
+addEventListener('resize', fitTopbar); // 轉屏、改窗口：頂欄重新量一次放不放得下
 // 計票倒數、投票倒數、MVP 倒數每秒重繪
 let clockTick = null;
 setInterval(() => {

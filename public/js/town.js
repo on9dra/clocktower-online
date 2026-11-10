@@ -8,7 +8,7 @@ import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge } from './g
 import { hudLinked } from './hud.js';
 import { trialPanel, trialStub } from './trial.js';
 import { seatPicking } from './infoform.js';
-import { stepCard, decidePicking, markPicking, lastWordCard, noticeCard } from './stepcard.js';
+import { stepCard, decidePicking, markPicking, lastWordCard, noticeCard, ackPart } from './stepcard.js';
 import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub } from './flow.js';
 import { pickRole, canHover, hoverSeat, openPick, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { actBubble, actPicking, startAct, openReminders, passFrom, needPass, passCard, rolePicker } from './manual.js';
@@ -385,7 +385,8 @@ function stBubble(ctx) {
   const ruling = s.isSt && !s.peek && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
   const side = !!ruling && !s.st.ruling;
   const word = s.isSt && !s.peek && s.phase === 'day' && !ruling && s.st.lastWord; // 月之子、呆瓜、心上人死後的選擇
-  return step ? { id: step.id, seatId: step.seatId, roleId: step.roleId, stage: step.status, card: () => (step.status === 'review' ? reviewCard(ctx) : stepCard(ctx)) }
+  // 確認卡要分別告訴幾個人時（stepcard.js ackPart）一人一張：第幾個人拼進 id，換人和換一步一樣換卡
+  return step ? { id: step.id + (ackPart(step) ? '-' + ackPart(step) : ''), seatId: step.seatId, roleId: step.roleId, stage: step.status, card: () => (step.status === 'review' ? reviewCard(ctx) : stepCard(ctx)) }
     : ruling ? { id: `rule-${ruling.kind}-${ruling.seatId}`, seatId: ruling.seatId, ruling, side, card: () => (side ? rulingCard(ctx, ruling, 'virgin') : rulingCard(ctx)) }
       // 代選時這張卡換成選人條，進圓桌中間（手機上角落的小窗是頂上一整條，會壓住上方的座位，點不到）
       : word ? { id: 'word-' + word.seatId, seatId: word.seatId, side: sel.on?.key !== 'word-' + word.seatId, card: () => lastWordCard(ctx, word) } : null;

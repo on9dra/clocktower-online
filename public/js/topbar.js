@@ -62,6 +62,17 @@ function undoButton(ctx) {
     onclick: () => (u ? ctx.st('undo').then(r => r.ok && toast(`已撤銷：${name}`)) : toast('現在沒有可以撤銷的')) }, icon('reset'), h('span', { class: 'undo-k' }, '撤銷'), u && h('small', { class: 'undo-k' }, name));
 }
 
+// 頂欄放不下時一級一級收（每次重畫、改窗口大小後量一次）：先收遊戲名和「說書人」，再收撤銷後面的那一步、「撤銷」兩個字，
+// 「展示角色卡」的字最後收（線下說書人隨時要用，只剩一隻眼睛認不出來）。手機上的標籤（流程 / 角色）會自己縮起來橫滑，也算放不下
+const FIT = ['fit1', 'fit2', 'fit3', 'fit4'];
+export function fitTopbar() {
+  const bar = document.querySelector('.game:not(.gone) > .topbar');
+  if (!bar) return;
+  const over = () => bar.scrollWidth > bar.clientWidth + 1 || [...bar.querySelectorAll(':scope > .m-tabs')].some(t => t.scrollWidth > t.clientWidth + 1);
+  bar.classList.remove(...FIT);
+  for (const c of FIT) { if (!over()) break; bar.classList.add(c); }
+}
+
 export function topbar(ctx) {
   const s = ctx.state, me = s.seats.find(x => x.mine);
   const stKey = s.isSt && ctx.ls.get('botc.st.' + s.code);

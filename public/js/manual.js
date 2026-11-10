@@ -139,11 +139,22 @@ export function rolePicker(ctx, onPick, title = '選角色', opts = {}) {
     alive: () => ctx.state?.code === code && (!owner || (act === owner && live(ctx.state))), ...opts });
 }
 
-// 展示身份：線下比劃不出來的只有角色，挑一張整屏亮給他看（數字、是否當面比手勢就行）。頂欄、座位菜單、標記卡都從這裏進
-// 展示角色卡：先從劇本單挑一張，再和傳閱身份一樣蓋著交出去、確認了才翻（pass.js passRoleCard）。帶 seatId 時蓋著的牌上寫「交給 ③」
-export const showRole = (ctx, seatId) => rolePicker(ctx, id => passRoleCard(ctx.state, id, seatId),
-  [icon('eye'), seatId && seatBadge(ctx.state, seatId), w('展示角色卡')],
-  { key: 'show-' + (seatId || ''), alive: () => !!ctx.state?.isSt && ctx.state.phase !== 'lobby' });
+// 展示身份：線下比劃不出來的只有角色，挑一張整屏亮給他看（數字、是否當面比手勢就行）。頂欄（隨時）、標記卡（帶上行動者）都從這裏進。
+// 紙頂（「給誰看」下面）一排座位挑給誰看（可以不挑），再從劇本單挑一張；和傳閱身份一樣蓋著交出去：「交給 ③ 名字」，他確認是本人才翻（pass.js passRoleCard）。
+// 挑了誰寫在索引籤上；只換這幾個按鈕的 class，不重畫
+export function showRole(ctx, seatId = null) {
+  const s = ctx.state, who = h('span', { class: 'rp-to-who' });
+  let to = seatId;
+  const seats = h('div', { class: 'rp-to' }, s.seats.map(x => h('button', { class: 'rp-to-seat', 'data-id': x.id, title: x.name || null,
+    onclick: () => { to = to === x.id ? null : x.id; mark(); } }, seatBadge(s, x.id))));
+  const mark = () => {
+    who.replaceChildren(...(to ? [seatBadge(ctx.state, to)] : []));
+    for (const b of seats.children) b.classList.toggle('on', b.dataset.id === String(to));
+  };
+  mark();
+  rolePicker(ctx, id => passRoleCard(ctx.state, id, to), [icon('eye'), who, w('展示角色卡')],
+    { key: 'show-' + Date.now(), lead: w('給誰看', 'ink'), top: seats, alive: () => !!ctx.state?.isSt && ctx.state.phase !== 'lobby' });
+}
 
 // ───── 貼標記 ─────
 const COMMON = ['中毒', '醉酒', '被保護', '能力已用', '瘋狂', '查驗過'];

@@ -150,6 +150,17 @@
   .rp-role .token.sm { width: 44px; height: 44px; }
 }
 
+/* 展示角色卡：紙頂一排座位挑給誰看（manual.js showRole），挑中的填黑；索引籤上跟著寫出來 */
+.rp-to { display: flex; flex-wrap: wrap; gap: 2px 4px; padding: 4px 12px 8px; background: var(--r-thin, none) 0 100% / 600px 7px repeat-x; }
+@media (max-width: 640px) { .rp-to { padding-inline: 6px; gap: 0 2px; } }
+.rp-to-seat { display: grid; place-items: center; min-width: 34px; min-height: 34px; padding: 0; border: 0; background: none; cursor: pointer; }
+.rp-to-seat .sb { font-size: 15px; transition: background-color .15s ease, color .15s ease, box-shadow .15s ease; }
+.rp-to-seat.on .sb { background: var(--ink); color: var(--card); box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--brass); }
+@media (hover: hover) { .rp-to-seat:not(.on):hover .sb { background: var(--hover); } }
+.rp-to-who:empty { display: none; }
+.rp-to-who { display: inline-flex; }
+.rp-to-who > .sb { animation: rp-pop .22s cubic-bezier(.3,1.4,.5,1); } /* 換一個人也蓋一下 */
+
 /* 紙頂一行裏的小圖標（遊戲中換角色：今晚順序不變、私下通知他） */
 .rp-lead .rp-ico { width: 15px; height: 15px; color: var(--muted); }
 .rp-say { display: inline; }

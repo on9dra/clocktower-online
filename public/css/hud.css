@@ -967,24 +967,22 @@ button.hv:active { transform: scale(.94); }
 /* 線下局撤銷（頂欄）：圖標 + 「撤銷」+ 要撤的那一步；手機上只留圖標 */
 .topbar .undo { display: inline-flex; align-items: center; gap: 4px; }
 .topbar .undo .ico { width: 15px; height: 15px; transform: scaleX(-1); }
-/* 英文按鈕字長：手機上撤銷、展示角色卡只留圖標（title 照樣說明） */
-@media (max-width: 600px) { :root[data-lang="en"] .topbar :is(.undo .undo-k, .show-role > span) { display: none; } }
-/* 中寬屏（手機頂欄之上）頂欄放不下時「⋯」會被擠出屏幕、字被折成豎排：字不折行；越窄先收按鈕上的字（只留圖標，標題提示還在），再收遊戲名和「說書人」。
-   英文詞比漢字長，同樣的事在更寬的屏上就要做 */
-.topbar :is(.brand, .who, .room) { flex: none; white-space: nowrap; }
+/* 頂欄放不下時「⋯」會被擠出屏幕、字被折成豎排：字不折行、不擠扁；放不下就按 topbar.js fitTopbar 量的一級一級收（只留圖標，標題提示還在）：
+   遊戲名和「說書人」→ 撤銷後面那一步 →「撤銷」→「展示角色卡」。英文詞比漢字長，自然收得早一些 */
+.topbar :is(.brand, .who, .room, .undo, .show-role) { flex: none; white-space: nowrap; }
+.topbar.fit1 :is(.brand, .who) { display: none; }
+.topbar.fit2 .undo small { display: none; }
+.topbar.fit3 .undo .undo-k { display: none; }
+.topbar.fit4 .show-role > span { display: none; }
 :root[data-lang="en"] .topbar .brand { letter-spacing: 1px; }
-@media (max-width: 1000px) { .topbar :is(.undo .undo-k, .show-role > span, .brand, .who) { display: none; } }
 @media (max-width: 960px) { :root[data-lang="en"] .room i { display: none; } }
 @media (max-width: 340px) { :root[data-lang="en"] .topbar .m-tabs .btn.sm { font-size: 13px; } } /* 最窄的手機：四個英文標籤剛好放下，不用橫滑 */
 .tabs > * { white-space: nowrap; } /* 側欄頁籤：「Game log」不折成兩行把整排撐高 */
-@media (max-width: 1360px) { :root[data-lang="en"] .topbar :is(.undo .undo-k, .show-role > span) { display: none; } }
-@media (max-width: 1180px) { :root[data-lang="en"] .topbar :is(.brand, .who) { display: none; } }
 .topbar .undo small { color: var(--muted); font-size: 11px; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar .undo.disabled { opacity: .4; pointer-events: auto; } /* 灰著也能點：點了說沒有可撤銷的 */
 @media (max-width: 600px) { .topbar .undo:not(.one) .undo-k, .topbar .undo small { display: none; } }
 /* 手機上多設備線下局的說書人：頂欄要留撤銷和四個標籤，展示角色卡、積分榜收進「⋯」（topbar.js tucked）。單設備在很窄的手機上「展示角色卡」只留眼睛 */
 @media (max-width: 600px) { .topbar :is(.show-role.many, .board-btn.st-off) { display: none; } }
-@media (max-width: 374px) { .topbar .show-role > span { display: none; } } /* 單設備頂欄空出了位置，「撤銷」兩個字留著，不然像刷新鍵 */
 /* 建房選模式的第二步：回到線上 / 線下 */
 .venue-pane { flex-wrap: wrap; }
 .venue-back { flex-basis: 100%; margin-top: 4px; background: none; border: 0; color: var(--muted); font: 600 13px var(--sans); cursor: pointer; }

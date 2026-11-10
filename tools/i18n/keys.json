@@ -1315,6 +1315,9 @@
  "給 {0} 加備註": [
   "public/js/side.js"
  ],
+ "給誰看": [
+  "public/js/manual.js"
+ ],
  "給他看魔典": [
   "public/js/infoform.js"
  ],

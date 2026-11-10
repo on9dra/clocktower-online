@@ -180,22 +180,6 @@ function markCard(ctx, step) {
       B('下一個', () => stepOp(ctx, 'ack'), 'wide' + stepLock())));
 }
 
-// 單設備：結果裏有玩家要知道的，整屏一人一頁給他們看。
-// 舞蛇人換到惡魔：兩人各看自己的新角色；教父首夜：在場的外來者（沒有就是 0）；鏡像雙子：兩人各看對方是誰
-function ackPages(s, step) {
-  const { e, f } = step.result || {}, role = id => s.seats.find(x => x.id === id)?.role;
-  let pages = [];
-  if (e?.swap && e.to?.[0]) pages = [{ to: e.seat, body: bigRoles([e.swap.role]) }, { to: e.to[0], body: bigRoles([e.swap.gave]) }];
-  else if (step.roleId === 'godfather' && f) { const out = f.filter(t => t.r).map(t => t.r); pages = [{ to: step.seatId, body: out.length ? bigRoles(out) : bigNum(0) }]; }
-  else if (step.roleId === 'eviltwin' && e?.to?.[0]) {
-    const [a, b] = [e.seat, e.to[0]];
-    pages = [{ to: a, body: bigCore(s, { seats: [b], roles: [role(b)] }) }, { to: b, body: bigCore(s, { seats: [a], roles: [role(a)] }) }];
-  }
-  // 這一步私下告訴了別人的（服務端 step.told：麻臉巫婆變了他的角色、小惡魔傳位、洗腦師讓他瘋狂、驅魔人選中了惡魔……），上面沒給過的每人一頁
-  const done = new Set(pages.map(p => p.to));
-  for (const t of step.told || []) if (!done.has(t.seatId)) { done.add(t.seatId); pages.push({ to: t.seatId, body: toldCore(s, t.f) }); }
-  return pages;
-}
 // 一條私下告訴的話的核心：帶顏色的短詞（瘋狂）、座位、角色牌，別的字不要
 function toldCore(s, f) {
   if (!f) return null;
@@ -222,33 +206,49 @@ function toldObj(s, t) {
     default: return h('span', { class: 'frm' }, formula(s, f.filter(x => !x.op)));
   }
 }
-// 返回 { lines, ids }：ids 是這幾句已經說到的人（結果式子只說這些人的話就不用再擺）
-function ackSays(s, step) {
-  const { e, f } = step.result || {}, role = id => s.seats.find(x => x.id === id)?.role, lines = [], ids = new Set();
+// 單設備：這一步要私下告訴的人，一人一份 { to, line 卡上照著念的一句, body 整屏給他看的核心 }。
+// 舞蛇人換到惡魔：兩人各自的新角色（先告知還睜著眼的舞蛇人，再叫醒原惡魔）；教父首夜：在場的外來者（沒有就是 0）；鏡像雙子：兩人各看對方是誰；
+// 服務端 step.told（麻臉巫婆變了他的角色、小惡魔傳位、洗腦師讓他瘋狂、驅魔人選中了惡魔……）上面沒說到的人每人一份
+function tells(s, step) {
+  const { e, f } = step.result || {}, role = id => s.seats.find(x => x.id === id)?.role, out = [];
   const awake = id => id === step.seatId && (step.picks || []).length > 0; // 這一步替他點過人：他還睜著眼
-  const say = (id, kind, obj) => { ids.add(id); lines.push(tellLine(s, id, kind, obj, awake(id))); };
-  if (e?.swap && e.to?.[0]) { say(e.seat, 'become', named(e.swap.role)); say(e.to[0], 'become', named(e.swap.gave)); }
-  else if (step.roleId === 'godfather' && f) { const out = f.filter(t => t.r).map(t => t.r); say(step.seatId, out.length ? 'outsiders' : 'noOutsider', out.map(named)); }
+  const add = (to, kind, obj, body) => { if (!out.some(p => p.to === to)) out.push({ to, line: tellLine(s, to, kind, obj, awake(to)), body }); };
+  if (e?.swap && e.to?.[0]) { add(e.seat, 'become', named(e.swap.role), bigRoles([e.swap.role])); add(e.to[0], 'become', named(e.swap.gave), bigRoles([e.swap.gave])); }
+  else if (step.roleId === 'godfather' && f) { const r = f.filter(t => t.r).map(t => t.r); add(step.seatId, r.length ? 'outsiders' : 'noOutsider', r.map(named), r.length ? bigRoles(r) : bigNum(0)); }
   else if (step.roleId === 'eviltwin' && e?.to?.[0]) {
     const [a, b] = [e.seat, e.to[0]];
-    say(a, 'twin', [seatBadge(s, b), named(role(b))]); say(b, 'twin', [seatBadge(s, a), named(role(a))]);
+    add(a, 'twin', [seatBadge(s, b), named(role(b))], bigCore(s, { seats: [b], roles: [role(b)] }));
+    add(b, 'twin', [seatBadge(s, a), named(role(a))], bigCore(s, { seats: [a], roles: [role(a)] }));
   }
-  for (const t of step.told || []) if (!ids.has(t.seatId)) say(t.seatId, toldKind(t), toldObj(s, t));
-  return { lines, ids };
+  for (const t of step.told || []) add(t.seatId, toldKind(t), toldObj(s, t), toldCore(s, t.f));
+  return out;
+}
+// 要告訴兩個人以上的（舞蛇人換到惡魔、鏡像雙子、理髮師換了兩人……）拆成一人一張卡，和兩步一樣：
+// 「告知 ⑨：他變成了 方古」展示完按「下一個」，才換成「叫醒 ③，讓他得知自己變成了 舞蛇人」，最後一個人的「下一個」才往下走。
+// 到第幾個人記在本機（重新整理還停在這個人）；town.js 把它拼進卡的 id，換人和換一步一樣：舊卡退場、新卡進場
+let part = (() => { try { return JSON.parse(sessionStorage.getItem('botc.part')) || {}; } catch { return {}; } })();
+export const ackPart = step => (step && part.id === step.id ? part.i : 0);
+function nextPart(ctx, step) {
+  part = { id: step.id, i: ackPart(step) + 1 };
+  try { sessionStorage.setItem('botc.part', JSON.stringify(part)); } catch { /* 無痕模式：只記在這一頁 */ }
+  ctx.render();
 }
 // 玩家用完能力：這一步的結果，說書人確認了才叫下一位
 function ackCard(ctx, step) {
   if (step.lines) return groupCard(ctx, step);
   const s = ctx.state, { note, e, f } = step.result || {}, picks = step.picks || [];
-  const says = s.oneDevice ? ackSays(s, step) : { lines: [], ids: new Set() };
+  const parts = s.oneDevice ? tells(s, step) : [], ids = new Set(parts.map(p => p.to));
+  const i = Math.min(ackPart(step), parts.length - 1), last = i >= parts.length - 1;
   // 結果式子：沒有要說的話時它就是卡的內容；有的話只在它還說了別的事時留著（小惡魔自殺傳位、麻臉巫婆造惡魔後誰死）
-  const keep = !says.lines.length || (e?.k === 'act' && !e.swap && !['eviltwin', 'godfather'].includes(step.roleId) && (e.to || []).some(id => !says.ids.has(id)));
+  const keep = !parts.length || (e?.k === 'act' && !e.swap && !['eviltwin', 'godfather'].includes(step.roleId) && (e.to || []).some(id => !ids.has(id)));
   const what = !keep ? null : f ? formula(s, f) : e?.k === 'act' && (e.to?.length || e.role) ? actRow(s, e) : note ? w(note, 'ink')
     : picks.length ? [w('選了', 'ink'), picks.map(id => seatBadge(s, id))] : w('沒有使用能力', 'muted');
-  const pages = s.oneDevice ? ackPages(s, step) : [], next = () => stepOp(ctx, 'ack');
+  const next = () => stepOp(ctx, 'ack');
+  // 展示：只給這張卡上的這個人看（按的時候用最新的狀態）
+  const show = () => { const p = tells(ctx.state, step)[i]; p && showPages(ctx.state, [{ to: p.to, body: p.body }]); };
   return h('div', { class: 'card focus infocard spread' },
-    h('div', { class: 'ic-top' }, head(s, step), what && h('div', { class: 'frm big' + (says.lines.length ? ' sub' : '') }, what), goonLine(s, step), says.lines),
-    h('div', { class: 'ic-foot' }, pages.length ? h('div', { class: 'row' }, B([icon('eye'), '展示'], () => showPages(ctx.state, ackPages(ctx.state, step))), B('下一個', next, stepLock()))
+    h('div', { class: 'ic-top' }, head(s, step), what && h('div', { class: 'frm big' + (parts.length ? ' sub' : '') }, what), goonLine(s, step), parts[i]?.line),
+    h('div', { class: 'ic-foot' }, parts.length ? h('div', { class: 'row' }, B([icon('eye'), '展示'], show), last ? B('下一個', next, stepLock()) : B('下一個', () => nextPart(ctx, step)))
       : B('確認', next, 'wide' + stepLock())));
 }
 
