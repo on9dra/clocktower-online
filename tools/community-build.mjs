@@ -14,7 +14,7 @@ const { createRoom, remove } = await import('../lib/store.js');
 const { applyStOp, joinPlayer } = await import('../lib/ops.js');
 const { parseScript } = await import('../lib/script.js');
 const { OFFICIAL } = await import('../lib/official.js');
-const { SCRIPTS } = await import('../public/js/roles.js');
+const { SCRIPTS, ROLES, CORE } = await import('../public/js/roles.js');
 const { COMMUNITY } = await import('../public/js/community.js');
 
 const SRC = process.argv[2];
@@ -40,8 +40,9 @@ const norm = s => String(s || '').toLowerCase().replace(/\s+|v\d+(\.\d+)*$/g, ''
 const isHome = (s, id) => !!s.defs[id] && !OFFICIAL[id]; // 自製角色（官方角色但沒有內置規則的也在 defs 裏，不算）
 const sig = s => s.roles.map(id => (isHome(s, id) ? s.defs[id].name + s.defs[id].team : id)).sort().join(',');
 
-// 不收：內置的三本官方劇本、已經在海外熱門裏的
-const known = new Set([...Object.values(SCRIPTS).map(s => [...s.roles].sort().join(',')), ...COMMUNITY.map(c => [...c.roles].sort().join(','))]);
+// 不收：內置的三本官方劇本、已經在海外熱門裏的。只比四類能發給玩家的角色（博物館的 Json 常帶著旅行者、傳奇角色）
+const core = ids => ids.filter(id => CORE.includes(ROLES[id]?.team)).sort().join(',');
+const known = new Set([...Object.values(SCRIPTS).map(s => core(s.roles)), ...COMMUNITY.map(c => core(c.roles))]);
 
 function trial(entries) {
   const ok = [];
@@ -75,7 +76,7 @@ for (const f of files) {
   const stem = path.basename(f).replace(/\.json$/i, '').replace(/[（(]\d+[)）]$/, '').replace(/^\d*#/, '');
   const [fn, fa] = stem.includes('-') ? [stem.slice(0, stem.lastIndexOf('-')), stem.slice(stem.lastIndexOf('-') + 1)] : [stem, ''];
   const name = (s.name && s.name !== '自製劇本' ? s.name : fn).trim(), author = (s.author || fa || '').trim();
-  if (!s.roles.some(id => isHome(s, id)) && known.has([...s.roles].sort().join(','))) continue;
+  if (!s.roles.some(id => isHome(s, id)) && known.has(core(s.roles))) continue;
   found.push({ f, cat, name, author, entries, s, sig: sig(s) });
 }
 // 去重：同名同作者 → 留分類靠前的；角色組合一模一樣 → 只留一本
