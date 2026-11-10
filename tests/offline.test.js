@@ -95,15 +95,45 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   r.seats.forEach((s, i) => ok(st(r, 'setRole', { seatId: s.id, roleId: roles[i] })));
   ok(st(r, 'next'));
   const [demon, minion, luna] = r.seats;
-  assert.deepStrictEqual(r.g.step.lines.map(l => [l.seatId, l.demon]), [[minion.id, demon.id]], '瘋子不參加互認');
+  // 爪牙、瘋子、惡魔各自單獨叫醒：爪牙那一步只有爪牙（惡魔、瘋子都不睜眼）
+  assert.deepStrictEqual([r.g.step.roleId, ...r.g.step.lines.map(l => [l.seatId, l.demon])], ['minioninfo', [minion.id, demon.id]], '只叫醒爪牙');
   ok(st(r, 'ack'));
-  const [d, l] = r.g.step.lines;
-  assert.deepStrictEqual([r.g.step.roleId, d.seatId, d.lunatic, l.seatId, l.lunatic], ['demoninfo', demon.id, false, luna.id, true]);
+  const [l] = r.g.step.lines;
+  assert.deepStrictEqual([r.g.step.roleId, r.g.step.lines.length, l.seatId, l.lunatic], ['lunainfo', 1, luna.id, true], '瘋子在惡魔之前單獨叫醒');
   assert.strictEqual(l.minions.length, 1, '瘋子看到的假爪牙和真爪牙一樣多');
   assert.ok(!l.minions.includes(luna.id));
   assert.strictEqual(l.bluffs.length, 3, '瘋子也有三個偽裝');
+  ok(st(r, 'ack'));
+  const [d] = r.g.step.lines;
+  assert.deepStrictEqual([r.g.step.roleId, r.g.step.lines.length, d.seatId, d.lunatic, d.luna], ['demoninfo', 1, demon.id, false, luna.id]);
   assert.ok(d.f.some(t => t.s === luna.id) && d.f.some(t => t.r === 'lunatic'), '惡魔得知誰是瘋子');
-  console.log('單設備首夜有瘋子 ✔');
+  // 瘋子看到的和真惡魔一模一樣：式子的版式、文字的句式、手機上那一條的來源都相同，只是內容不同
+  const shape = f => f.map(t => Object.keys(t).sort().join(',') + (t.tag || t.op || ''));
+  assert.deepStrictEqual(shape(l.f), shape(d.f).slice(0, l.f.length), '瘋子的式子和惡魔的前半一樣');
+  assert.ok(d.f[l.f.length]?.op === 'br', '惡魔多出來的只是後面另起一行的「誰是瘋子」');
+  const msg = id => r.chat.find(m => m.to === id && m.info && /你的爪牙/.test(m.text));
+  assert.strictEqual(msg(luna.id).src, msg(demon.id).src, '手機上的來源相同');
+  for (const id of [luna.id, demon.id]) assert.match(msg(id).text, /^你的爪牙：[^。]*。三個不在場的善良角色（可用來偽裝）：/, '句式相同');
+  console.log('單設備首夜有瘋子：分開叫醒、瘋子看到的和惡魔一樣 ✔');
+}
+
+// 瘋子的假爪牙按座位順序列（亂序一眼看得出是假的）；多設備 / 線上一樣直接發到手機上，不停
+{
+  for (let k = 0; k < 20; k++) {
+    const r = createRoom();
+    for (let i = 0; i < 10; i++) joinPlayer(r, 'p' + i, 'n' + i);
+    ok(st(r, 'venue', { venue: 'offline', devices: 'many' }));
+    ok(st(r, 'script', { scriptId: 'bmr' }));
+    const roles = ['zombuul', 'godfather', 'devilsadvocate', 'lunatic', 'sailor', 'chambermaid', 'innkeeper', 'gambler', 'gossip', 'exorcist'];
+    r.seats.forEach((s, i) => ok(st(r, 'setRole', { seatId: s.id, roleId: roles[i] })));
+    ok(st(r, 'next'));
+    const luna = r.seats[3], f = r.chat.find(m => m.to === luna.id && m.src === 'demoninfo').f;
+    const seats = f.filter(t => t.s).map(t => r.seats.findIndex(x => x.id === t.s));
+    assert.strictEqual(seats.length, 2);
+    assert.deepStrictEqual(seats, [...seats].sort((a, b) => a - b), '假爪牙按座位順序');
+    assert.notStrictEqual(r.g.step?.roleId, 'lunainfo', '多設備不停在瘋子信息');
+  }
+  console.log('瘋子的假爪牙按座位順序，多設備不停 ✔');
 }
 
 // 單設備：占卜師這類查驗，點完人停在結果卡上（整屏提示該告訴他什麼），說書人點「下一個」才結束；被查的人掛「誰查過」的標記，日誌記下結果
@@ -230,6 +260,7 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   assert.strictEqual(r.g.step.status, 'ack', '停下來讓說書人叫醒新惡魔');
   assert.deepStrictEqual(r.g.step.told.map(t => t.seatId), [poisoner.id]);
   assert.ok(r.g.step.told[0].f.some(t => t.r === 'imp'), '給他看小惡魔');
+  assert.strictEqual(r.g.step.told[0].k, 'role', '換了角色：卡上寫「叫醒他，讓他得知自己變成了小惡魔」');
   ok(st(r, 'ack'));
   console.log('單設備私下告訴的事停下來給他看 ✔');
 }

@@ -65,7 +65,7 @@ function rowView(ctx, m) {
 function rowBody(s, m) {
   if (m.k === 'act') {
     const a = ACTS[m.src], picked = (m.f || []).some(t => t.s || t.r);
-    return [a && h('span', { class: 'act-chip ' + a.tone }, icon(a.ico)), picked ? [a?.mark && w(a.mark, 'ink'), formula(s, m.f.filter(t => t.op !== 'to'))] : w('沒有選人', 'muted')];
+    return [a && h('span', { class: 'act-chip ' + a.tone }, icon(a.ico)), picked ? [a ? a.mark && w(a.mark, 'ink') : w('選了', 'ink'), formula(s, m.f.filter(t => t.op !== 'to'))] : w('沒有選人', 'muted')]; // 系統不認識的角色沒有自己的動作詞
   }
   return [!m.src ? w('說書人', 'src') : ROLES[m.src] && m.src !== s.myRole && mini(m.src, 'src'),
     m.f ? formula(s, m.f) : h('span', { class: 'hud-text' }, m.text)];

@@ -3,7 +3,7 @@ import { h, seatLabel, ask, prompt2, roleToken, modal, closeModal } from './ui.j
 import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup, outsiderShift } from './roles.js';
 import { sel, stopSelect } from './town.js';
 import { openSetup, pickBluff } from './setup.js';
-import { uploadScript, communityScripts, startAct, mayNominate } from './manual.js';
+import { uploadScript, communityScripts, startAct, mayNominate, needPass } from './manual.js';
 import { seatBadge, mini, icon, actIcon, tag, named, w, ACTS } from './glyph.js';
 import { nightHeld } from './fx.js';
 import { openInvite } from './invite.js';
@@ -56,7 +56,7 @@ const row = (...kids) => h('div', { class: 'frm-line' }, kids);
 const btns = (...kids) => h('div', { class: 'row' }, kids);
 // 選人狀態：服務端的 choose（count / counts / notSelf / alive / dead / roles / roleOptional）→ 本地的 sel.on
 export const selFrom = (key, c, selfId) => ({ key, ids: [], count: c.count, counts: c.counts || [c.count], notSelfId: c.notSelf ? selfId : null, last: c.last || [],
-  alive: !!c.alive, dead: !!c.dead, roles: c.roles || null, roleOptional: !!c.roleOptional, role: null });
+  alive: !!c.alive, dead: !!c.dead, roles: c.roles || null, roleOptional: !!c.roleOptional, role: null, any: !!c.any });
 const pickOk = on => on.counts.includes(on.ids.length) && (!on.roles || !!on.role || (on.roleOptional && !on.ids.length));
 // 還差什麼：灰著的「確認」點了說這一句
 const pickWhy = on => {
@@ -71,7 +71,8 @@ let cx = null; // 最近畫卡的 ctx：玩家的牌（turnPane）調 confirmPic
 // 要選幾個人：選中的座位號 + 還空著的虛線圈
 const slots = ctx => {
   cx = ctx;
-  const ids = sel.on.ids, n = Math.max(...sel.on.counts);
+  // any：選幾個都行（系統不認識的角色，能力寫著「任意數量」）：只多留一個空圈，不把一排人數全畫出來
+  const ids = sel.on.ids, max = Math.max(...sel.on.counts), n = sel.on.any ? Math.min(max, ids.length + 1) : max;
   return n > 0 && h('span', { class: 'slots' }, ids.map(id => seatBadge(ctx.state, id)),
     Array.from({ length: Math.max(0, n - ids.length) }, () => h('span', { class: 'sb empty' + (sel.on.counts.includes(0) ? ' opt' : '') })));
 };
@@ -328,13 +329,15 @@ function venuePane(ctx) {
 
 // 單設備定人數：空桌時圓桌中間一排人數，點一下坐滿；之後 − N 人 + 微調（和角色配置、隨機抽取同一排）。名字點座位下面的名牌改（town.js）
 const countPick = ctx => h('div', { class: 'count-pick', 'data-key': 'count-pick', 'data-exit': true }, w('幾人', 'muted'),
-  h('div', { class: 'cp-grid' }, Array.from({ length: 11 }, (_, i) => B(String(i + 5), () => ctx.st('seatCount', { n: i + 5 }), 'ghost'))));
+  h('div', { class: 'cp-grid' }, Array.from({ length: maxOf(ctx.state) - 4 }, (_, i) => B(String(i + 5), () => ctx.st('seatCount', { n: i + 5 }), 'ghost'))));
+// 劇本最多幾人：小劇本（社區劇本標 5-6人 的）6 人，其餘 15 人（服務端 lib/util.js maxSeats）
+const maxOf = s => SCRIPTS[s.scriptId]?.max || 15;
 function seatCounter(ctx) {
   const n = ctx.state.seats.length, set = k => ctx.st('seatCount', { n: k });
   return h('span', { class: 'add-seats' },
     BW('−', () => set(n - 1), 'ghost sq', n > 0 ? null : '已經沒有座位了'),
     h('span', { class: 'sc-n' }, h('b', {}, n), '人'),
-    BW('+', () => set(n + 1), 'ghost sq', n < 15 ? null : '最多 15 人'));
+    BW('+', () => set(n + 1), 'ghost sq', n < maxOf(ctx.state) ? null : maxOf(ctx.state) < 15 ? `這個劇本最多 ${maxOf(ctx.state)} 人` : '最多 15 人'));
 }
 
 // 開局前檢查：block 是開不了的（人不夠、有座位沒角色），warn 是提醒（沒有惡魔、配比不對、紅鯡魚、偽裝……），看過可以照樣開
@@ -342,6 +345,7 @@ function startChecks(s, due, off) {
   const st = s.st, n = s.seats.length, block = [], warn = [];
   const bare = s.seats.map((x, i) => !x.role && i + 1).filter(Boolean);
   if (n < 5) block.push(`至少要 5 人，現在 ${n} 人`);
+  else if (n > maxOf(s)) block.push(`這個劇本只適合 5–${maxOf(s)} 人，現在 ${n} 人：減人或者換劇本`);
   else if (bare.length === n) block.push('還沒有角色：點「隨機抽取」，或者點座位指定');
   else if (bare.length) block.push(`${bare.join('、')} 號還沒有角色：點「隨機抽取」補上，或者點座位指定`);
   if (block.length) return { block, warn };
@@ -351,7 +355,12 @@ function startChecks(s, due, off) {
   const twice = [...new Set(roles.filter((id, i) => roles.indexOf(id) !== i))];
   if (twice.length) warn.push(`重複的角色：${twice.map(id => ROLES[id].name).join('、')}`);
   if (s.seats.some(x => x.role === 'fortuneteller' || x.fakeRole === 'fortuneteller') && !st.redHerring) warn.push('占卜師的紅鯡魚還沒設（偽裝下面那一格）');
-  if ((st.bluffs || []).filter(Boolean).length < 3) warn.push('惡魔的偽裝不夠 3 個');
+  // 偽裝只能是不在場的善良角色：小劇本人多時劇本裏的善良角色幾乎都上了場，說清楚為什麼不夠
+  const spare = SCRIPTS[s.scriptId]?.roles.filter(id => ['townsfolk', 'outsider'].includes(ROLES[id].team) && id !== 'drunk' && !s.seats.some(x => x.role === id || x.fakeRole === id)).length;
+  if ((st.bluffs || []).filter(Boolean).length < 3) warn.push(spare < 3 ? `惡魔的偽裝不夠 3 個：劇本裏不在場的善良角色只剩 ${spare} 個，人數超過劇本適合的人數了` : '惡魔的偽裝不夠 3 個');
+  // 提線木偶要和惡魔鄰座（官方）：隨機抽取會排好，手動指定的沒挨著就提醒
+  const demonAt = roles.flatMap((id, i) => (ROLES[id].team === 'demon' ? [i] : [])), near = (i, j) => (i - j + n) % n === 1 || (j - i + n) % n === 1;
+  roles.forEach((id, i) => { if (id === 'marionette' && demonAt.length && !demonAt.some(j => near(i, j))) warn.push(`${i + 1} 號提線木偶要坐在惡魔旁邊`); });
   return { block, warn };
 }
 // 開始遊戲：一直在圓桌正中間（手機上底部會被 Safari 的地址欄擋住）。開不了時是灰的，點了說為什麼；只有提醒時列出來，可以照樣開
@@ -399,8 +408,12 @@ function lobbyPane(ctx) {
       // 這一排抽沒抽都在原位、不換字（人不夠時置灰不隱藏），說書人的手不用重新找按鈕；抽完只在下面多出來，位置預先留好，圓桌中央的居中不會把這排頂走。
       // 線下大家坐在哪就是哪，不打亂座位；單設備這一排開頭是人數
       btns(s.oneDevice && seatCounter(ctx), !s.offline && BW('打亂座位', () => ctx.st('shuffleSeats'), 'ghost', n > 1 ? null : '至少要兩個人才能換座'), B('角色配置', () => openSetup(ctx)),
-        BW('隨機抽取', () => ctx.st('draft'), '', n >= 5 ? null : `至少要 5 人才能抽，現在 ${n} 人`)),
-      h('div', { class: 'lobby-after' }, st.draft && row(tag('bluff'), st.bluffs.map((id, i) => h('button', { class: 'bluff-pick' + (st.bluffPins?.[i] ? ' pinned' : ''), title: '指定', onclick: () => pickBluff(ctx, i) }, named(id)))),
+        BW('隨機抽取', () => ctx.st('draft'), '', n < 5 ? `至少要 5 人才能抽，現在 ${n} 人` : n > maxOf(s) ? `這個劇本只適合 5–${maxOf(s)} 人，現在 ${n} 人` : null)),
+      // 偽裝永遠三格：小劇本人多時不在場的善良角色不夠，抽不滿的格子留成「空」，照樣能點開選；「偽裝」兩個字也能點開
+      h('div', { class: 'lobby-after' }, st.draft && row(
+        h('button', { class: 'bluff-pick bluff-tag', title: '指定', onclick: () => pickBluff(ctx, Math.max(0, [0, 1, 2].findIndex(i => !st.bluffs[i]))) }, tag('bluff')),
+        [0, 1, 2].map(i => { const id = st.bluffs[i];
+          return h('button', { class: 'bluff-pick' + (st.bluffPins?.[i] ? ' pinned' : '') + (id ? '' : ' empty'), title: '指定', onclick: () => pickBluff(ctx, i) }, id ? named(id) : w('空', 'muted')); })),
         herringRow(ctx))));
 }
 
@@ -412,7 +425,7 @@ export function herringPicking(ctx) {
   const s = ctx.state;
   if (herringPick !== s.inst || !s.isSt || s.peek || s.phase !== 'lobby' || !hasFt(s)) return null;
   const good = s.seats.filter(x => x.role && TEAMS[ROLES[x.role].team]?.good).map(x => x.id); // 官方：占卜師本人也可以
-  return { can: new Set(good), on: new Set([s.st.redHerring].filter(Boolean)), fixed: new Set(),
+  return { can: new Set(good), on: new Set([s.st.redHerring].filter(Boolean)), fixed: new Set(), why: () => '紅鯡魚只能是善良玩家',
     pick: id => { herringPick = null; ctx.st('setRedHerring', { seatId: id }); ctx.render(); } };
 }
 function herringRow(ctx) {
@@ -434,7 +447,9 @@ export function syncPrompt(ctx) {
 export function syncStPick(ctx) {
   const s = ctx.state, step = s.st?.step;
   if (!s.isSt || s.peek || !s.offline) return;
-  if (s.phase === 'night' && step?.status === 'choose') {
+  // 桌子中間先擺著別的卡（第 1 夜的傳閱身份、紅唇女郎接任的提示）時還沒輪到這一步：不進選人，否則座位按這一步的規則變灰
+  const ahead = needPass(ctx) || !!s.st?.notice;
+  if (s.phase === 'night' && step?.status === 'choose' && !ahead) {
     if (!sel.on || sel.on.key !== step.id) sel.on = { ...selFrom(step.id, step.choose, step.seatId), auto: true };
   } else if (sel.on?.auto) sel.on = null;
 }
@@ -457,14 +472,16 @@ function turnPane(ctx) {
   // 這一步的角色（理髮師死後惡魔替他選人時是理髮師）
   const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = !s.prompt.manual && ACTS[rid]; // 手動局的牌是說書人寫的，不用角色自己的說法
   const say = (typeof a?.say === 'function' ? a.say(s.prompt) : a?.say) || [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
-  const key = 'turn-' + s.prompt.stepId, send = cls => confirmPick((ids, role) => ctx.act('pick', { ids, role }), cls);
+  // wake：系統不認識的角色、不用選人（只得知信息）——只告訴他輪到了，沒有可按的，等說書人把信息發過來
+  const wake = !!s.prompt.wake;
+  const key = 'turn-' + s.prompt.stepId, send = cls => !wake && confirmPick((ids, role) => ctx.act('pick', { ids, role }), cls);
   // 收起時選好了也能直接確認，不用再展開一次
   if (isFolded(key)) return foldStub(ctx, key, rid && !s.veiled && mini(rid), slots(ctx), roleSlot(ctx), send('sm'));
-  return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : ''), 'data-key': 'turn', 'data-exit': true },
+  return h('div', { class: 'cx turn-pane' + (a ? ' ' + a.tone : '') + (wake ? ' wake' : ''), 'data-key': 'turn', 'data-exit': true },
     // 遮住身份時牌頭也蓋著（旁邊的人能看到這張牌）
     h('div', { class: 'tp-head' }, s.veiled ? h('div', { class: 'token back' }) : [rid && roleToken(rid), rid && ACTS[rid] && h('span', { class: 'tp-ico' }, actIcon(rid))]),
     h('div', { class: 'tp-say' }, sayView(say)),
-    h('div', { class: 'row tp-picks' }, slots(ctx), roleSlot(ctx)),
+    !wake && h('div', { class: 'row tp-picks' }, slots(ctx), roleSlot(ctx)),
     send('big'), foldButton(ctx, key));
 }
 

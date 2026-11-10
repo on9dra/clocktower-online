@@ -55,7 +55,7 @@ function eggPill(ctx, me) {
 const UNDO_NAME = { setDead: '死亡 / 復活', execute: '處決', nominate: '提名', handVote: '舉手', closeVote: '結算投票', cancelVote: '取消提名', next: '推進',
   dawn: '天亮', setRole: '換角色', setShown: '玩家看到的角色', setAlign: '改陣營', remind: '標記', inform: '信息', tick: '勾選順序', card: '選人', cardPick: '記下選擇',
   cardDrop: '收回', win: '判定勝負', addSeats: '加座位', renameSeat: '改名', kick: '移除座位', moveSeat: '挪座位', shuffleSeats: '打亂座位', draft: '抽取',
-  undraft: '取消抽取', setBluff: '偽裝', abandon: '放棄本局', evilInfo: '互認', unpin: '恢復隨機', setRedHerring: '紅鯡魚', setPoison: '中毒' };
+  undraft: '取消抽取', setBluff: '偽裝', abandon: '放棄本局', evilInfo: '互認', unpin: '恢復隨機', setRedHerring: '紅鯡魚', setPoison: '中毒', markPick: '選人', markDo: '能力結果' };
 function undoButton(ctx) {
   const u = ctx.state.st?.undo, name = u && (UNDO_NAME[u] || '上一步');
   return h('button', { class: 'btn sm ghost undo' + (u ? '' : ' disabled') + (ctx.state.oneDevice ? ' one' : ''), title: u ? `撤銷：${name}` : '沒有可以撤銷的',

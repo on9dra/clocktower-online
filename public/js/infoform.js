@@ -186,17 +186,18 @@ export function guide(form) {
   if (form.why && form.kind !== 'text') return '挑一個答案告訴他（可以是錯的）';
   return TELL[form.kind] || '告知他';
 }
-// 整屏展示頁頂上的小籤：把什麼告訴誰（「把結果告訴 ③」）。「兩名玩家之一」已經選好了，只寫「告知 ③」
+// 整屏展示頁頂上的小籤：把什麼告訴誰（「把結果告訴 ③」）。「兩名玩家之一」已經選好了，只寫「告知 ③」。
+// 這行字拿著設備的玩家也看得到：只按信息種類寫，不管他是不是中毒 / 醉酒 / 酒鬼（寫法不一樣他就知道自己的信息可能是假的）
 const tellSay = (s, step) => {
   // 先整句翻譯再切：英文的「他」是 them，位置也不同（Tell them this number）
-  const t = tr(step.form.kind === 'two' || step.form.why ? '告知他' : TELL[step.form.kind] || '告知他'), [a, b] = t.split(getLang() === 'en' ? 'them' : tr('他'));
+  const t = tr(step.form.kind === 'two' ? '告知他' : TELL[step.form.kind] || '告知他'), [a, b] = t.split(getLang() === 'en' ? 'them' : tr('他'));
   return [a, seatBadge(s, step.seatId), b];
 };
 const icTop = (s, step, ...kids) => h('div', { class: 'ic-top' }, h('div', { class: 'ic-tag say' }, guide(step.form)), icHead(s, step), kids);
 const icHead = (s, step) => h('div', { class: 'ic-head' },
   h('span', { class: 'ic-actor' }, mini(step.roleId)),
   s.seats.some(x => x.id === step.seatId) && seatBadge(s, step.seatId, 'lg'),
-  step.form.why && w({ poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', vortox: '渦流' }[step.form.why], 'evil'));
+  step.form.why && w({ poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', puppet: '提線木偶', vortox: '渦流' }[step.form.why], 'evil'));
 // 「展示」整屏只放核心：數字 → 一個大數字；是否 → 大大的「是 / 否」；兩名玩家之一 → 兩個大座位號 + 角色牌；
 // 某人是什麼角色 → 他的座位號 + 角色牌；間諜 → 整本魔典。不寫句子，不寫「或」「是」，他們看得懂
 export function infoCore(form, f) {
@@ -210,9 +211,8 @@ export function infoCore(form, f) {
     default: return { terms: infoFormula(form, f) };
   }
 }
-// 單設備「展示」：整屏一頁，頂上小籤「給 N 看」；「下一個」順手把這一步也過了，「收起」回到這張卡
-const showInfo = (ctx, step, fields) => showPages(ctx.state, [{ to: step.seatId, say: tellSay(ctx.state, step), body: bigCore(ctx.state, infoCore(step.form, fields)) }],
-  () => stepOp(ctx, 'confirm', { fields }));
+// 單設備「展示」：整屏一頁，頂上小籤「給 N 看」；「看完了」回到這張卡，下一步說書人自己按
+const showInfo = (ctx, step, fields) => showPages(ctx.state, [{ to: step.seatId, say: tellSay(ctx.state, step), body: bigCore(ctx.state, infoCore(step.form, fields)) }]);
 // 單設備：占卜師這類點完人才有結果的，結果一出來就整屏亮給說書人（該告訴他什麼），每一步只自己彈一次，收起後卡上的「展示」能再打開。
 // 中毒、醉酒、渦流時答案要說書人自己挑，不彈
 const popped = new Set();

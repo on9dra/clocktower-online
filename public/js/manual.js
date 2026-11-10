@@ -53,7 +53,7 @@ export function communityScripts(ctx) {
   const row = c => h('button', { class: 'comm-row' + (c.name === cur ? ' on' : ''), onclick: async () => {
     closeModal();
     if (c.name === cur) return;
-    await ctx.st('upload', { entries: [{ id: '_meta', name: c.name, author: c.author }, ...c.roles] });
+    await ctx.st('upload', { entries: [{ id: '_meta', name: c.name, author: c.author, small: c.small }, ...c.roles] });
   } }, h('b', {}, c.name), c.small && h('i', {}, '5-6人'), h('span', {}, `${c.en} · ${c.author}`));
   const part = (auto, title) => h('div', {}, h('h4', {}, title), COMMUNITY.filter(c => !!c.auto === auto).map(row));
   modal('社區劇本', h('div', { class: 'comm-list' }, part(true, '全自動'), part(false, '部分角色自己處理')), { wide: true });
@@ -87,10 +87,13 @@ export const actPicking = ctx => {
   // 第一步：誰提名 / 誰開槍（提名過的、死了的點不了）
   if (!act.from) {
     const can = s.seats.filter(x => (act.kind === 'nom' ? mayNominate(s, x) : !x.dead)).map(x => x.id);
-    return { can: new Set(can), on: new Set(), fixed: new Set(), pick: id => { act.from = id; ctx.render(); } };
+    const dead = id => s.seats.find(x => x.id === id)?.dead;
+    // 點了不能選的人：說原因，不開座位菜單
+    const why = id => (dead(id) ? (act.kind === 'nom' ? '死去的玩家不能提名' : '死去的玩家不能開槍') : act.kind === 'nom' && s.nominators.includes(id) ? '他今天提名過了' : null);
+    return { can: new Set(can), on: new Set(), fixed: new Set(), why, pick: id => { act.from = id; ctx.render(); } };
   }
   const others = s.seats.filter(x => x.id !== act.from).map(x => x.id);
-  if (act.kind === 'juggle') return { can: new Set(others), on: new Set(act.guesses.map(g => g.id)), fixed: new Set([act.from]),
+  if (act.kind === 'juggle') return { can: new Set(others), on: new Set(act.guesses.map(g => g.id)), fixed: new Set([act.from]), why: () => '不能猜自己',
     pick: id => {
       const i = act.guesses.findIndex(g => g.id === id);
       if (i >= 0) { act.guesses.splice(i, 1); return ctx.render(); }
@@ -99,7 +102,7 @@ export const actPicking = ctx => {
     } };
   // 第二步：對象。再點一下做事的人就退回第一步重選
   const can = act.kind === 'nom' ? s.seats.filter(x => !s.nominees.includes(x.id)).map(x => x.id) : others;
-  return { can: new Set([...can, act.from]), on: new Set([act.from]), fixed: new Set(),
+  return { can: new Set([...can, act.from]), on: new Set([act.from]), fixed: new Set(), why: () => '他今天被提名過了',
     pick: id => {
       if (id === act.from) { act.from = null; return ctx.render(); }
       act.to = id; ctx.render(); fire(ctx);
@@ -144,12 +147,16 @@ export const showRole = (ctx, seatId) => rolePicker(ctx, id => passRoleCard(ctx.
 
 // ───── 貼標記 ─────
 const COMMON = ['中毒', '醉酒', '被保護', '能力已用', '瘋狂', '查驗過'];
-export function openReminders(ctx, seat) {
-  const s = ctx.state, st = s.st, has = t => (st.marks?.[seat.id] || []).includes(t);
+// seat 可以是幾個座位（標記卡上他一次選了幾個人）：一起貼、一起取；lead 是排最前的角色（正在行動的那個角色自己的標記）
+export function openReminders(ctx, seat, lead) {
+  const seats = [].concat(seat);
+  seat = seats[0];
+  const s = ctx.state, st = s.st, has = t => seats.every(x => (st.marks?.[x.id] || []).includes(t));
+  const remind = (text, on) => { for (const x of seats) ctx.st('remind', { seatId: x.id, text, on }); };
   const toggle = (e, text) => {
     const on = !e.currentTarget.classList.contains('on');
     e.currentTarget.classList.toggle('on', on);
-    ctx.st('remind', { seatId: seat.id, text, on });
+    remind(text, on);
   };
   // key：存進標記的字；兩個角色有同名的標記（氣球駕駛員和寡婦都有「得知」）時帶上角色名，不然點一個兩個一起亮
   const chip = (t, key = t) => h('button', { class: 'chip' + (has(key) ? ' on' : ''), onclick: e => toggle(e, key) }, t);
@@ -157,7 +164,7 @@ export function openReminders(ctx, seat) {
   const groups = {}, count = {};
   for (const { r, t } of st.reminders || []) { (groups[r] ||= []).push(t); count[t] = (count[t] || 0) + 1; }
   const keyOf = (r, t) => (count[t] > 1 ? `${ROLES[r]?.name || r}·${t}` : t);
-  const own = [seat.role, seat.fakeRole].filter(id => groups[id]);
+  const own = [...new Set([lead, seat.role, seat.fakeRole])].filter(id => groups[id]);
   const order = [...own, ...Object.keys(groups).filter(id => !own.includes(id))];
   const known = new Set(Object.entries(groups).flatMap(([r, ts]) => ts.map(t => keyOf(r, t))));
   const extra = (st.marks?.[seat.id] || []).filter(t => !COMMON.includes(t) && !known.has(t));
@@ -168,10 +175,10 @@ export function openReminders(ctx, seat) {
     if (!t) return;
     text.value = '';
     row.append(h('button', { class: 'chip on', onclick: e => toggle(e, t) }, t));
-    ctx.st('remind', { seatId: seat.id, text: t, on: true });
+    remind(t, true);
   };
   text.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) add(); };
-  modal(`${seatLabel(s, seat.id)} 的標記`, h('div', { class: 'hand-form' }, row,
+  modal(`${seats.map(x => seatLabel(s, x.id)).join('、')} 的標記`, h('div', { class: 'hand-form' }, row,
     order.map(id => h('div', { class: 'hand-row' }, mini(id), groups[id].map(t => chip(t, keyOf(id, t))))),
     h('div', { class: 'row rm-add' }, text, h('button', { class: 'btn', onclick: add }, icon('quill'), '貼上'))));
 }

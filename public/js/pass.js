@@ -145,17 +145,15 @@ export const giveTo = (s, id) => id && ['給', seatBadge(s, id), '看'];
 export const bluffSay = (s, id) => ['向惡魔', id && seatBadge(s, id), '展示可用的偽裝'];
 
 // 給人看一組頁：pages [{ to 座位, say 小籤上的字（默認「給 N 看」，null 不要）, body }]，一頁一個人，「下一個」翻到下一頁。
-// next：夜裏某一步要展示的（偽裝、信息、舞蛇人換的角色）：最後一頁「下一個」順手把這一步也過了，右上角「收起」回到桌面；
-// 不給就是單獨的展示（座位菜單、頂欄的展示），最後一頁「看完了」
-export function showPages(s, pages, next) {
+// 最後一頁「看完了」回到桌面，這一步由說書人在卡上自己按「下一個」（展示完不自動往下走）；多頁時右上角「收起」中途回去
+export function showPages(s, pages) {
   const list = pages.filter(Boolean);
   if (!list.length) return;
   open();
   const go = (i, way) => {
     const p = list[i], last = i === list.length - 1;
-    const act = !last ? btn('下一個', () => go(i + 1, 'next'))
-      : next ? btn('下一個', () => { closePass(); next(); }) : btn('看完了', () => closePass());
-    put(page(p.say !== undefined ? p.say : giveTo(s, p.to), p.body, act), way, (next || !last) ? FOLD : null);
+    const act = last ? btn('看完了', () => closePass()) : btn('下一個', () => go(i + 1, 'next'));
+    put(page(p.say !== undefined ? p.say : giveTo(s, p.to), p.body, act), way, last ? null : FOLD);
   };
   go(0);
 }

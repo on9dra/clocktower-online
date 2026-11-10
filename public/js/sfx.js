@@ -1,5 +1,6 @@
 // 演出音效：除了入夜的鐘都放錄音（public/sfx），鐘用 Web Audio 現場合成；錄音沒載完、解不開時也放合成聲。默認開，頂欄喇叭一鍵全靜音；「⋯ → 設置」裏音效、音樂各有音量和靜音，還有煙花、煙花聲（都記在本機）
 let ac = null, master = null, bus = null, music = null;
+const revived = []; // 聲音環境被系統掛起後又起來時要做的事（bgm.js 補放音樂）
 // 不是每個動作都配聲音：只留有情緒、或者告訴你出了大事的那些。
 // 有錄音的音效：public/sfx/<名字>.m4a，蓋掉 SOUNDS 裏的同名合成聲，響度寫在文件裏（tools/sfx-build.py）。
 // 實物聲每次音高隨機浮動一點，連著響才不像複製粘貼；樂器音的音高不動
@@ -63,11 +64,20 @@ function ctx() {
     master = ac.createGain();
     master.gain.value = 0.6 * prefs().vol;
     master.connect(ac.destination);
+    ac.addEventListener('statechange', () => { if (ac.state === 'running') revived.forEach(fn => fn()); });
   }
-  if (ac.state === 'suspended') ac.resume();
+  if (ac.state !== 'running' && ac.state !== 'closed' && !document.hidden) ac.resume().catch(() => {});
   return ac;
 }
-document.addEventListener('pointerdown', () => ctx(), { once: true });
+// 鎖屏、切後台、來電時系統把聲音環境掛起（iOS 是 interrupted），回來不會自己恢復，而且只有在用戶操作裏才准恢復：
+// 每次點擊都看一眼，沒在響就再叫醒；切走時自己先掛起，回來再起，iOS 上被打斷過的才不會「顯示在響卻沒聲」
+const poke = () => { if (!ac || ac.state !== 'running') ctx(); revived.forEach(fn => fn()); };
+export const onRevive = fn => revived.push(fn);
+for (const ev of ['pointerdown', 'touchend', 'keydown']) addEventListener(ev, poke, { capture: true, passive: true });
+document.addEventListener('visibilitychange', () => {
+  if (!ac) return;
+  if (document.hidden) { if (ac.state === 'running') ac.suspend().catch(() => {}); } else ctx();
+});
 // 背景音樂走自己的一路，音量和音效分開（bgm.js）
 export function musicBus() {
   if (!ctx()) return null;

@@ -93,7 +93,18 @@ export const ROLES = Object.fromEntries([
   R('vigormortis', '亡骨魔', 'demon', '每個夜晚*，你要選擇一名玩家：他死亡。被你殺死的爪牙保留他的能力，且與他鄰近的兩名鎮民之一中毒。[-1外來者]', 0, 32, { setup: { outsider: -1 } }),
   R('nodashii', '諾-達鯴', 'demon', '每個夜晚*，你要選擇一名玩家：他死亡。與你鄰近的兩名鎮民中毒。', 0, 30),
   R('vortox', '渦流', 'demon', '每個夜晚*，你要選擇一名玩家：他死亡。鎮民玩家的能力都會產生錯誤信息。如果白天沒人被處決，邪惡陣營獲勝。', 0, 31),
+  // 實驗角色（社區劇本裏有）：以為自己是善良角色的爪牙，和酒鬼一樣沒有能力；首夜惡魔得知他在惡魔信息那一步（lib/night.js demoninfo）
+  R('marionette', '提線木偶', 'minion', '你以爲你是一個善良角色，但其實你不是。惡魔會知道你是提線木偶。[提線木偶會與惡魔鄰座]', 0, 0),
 ].map(r => [r.id, r]));
+
+// 以為自己是別的角色的：酒鬼以為是鎮民，瘋子以為是惡魔，提線木偶以為是善良角色（官方：從袋子裏摸到的鎮民或外來者）
+export const FAKE = { drunk: 'townsfolk', lunatic: 'demon', marionette: 'good' };
+// 他能以為自己是哪個角色：對應的類別裏，但不能是酒鬼、瘋子、提線木偶這種本身也是「以為」的
+export const fakeOk = (role, id) => {
+  const t = ROLES[id]?.team;
+  return !!t && !FAKE[id] && (FAKE[role] === 'good' ? t === 'townsfolk' || t === 'outsider' : t === FAKE[role]);
+};
+export const fakeKind = role => (FAKE[role] === 'good' ? '善良角色' : TEAMS[FAKE[role]]?.name || '');
 
 export const SCRIPTS = {
   tb: {
@@ -150,5 +161,5 @@ export const isEvilRole = id => !!ROLES[id] && !TEAMS[ROLES[id].team].good;
 // 上傳的劇本：把系統不認識的角色登記進角色表，整本掛在 SCRIPTS.custom 下（瀏覽器收到房間狀態時調用；服務端見 lib/script.js）
 export function installScript(c) {
   Object.assign(ROLES, c.defs);
-  SCRIPTS.custom = { name: c.name, en: c.author, roles: c.roles };
+  SCRIPTS.custom = { name: c.name, en: c.author, roles: c.roles, max: c.max };
 }

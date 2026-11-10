@@ -21,7 +21,7 @@ export const COMMUNITY = [
     roles: ['pixie', 'undertaker', 'exorcist', 'fisherman', 'slayer', 'juggler', 'drunk', 'lunatic', 'devilsadvocate', 'marionette', 'lleech', 'sentinel'] },
   { id: 104, name: '午夜綠洲', en: 'The Midnight Oasis', author: 'Zets',
     roles: ['noble', 'balloonist', 'snakecharmer', 'savant', 'amnesiac', 'engineer', 'huntsman', 'professor', 'fisherman', 'farmer', 'poppygrower', 'cannibal', 'atheist', 'damsel', 'drunk', 'golem', 'barber', 'mezepheles', 'poisoner', 'pithag', 'psychopath', 'alhadikhia', 'vigormortis', 'sentinel', 'spiritofivory'] },
-  { id: 68, name: '死因未卜', en: 'Uncertain Death', author: 'Matt',
+  { id: 68, name: '死因未卜', en: 'Uncertain Death', author: 'Matt', auto: true,
     roles: ['clockmaker', 'grandmother', 'librarian', 'empath', 'fortuneteller', 'exorcist', 'flowergirl', 'oracle', 'undertaker', 'artist', 'slayer', 'seamstress', 'monk', 'lunatic', 'mutant', 'sweetheart', 'recluse', 'godfather', 'assassin', 'scarletwoman', 'marionette', 'nodashii', 'pukka'] },
   { id: 173, name: '酩酊', en: 'Boozling', author: 'Lau',
     roles: ['noble', 'pixie', 'highpriestess', 'balloonist', 'fortuneteller', 'oracle', 'savant', 'philosopher', 'huntsman', 'fisherman', 'slayer', 'sage', 'cannibal', 'drunk', 'mutant', 'damsel', 'klutz', 'golem', 'baron', 'cerenovus', 'scarletwoman', 'marionette', 'nodashii', 'fanggu', 'imp'] },

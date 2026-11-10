@@ -1,6 +1,6 @@
 // 說書人開局配置：角色「必選 / 排除」；給某個座位更換角色（預覽時和遊戲中都可以）
 import { h, modal, closeModal, roleToken, seatLabel, leaveDom } from './ui.js';
-import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup } from './roles.js';
+import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup, FAKE, fakeOk, fakeKind } from './roles.js';
 import { icon, seatBadge, tag, w } from './glyph.js';
 import { tr } from './lang.js';
 import { rolePanel, syncRolePanel, closeRolePanel } from './rolepick.js';
@@ -9,8 +9,6 @@ const RULE_TEXT = { lock: '必選', ban: '排除' };
 const nextRule = r => (r === 'lock' ? 'ban' : r === 'ban' ? null : 'lock');
 
 const countsOf = (n, rules) => teamCounts(n, Object.keys(rules).filter(id => rules[id] === 'lock' && changesSetup(id)));
-// 以為自己是別的角色：酒鬼以為是鎮民，瘋子以為是惡魔
-const FAKE = { drunk: 'townsfolk', lunatic: 'demon' };
 
 // 人數一行 + 超額警告：行高固定，滾動時吸在頂上；警告是蓋在這一行右邊的印章，彈窗不會變長
 function statusLine(n, rules) {
@@ -81,10 +79,12 @@ export function pickBluff(ctx, at) {
     const id = pins[i] || ctx.state.st.bluffs[i];
     b.classList.toggle('at', i === at);
     b.classList.toggle('pinned', !!pins[i]);
-    if (shown[i] !== id) {
+    if (!(i in shown) || shown[i] !== id) {
       shown[i] = id;
       b.querySelector('.bp-role')?.remove();
-      b.append(h('span', { class: 'bp-role' }, roleToken(id, { size: 'sm' }), h('b', {}, ROLES[id]?.name || '')));
+      // 抽不滿的格子（小劇本人多時善良角色都在場）：空著，照樣能選中這一格
+      b.append(id ? h('span', { class: 'bp-role' }, roleToken(id, { size: 'sm' }), h('b', {}, ROLES[id]?.name || ''))
+        : h('span', { class: 'bp-role empty' }, h('b', {}, '空')));
     }
   });
   // 連選：面板不收，選中的那張蓋「選」字印（這一格原來指定的那張讓出來），再點一次那張恢復隨機
@@ -174,14 +174,14 @@ function buildPick(ctx) {
   pick.abId = undefined;
   const tile = (id, onPick) => h('button', { class: 'sp-role', onclick: () => onPick(id), onmouseenter: () => showAb(id) }, roleToken(id, { size: 'sm' }), h('span', {}, ROLES[id].name), h('i', {}, '在場'));
   const set = (roleId, fakeRole) => { const seatId = pick.seatId; closePick(); ctx.st('setRole', { seatId, roleId, fakeRole }); };
-  // 酒鬼、瘋子：同一張紙上接著選他以為自己是誰
+  // 酒鬼、瘋子、提線木偶：同一張紙上接著選他以為自己是誰
   const choose = id => {
     const seat = ctx.state.seats.find(x => x.id === pick.seatId);
     if (id === seat?.role && seat.pinned) { closePick(); return ctx.st('unpin', { seatId: seat.id }); }
     if (!FAKE[id]) return set(id);
     const used = new Set(ctx.state.seats.map(x => x.role));
-    pick.sub.replaceChildren(h('p', {}, `${ROLES[id].name}以為自己是哪個${TEAMS[FAKE[id]].name}？`),
-      h('div', { class: 'sp-grid' }, roles.filter(r => ROLES[r].team === FAKE[id]).map(f => {
+    pick.sub.replaceChildren(h('p', {}, `${ROLES[id].name}以為自己是哪個${fakeKind(id)}？`),
+      h('div', { class: 'sp-grid' }, roles.filter(r => fakeOk(id, r)).map(f => {
         const b = tile(f, () => set(id, f));
         b.classList.toggle('in', used.has(f));
         return b;
@@ -235,7 +235,7 @@ export function syncSetup(ctx) {
 }
 
 // 指定角色（準備階段，觸屏）、更換角色（遊戲中）：整屏的劇本單（rolepick.js），現在的角色蓋著「選」，別的座位上有的標「在場」。
-// 選酒鬼 / 瘋子時同一張紙翻到下一頁，再選他以為自己是哪個鎮民 / 惡魔。準備階段點他已經指定的那張：恢復隨機（和懸停的角色表一樣）
+// 選酒鬼 / 瘋子 / 提線木偶時同一張紙翻到下一頁，再選他以為自己是哪個鎮民 / 惡魔 / 善良角色。準備階段點他已經指定的那張：恢復隨機（和懸停的角色表一樣）
 export function pickRole(ctx, seat, acts) {
   const s = ctx.state, roles = SCRIPTS[s.scriptId].roles, id0 = seat.id, lobby = s.phase === 'lobby';
   const now = () => ctx.state.seats.find(x => x.id === id0);
@@ -252,7 +252,7 @@ export function pickRole(ctx, seat, acts) {
       const x = now();
       if (lobby && x?.pinned && id === x.role) return void ctx.st('unpin', { seatId: id0 });
       if (!FAKE[id]) return void set(id);
-      return panel.sub(`${ROLES[id].name}以為自己是哪個${TEAMS[FAKE[id]].name}？`, roles.filter(r => ROLES[r].team === FAKE[id]),
+      return panel.sub(`${ROLES[id].name}以為自己是哪個${fakeKind(id)}？`, roles.filter(r => fakeOk(id, r)),
         f => ({ in: used().has(f) }), f => set(id, f));
     },
     alive: () => stOk(ctx) && !!now() && (lobby ? ctx.state.phase === 'lobby' : !['lobby', 'ended'].includes(ctx.state.phase)),

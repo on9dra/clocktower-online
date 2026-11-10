@@ -1,6 +1,6 @@
 // 背景音樂：大廳、白天、夜晚、提名各一首循環。大廳那首從開屏的鐘響過、小鎮揭開時起，進房間等開局也接著放，入夜的鐘換成夜晚；一局結束、勝負演完淡回大廳那首。換段都交叉淡化，不硬切；提名完回到白天，從剛才放到的地方接著放
 // 用 <audio> 邊下邊放（整首解碼太佔內存，帶寬也不夠先下完），接進 AudioContext 才能在 iOS 上調音量。文件見 tools/bgm-build.py
-import { musicBus, onSoundChange, prefs } from './sfx.js';
+import { musicBus, onRevive, onSoundChange, prefs } from './sfx.js';
 
 const FADE = 2.5; // 換段的淡化秒數
 const OPEN = 1.2; // 從安靜裏從頭起一首：淡入短一點，開頭幾個音不被吃掉
@@ -113,7 +113,17 @@ function sync(hit) {
   letGo(old, FADE);
 }
 onSoundChange(() => sync());
-document.addEventListener('visibilitychange', () => sync());
+// 切走時聲音環境掛起、音頻時鐘停了，淡出走不完：直接停下歸零（位置 letGo 已記下），回來從那裏淡入
+document.addEventListener('visibilitychange', () => {
+  sync();
+  if (document.hidden) decks.forEach(d => { d.el.pause(); d.gain.gain.cancelScheduledValues(0); d.gain.gain.value = 0; });
+});
+// 鎖屏回來：不在點擊裏的 play() 會被拒，該響的那副停著。聲音環境恢復、或者用戶點了一下時補放
+onRevive(() => {
+  if (!decks.length || document.hidden) return;
+  if (!live) return sync();
+  if (live.el.paused) { const d = live; d.el.play().then(() => { if (live === d && !ducked) fade(d, 1, OPEN); }, () => {}); }
+});
 
 // 跟著遊戲走：開局前一直放大廳那首（大廳、房間裏等開局、一局結束等下一局）；phase 為空就停
 export function setBgm(phase, nominating, hit) {

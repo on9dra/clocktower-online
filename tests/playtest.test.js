@@ -96,6 +96,7 @@ for (const role of ['fool', 'sailor']) {
   ok(st(r, 'dawn'));
   const t = S(r, 'saint');
   ok(pl(r, 'moonchild', 'pick', { ids: [t.id] }));
+  assert.deepStrictEqual(viewFor(r, { pid: S(r, 'chef').pid }).words, [{ from: S(r, 'moonchild').id, to: t.id, role: 'moonchild' }], '公開選人：大家座位上都看得到');
   r.g.dayOver = true; ok(st(r, 'next'));
   finish(r, 'moonchild');
   assert.strictEqual(r.g.step.roleId, 'moonchild', '下一個夜晚結算');

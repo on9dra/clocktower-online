@@ -97,6 +97,20 @@ const parse = e => parseScript(e, 'abc');
   assert.strictEqual(applyStOp(r, { op: 'next' }), undefined);
   assert.strictEqual(r.phase, 'night');
 }
+// 自製角色和官方角色撞了名字（或 id）、陣營卻不一樣：是另一個角色，按 Json 裏寫的收，不能被官方的頂掉
+{
+  const s = parse([{ id: '_meta', name: '渡' }, 'imp', 'chef',
+    { id: 'my_boatman', name: '摆渡人', team: 'minion', ability: '每個夜晚，你要選擇兩名玩家：他們今晚醉酒。' },
+    { id: 'ferryman', name: '船夫', team: 'townsfolk', ability: '自製的。' },
+    { id: 'xiyifu', name: '洗衣妇', team: 'townsfolk', ability: '官方角色，換了個 id。' },
+    { id: 'chef', name: '廚師', team: 'townsfolk', ability: '官方格式的完整對象。' }]);
+  const names = s.roles.map(id => (s.defs[id] || ROLES[id]));
+  const boat = names.find(r => r.name === '摆渡人'), ferry = names.find(r => r.name === '船夫');
+  assert.ok(boat && boat.team === 'minion' && boat.ability.includes('兩名玩家'), '同名不同陣營：自製的爪牙');
+  assert.ok(ferry && ferry.team === 'townsfolk', 'id 撞了官方的傳奇角色，陣營不同：自製的');
+  assert.ok(s.roles.includes('washerwoman'), '只是 id 不一樣的官方角色照樣認');
+  assert.strictEqual(s.roles.filter(id => id === 'chef').length, 1);
+}
 // 社區劇本：每個角色都認得，auto 標記和解析結果一致，標準劇本 5 到 15 人都抽得出、開得了局
 for (const c of COMMUNITY) {
   const s = parse([{ id: '_meta', name: c.name, author: c.author }, ...c.roles]);

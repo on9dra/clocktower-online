@@ -7,7 +7,7 @@ const RES = { poison: ['投毒'], protect: ['保護', 'good'], kill: ['殺死', 
   master: ['認主'], starpass: ['自殺傳位', 'bad'], mayor: ['攻擊'], charge: ['蓄力', 'bad'], noop: ['行動'] };
 const WHY = { protect: '被保護', soldier: '士兵免疫', mayor: '鎮長替死', dead: '已死亡', tealady: '茶藝師', fool: '弄臣', sailor: '水手', safe: '被保護',
   notdemon: '不是惡魔', nottown: '不是鎮民', notgood: '不是善良', inplay: '已在場', absent: '不在場' };
-const BENT = { poison: '中毒', drunk: '醉酒', tipsy: '醉酒', vortox: '渦流' }; // 信息可以給錯的原因
+const BENT = { poison: '中毒', drunk: '醉酒', tipsy: '醉酒', puppet: '提線木偶', vortox: '渦流' }; // 信息可以給錯的原因
 const CAUSE = { demon: '被殺', execute: '被處決', slayer: '被射殺', virgin: '貞潔者反噬', starpass: '傳位', manual: '說書人判定' };
 const VOTE = { block: ['上處決台', 'bad'], tie: ['平票'], fail: ['票數不足', 'muted'] };
 const SRC_VERB = { poisoner: '投毒', monk: '保護', imp: '攻擊', butler: '認主' };
@@ -41,9 +41,9 @@ function body(s, e) {
     // why：為什麼能給錯誤信息（中毒、醉酒、渦流）。舊日誌只有 free，那時 free 就是這個意思
     case 'info': return [mini(e.src), seatBadge(s, e.seat), (e.why || (e.free && !('why' in e))) && w(BENT[e.why] || '中毒/醉酒', 'evil'),
       h('span', { class: 'lv lv' + e.level }, formula(s, e.f))];
-    case 'sent': return [tag(e.src === 'demoninfo' ? 'demon' : 'minion'), w('已告知')];
+    case 'sent': return [e.src === 'lunainfo' ? mini('lunatic') : tag(e.src === 'demoninfo' ? 'demon' : 'minion'), w('已告知')];
     case 'card': return [seatBadge(s, e.seat), e.f.length ? [w('選了'), formula(s, e.f)] : w('沒有選', 'muted')];
-    case 'told': return [w('告知'), seatBadge(s, e.seat), formula(s, e.f)];
+    case 'told': return [w('告知'), seatBadge(s, e.seat), e.fake && w('假信息', 'evil'), formula(s, e.f)];
     case 'skip': return [mini(e.src), e.seat && seatBadge(s, e.seat), w('跳過', 'muted')];
     case 'death': return [seatBadge(s, e.seat), mini(e.role), w(CAUSE[e.cause] || '死亡', 'bad')];
     case 'demon': return [seatBadge(s, e.seat), w('成為', 'bad'), named(e.role), w(e.why === 'scarletwoman' ? '（紅唇女郎）' : '（傳位）', 'muted')];
@@ -62,7 +62,8 @@ function fixBody(s, e) {
   const seat = e.seat && seatBadge(s, e.seat);
   switch (e.what) {
     case 'poison': return [seat, w('設為中毒', 'evil')];
-    case 'unpoison': return w('解除中毒');
+    case 'unpoison': return [seat, w('解除中毒')];
+    case 'sober': return [seat, w('解除醉酒')];
     case 'revive': return [seat, w('復活', 'good')];
     case 'role': return [seat, e.from && mini(e.from), w('改為'), named(e.role), e.fake && [w('以為是'), named(e.fake)]];
     case 'herring': return [named('fortuneteller'), w('紅鯡魚'), seat];

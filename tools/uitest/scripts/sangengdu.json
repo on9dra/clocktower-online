@@ -1,0 +1,16 @@
+[
+  {"id": "_meta", "name": "三更渡", "author": "渡口茶馆", "logo": "https://example.com/sgd.png",
+   "firstNight": ["dusk", "minioninfo", "demoninfo", "sgd_boatman", "poisoner", "washerwoman", "chef", "empath", "sgd_counter", "dawn"],
+   "otherNight": ["dusk", "sgd_boatman", "monk", "sgd_guard", "poisoner", "sgd_tide", "sgd_bell", "empath", "undertaker", "sgd_counter", "dawn"]},
+  "washerwoman", "chef", "empath", "monk", "undertaker", "slayer", "virgin",
+  {"id": "sgd_counter", "name": "数灯人", "team": "townsfolk", "ability": "每个夜晚，你会得知场上存活的邪恶玩家数量是奇数还是偶数。", "firstNight": 60, "otherNight": 70, "firstNightReminder": "告诉数灯人：奇数或偶数。", "otherNightReminder": "告诉数灯人：奇数或偶数。", "reminders": [], "image": "https://example.com/1.png"},
+  {"id": "sgd_bell", "name": "敲钟人", "team": "townsfolk", "ability": "每个夜晚*，你可以选择至多两名玩家：如果其中有恶魔，你会得知。", "firstNight": 0, "otherNight": 50, "otherNightReminder": "敲钟人可以选择至多两名玩家。点头或摇头。", "reminders": ["听过钟"]},
+  {"id": "sgd_guard", "name": "Night Guard", "team": "townsfolk", "ability": "Each night*, choose a player (not yourself): they are safe from the Demon tonight.", "firstNight": 0, "otherNight": 20, "otherNightReminder": "The Night Guard points at a player.", "reminders": ["Safe"]},
+  "butler", "recluse",
+  {"id": "sgd_debtor", "name": "欠债人", "team": "outsider", "ability": "当你死亡时，说书人会选择一名玩家：他中毒直到下个黄昏。", "firstNight": 0, "otherNight": 0, "reminders": ["讨债"]},
+  "poisoner", "scarletwoman",
+  {"id": "sgd_boatman", "name": "摆渡人", "team": "minion", "ability": "每个夜晚，你要选择两名玩家：他们今晚醉酒。", "firstNight": 15, "otherNight": 5, "firstNightReminder": "唤醒摆渡人，让他选择两名玩家。", "otherNightReminder": "唤醒摆渡人，让他选择两名玩家。", "reminders": ["晕船"]},
+  "imp",
+  {"id": "sgd_tide", "name": "潮鬼", "team": "demon", "ability": "每个夜晚*，你要选择任意数量的玩家：他们死亡。如果你选择了多于一名玩家，明晚你不能行动。", "firstNight": 0, "otherNight": 40, "otherNightReminder": "唤醒潮鬼，让他选择任意数量的玩家，这些玩家死亡。", "reminders": ["退潮"]},
+  {"id": "sgd_ferry_rule", "name": "规则：渡口不设旅行者", "team": "a jinxed", "ability": "本剧本不使用旅行者。"}
+]

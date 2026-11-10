@@ -20,6 +20,13 @@ import { tr, getLang } from './lang.js';
 // 當前的選人狀態：{ count, notSelfId, ids, key }
 export const sel = { on: null };
 let lastBubble = null;
+// 死後選人的標籤第一次出現時蓋章蓋下來（重畫時接著同一個動畫，不重播）
+const wordSeen = new Map();
+const wordFresh = x => {
+  const k = x.from + '>' + x.to, t = wordSeen.get(k) ?? (wordSeen.set(k, Date.now()), Date.now()), el = Date.now() - t;
+  return el < 400 ? `-${el}ms` : null;
+};
+
 export function startSelect(ctx, opts) { sel.on = { ids: [], ...opts }; ctx.render(); }
 // 這一步要不要在桌上點人（哲學家、侍臣只選角色，座位不畫成可選）
 const seatsWanted = on => Math.max(...(on.counts || [on.count])) > 0;
@@ -79,7 +86,7 @@ export function renderTown(ctx) {
   const auto = s.isSt ? {} : infoMarksBySeat(s), mine = own ? {} : notes(ctx), acts = actMarksBySeat(s), aim = canAim(s);
   // 爪牙 / 惡魔信息裏得知的邪惡隊友：頭像直接換成陣營牌（座位下面就不再重複標）
   const team = Object.fromEntries(Object.entries(auto).flatMap(([id, ks]) => ks.filter(k => k.t).slice(0, 1).map(k => [id, k.t])));
-  const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), num = id => s.seats.findIndex(x => x.id === id) + 1;
+  const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), picks = s.words || [], num = id => s.seats.findIndex(x => x.id === id) + 1;
   const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--s': Math.sin(Math.PI / Math.max(n, 2)).toFixed(4), ...(s.isSt ? fitStyle() : {}) } }); // --s：按相鄰座位的距離定大小（board.css）
   const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s), aimed = stepTargets(s);
   const hoverPick = s.isSt && !s.peek && s.phase === 'lobby' && canHover(); // 準備階段：懸停頭像就能選角色（setup.js）
@@ -102,6 +109,8 @@ export function renderTown(ctx) {
   // DOM 裏的座位按 id 排，不按座次：準備階段對調兩個座位時，只有這兩個的 left / top 變了，順著 transition 滑到對方的位置（board.css），
   // 別的座位不挪、不重播動畫。要按座次的地方用 data-i
   const domOrder = [...s.seats].sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
+  const markStep = s.isSt && s.phase === 'night' && s.st?.step?.status === 'mark' ? s.st.step : null;
+  const ownPick = markStep && ROLES[markStep.roleId] ? ROLES[markStep.roleId].name + '選' : null;
   domOrder.forEach(seat => {
     const i = s.seats.indexOf(seat);
     const ang = (i / Math.max(n, 1)) * Math.PI * 2 - Math.PI / 2;
@@ -138,7 +147,8 @@ export function renderTown(ctx) {
     // 今天的提名情況：誰已經提名過、誰已經被提名過（每人每天各一次）
     const nominated = s.phase === 'day' && s.nominators.includes(seat.id), nominee = s.phase === 'day' && s.nominees.includes(seat.id);
     // 說書人：常見狀態畫在頭像上（statusView），其餘的標記照舊是頭像下面的字籤
-    const status = s.isSt ? seatStatus(seat) : [], words = s.isSt ? (seat.tags || []).filter(t => !statusOf(t)) : [];
+    // 正在處理的這一步自己的「某角色選」先不掛：卡上寫著選了誰，座位也圈著金圈，再掛一枚只會把桌心的卡擠小（下一步起照常顯示）
+    const status = s.isSt ? seatStatus(seat) : [], words = s.isSt ? (seat.tags || []).filter(t => !statusOf(t) && t !== ownPick) : [];
     ring.append(h('div', {
       class: cls.join(' '), 'data-key': seat.id, 'data-i': i, 'data-exit': s.phase === 'lobby' || null, // 準備階段拿掉的座位淡出去，不是一下子沒了
       // --ux、--uy：座位在圓桌上的方向，標記朝圓心掛（board.css .seat-more）
@@ -176,12 +186,15 @@ export function renderTown(ctx) {
       words.map(t => {
         // 說書人自己貼的標記：點一下取下
         const mine = s.st?.marks?.[seat.id]?.includes(t);
-        return h('span', { class: 'tag' + (t === '中毒' ? ' bad' : '') + (mine ? ' pick' : ''), title: t,
+        // 「某角色選 / 查」：電腦上也畫成角色小牌 + 一個字（寫全名一行就佔半個桌心，三枚疊起來把中間的操作卡擠沒了）
+        return h('span', { class: 'tag' + (t === '中毒' ? ' bad' : '') + (mine ? ' pick' : '') + (pickTag(t) ? ' by-role' : ''), title: t,
           onclick: mine ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: t, on: false }); } : null }, h('b', { class: 't-s' }, tagShort(t)), h('i', { class: 't-l' }, t));
       })),
-    (missed.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
+    (missed.some(x => x.from === seat.id) || picks.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
       missed.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot' + (fxFor('shot', seat.id, 600) ? ' fx-shot' : ''), title: '宣稱獵手開槍，沒有打中' },
         icon('aim'), `射${num(x.to)}號失敗`)),
+      picks.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot word' + (wordFresh(x) ? ' fx-shot' : ''), style: { animationDelay: wordFresh(x) || null }, title: `${ROLES[x.role]?.name || ''}死後公開選人` },
+        icon(x.role === 'moonchild' ? 'moon' : 'aim'), `選${num(x.to)}號`)),
       !s.isSt && (acts[seat.id] || []).map(actMarkView),
       team[seat.id] && g[seat.id] && h('span', { class: 'pm q', title: '你的猜測' }, mini(g[seat.id])),
       (auto[seat.id] || []).filter(k => !k.t).map(markView),
@@ -377,7 +390,7 @@ export function fitTableCard() {
   if (center) { center.classList.remove('tight'); center.style.translate = ''; }
   const css = getComputedStyle(el);
   if (el === st && css.position === 'absolute') return fitBeside(st, ring); // 橫屏卡在圓桌旁邊（hud.css）
-  if (el === st && css.overflowY === 'visible') return fitAround(st, ring); // 手機上卡拆開在圓桌上下
+  if (el === st && css.overflowY === 'visible') { fitAround(st, ring); return fitHole(st, ring); } // 手機上卡拆開在圓桌上下
   if (el !== middle && css.position === 'absolute') return; // 玩家的牌在圓桌下面 / 旁邊，不用縮
   const width = () => (el === st ? Math.max(card.offsetWidth, card.scrollWidth) : card.offsetWidth); // 一排角色牌可能比卡寬
   let room = center ? seatRoom(ring, width(), center.offsetHeight) : { k: 1 };
@@ -423,6 +436,54 @@ function fitAround(st, ring) {
   if (bh === fit.bh && fh === fit.fh) return;
   Object.assign(fit, { bh, fh });
   for (const [k, v] of Object.entries(fitStyle())) ring.style.setProperty(k, v);
+}
+// 手機豎屏留在圓心的那一小張（.ic-top，連同冒出去的標題籤）：座位朝圓心掛的標記不能壓住它。
+// 跟大屏一樣用 seatRoom 找最寬敞的位置，放不下再縮（最小六成）。卡剛發出來還在彈的時候量到的是縮放過的框，按 offsetWidth 換算回佈局尺寸
+function fitHole(st, ring) {
+  const top = st.querySelector(':scope > .card > .ic-top'), center = st.closest('.center');
+  if (!top || !center || !ring) return;
+  const tag = top.querySelector(':scope > .ic-tag');
+  top.style.zoom = '';
+  if (tag) tag.style.maxWidth = tag.style.display = '';
+  const measure = () => {
+    const t = top.getBoundingClientRect(), f = t.width ? top.offsetWidth / t.width : 1;
+    let l = 0, u = 0, r = top.offsetWidth, b = top.offsetHeight;
+    for (const e of top.querySelectorAll('*')) {
+      if (!e.offsetWidth) continue;
+      const a = e.getBoundingClientRect();
+      l = Math.min(l, (a.left - t.left) * f); u = Math.min(u, (a.top - t.top) * f);
+      r = Math.max(r, (a.right - t.left) * f); b = Math.max(b, (a.bottom - t.top) * f);
+    }
+    return { u, b, w: r - l, room: seatRoom(ring, r - l, b - u) };
+  };
+  let best = { m: measure(), px: '' };
+  // 標題籤比小卡寬得多：先讓它多折一行，比整張縮小好認
+  const natural = tag?.offsetWidth || 0;
+  for (const px of [170, 140, 115]) {
+    if (best.m.room.k >= 1 || natural <= px) continue;
+    tag.style.maxWidth = px + 'px';
+    const n = measure();
+    if (n.room.k > best.m.room.k + 0.01) best = { m: n, px: px + 'px' };
+  }
+  if (tag) tag.style.maxWidth = best.px;
+  // 縮到頭（六成）還放不下：讓掉標題籤，留下要告訴玩家的東西（同大屏先讓掉「第 N 夜」）
+  if (tag && best.m.room.k < 0.6) {
+    tag.style.display = 'none';
+    const n = measure();
+    if (n.room.k > best.m.room.k) best = { m: n }; else tag.style.display = '';
+  }
+  let { u, b, room } = best.m, r = best.m.w, l = 0, z = 1;
+  if (room.k < 1) {
+    z = Math.max(0.6, room.k * 0.98);
+    top.style.zoom = z.toFixed(3);
+    room = seatRoom(ring, (r - l) * z, (b - u) * z);
+  }
+  // 小卡在圓桌裏的位置：.center 自己有居中的位移，縮放後高度變了位移也跟著變，所以縮完再量；
+  // .center 往裏順著 offsetParent 加，不受牌彈出動畫的影響
+  let y = center.getBoundingClientRect().top - ring.getBoundingClientRect().top;
+  for (let e = top; e && e !== center; e = e.offsetParent) y += e.offsetTop;
+  const mid = y + (u + (b - u) / 2) * z;
+  center.style.translate = `0 ${Math.round(room.shift + ring.offsetWidth / 2 - mid)}px`;
 }
 // 手機橫屏：卡在圓桌右邊。選項多得卡裏放不下時圓桌一點點縮小（--rk，最小六成），卡跟著變寬、一行多放幾個，不用在卡裏滾。
 // 縮了也不見矮的內容（間諜的魔典）不白縮：取放得下的最大一檔，都放不下就取最矮的那檔裏最大的。
@@ -560,6 +621,7 @@ const TAG_SHORT = { 被保護: '保護', 能力已用: '已用', 死亡票已用
 // 信息標記「洗衣婦:士兵」「調查員:錯誤」「占卜師查」、系統不認識的角色「某某選」：那個角色的小牌 + 一個字（真 / 錯 / 查），截成兩個字反而看不懂
 let byName = null;
 const roleNamed = n => (byName ||= new Map(Object.entries(ROLES).map(([id, r]) => [r.name, id]))).get(n);
+const pickTag = t => { const q = t.match(/^(.+)[查選]$/); return !!q && !!roleNamed(q[1]); };
 const tagShort = t => {
   const m = t.match(/^(.+?)[:：](.+)$/), q = t.match(/^(.+)([查選])$/), r = roleNamed((m || q)?.[1]);
   if (r) return [mini(r, 'tag-ico'), m ? (m[2] === '錯誤' ? '錯' : '真') : q[2]];
@@ -669,13 +731,25 @@ function dragSeat(ctx, seat, e) {
   window.addEventListener('pointercancel', up);
 }
 
+// 說書人的座位菜單，從桌面以外的地方開（標記卡上被選的座位號：這時候點桌上的座位是選人）
+export function seatMenu(ctx, seatId, anchor) {
+  const s = ctx.state, seat = s.seats.find(x => x.id === seatId);
+  if (!seat || !s.isSt || s.peek) return;
+  const title = seatLabel(s, seat.id);
+  menu(anchor, title + (seat.role ? ' · ' + ROLES[seat.role].name : ''), stMenu(ctx, seat, title));
+}
+
 function onSeat(ctx, seat, anchor) {
   const s = ctx.state;
   const pk = pickingNow(ctx);
   if (pk && pk.can.has(seat.id)) return pk.pick(seat.id);
+  // 正在桌上選人、點到不能選的：有原因就說原因（提名過的、死了的……），不彈座位菜單
+  const no = pk?.why?.(seat.id);
+  if (no) return toast(no);
   // 只選角色、不選人的行動（哲學家、侍臣）：座位不是選項，點座位照常開菜單
   if (sel.on && seatsWanted(sel.on)) {
-    if (sel.on.notSelfId === seat.id) return toast('不能選擇自己');
+    // 說書人代點時「自己」指的是行動的那位玩家，不是說書人：點名是誰
+    if (sel.on.notSelfId === seat.id) return toast(s.isSt ? `${ROLES[seat.fakeRole || seat.role]?.name || seatLabel(s, seat.id)}不能選擇自己` : '不能選擇自己');
     if (sel.on.last?.includes(seat.id)) return toast('不能和上一晚選同一名玩家');
     const ids = sel.on.ids, max = Math.max(...(sel.on.counts || [sel.on.count]));
     if (ids.includes(seat.id)) ids.splice(ids.indexOf(seat.id), 1);
@@ -700,6 +774,7 @@ function onSeat(ctx, seat, anchor) {
   if (!me && s.phase === 'lobby') return; // 觀戰的人準備階段沒什麼可做
   const day = s.phase === 'day' && me && !me.dead;
   const canNominate = day && !s.nomination && !s.dayOver && !s.nominators.includes(me.id) && !s.nominees.includes(seat.id);
+  const nomWhy = day && !s.offline && !s.nomination && !s.dayOver && !seat.mine ? (s.nominators.includes(me.id) ? '你今天提名過了' : s.nominees.includes(seat.id) ? '他今天被提名過了' : null) : null;
   // 扔雞蛋：任何時候都能扔，後面是自己還剩幾枚
   const eggs = me ? shownEggs(me.eggs) : 0;
   menu(anchor, title, [
@@ -707,6 +782,8 @@ function onSeat(ctx, seat, anchor) {
       onclick: () => (eggs ? ctx.act('egg', { targetId: seat.id }) : toast('雞蛋用完了')) },
     canNominate && !s.offline && { label: '提名他', onclick: () => ctx.act('nominate', { targetId: seat.id }) }, // 線下當面說，說書人替他提名
     day && s.dayOver && { label: [h('s', {}, '提名他'), h('small', {}, '今日已執行處決')], off: true },
+    // 每人每天只能提名一次、被提名一次：照樣列出來，寫明為什麼現在不行
+    nomWhy && { label: [h('s', {}, '提名他'), h('small', {}, nomWhy)], off: true },
     day && !seat.mine && !s.offline && { label: '宣稱獵手：向他開槍', onclick: () => (s.myRole === 'slayer' ? aimAsk(ctx, seat)
       : ask(`公開宣稱自己是獵手，向 ${title} 開槍？`, () => ctx.act('slay', { targetId: seat.id }), '開槍')) },
     day && s.juggleLeft > 0 && !seat.mine && { label: `公開猜他的角色（還有 ${s.juggleLeft} 次）`, onclick: () => pickJuggle(ctx, seat, title) },
@@ -764,11 +841,12 @@ function stMenu(ctx, seat, title) {
   const off = s.offline, day = live && s.phase === 'day' && !s.nomination && !st.ruling;
   const juggler = [seat.role, seat.fakeRole].includes('juggler') && s.day === 1;
   const evil = seat.align ? seat.align === 'evil' : !good;
-  const demon = local && seat.role && ROLES[seat.role].team === 'demon' && st.bluffs?.length > 0;
+  // 再給惡魔看一次偽裝：瘋子也有（看的是首夜給他的那份假偽裝），他要求再看時說書人照樣拿得出來，不穿幫
+  const bluffs = !local || !seat.role ? null : seat.role === 'lunatic' ? st.bluffsOf?.[seat.id] : ROLES[seat.role].team === 'demon' ? st.bluffs : null;
   return [
     off && day && juggler && { label: [icon('eye', 'menu-ico'), '雜耍藝人公開猜'], onclick: () => startAct(ctx, 'juggle', seat) },
     live && local && { label: [icon('eye', 'menu-ico'), '給他看身份'], onclick: () => passFrom(ctx, seat.id) },
-    live && demon && { label: [icon('eye', 'menu-ico'), '給他看偽裝'], onclick: () => showBluffs(s, seat.id, st.bluffs) },
+    live && bluffs?.length > 0 && { label: [icon('eye', 'menu-ico'), '給他看偽裝'], onclick: () => showBluffs(s, seat.id, bluffs) },
     { label: [icon('book', 'menu-ico'), '記錄'], onclick: () => modal(`${title} 的記錄`, seatLogView(s, seat.id), { wide: true }) },
     live && { label: [icon('quill', 'menu-ico'), '貼標記'], onclick: () => openReminders(ctx, seat) },
     '-',

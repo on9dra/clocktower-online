@@ -1,5 +1,6 @@
 // 側欄：標籤頁（流程日誌、遊戲日誌、聊天、角色表）。流程操作在圓桌中央和審判牌上（flow.js）
 import { h, roleToken, seatLabel, prompt2 } from './ui.js';
+import { getLang } from './lang.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';
 import { renderGameLog } from './gamelog.js';
@@ -127,9 +128,10 @@ export function chatUnread(s) {
 }
 
 // [鍵, 側欄標籤, 手機短標籤]
-// 單設備的線下局只有說書人一個人看：公共日誌、聊天沒人讀，不放
+// 單設備的線下局只有說書人一個人看：公共日誌、聊天沒人讀，不放。
+// 手機頂欄擠：英文短標籤不能比兩個漢字長太多，Character 會被切成 Characte，用 Roles
 const tabsOf = s => [...(s.isSt ? [['flow', '流程', '流程']] : []),
-  ...(s.oneDevice ? [] : [['log', '遊戲日誌', '日誌'], ['chat', '聊天', '聊天']]), ['sheet', '角色表', '角色']];
+  ...(s.oneDevice ? [] : [['log', '遊戲日誌', '日誌'], ['chat', '聊天', '聊天']]), ['sheet', '角色表', getLang() === 'en' ? 'Roles' : '角色']];
 // 紅點：數字一變就換一個節點，重新蓋章、慢慢閃
 const unreadBadge = n => n > 0 && h('i', { class: 'count', 'data-key': 'n' + n }, n > 99 ? '99+' : n);
 // 聊天標籤上的未讀：公共和私聊。玩家之間的私聊記錄只標在它自己的頁籤上，說書人不用回

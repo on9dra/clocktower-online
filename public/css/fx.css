@@ -202,7 +202,7 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .infocard.ruling .ic-tag { color: var(--card); background: var(--brass); }
 .spread > .ic-top { position: relative; }
 /* 信息卡頂上給說書人的一句（infoform.js guide）：句子比標題長，字距收緊，壓在中間那一小張的正上方居中，手機上不衝出屏幕 */
-.ic-tag.say { left: 50%; translate: -50% -100%; width: max-content; max-width: min(62vw, 15em); padding-inline: 12px; letter-spacing: .06em; font-size: 13px;
+.ic-tag.say { left: 50%; translate: -50% -100%; width: max-content; max-width: min(64vw, 18.5em); /* 18.5em：最長的一句（挑一個答案告訴他（可以是錯的））一行放得下，兩行時上面那行會被卡片的滾動框裁掉 */ padding-inline: 12px; letter-spacing: .06em; font-size: 13px;
   white-space: normal; text-align: center; text-wrap: balance; }
 /* 英文句子字母多：放寬到一行放得下（兩行時上面那行會被桌面頂邊蓋住），en-fix.json 裏這些句子也寫短 */
 :root[data-lang="en"] .ic-tag.say { max-width: min(84vw, 22em); }

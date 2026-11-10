@@ -56,6 +56,10 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .seat.dead .token { filter: grayscale(1); opacity: .55; }
 .seat.selectable .token { outline: 2px dashed var(--brass); outline-offset: 4px; }
 .seat.selected .token { outline: 4px solid var(--brass); outline-offset: 3px; background: var(--lit); }
+/* 手機點座位：瀏覽器自帶的點按高亮會把頭像連同旁邊的標籤框成一大塊；去掉它，按下的反饋只落在頭像上 */
+.seat { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.seat:active .token { filter: brightness(.88); }
+.seat.dead:active .token { filter: grayscale(1) brightness(.88); }
 .seat.unselectable { opacity: .4; }
 /* 死人：頭像上蓋一枚紅色印章（處決 / 射殺 / 死亡）；還有死亡票的頭頂放一張票 */
 .dead-stamp { position: absolute; left: 50%; top: 50%; z-index: 1; transform: translate(-50%, -50%) rotate(-12deg); pointer-events: none;
@@ -1198,6 +1202,11 @@ body.art .token.blank.named { color: #2a2622; }
 /* 說書人的標記：電腦上寫全，手機上一個字的小圓章（頭像小，寫全會疊到鄰座），點開座位菜單的「記錄」看細節 */
 .tag .t-s { display: none; font-style: normal; }
 .tag .t-l { font-style: normal; }
+/* 「誰選了誰 / 誰查了誰」：哪種屏幕都是角色小牌 + 一個字 */
+.seat-more .tag.by-role { display: inline-flex; align-items: center; padding: 1px 4px 1px 2px; white-space: nowrap; }
+.seat-more .tag.by-role .t-s { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; }
+.seat-more .tag.by-role .t-l { display: none; }
+.seat-more .tag.by-role .tag-ico { width: 16px; height: 16px; border-width: 1px; box-shadow: none; }
 @media (max-width: 860px), (max-height: 520px) {
   .seat-more .tags { gap: 2px; max-width: calc(var(--tk) * 1.2); }
   .seat-more .tag { display: grid; place-items: center; height: 17px; padding: 0 3px; border-radius: 3px; font: 700 10.5px/1 var(--serif); white-space: nowrap; }
