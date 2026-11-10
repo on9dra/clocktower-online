@@ -26,6 +26,8 @@ export const PATHS = {
   sun: `<circle ${F} cx="12" cy="12" r="4.5"/><path ${S} d="M12 1.8v2.6M12 19.6v2.6M1.8 12h2.6M19.6 12h2.6M4.8 4.8l1.8 1.8M17.4 17.4l1.8 1.8M4.8 19.2l1.8-1.8M17.4 6.6l1.8-1.8"/>`,
   skull: `<path ${F} fill-rule="evenodd" d="M12 2.5a7.5 7.5 0 0 0-7.5 7.5c0 3 1.4 4.8 3 5.9V20h9v-4.1c1.6-1.1 3-2.9 3-5.9A7.5 7.5 0 0 0 12 2.5zM8 10.5a1.9 1.9 0 1 0 3.8 0 1.9 1.9 0 1 0-3.8 0zm4.2 0a1.9 1.9 0 1 0 3.8 0 1.9 1.9 0 1 0-3.8 0z"/>`,
   dagger: `<path ${F} d="M12 1.5l2 11h-4z"/><path ${S} d="M7.5 13.5h9M12 13.5V19"/><circle ${F} cx="12" cy="21" r="1.6"/>`,
+  // 紅鯡魚：頭朝左的小魚，眼睛鏤空
+  fish: `<path ${F} fill-rule="evenodd" d="M2 12c2.7-3.7 6.1-5.5 9.8-5.5 3.3 0 5.7 1.6 7.4 3.4L22 7.3v9.4l-2.8-2.6c-1.7 1.8-4.1 3.4-7.4 3.4-3.7 0-7.1-1.8-9.8-5.5zm6.6-.8a1.4 1.4 0 1 0-2.8 0 1.4 1.4 0 1 0 2.8 0z"/>`,
   check: `<path ${S} stroke-width="3" d="M4.5 12.5l5 5 10-11"/>`,
   cross: `<path ${S} stroke-width="3" d="M6 6l12 12M18 6L6 18"/>`,
   none: `<circle ${S} cx="12" cy="12" r="8"/><path ${S} d="M6.5 17.5l11-11"/>`,
@@ -110,6 +112,8 @@ export function teamToken(team, none) {
   return h('span', { class: 'tt' + (none ? ' none' : ''), style: { '--team': color }, title: TEAMS[team]?.name },
     none ? icon('none') : team === 'demon' ? roleIcon('imp') : icon('dagger'));
 }
+// 給信息時角上的勾：真的是這個角色藍勾，能被當作這個角色（隱士、間諜登記）橙勾。不寫「真」「登」，英文也一樣大
+export const trueMark = (reg = false) => h('i', { class: 'tm' + (reg ? ' alt' : ''), title: reg ? '可以登記為這個角色' : '真的是這個角色' }, icon('check'));
 // 惡魔：是 / 否
 export const demonMark = yes => h('span', { class: 'dm ' + (yes ? 'yes' : 'no') }, roleIcon('imp'), icon(yes ? 'check' : 'cross', 'dm-k'));
 export const evilNum = n => h('b', { class: 'num' }, n);

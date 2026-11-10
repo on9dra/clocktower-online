@@ -101,13 +101,13 @@ export function checkFields(form, f, seatIds) {
   }
 }
 
-// 根據說書人發出的信息，算出要自動標在玩家座位上的標記：r 角色（q 表示二選一）、demon 是否惡魔、t 陣營
+// 根據說書人發出的信息，算出要自動標在玩家座位上的標記：r 角色（q 表示二選一）、demon 是否惡魔、t 陣營、same 女裁縫的是否同陣營
 export function infoMarks(form, f) {
   switch (form.kind) {
     // 賢者：只知道其一是惡魔，不知道是哪個惡魔，標記不能露出角色
     case 'two': return f.none ? [] : [f.a, f.b].map(seatId => (form.plain ? { seatId, demon: true, text: '可能是惡魔' } : { seatId, r: f.role, q: true, text: name(f.role) + '?' }));
     case 'yesno': return form.roleId === 'fortuneteller' ? (form.extra.ids || []).map(seatId => ({ seatId, demon: !!f.yes, text: f.yes ? '可能是惡魔' : '不是惡魔' }))
-      : form.roleId === 'seamstress' ? (form.extra?.ids || []).map(seatId => ({ seatId, text: f.yes ? '同陣營' : '不同陣營' })) : [];
+      : form.roleId === 'seamstress' ? (form.extra?.ids || []).map(seatId => ({ seatId, same: !!f.yes, text: f.yes ? '同陣營' : '不同陣營' })) : [];
     case 'dream': return [f.good, f.evil].map(r => ({ seatId: form.extra.targetId, r, q: true, text: name(r) + '?' }));
     case 'role': return form.extra && form.extra.targetId ? [{ seatId: form.extra.targetId, r: f.role, text: name(f.role) }] : [];
     case 'text': return form.grim ? Object.entries(form.grim).map(([seatId, r]) => ({ seatId, r, text: name(r) })) : [];

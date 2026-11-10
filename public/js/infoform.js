@@ -1,5 +1,5 @@
 // 說書人給信息的卡片。能力正常：只出現合規答案，唯一的答案直接鎖定，只有干擾項可選；
-// 中毒 / 酒鬼：同一張卡解鎖，所有選項放開（預填真實答案，真實項帶「真」角標）。
+// 中毒 / 酒鬼：同一張卡解鎖，所有選項放開（預填真實答案，真實項角上打藍勾）。
 // 下方是玩家將看到的式子，邊框顏色表示真實 / 登記 / 錯誤。
 // ON_TABLE 裏的角色（洗衣婦先試）：號碼直接點桌上的頭像，桌心只擺角色牌，中下方的紙條是這個組合的後果。
 import { showPages, bigCore } from './pass.js';
@@ -7,7 +7,7 @@ import { h, roleToken } from './ui.js';
 import { tr, getLang } from './lang.js';
 import { ROLES, TEAMS, CORE } from './roles.js';
 import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
-import { formula, seatBadge, mini, named, evilNum, icon, w } from './glyph.js';
+import { formula, seatBadge, mini, named, evilNum, icon, w, trueMark } from './glyph.js';
 import { goonLine } from './log.js';
 import { B, BW, stepOp, stepLock } from './flow.js';
 import { mathGroups } from './mathcard.js';
@@ -86,8 +86,8 @@ export function seatPicking(ctx, step) {
     pick: id => id !== d.a && set({ b: id }) };
 }
 
-const Tm = () => h('i', { class: 'tm' }, '真');
-// 可點的選項；level：2 真實（帶「真」）、1 登記（橙色圈）
+const Tm = () => trueMark();
+// 可點的選項；level：2 真實（角上藍勾）、1 登記（橙色圈）
 function opt(content, { on, level = 0, onclick, cls = '' }) {
   return h('button', { class: `opt-tile ${cls}` + (on ? ' on' : '') + (level === 1 ? ' alt' : ''), onclick }, content, level === 2 && Tm());
 }
@@ -95,14 +95,14 @@ const row = (...kids) => h('div', { class: 'opt-row' }, kids);
 const seatRow = kids => h('div', { class: 'opt-row seat-row' }, kids); // 手機上不顯示：座位直接點桌上的頭像（seatPicking）
 
 // 角色答案多（中毒、酒鬼時整本劇本都能選）：不在圓桌上方擺一大片小牌，放一格「角色」，點開整屏劇本單（rolepick.js）。
-// 「真」「登」照樣標在牌上；渦流在場時真的那些灰著，點了說原因。少的時候照舊一排小牌
+// 藍勾、橙勾照樣標在牌上；渦流在場時真的那些灰著，點了說原因。少的時候照舊一排小牌
 const MANY = 8;
 function roleSlot(ctx, step, key, list, cur, level, onPick) {
   const s = ctx.state, form = step.form;
   const open = () => rolePanel({ key: `info-${step.id}-${key}`, tab: [mini(step.roleId), seatBadge(s, step.seatId)], roles: list, owned: true,
     state: id => {
       const lv = level(id), off = !!form.vortox && !form.alt && lv > 0;
-      return { on: id === cur(), in: lv > 0, tag: lv === 2 ? '真' : lv === 1 ? '登' : '', off, why: off ? '渦流在場：只能給錯誤信息' : null };
+      return { on: id === cur(), in: lv > 0, tag: lv === 2 ? 'yes' : lv === 1 ? 'reg' : '', off, why: off ? '渦流在場：只能給錯誤信息' : null };
     },
     pick: id => onPick(id), picked: cur, alive: () => ctx.state?.st?.step?.id === step.id });
   return h('button', { class: 'role-slot' + (cur() ? ' on' : ''), onclick: open }, cur() ? named(cur()) : [h('span', { class: 'sb empty' }), w('角色', 'muted')]);
@@ -278,7 +278,7 @@ function plainInfo(ctx, step) {
 export function infoForm(ctx, step) {
   const s = ctx.state, form = step.form;
   // 單設備：能力正常時系統算好的信息就是答案；中毒、醉酒、渦流時說書人自己挑一個（錯誤的）告訴他，才用下面的選項。
-  // 數學家也用選項：數字算好了、預選、帶「真」，但哪些失常算數由說書人定，要能改；雜耍藝人口頭猜的系統不知道對錯，也是說書人挑
+  // 數學家也用選項：數字算好了、預選、打藍勾，但哪些失常算數由說書人定，要能改；雜耍藝人口頭猜的系統不知道對錯，也是說書人挑
   // 「兩名玩家之一是 X」：持有者和另一名玩家由說書人挑（系統預選了一組），也走下面的選項
   // 隱士 / 間諜可以登記成別的（alt）、場上有系統不認識的角色（free）：答案不止一個，也要讓說書人挑
   if (s.oneDevice && form.truth && form.kind !== 'text' && form.kind !== 'two' && !form.free && !form.alt && !form.open && !form.unknown) return plainInfo(ctx, step);

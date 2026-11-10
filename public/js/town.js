@@ -4,7 +4,7 @@ import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { openChat, chatUnread, pickGuess, guesses, notes, addNote, clearNotes, infoMarksBySeat, markView, actMarksBySeat, actMarkView } from './side.js';
 import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs, nightHeld, dawnHeld, heldFace } from './fx.js';
 import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './scores.js';
-import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge } from './glyph.js';
+import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge, trueMark } from './glyph.js';
 import { hudLinked } from './hud.js';
 import { trialPanel, trialStub } from './trial.js';
 import { seatPicking } from './infoform.js';
@@ -149,9 +149,10 @@ export function renderTown(ctx) {
     if (died) cls.push(died.cls);
     // 今天的提名情況：誰已經提名過、誰已經被提名過（每人每天各一次）
     const nominated = s.phase === 'day' && s.nominators.includes(seat.id), nominee = s.phase === 'day' && s.nominees.includes(seat.id);
-    // 說書人：常見狀態畫在頭像上（statusView），其餘的標記照舊是頭像下面的字籤
+    // 說書人：常見狀態畫在頭像上（statusView），其餘的標記朝圓心掛成一排角色小牌（tagView）
     // 正在處理的這一步自己的「某角色選」先不掛：卡上寫著選了誰，座位也圈著金圈，再掛一枚只會把桌心的卡擠小（下一步起照常顯示）
-    const status = s.isSt ? seatStatus(seat) : [], words = s.isSt ? (seat.tags || []).filter(t => !statusOf(t) && t !== ownPick) : [];
+    // 死亡票用掉了：頭像上那張票不見了就是，不另掛標記
+    const status = s.isSt ? seatStatus(seat) : [], words = s.isSt ? (seat.tags || []).filter(t => !statusOf(t) && t !== ownPick && t !== '死亡票已用') : [];
     ring.append(h('div', {
       class: cls.join(' '), 'data-key': seat.id, 'data-i': i, 'data-exit': s.phase === 'lobby' || null, // 準備階段拿掉的座位淡出去，不是一下子沒了
       // --ux、--uy：座位在圓桌上的方向，標記朝圓心掛（board.css .seat-more）
@@ -164,8 +165,8 @@ export function renderTown(ctx) {
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
       s.isSt && seat.fakeRole && fakeBadge(seat.fakeRole),
       s.phase === 'lobby' && seat.pinned && h('i', { class: 'pin-mark', title: '指定' }, icon('quill')),
-      // 說書人給信息：當前角色真正的持有者「真」，能被當作這個角色的「登」
-      pk?.marks?.[seat.id] && h('i', { class: 'tm' + (pk.marks[seat.id] === 1 ? ' alt' : '') }, pk.marks[seat.id] === 1 ? '登' : '真'),
+      // 說書人給信息：當前角色真正的持有者藍勾，能被當作這個角色的橙勾（只畫勾，不寫「真」「登」）
+      pk?.marks?.[seat.id] && trueMark(pk.marks[seat.id] === 1),
       dead && h('span', { class: 'dead-stamp' }, DEATH[seat.deathBy] || '死亡'),
       dead && !seat.voteUsed && h('span', { class: 'ghost-vote', title: '還有一張死亡票' }, icon('ticket')),
       nom && (nom.votes[seat.id] || nom.abstain?.[seat.id]) && h('span', {
@@ -186,18 +187,14 @@ export function renderTown(ctx) {
       !seat.online && h('i', { class: 'off', title: '離線' })),
     h('div', { class: 'seat-more' }, s.phase === 'lobby' && !s.oneDevice && scoreRow(seat), // 單設備的座位只是名字，不記積分
     s.isSt && words.length > 0 && h('div', { class: 'tags' + (words.length > 3 ? ' many' : ''), 'data-more': `+${words.length - 3}` },
-      words.map(t => {
-        // 說書人自己貼的標記：點一下取下
-        const mine = s.st?.marks?.[seat.id]?.includes(t);
-        // 「某角色選 / 查」：電腦上也畫成角色小牌 + 一個字（寫全名一行就佔半個桌心，三枚疊起來把中間的操作卡擠沒了）
-        return h('span', { class: 'tag' + (t === '中毒' ? ' bad' : '') + (mine ? ' pick' : '') + (pickTag(t) ? ' by-role' : ''), title: t,
-          onclick: mine ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: t, on: false }); } : null }, h('b', { class: 't-s' }, tagShort(t)), h('i', { class: 't-l' }, t));
-      })),
+      // 寫全名一行就佔半個桌心，三枚疊起來把中間的操作卡擠沒了：只畫角色小牌和角上的符號（tagView）
+      words.map(t => tagView(ctx, seat, t, s.st?.marks?.[seat.id]?.includes(t)))),
     (missed.some(x => x.from === seat.id) || picks.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
-      missed.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot' + (fxFor('shot', seat.id, 600) ? ' fx-shot' : ''), title: '宣稱獵手開槍，沒有打中' },
-        icon('aim'), `射${num(x.to)}號失敗`)),
+      // 開槍沒打中、死後公開選人：圖標 + 對方的座位號，不寫字（全句在 title 裏）
+      missed.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot' + (fxFor('shot', seat.id, 600) ? ' fx-shot' : ''), title: `射${num(x.to)}號失敗` },
+        icon('aim'), h('b', {}, num(x.to)))),
       picks.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot word' + (wordFresh(x) ? ' fx-shot' : ''), style: { animationDelay: wordFresh(x) || null }, title: `${ROLES[x.role]?.name || ''}死後公開選人` },
-        icon(x.role === 'moonchild' ? 'moon' : 'aim'), `選${num(x.to)}號`)),
+        icon(x.role === 'moonchild' ? 'moon' : 'aim'), h('b', {}, num(x.to)))),
       !s.isSt && (acts[seat.id] || []).map(actMarkView),
       team[seat.id] && g[seat.id] && h('span', { class: 'pm q', title: '你的猜測' }, mini(g[seat.id])),
       (auto[seat.id] || []).filter(k => !k.t).map(markView),
@@ -627,9 +624,9 @@ function pickingNow(ctx) {
 
 // ───── 座位狀態：常見的狀態不寫成字籤，畫在頭像上 ─────
 // 影響整個頭像的效果（中毒：綠墨從底下滲上來、冒泡；醉酒：頭像晃、一塊酒漬；被保護：一圈藍墨環……），
-// 加一枚沿頭像邊掛的小圖章（說書人自己貼的，點圖章取下）。誰查過誰、紅鯡魚、說書人寫的備註這些照舊是字籤
+// 加一枚沿頭像邊掛的小圖章（說書人自己貼的，點圖章取下）。誰查過誰、紅鯡魚、提醒標記是朝圓心掛的角色小牌（tagView），說書人自己寫的字照舊是字籤
 const STATUS = { 中毒: ['poison', 'drop'], 醉酒: ['drunk', 'cup'], 被保護: ['protect', 'shield'], 處決不死: ['safe', 'shield'], 詛咒: ['curse', 'bolt'],
-  瘋狂: ['mad', 'mask'], 蓄力: ['charge', 'pitchfork'], 假死: ['undead', 'skull'], 能力已用: ['used', 'check'] };
+  瘋狂: ['mad', 'mask'], 蓄力: ['charge', 'pitchfork'], 假死: ['undead', 'skull'], 能力已用: ['used', 'check'], 額外一天: ['extra', 'sun'] };
 const statusOf = t => STATUS[t] || (t.startsWith('瘋狂：') ? STATUS.瘋狂 : null);
 // 圖章沿頭像邊掛的角度：左上、右上、左、右（正上方是死亡票，右下是假身份副牌）
 const RIM = [-140, -40, 180, 0];
@@ -651,21 +648,49 @@ function statusView(ctx, seat, list) {
     })];
 }
 
-// 手機上頭像小，說書人的標記縮成兩個字的小籤（完整的在 title 裏）：被保護→保護、占卜師查→被查……
-const TAG_SHORT = { 被保護: '保護', 能力已用: '已用', 死亡票已用: '票用', 額外一天: '多天', 處決不死: '免死' };
-// 信息標記「洗衣婦:士兵」「調查員:錯誤」「占卜師查」、系統不認識的角色「某某選」：那個角色的小牌 + 一個字（真 / 錯 / 查），截成兩個字反而看不懂
+// ───── 說書人的其他標記：只畫圖標，不寫字 ─────
+// 誰的能力落在這個座位上，就掛那個角色的小牌；要多說一點的，小牌右下角加一枚小符號：
+// ✓ 真的是、橙色 ✓ 能登記成、✗ 錯誤（干擾項）、數字（第幾晚、醉酒幾天）、刀（死亡）、交換、紅魚（紅鯡魚）。
+// 全名在 title 裏（座位菜單的「標記」裏是一顆顆帶字的籤）；認不出是哪個角色的（說書人自己寫的字、陣營改了）照舊寫字
 let byName = null;
 const roleNamed = n => (byName ||= new Map(Object.entries(ROLES).map(([id, r]) => [r.name, id]))).get(n);
-const pickTag = t => { const q = t.match(/^(.+)[查選]$/); return !!q && !!roleNamed(q[1]); };
-const tagShort = t => {
-  const m = t.match(/^(.+?)[:：](.+)$/), q = t.match(/^(.+)([查選])$/), r = roleNamed((m || q)?.[1]);
-  if (r) return [mini(r, 'tag-ico'), m ? (m[2] === '錯誤' ? '錯' : '真') : q[2]];
-  const d = t.match(/^(.+?)·(.+)$/), dr = d && roleNamed(d[1]); // 兩個角色同名的標記：「寡婦·得知」
-  if (dr) return [mini(dr, 'tag-ico'), cut(d[2])];
-  if (t === '紅鯡魚') return [mini('fortuneteller', 'tag-ico'), '鯡']; // 和「占卜師查」一樣：小牌 + 一個字
-  return TAG_SHORT[t] || (t.startsWith('瘋狂') ? '瘋狂' : cut(t));
-};
-// 截短：中文留兩個字；英文不能按字截（「失去」翻不出來），翻好整句取第一個詞
+const CN = { 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5 };
+// 提醒標記上的字 → 角上的符號（官方標記：洗衣婦的「鎮民 / 錯誤」、小惡魔的「死亡」、「第一晚」「醉酒 2」……），其餘不加
+function badgeOf(word) {
+  if (word === '干擾項') return 'fish'; // 占卜師的官方標記「干擾項」就是紅鯡魚
+  if (/錯誤|^X$/.test(word)) return 'no';
+  if (word.endsWith('(登記)')) return 'reg';
+  if (/^(?:鎮民|外來者|爪牙|惡魔|是惡魔|猜測正確)$/.test(word)) return 'yes';
+  if (/死亡|死於|被殺/.test(word) && !/不會|沒有/.test(word)) return 'kill';
+  if (/理髮|交換/.test(word)) return 'swap';
+  const n = word.match(/^(?:第([一二三四五])[晚天名]|醉酒([1-9])|([1-9])票?|攻擊([一二三])次)$/), v = n && (n[1] || n[2] || n[3] || n[4]);
+  return v ? CN[v] || Number(v) : word === '?' ? '?' : null;
+}
+// 標記 → { r: 角色, b: 角上的符號 }；認不出角色時 null（寫字）
+function tagFace(s, t) {
+  if (t === '紅鯡魚') return { r: 'fortuneteller', b: 'fish' };
+  let m = t.match(/^(.+?)[:：](.+)$/);
+  // 信息類給出的「洗衣婦:士兵」「洗衣婦:士兵(登記)」「洗衣婦:錯誤」
+  if (m && roleNamed(m[1])) return { r: roleNamed(m[1]), b: m[2] === '錯誤' ? 'no' : badgeOf(m[2]) === 'reg' ? 'reg' : 'yes' };
+  m = t.match(/^(.+)[查選]$/); // 查驗類「占卜師查」、系統不認識的角色「某某選」
+  if (m && roleNamed(m[1])) return { r: roleNamed(m[1]), b: null };
+  m = t.match(/^(.+?)(?:·|的)(.+)$/); // 兩個角色同名的標記「寡婦·得知」、系統掛的「管家的主人」
+  if (m && roleNamed(m[1])) return { r: roleNamed(m[1]), b: badgeOf(m[2]) };
+  const own = (s.st?.reminders || []).find(x => x.t === t); // 在場角色自己的提醒標記（「孫子」「第一晚」……）
+  return own ? { r: own.r, b: badgeOf(t) } : null;
+}
+const BADGE = { yes: 'check', reg: 'check', no: 'cross', kill: 'dagger', swap: 'become', fish: 'fish' };
+const tagBadge = b => b != null && h('i', { class: 'tg-b ' + (BADGE[b] ? b : 'n') }, BADGE[b] ? icon(BADGE[b]) : String(b));
+function tagView(ctx, seat, t, mine) {
+  const f = tagFace(ctx.state, t), cls = 'tag' + (mine ? ' pick' : '');
+  // 說書人自己貼的標記：點一下取下
+  const off = mine ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: t, on: false }); } : null;
+  if (!f) return h('span', { class: cls + (t === '邪惡' ? ' bad' : t === '善良' ? ' good' : ''), title: t, onclick: off }, h('b', { class: 't-s' }, cut(t)), h('i', { class: 't-l' }, t));
+  const tok = mini(f.r, 'tag-ico');
+  tok.removeAttribute('title'); // 懸停看的是這枚標記的全名，不是角色能力
+  return h('span', { class: cls + ' by-role', title: t, onclick: off }, tok, tagBadge(f.b));
+}
+// 寫字的標記在手機上截短：中文留兩個字；英文不能按字截（「失去」翻不出來），翻好整句取第一個詞
 const cut = t => (getLang() === 'en' ? tr(t).split(/[\s:]/)[0] : [...t].slice(0, 2).join(''));
 
 // 準備階段新坐下的座位（定人數、新玩家進房）從原地長出來，不是一下子冒出來。換房間、換局時不算

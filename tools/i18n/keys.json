@@ -64,7 +64,8 @@
   "lib/engine.js"
  ],
  "(登記)": [
-  "lib/engine.js"
+  "lib/engine.js",
+  "public/js/town.js"
  ],
  "（紅唇女郎）": [
   "public/js/log.js"
@@ -405,6 +406,9 @@
  "按住看自己的角色": [
   "public/js/hud.js"
  ],
+ "暗藏殺機": [
+  "public/js/community.js"
+ ],
  "暗流湧動": [
   "public/js/help.js",
   "public/js/roles.js"
@@ -441,6 +445,12 @@
  "白天結束時處決；平票就沒人處決": [
   "public/js/help.js"
  ],
+ "百無禁忌": [
+  "public/js/community.js"
+ ],
+ "半個一百零八": [
+  "public/js/community.js"
+ ],
  "保存房間失敗": [
   "lib/store.js"
  ],
@@ -449,8 +459,7 @@
   "public/js/fx-ab.js",
   "public/js/glyph.js",
   "public/js/help.js",
-  "public/js/log.js",
-  "public/js/town.js"
+  "public/js/log.js"
  ],
  "保護了 {0}": [
   "lib/night.js"
@@ -541,6 +550,9 @@
  "比": [
   "public/js/help.js"
  ],
+ "比爛大賽": [
+  "public/js/community.js"
+ ],
  "必選": [
   "public/js/help.js",
   "public/js/setup.js"
@@ -617,6 +629,9 @@
  "不接任": [
   "public/js/flow.js"
  ],
+ "不理性行為": [
+  "public/js/community.js"
+ ],
  "不能和上一晚選同一名玩家": [
   "lib/engine.js",
   "public/js/town.js"
@@ -663,6 +678,9 @@
  "不死亡": [
   "public/js/flow.js"
  ],
+ "不死舞會": [
+  "public/js/community.js"
+ ],
  "不同陣營": [
   "public/js/fx-ab-dlc.js",
   "public/js/infofmt.js"
@@ -684,7 +702,7 @@
  "步": [
   "public/js/infofmt.js"
  ],
- "部分角色自己處理": [
+ "部分角色說書人處理": [
   "public/js/manual.js"
  ],
  "猜": [
@@ -826,6 +844,9 @@
  "創建房間": [
   "public/js/lobby.js"
  ],
+ "瓷器店": [
+  "public/js/community.js"
+ ],
  "刺殺": [
   "public/js/fx-ab-dlc.js",
   "public/js/glyph.js"
@@ -834,8 +855,7 @@
   "lib/night.js"
  ],
  "錯": [
-  "public/js/infoform.js",
-  "public/js/town.js"
+  "public/js/infoform.js"
  ],
  "錯誤紅框，登記橙框": [
   "public/js/help.js"
@@ -907,6 +927,9 @@
   "public/js/fx-ab-dlc.js",
   "public/js/fx-ab.js"
  ],
+ "到底是誰的邪教": [
+  "public/js/community.js"
+ ],
  "到點按舉著的手結算；說書人可隨時暫停或重新計時": [
   "public/js/help.js"
  ],
@@ -923,12 +946,11 @@
  "得知處決": [
   "public/js/help.js"
  ],
+ "地獄辣椒大賽": [
+  "public/js/community.js"
+ ],
  "的死亡被說書人收回": [
   "lib/engine.js"
- ],
- "登": [
-  "public/js/infoform.js",
-  "public/js/town.js"
  ],
  "登記": [
   "public/js/infoform.js"
@@ -1041,9 +1063,6 @@
  "多設備": [
   "public/js/flow.js"
  ],
- "多天": [
-  "public/js/town.js"
- ],
  "躲過": [
   "public/js/fx-ab-dlc.js"
  ],
@@ -1117,6 +1136,9 @@
   "public/js/help.js",
   "public/js/infoform.js",
   "public/js/side.js"
+ ],
+ "發條改造人": [
+  "public/js/community.js"
  ],
  "翻開": [
   "public/js/pass.js"
@@ -1203,9 +1225,6 @@
  ],
  "非惡魔": [
   "public/js/side.js"
- ],
- "鯡": [
-  "public/js/town.js"
  ],
  "分享": [
   "public/js/about.js"
@@ -1305,6 +1324,9 @@
  "告知他": [
   "public/js/infoform.js"
  ],
+ "格林合唱團": [
+  "public/js/community.js"
+ ],
  "個": [
   "public/js/infofmt.js"
  ],
@@ -1355,6 +1377,9 @@
  ],
  "公開猜自己的角色（還有 {0} 次）": [
   "public/js/town.js"
+ ],
+ "公開處刑奇觀": [
+  "public/js/community.js"
  ],
  "公開宣稱自己是獵手，向 {0} 開槍？": [
   "public/js/town.js"
@@ -1446,6 +1471,9 @@
  "還有一張死亡票": [
   "public/js/town.js"
  ],
+ "好月升起": [
+  "public/js/community.js"
+ ],
  "和": [
   "public/js/help.js",
   "public/js/infofmt.js",
@@ -1463,6 +1491,9 @@
  ],
  "橫屏": [
   "public/js/pass.js"
+ ],
+ "轟！": [
+  "public/js/community.js"
  ],
  "紅唇": [
   "lib/rules.js"
@@ -1539,6 +1570,9 @@
  ],
  "獲勝": [
   "public/js/help.js"
+ ],
+ "霍爾特的復仇": [
+  "public/js/community.js"
  ],
  "積分榜": [
   "public/js/help.js",
@@ -1692,6 +1726,9 @@
  "叫醒爪牙，指出惡魔": [
   "public/js/stepcard.js"
  ],
+ "教派地牢": [
+  "public/js/community.js"
+ ],
  "接任": [
   "public/js/fx-ab.js",
   "public/js/help.js",
@@ -1807,6 +1844,9 @@
  "進入大廳": [
   "public/js/intro.js"
  ],
+ "驚魂過山車": [
+  "public/js/community.js"
+ ],
  "敬請期待": [
   "public/js/flow.js",
   "public/js/help.js"
@@ -1878,6 +1918,12 @@
  "看完了，蓋上": [
   "public/js/pass.js"
  ],
+ "烤派中": [
+  "public/js/community.js"
+ ],
+ "科學怪鎮長": [
+  "public/js/community.js"
+ ],
  "可能被當作": [
   "public/js/help.js"
  ],
@@ -1898,6 +1944,9 @@
  ],
  "可以被當作鎮民": [
   "public/js/flow.js"
+ ],
+ "可以登記為這個角色": [
+  "public/js/glyph.js"
  ],
  "可以說真話，也可以說謊": [
   "public/js/help.js"
@@ -1929,6 +1978,9 @@
  "空": [
   "public/js/flow.js",
   "public/js/setup.js"
+ ],
+ "口無遮攔": [
+  "public/js/community.js"
  ],
  "快速、簡約、精美的線上魔典": [
   "public/js/about.js",
@@ -2054,6 +2106,9 @@
  "麻臉巫婆創造了惡魔：今晚的死亡由你決定": [
   "lib/night.js"
  ],
+ "買家後悔": [
+  "public/js/community.js"
+ ],
  "沒提名": [
   "public/js/fx-ab-dlc.js"
  ],
@@ -2138,6 +2193,9 @@
  "沒有在假裝叫醒": [
   "lib/engine.js"
  ],
+ "煤氣燈下": [
+  "public/js/community.js"
+ ],
  "每人看自己的身份": [
   "public/js/manual.js"
  ],
@@ -2160,9 +2218,6 @@
  "免費開源": [
   "public/js/intro.js"
  ],
- "免死": [
-  "public/js/town.js"
- ],
  "免疫": [
   "public/js/help.js"
  ],
@@ -2172,6 +2227,9 @@
  ],
  "秒後反噬": [
   "public/js/flow.js"
+ ],
+ "蔑視": [
+  "public/js/community.js"
  ],
  "名": [
   "public/js/help.js",
@@ -2342,11 +2400,17 @@
  "鯰魚": [
   "public/js/community.js"
  ],
+ "牛頭人的迷宮": [
+  "public/js/community.js"
+ ],
  "弄臣免死": [
   "lib/rules.js"
  ],
  "挪座位": [
   "public/js/topbar.js"
+ ],
+ "爬蟲二：城裏的蜥蜴": [
+  "public/js/community.js"
  ],
  "排除": [
   "public/js/help.js",
@@ -2368,9 +2432,6 @@
   "public/js/gamelog.js",
   "public/js/log.js"
  ],
- "票用": [
-  "public/js/town.js"
- ],
  "平安夜": [
   "public/js/fx.js",
   "public/js/gamelog.js"
@@ -2382,6 +2443,9 @@
  ],
  "普卡（今晚沒有醒）：{0}": [
   "lib/night.js"
+ ],
+ "七號座位之歌": [
+  "public/js/community.js"
  ],
  "其他爪牙：{0}": [
   "lib/night.js"
@@ -2401,6 +2465,9 @@
   "public/js/log.js",
   "public/js/town.js",
   "public/js/trial.js"
+ ],
+ "牽線搭橋": [
+  "public/js/community.js"
  ],
  "清除我的備註": [
   "public/js/town.js"
@@ -2512,13 +2579,16 @@
  "取消這次提名？雙方今天可以重新提名 / 被提名。": [
   "public/js/flow.js"
  ],
+ "去基礎化": [
+  "public/js/community.js"
+ ],
  "全部恢復隨機": [
   "public/js/setup.js"
  ],
  "全部靜音": [
   "public/js/topbar.js"
  ],
- "全部選項解鎖，「真」是真實答案": [
+ "全部選項解鎖，打勾的是真實答案": [
   "public/js/help.js"
  ],
  "全場醉酒": [
@@ -2526,6 +2596,9 @@
  ],
  "全程自動結算": [
   "public/js/intro.js"
+ ],
+ "全員外來者": [
+  "public/js/community.js"
  ],
  "全自動": [
   "public/js/manual.js"
@@ -2634,7 +2707,8 @@
   "lib/rules.js",
   "lib/util.js",
   "public/js/help.js",
-  "public/js/log.js"
+  "public/js/log.js",
+  "public/js/town.js"
  ],
  "善良的鏡像雙子被處決": [
   "lib/rules.js"
@@ -2674,6 +2748,9 @@
  "上一局邪惡獲勝": [
   "public/js/scores.js"
  ],
+ "社交提線": [
+  "public/js/community.js"
+ ],
  "社區劇本": [
   "public/js/flow.js",
   "public/js/help.js",
@@ -2702,6 +2779,9 @@
  "設置": [
   "public/js/settings.js",
   "public/js/topbar.js"
+ ],
+ "深夜飛車": [
+  "public/js/community.js"
  ],
  "什麼也不會發生": [
   "public/js/town.js"
@@ -2742,6 +2822,9 @@
  ],
  "十": [
   "public/js/help.js"
+ ],
+ "時光流逝": [
+  "public/js/community.js"
  ],
  "使用": [
   "public/js/flow.js"
@@ -2815,6 +2898,9 @@
  "雙方今天可以重新提名": [
   "public/js/help.js"
  ],
+ "雙生小鎮": [
+  "public/js/community.js"
+ ],
  "雙子": [
   "lib/night.js",
   "public/js/fx-ab-dlc.js",
@@ -2823,12 +2909,18 @@
  "雙子是 {0}": [
   "lib/night.js"
  ],
+ "誰比誰聖潔": [
+  "public/js/community.js"
+ ],
  "誰成為": [
   "public/js/stepcard.js"
  ],
  "誰從此醉酒？": [
   "lib/night.js",
   "public/js/stepcard.js"
+ ],
+ "誰都別動": [
+  "public/js/community.js"
  ],
  "誰會贏？": [
   "public/js/help.js"
@@ -2972,7 +3064,8 @@
  ],
  "死亡票已用": [
   "lib/util.js",
-  "public/js/glyph.js"
+  "public/js/glyph.js",
+  "public/js/town.js"
  ],
  "死亡玩家不能開槍": [
   "lib/day.js"
@@ -3080,6 +3173,9 @@
  "替死、三人勝": [
   "public/js/help.js"
  ],
+ "天國降臨": [
+  "public/js/community.js"
+ ],
  "天快亮了，核對一下今晚": [
   "public/js/town.js"
  ],
@@ -3103,6 +3199,9 @@
  "天亮前確認": [
   "lib/engine.js",
   "lib/night.js"
+ ],
+ "天堂之門": [
+  "public/js/community.js"
  ],
  "挑干擾項": [
   "public/js/help.js"
@@ -3156,6 +3255,9 @@
  ],
  "投票限制": [
   "public/js/help.js"
+ ],
+ "湍流沸騰": [
+  "public/js/community.js"
  ],
  "推進": [
   "public/js/topbar.js"
@@ -3251,6 +3353,9 @@
  ],
  "我是玩家": [
   "public/js/lobby.js"
+ ],
+ "巫術": [
+  "public/js/community.js"
  ],
  "無": [
   "public/js/flow.js"
@@ -3443,7 +3548,11 @@
   "lib/rules.js",
   "lib/util.js",
   "public/js/help.js",
-  "public/js/log.js"
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "邪惡出櫃": [
+  "public/js/community.js"
  ],
  "邪惡獲勝": [
   "public/js/flow.js",
@@ -3455,6 +3564,9 @@
  "寫點什麼再寄出": [
   "public/js/about.js",
   "server.js"
+ ],
+ "心理社交": [
+  "public/js/community.js"
  ],
  "心上人：{0}（{1}）從此醉酒": [
   "lib/night.js"
@@ -3509,9 +3621,6 @@
  "宣稱獵手：向自己開槍": [
   "public/js/town.js"
  ],
- "宣稱獵手開槍，沒有打中": [
-  "public/js/town.js"
- ],
  "選": [
   "public/js/flow.js",
   "public/js/log.js",
@@ -3520,9 +3629,6 @@
  ],
  "選 MVP": [
   "public/js/help.js"
- ],
- "選{0}號": [
-  "public/js/town.js"
  ],
  "選角色": [
   "public/js/flow.js",
@@ -3754,6 +3860,9 @@
  "血染鐘樓魔典已啓動: http://localhost:{0}": [
   "server.js"
  ],
+ "巡演": [
+  "public/js/community.js"
+ ],
  "押": [
   "public/js/fx-ab-dlc.js",
   "public/js/glyph.js"
@@ -3769,6 +3878,9 @@
  ],
  "演示頁不能寄出": [
   "public/js/about.js"
+ ],
+ "洋蔥派": [
+  "public/js/community.js"
  ],
  "邀請鏈接已複製": [
   "public/js/invite.js"
@@ -3893,9 +4005,6 @@
  "已選": [
   "public/js/trial.js"
  ],
- "已用": [
-  "public/js/town.js"
- ],
  "已在場": [
   "public/js/log.js"
  ],
@@ -3908,6 +4017,9 @@
  ],
  "以為自己是鎮民，能力無效": [
   "public/js/help.js"
+ ],
+ "佚名": [
+  "public/js/community.js"
  ],
  "音樂音量": [
   "public/js/settings.js"
@@ -3924,11 +4036,17 @@
  "應為 {0}": [
   "public/js/flow.js"
  ],
+ "罌粟宣傳": [
+  "public/js/community.js"
+ ],
  "贏家戴陣營皇冠": [
   "public/js/help.js"
  ],
  "贏了有什麼": [
   "public/js/help.js"
+ ],
+ "幽靈釀造": [
+  "public/js/community.js"
  ],
  "遊戲規則": [
   "public/js/help.js"
@@ -3992,6 +4110,9 @@
  ],
  "與": [
   "public/js/infofmt.js"
+ ],
+ "月蝕": [
+  "public/js/community.js"
  ],
  "月之子沒有選人": [
   "lib/night.js"
@@ -4180,10 +4301,8 @@
  "貞潔者反噬": [
   "public/js/log.js"
  ],
- "真": [
-  "public/js/help.js",
-  "public/js/infoform.js",
-  "public/js/town.js"
+ "真的是這個角色": [
+  "public/js/glyph.js"
  ],
  "真實": [
   "public/js/infoform.js"
@@ -4237,6 +4356,9 @@
  "正在重連，請稍候": [
   "public/js/app.js"
  ],
+ "政教分離": [
+  "public/js/community.js"
+ ],
  "之中有": [
   "public/js/help.js",
   "public/js/intro.js"
@@ -4256,6 +4378,9 @@
  ],
  "直接判定邪惡陣營獲勝，結束本局？": [
   "public/js/topbar.js"
+ ],
+ "職業殺手": [
+  "public/js/community.js"
  ],
  "只讀，確認信息送到了": [
   "public/js/help.js"
@@ -4399,6 +4524,9 @@
  "準備中": [
   "public/js/lobby.js"
  ],
+ "捉迷藏": [
+  "public/js/community.js"
+ ],
  "桌上直接點，信息系統算好": [
   "public/js/help.js"
  ],
@@ -4467,6 +4595,9 @@
  ],
  "詛咒了 {0}": [
   "lib/night.js"
+ ],
+ "詛咒之屋的黃昏": [
+  "public/js/community.js"
  ],
  "最多 1 人": [
   "public/js/help.js"

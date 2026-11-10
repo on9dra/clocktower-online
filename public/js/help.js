@@ -4,7 +4,7 @@
 // 補充說明撕成存根。書口貼索引籤，翻過去的章的籤在左邊
 import { h, modal, closeModal, roleToken } from './ui.js';
 import { getLang } from './lang.js';
-import { icon, seatBadge, mini, tag, w, formula } from './glyph.js';
+import { icon, seatBadge, mini, tag, w, formula, trueMark } from './glyph.js';
 import { crownSvg } from './scores.js';
 import { ROLES, TEAMS } from './roles.js';
 import { EGG, MVP_WINDOW } from './score.js';
@@ -136,7 +136,7 @@ const PREP = {
       step(3, [h('span', { class: 'btn' }, '隨機抽取'), row(w('再'), fake('確認開局', 'ghost'))], '開局', '先給座位指定角色，其餘隨機'))],
 };
 
-const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && h('i', { class: 'tm' }, '真'));
+const opt = (n, on, truth) => h('span', { class: 'opt-tile' + (on ? ' on' : '') }, sb(n), truth && trueMark());
 const NIGHT = {
   key: 'night', nav: '夜晚', title: '夜晚',
   ico: 'moon',
@@ -158,7 +158,7 @@ const NIGHT = {
       step(2, null, '挑干擾項', '點卡上的選項，或直接點桌上的座位'),
       step(3, null, '發送', '玩家收到卡上這一句，接著自動到下一張')),
     block('poison', h('h4', {}, icon('drop', 'poison'), '中毒 / 酒鬼時'),
-      h('span', { class: 'opt-row' }, opt(1), opt(3, false, true), opt(5), opt(6)), sm('全部選項解鎖，「真」是真實答案'))],
+      h('span', { class: 'opt-row' }, opt(1), opt(3, false, true), opt(5), opt(6)), sm('全部選項解鎖，打勾的是真實答案'))],
 };
 
 const SDAY = {

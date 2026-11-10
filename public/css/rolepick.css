@@ -110,6 +110,10 @@
 .rp-tag { position: absolute; right: 3px; top: 3px; padding: 0 3px; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); font: 500 10.5px/14px var(--serif); font-style: normal;
   opacity: 0; transition: opacity .18s ease; pointer-events: none; }
 .rp-tag:empty { display: none; }
+/* 給信息：真的是 / 能登記成，和桌上一樣是藍勾 / 橙勾（rolepick.js paint） */
+.rp-tag.ok { display: grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 50%; background: var(--good); color: #fff; box-shadow: 0 0 0 1.5px var(--card); }
+.rp-tag.ok.alt { background: #a8641a; }
+.rp-tag.ok .ico { width: 72%; height: 72%; }
 .rp-role:is(.in, .off) .rp-tag { opacity: 1; }
 .rp-role.in .token { opacity: .55; }
 .rp-role.off { cursor: help; }

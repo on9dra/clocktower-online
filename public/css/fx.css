@@ -133,8 +133,12 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .pmark.auto.evil { background: var(--evil); color: #fff; }
 .pmark.note { background: var(--card); color: var(--ink); border: 1px solid var(--ink); }
 /* 自己今晚的行動：語義色實底 + 圖標（中毒 / 保護 / 擊殺 / 主人 / 查驗） */
-.pmark.act { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; color: #fff; font-weight: 700; animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }
+/* 只有圖標，沒有字（side.js actMarkView）：一枚語義色的小圓章 */
+.pmark.act { display: inline-grid; place-items: center; width: 18px; height: 18px; padding: 0; border-radius: 50%; color: #fff; box-shadow: 0 0 0 1.5px var(--card); animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }
 .pmark.act .ico { width: 12px; height: 12px; }
+/* 女裁縫的同不同陣營：一對圈，右下角打勾 / 打叉（不寫「同陣營」） */
+.pmark.auto.pair { position: relative; display: inline-grid; place-items: center; width: 18px; height: 18px; padding: 0; border-radius: 50%; background: var(--card); color: var(--ink); box-shadow: 0 0 0 1.5px var(--ink); }
+.pmark.auto.pair > .ico { width: 14px; height: 14px; }
 .pmark.act.poison { background: #3d8b3d; }
 .pmark.act.good { background: var(--good); }
 .pmark.act.evil { background: var(--evil); }
@@ -245,7 +249,7 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 }
 
 /* 射空的人：所有人視角都標「射 N 號失敗」，「未中」章飛過來時按上去 */
-.pmark.shot { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; background: var(--muted); color: #fff; font-weight: 700; }
+.pmark.shot { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px 0 3px; background: var(--muted); color: #fff; font-weight: 700; font-family: var(--sans); }
 .pmark.shot .ico { width: 12px; height: 12px; }
 .pmark.shot.fx-shot { animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }
 

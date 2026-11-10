@@ -91,7 +91,7 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .st-ico .token { width: 86%; height: 86%; }
 .st-ico.pick { pointer-events: auto; cursor: pointer; }
 .st-ico.poison { --c: #3d8b3d; } .st-ico.drunk { --c: #9a5b1e; } .st-ico.protect { --c: var(--good); } .st-ico.safe { --c: var(--brass); }
-.st-ico.curse, .st-ico.charge { --c: var(--evil); } .st-ico.mad { --c: #6b3f8a; } .st-ico.used, .st-ico.undead { --c: var(--muted); }
+.st-ico.curse, .st-ico.charge { --c: var(--evil); } .st-ico.extra { --c: var(--brass); } .st-ico.mad { --c: #6b3f8a; } .st-ico.used, .st-ico.undead { --c: var(--muted); }
 @keyframes st-stamp { from { scale: 1.9; opacity: 0; } 60% { scale: .92; opacity: 1; } }
 @keyframes st-spin { to { rotate: 1turn; } }
 @keyframes st-sway { 0%, 100% { rotate: -3deg; } 50% { rotate: 3deg; } }
@@ -145,6 +145,7 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .seat-more :is(.tags, .pmarks) { margin-top: 0; max-width: max(80px, calc(var(--tk) * 1.6)); }
 .tag { font-size: 11px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 2px; padding: 0 4px; }
 .tag.bad { border-color: var(--evil); color: var(--evil); }
+.tag.good { border-color: var(--good); color: var(--good); }
 
 .center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: 46%; pointer-events: none; }
 .phase-title { font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: 4px; }
@@ -1220,20 +1221,34 @@ body.art .token.blank.named { color: #2a2622; }
   .game.phase-lobby .board { padding-bottom: env(safe-area-inset-bottom); }
 }
 
-/* 說書人的標記：電腦上寫全，手機上一個字的小圓章（頭像小，寫全會疊到鄰座），點開座位菜單的「記錄」看細節 */
+/* 說書人自己寫的字：電腦上寫全，手機上截成兩個字（頭像小，寫全會疊到鄰座），點開座位菜單的「標記」看全名 */
 .tag .t-s { display: none; font-style: normal; }
 .tag .t-l { font-style: normal; }
-/* 「誰選了誰 / 誰查了誰」：哪種屏幕都是角色小牌 + 一個字 */
-.seat-more .tag.by-role { display: inline-flex; align-items: center; padding: 1px 4px 1px 2px; white-space: nowrap; }
-.seat-more .tag.by-role .t-s { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; }
-.seat-more .tag.by-role .t-l { display: none; }
-.seat-more .tag.by-role .tag-ico { width: 16px; height: 16px; border-width: 1px; box-shadow: none; }
+/* 認得出角色的標記（town.js tagView）：只有角色小牌，右下角一枚小符號（✓ 真、橙 ✓ 登記、✗ 錯誤、數字、刀、交換、紅魚），不寫字 */
+.seat-more .tag.by-role { position: relative; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; }
+.seat-more .tag.by-role .tag-ico { width: 22px; height: 22px; border-width: 1px; box-shadow: inset 0 0 0 1px var(--card), inset 0 0 0 1.8px var(--team), 0 0 0 1.5px var(--card), 0 1px 2px #0005; }
+/* 座位選中、可選、提名、計票的描邊和底色只給頭像本身：標記、狀態圖章、假身份副牌裏的小牌不跟著描（.seat.selected .token 這些規則都在前面） */
+.seat :is(.seat-more, .st-ico, .fake-badge, .pmarks) .token { outline: none; background: var(--card); }
+.seat-more .tags:has(.by-role) { gap: 3px 5px; }
+.tg-b { position: absolute; right: -4px; bottom: -3px; display: grid; place-items: center; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); color: #fff;
+  box-shadow: 0 0 0 1.2px var(--card); font: 800 9px/1 var(--sans); font-style: normal; letter-spacing: 0; pointer-events: none; }
+.tag .tg-b .ico, .tg-b .ico { width: 80%; height: 80%; } /* 壓過 hud.css 的 .tag .ico */
+.tg-b.yes { background: var(--good); }
+.tg-b.reg { background: #a8641a; }
+.tg-b.no { background: var(--evil); }
+.tg-b.swap { background: var(--brass); }
+.tg-b.fish { background: var(--card); color: #c0392b; box-shadow: 0 0 0 1.2px #c0392b; }
+.tag .tg-b.fish .ico, .tg-b.fish .ico { width: 92%; height: 92%; }
+.seat-more .tag.by-role.pick { cursor: pointer; }
+.seat-more .tag.by-role.pick:hover { text-decoration: none; opacity: .6; }
 @media (max-width: 860px), (max-height: 520px) {
   .seat-more .tags { gap: 2px; max-width: calc(var(--tk) * 1.2); }
-  .seat-more .tag { display: grid; place-items: center; height: 17px; padding: 0 3px; border-radius: 3px; font: 700 10.5px/1 var(--serif); white-space: nowrap; }
+  .seat-more .tags:has(.by-role) { gap: 2px 4px; }
+  .seat-more .tag:not(.by-role) { display: grid; place-items: center; height: 17px; padding: 0 3px; border-radius: 3px; font: 700 10.5px/1 var(--serif); white-space: nowrap; }
   .seat-more .tag .t-s { display: inline-flex; align-items: center; gap: 1px; }
-  .seat-more .tag .tag-ico { width: 13px; height: 13px; border-width: 1px; box-shadow: none; }
   .seat-more .tag .t-l { display: none; }
+  .seat-more .tag.by-role .tag-ico { width: 16px; height: 16px; }
+  .tg-b { width: 10px; height: 10px; right: -4px; bottom: -3px; font-size: 8px; }
 }
 /* 手機上一個座位最多擺三枚標記，多的收成「+n」（點座位菜單的「記錄」看全部），不堆到鄰座和桌心的卡上 */
 @media (max-width: 860px), (max-height: 520px) {

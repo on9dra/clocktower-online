@@ -5,6 +5,7 @@
 import { h, roleToken, toast } from './ui.js';
 import { ROLES, TEAMS } from './roles.js';
 import { tr } from './lang.js';
+import { icon } from './glyph.js';
 
 const MODE = 'botc.rp.detail';
 const store = {
@@ -107,9 +108,13 @@ function build(opts) {
       b.classList.toggle('on', !!st.on);
       b.classList.toggle('in', !!st.in);
       b.classList.toggle('off', !!st.off);
-      const tag = st.off || st.in ? (st.tag || '在場') : '';
-      const t = b.querySelector('.rp-tag');
-      if (t.textContent !== tr(tag)) t.textContent = tr(tag);
+      const tag = st.off || st.in ? (st.tag || '在場') : '', t = b.querySelector('.rp-tag');
+      if (t.dataset.v !== tag) {
+        t.dataset.v = tag;
+        const ok = tag === 'yes' || tag === 'reg'; // 給信息：真的是 / 能登記成，和桌上一樣只畫藍勾 / 橙勾
+        t.className = 'rp-tag' + (ok ? ' ok' + (tag === 'reg' ? ' alt' : '') : '');
+        t.replaceChildren(...(ok ? [icon('check')] : tag ? [tr(tag)] : []));
+      }
     }
     const id = o.picked?.() || null;
     if (p.shownPick !== id) {

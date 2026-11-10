@@ -4,7 +4,7 @@ import { getLang } from './lang.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';
 import { renderGameLog } from './gamelog.js';
-import { seatBadge, mini, tag, icon, ACTS } from './glyph.js';
+import { seatBadge, mini, tag, icon, roleIcon, demonMark, ACTS } from './glyph.js';
 import { msgHeld } from './fx.js';
 import { rolePanel } from './rolepick.js';
 
@@ -86,7 +86,8 @@ export function actMarksBySeat(s) {
 }
 export const actMarkView = v => {
   const held = v[0] === '~', src = held ? v.slice(1) : v;
-  return h('span', { class: 'pmark act ' + ACTS[src].tone + (held ? ' mk-held' : ''), 'data-act': src, title: '你今晚的行動' }, icon(ACTS[src].ico), ACTS[src].mark);
+  // 只畫行動的圖標（毒滴、盾、草叉……），不寫「中毒」「保護」：英文寫出來比頭像還寬
+  return h('span', { class: 'pmark act ' + ACTS[src].tone + (held ? ' mk-held' : ''), 'data-act': src, title: '你今晚的行動' }, icon(ACTS[src].ico));
 };
 
 // 玩家自己猜某個座位是什麼角色（只存在本機）：和別處一樣的整屏角色單，已經猜的那個是選中的，再點一下就取消
@@ -273,7 +274,11 @@ function renderChat(ctx, byCh) {
 // held：演出還沒播完，先佔位不顯示（技能演出按它的位置落點）
 const heldCls = k => (k.held ? ' mk-held' : '');
 export const markView = k => (k.r ? h('span', { class: 'pm' + (k.q ? ' q' : '') + heldCls(k), 'data-r': k.r }, mini(k.r))
-  : k.demon != null ? h('span', { class: 'pmark auto' + (k.demon ? ' evil' : '') + heldCls(k), 'data-demon': k.demon ? 1 : 0 }, k.demon ? '有惡魔？' : '非惡魔')
+  // 是不是惡魔：小惡魔圓章，可能是的角上一個「?」，不是的淡掉、角上一個叉（和信息式子裏的一樣，不寫字）
+  : k.demon != null ? h('span', { class: 'pm' + (k.demon ? ' q' : '') + heldCls(k), 'data-demon': k.demon ? 1 : 0, title: k.demon ? '有惡魔？' : '非惡魔' },
+    k.demon ? h('span', { class: 'dm' }, roleIcon('imp')) : demonMark(false))
+    // 女裁縫：兩人是否同陣營，一對圈角上打勾 / 打叉（技能演出的圓牌落在這上面，所以還是 pmark auto）
+    : k.same != null ? h('span', { class: 'pmark auto pair' + heldCls(k), title: k.text }, icon('pairs'), h('i', { class: 'tg-b ' + (k.same ? 'yes' : 'no') }, icon(k.same ? 'check' : 'cross')))
     : k.t ? h('span', { class: 'pm' + heldCls(k) }, tag(k.t)) : h('span', { class: 'pmark auto' + heldCls(k) }, k.text));
 function seatMarks(ctx, id) {
   const s = ctx.state;
