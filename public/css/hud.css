@@ -921,8 +921,6 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .ref-row.done > small { display: none; }
 .ref-box { display: grid; place-items: center; width: 16px; height: 16px; border: 1.5px solid var(--ink); border-radius: 2px; }
 .ref-box .ico { width: 12px; height: 12px; }
-.tag.pick { cursor: pointer; }
-.tag.pick:hover { text-decoration: line-through; }
 
 /* 社區劇本：賬本式的一行一本，選中的反白 */
 /* 社區劇本：左邊分類，上面搜索和篩選；劇本多，寬屏三欄，往下滾。定高：換分類、篩選時什麼都不挪位置 */

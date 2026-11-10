@@ -82,7 +82,9 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
   background: var(--card); box-shadow: 0 0 0 1.5px var(--c), 0 1px 2px #0004; pointer-events: none; animation: st-stamp .32s cubic-bezier(.4, 0, .6, 1); }
 .st-ico .ico { width: 64%; height: 64%; }
 .st-ico .token { width: 86%; height: 86%; }
-.st-ico.pick { pointer-events: auto; cursor: pointer; }
+/* 說書人點圖章、小牌、假身份副牌：彈出解釋卡（town.js markCard） */
+.is-st .seat .st-ico { pointer-events: auto; cursor: pointer; }
+.is-st .seat :is(.fake-badge, .seat-more .tag) { cursor: pointer; }
 .st-ico.poison { --c: #3d8b3d; } .st-ico.drunk { --c: #9a5b1e; } .st-ico.protect { --c: var(--good); } .st-ico.safe { --c: var(--brass); }
 .st-ico.curse, .st-ico.charge { --c: var(--evil); } .st-ico.extra { --c: var(--brass); } .st-ico.mad { --c: #6b3f8a; } .st-ico.used, .st-ico.undead { --c: var(--muted); }
 @keyframes st-stamp { from { scale: 1.9; opacity: 0; } 60% { scale: .92; opacity: 1; } }
@@ -1227,8 +1229,6 @@ body.art .token.blank.named { color: #2a2622; }
 .tg-b.swap { background: var(--brass); }
 .tg-b.fish { background: var(--card); color: #c0392b; box-shadow: 0 0 0 1.2px #c0392b; }
 .tag .tg-b.fish .ico, .tg-b.fish .ico { width: 92%; height: 92%; }
-.seat-more .tag.by-role.pick { cursor: pointer; }
-.seat-more .tag.by-role.pick:hover { text-decoration: none; opacity: .6; }
 @media (max-width: 860px), (max-height: 520px) {
   .seat-more .tag:not(.by-role) { display: grid; place-items: center; height: 17px; padding: 0 3px; border-radius: 3px; font: 700 10.5px/1 var(--serif); white-space: nowrap; }
   .seat-more .tag .t-s { display: inline-flex; align-items: center; gap: 1px; }
@@ -1268,4 +1268,35 @@ body.art .token.blank.named { color: #2a2622; }
 .more-pop .mp-e > .token.mp-fake { border-style: dashed; }
 .more-pop .mp-e > .tg-b { width: 15px; height: 15px; right: -4px; bottom: -3px; font-size: 10px; }
 .more-pop .mp-e.tag { height: 26px; padding: 0 8px; font: 700 14px/26px var(--serif); }
-@media (prefers-reduced-motion: reduce) { .seat .mk.glide { transition: none; } .more-pop { animation: none; } }
+.more-pop.sticky .mp-e { cursor: pointer; }
+.more-pop .st-ico { position: static; translate: none; width: 30px; animation: none; pointer-events: none; }
+/* 點標記看的解釋卡：直角紙片，從點的那枚標記裏彈出來（位置 seatmarks.js placePop）。上面是那枚標記和名字，一句規則，誰造成的、到什麼時候 */
+.mk-card, .more-pop { --card: #e6dece; --ink: #2a2622; --muted: #635a4c; --line: #c2b7a1; --line-strong: #92866f; --good: #2f5d8a; --evil: #8a1c1c; --brass: #7f6320; color: var(--ink); }
+.mk-card { position: absolute; z-index: 7; translate: -50% -50%; display: grid; justify-items: center; gap: 7px; width: max-content; max-width: min(250px, calc(var(--rw) * .64)); padding: 11px 14px 12px;
+  background: var(--card) url(../img/grain.svg); border: 1.5px solid var(--ink); box-shadow: 3px 4px 0 #0003, 0 8px 18px #0005; text-align: center;
+  transform-origin: calc(50% + var(--ox, 0px)) calc(50% + var(--oy, 0px)); animation: mp-open .22s cubic-bezier(.2, .8, .3, 1.15); }
+.mc-head { display: flex; align-items: center; gap: 9px; }
+.mc-head > b { font: 700 18px/1.2 var(--serif); }
+:root[data-lang="en"] .mc-head > b::first-letter { text-transform: uppercase; } /* 「以為是…」譯成句中的小寫，做標題時首字母大寫 */
+.mc-face { position: relative; display: grid; flex: none; }
+.mk-card .mc-face > .token { width: 38px; height: 38px; }
+.mk-card .mc-face > .token.mc-fake { border-style: dashed; }
+.mk-card .mc-face > .tg-b { width: 16px; height: 16px; right: -4px; bottom: -3px; font-size: 10px; }
+.mk-card .st-ico { position: static; translate: none; width: 38px; animation: none; pointer-events: none; }
+.mk-card .mc-q { width: 26px; height: 26px; color: var(--muted); }
+.mc-rule { margin: 0; font: 14px/1.5 var(--serif); text-wrap: pretty; }
+.mc-note { margin: -2px 0 0; color: var(--muted); font: 12.5px/1.45 var(--serif); }
+.mc-src { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 5px 7px; padding-top: 7px; border-top: 1px dashed var(--line-strong); font-size: 13.5px; }
+.mc-src + .mc-src { padding-top: 0; border-top: 0; }
+.mk-card .mc-src > .token { width: 26px; height: 26px; }
+.mk-card .mc-src > .mc-q { width: 18px; height: 18px; }
+.mk-card .mc-take { justify-self: center; min-width: 88px; }
+@media (max-width: 600px), (max-height: 520px) {
+  .mk-card { gap: 5px; padding: 8px 11px 10px; max-width: min(220px, calc(var(--rw) * .6)); }
+  .mc-head > b { font-size: 16px; }
+  .mk-card .mc-face > .token, .mk-card .st-ico { width: 32px; height: 32px; }
+  .mc-rule { font-size: 13px; }
+  .mc-src { font-size: 12.5px; padding-top: 5px; }
+  .mk-card .mc-src > .token { width: 22px; height: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .seat .mk.glide { transition: none; } :is(.more-pop, .mk-card) { animation: none; } }

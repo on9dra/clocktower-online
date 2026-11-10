@@ -173,14 +173,17 @@ function apply(id, sizes, out) {
   }
 }
 
-// ───── 「+N」攤開：懸停（鼠標）或點一下（觸屏，點別處收起） ─────
-export const more = { seat: null, sticky: false };
+// ───── 「+N」攤開、點標記看解釋卡 ─────
+// key 為空：「+N」攤開的紙條（懸停或點開）；key 是某枚標記的 data-key：那枚標記的解釋卡（點開）。
+// 點開的（sticky）點別處、再點同一枚收起；同一時間只開一張
+export const more = { seat: null, key: null, sticky: false };
 let outside = null;
-export function openMore(ctx, seatId, sticky) {
-  if (more.seat === seatId && more.sticky && sticky) return closeMore(ctx);
-  Object.assign(more, { seat: seatId, sticky: !!sticky || (more.seat === seatId && more.sticky) });
+export function openMore(ctx, seatId, sticky, key = null) {
+  if (!sticky && more.sticky) return; // 點開著一張時，懸停別處不頂掉它
+  if (more.seat === seatId && more.key === key && more.sticky && sticky) return closeMore(ctx);
+  Object.assign(more, { seat: seatId, key, sticky: !!sticky || (more.seat === seatId && !key && !more.key && more.sticky) });
   if (more.sticky && !outside) {
-    outside = e => { if (!e.target.closest?.('.more-chip, .more-pop')) closeMore(ctx); };
+    outside = e => { if (!e.target.closest?.('.more-pop, .mk-card, .seat .mk')) closeMore(ctx); };
     document.addEventListener('pointerdown', outside, true);
   }
   ctx.render();
@@ -189,20 +192,25 @@ export function closeMore(ctx, hover) {
   if (hover && more.sticky) return;
   if (outside) { document.removeEventListener('pointerdown', outside, true); outside = null; }
   if (!more.seat) return;
-  Object.assign(more, { seat: null, sticky: false });
+  Object.assign(more, { seat: null, key: null, sticky: false });
   ctx.render();
 }
-// 攤開的那張紙條：貼著「+N」，朝圓心那邊打開，不出圓桌
+// 攤開的紙條、解釋卡：貼著點的那枚標記（收在「+N」裏的就貼著「+N」），朝圓心那邊打開，不出圓桌
 function placePop(ring) {
-  const pop = ring.querySelector(':scope > .more-pop:not(.leaving)');
+  const pop = ring.querySelector(':scope > :is(.more-pop, .mk-card):not(.leaving)');
   if (!pop) return;
-  const seat = ring.querySelector(`:scope > .seat[data-key="${pop.dataset.seat}"]`), chip = seat?.querySelector('.more-chip:not(.mk-off)');
+  const seat = ring.querySelector(`:scope > .seat[data-key="${pop.dataset.seat}"]`), key = pop.dataset.mark;
+  const chip = (key && [...(seat?.querySelectorAll('.mk:not(.mk-off)') || [])].find(el => el.getAttribute('data-key') === key)) || seat?.querySelector('.more-chip:not(.mk-off)');
   if (!chip) return;
+  // 從座位（頭像 + 名牌）朝圓心讓出來：卡不蓋住被點的這個座位，從點的那枚標記裏彈出來（transform-origin）
   const o = ring.getBoundingClientRect(), p = chip.getBoundingClientRect(), rw = ring.offsetWidth;
-  const cx = p.left + p.width / 2 - o.left, cy = p.top + p.height / 2 - o.top, w = pop.offsetWidth, hh = pop.offsetHeight;
-  const dx = rw / 2 - cx, dy = rw / 2 - cy, d = Math.hypot(dx, dy) || 1;
-  const reach = Math.abs(dx / d) * (w / 2) + Math.abs(dy / d) * (hh / 2) + Math.max(p.width, p.height) / 2 + 6;
-  const x = Math.min(Math.max(cx + (dx / d) * reach, w / 2 + 2), rw - w / 2 - 2), y = Math.min(Math.max(cy + (dy / d) * reach, hh / 2 + 2), rw - hh / 2 - 2);
+  const box = [seat.querySelector(':scope > .seat-token'), seat.querySelector(':scope > .plate')].filter(Boolean).map(el => el.getBoundingClientRect())
+    .reduce((a, b) => ({ left: Math.min(a.left, b.left), top: Math.min(a.top, b.top), right: Math.max(a.right, b.right), bottom: Math.max(a.bottom, b.bottom) }));
+  const bx = (box.left + box.right) / 2 - o.left, by = (box.top + box.bottom) / 2 - o.top, w = pop.offsetWidth, hh = pop.offsetHeight;
+  const cx = p.left + p.width / 2 - o.left, cy = p.top + p.height / 2 - o.top;
+  const dx = rw / 2 - bx, dy = rw / 2 - by, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+  const reach = Math.abs(ux) * ((box.right - box.left) / 2 + w / 2) + Math.abs(uy) * ((box.bottom - box.top) / 2 + hh / 2) + 8;
+  const x = Math.min(Math.max(bx + ux * reach, w / 2 + 2), rw - w / 2 - 2), y = Math.min(Math.max(by + uy * reach, hh / 2 + 2), rw - hh / 2 - 2);
   pop.style.left = x + 'px';
   pop.style.top = y + 'px';
   pop.style.setProperty('--ox', cx - x + 'px');

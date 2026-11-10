@@ -167,7 +167,7 @@ export function renderTown(ctx) {
     },
     h('div', { class: 'seat-token' + status.map(x => ' is-' + x.k).join(''), onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget, seatActs(ctx, seat)) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
-      s.isSt && seat.fakeRole && fakeBadge(seat.fakeRole),
+      s.isSt && seat.fakeRole && fakeBadge(ctx, seat),
       s.phase === 'lobby' && seat.pinned && h('i', { class: 'pin-mark', title: '指定' }, icon('quill')),
       // 說書人給信息：當前角色真正的持有者藍勾，能被當作這個角色的橙勾（只畫勾，不寫「真」「登」）
       pk?.marks?.[seat.id] && trueMark(pk.marks[seat.id] === 1),
@@ -192,7 +192,7 @@ export function renderTown(ctx) {
     h('div', { class: 'seat-more' }, s.phase === 'lobby' && !s.oneDevice && scoreRow(seat), // 單設備的座位只是名字，不記積分
     s.isSt && words.length > 0 && h('div', { class: 'tags' },
       // 寫全名一行就佔半個桌心，三枚疊起來把中間的操作卡擠沒了：只畫角色小牌和角上的符號（tagView）
-      shown.map(t => tagView(ctx, seat, t, s.st?.marks?.[seat.id]?.includes(t))), moreChip(ctx, seat)),
+      shown.map(t => tagView(ctx, seat, t)), moreChip(ctx, seat)),
     (missed.some(x => x.from === seat.id) || picks.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
       // 開槍沒打中、死後公開選人：圖標 + 對方的座位號，不寫字（全句在 title 裏）
       missed.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot' + (fxFor('shot', seat.id, 600) ? ' fx-shot' : ''), title: `射${num(x.to)}號失敗` },
@@ -207,7 +207,7 @@ export function renderTown(ctx) {
     decorateSeat(seatEl, seat.id); // 狀態圖章、假身份副牌、標記的位置（seatmarks.js，畫完後 fitTableCard 裏排）
     ring.append(seatEl);
   });
-  const popSeat = s.isSt && more.seat && s.seats.find(x => x.id === more.seat), popEl = popSeat && morePop(ctx, popSeat);
+  const popSeat = s.isSt && more.seat && s.seats.find(x => x.id === more.seat), popEl = popSeat && (more.key ? markCard(ctx, popSeat, more.key) : morePop(ctx, popSeat));
   if (popEl) ring.append(popEl);
 
   // 說書人的操作卡和玩家輪到自己時的牌一樣，放在圓桌中央「第 N 夜 / 天」下面；貞潔者小窗貼桌面左上角，不擋計票；
@@ -587,11 +587,11 @@ function seatPos(s, id) {
   const a = (s.seats.findIndex(x => x.id === id) / s.seats.length) * Math.PI * 2 - Math.PI / 2;
   return { x: 50 + 41 * Math.cos(a), y: 50 + 41 * Math.sin(a) };
 }
-// 說書人看到的假身份副牌：虛線框的小角色牌，騎在頭像邊上（seatmarks.js 排位），懸停看「以為是 X：能力」
-function fakeBadge(id) {
-  const r = ROLES[id], tok = roleToken(id, { size: 'xs' });
+// 說書人看到的假身份副牌：虛線框的小角色牌，騎在頭像邊上（seatmarks.js 排位），點開是解釋卡（以為是誰、其實是誰）
+function fakeBadge(ctx, seat) {
+  const r = ROLES[seat.fakeRole], tok = roleToken(seat.fakeRole, { size: 'xs' });
   tok.removeAttribute('title');
-  return h('span', { class: 'fake-badge', 'data-key': 'fake', title: `以為是${r.name}：${r.ability}` }, tok);
+  return h('span', { class: 'fake-badge', 'data-key': 'fake', title: `以為是${r.name}`, onclick: markTap(ctx, seat, 'fake') }, tok);
 }
 // 邪惡隊友的陣營牌：惡魔 / 爪牙（不知道具體角色），和角色牌一樣的雙圈印章
 function teamToken(team) {
@@ -645,7 +645,7 @@ function pickingNow(ctx) {
 
 // ───── 座位狀態：常見的狀態不寫成字籤，畫在頭像上 ─────
 // 影響整個頭像的效果（中毒：綠墨從底下滲上來、冒泡；醉酒：頭像晃、一塊酒漬；被保護：一圈藍墨環……），
-// 加一枚騎在頭像邊上的小圖章（說書人自己貼的，點圖章取下；位置由 seatmarks.js 排）。紅鯡魚、提醒標記是角色小牌（tagView），說書人自己寫的字照舊是字籤
+// 加一枚騎在頭像邊上的小圖章（位置由 seatmarks.js 排，點開是解釋卡，說書人貼的在卡上取下）。紅鯡魚、提醒標記是角色小牌（tagView），說書人自己寫的字照舊是字籤
 const STATUS = { 中毒: ['poison', 'drop'], 醉酒: ['drunk', 'cup'], 被保護: ['protect', 'shield'], 處決不死: ['safe', 'shield'], 詛咒: ['curse', 'bolt'],
   瘋狂: ['mad', 'mask'], 蓄力: ['charge', 'pitchfork'], 假死: ['undead', 'skull'], 能力已用: ['used', 'check'], 額外一天: ['extra', 'sun'] };
 const statusOf = t => STATUS[t] || (t.startsWith('瘋狂：') ? STATUS.瘋狂 : null);
@@ -658,13 +658,13 @@ function seatStatus(seat) {
   return out;
 }
 function statusView(ctx, seat, list) {
-  const s = ctx.state, mine = t => s.st?.marks?.[seat.id]?.includes(t);
   return [list.map(x => h('i', { class: 'st-fx ' + x.k, 'data-key': 'fx-' + x.k, 'data-exit': true })),
-    list.map(x => {
-      const as = x.t.startsWith('瘋狂：') && roleNamed(x.t.slice(3)); // 瘋狂成哪個角色：圖章上是那個角色的小牌
-      return h('i', { class: 'st-ico ' + x.k + (mine(x.t) ? ' pick' : ''), 'data-key': 'st-' + x.k, 'data-exit': true, title: x.t,
-        onclick: mine(x.t) ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: x.t, on: false }); } : null }, as ? mini(as) : icon(x.ico));
-    })];
+    list.map(x => h('i', { class: 'st-ico ' + x.k, 'data-key': 'st-' + x.k, 'data-exit': true, title: x.t, onclick: markTap(ctx, seat, 'st-' + x.k) }, stampFace(x)))];
+}
+// 圖章上畫什麼：瘋狂成哪個角色就是那個角色的小牌，其餘是狀態的圖標
+function stampFace(x) {
+  const as = x.t.startsWith('瘋狂：') && roleNamed(x.t.slice(3));
+  return as ? mini(as) : icon(x.ico);
 }
 
 // ───── 說書人的其他標記：只畫圖標，不寫字 ─────
@@ -696,14 +696,12 @@ function tagFace(s, t) {
 }
 const BADGE = { yes: 'check', no: 'cross', kill: 'dagger', swap: 'become', fish: 'fish' };
 const tagBadge = b => b != null && h('i', { class: 'tg-b ' + (BADGE[b] ? b : 'n') }, BADGE[b] ? icon(BADGE[b]) : String(b));
-function tagView(ctx, seat, t, mine) {
-  const f = tagFace(ctx.state, t), cls = 'tag' + (mine ? ' pick' : '');
-  // 說書人自己貼的標記：點一下取下
-  const off = mine ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: t, on: false }); } : null;
-  if (!f) return h('span', { class: cls + (t === '邪惡' ? ' bad' : t === '善良' ? ' good' : ''), 'data-key': 'tg-' + t, title: t, onclick: off }, h('b', { class: 't-s' }, cut(t)), h('i', { class: 't-l' }, t));
+function tagView(ctx, seat, t) {
+  const f = tagFace(ctx.state, t), tap = markTap(ctx, seat, 'tg-' + t);
+  if (!f) return h('span', { class: 'tag' + (t === '邪惡' ? ' bad' : t === '善良' ? ' good' : ''), 'data-key': 'tg-' + t, title: t, onclick: tap }, h('b', { class: 't-s' }, cut(t)), h('i', { class: 't-l' }, t));
   const tok = mini(f.r, 'tag-ico');
   tok.removeAttribute('title'); // 懸停看的是這枚標記的全名，不是角色能力
-  return h('span', { class: cls + ' by-role', 'data-key': 'tg-' + t, title: t, onclick: off }, tok, tagBadge(f.b));
+  return h('span', { class: 'tag by-role', 'data-key': 'tg-' + t, title: t, onclick: tap }, tok, tagBadge(f.b));
 }
 // 給過的信息（舊版本掛在桌上的「洗衣婦:士兵」「圖書管理員:錯誤」、單設備查驗的「占卜師查」）：已經發生過的事，不再影響裁定，
 // 不上桌（日誌和座位的「記錄」裏有）。現在系統不再掛，舊存檔裏的也不畫
@@ -717,13 +715,81 @@ function morePop(ctx, seat) {
   if (!list.length) return null;
   return h('div', { class: 'more-pop' + (more.sticky ? ' sticky' : ''), 'data-key': 'more-' + seat.id, 'data-seat': seat.id, 'data-exit': true },
     list.map(({ key, text }) => {
-      if (key === 'fake' && seat.fakeRole) return h('span', { class: 'mp-e', title: text }, mini(seat.fakeRole, 'mp-fake'));
+      const open = e => { e.stopPropagation(); openMore(ctx, seat.id, true, key); }; // 紙條上的一枚：點開它的解釋卡
+      if (key === 'fake' && seat.fakeRole) return h('span', { class: 'mp-e', title: text, onclick: open }, mini(seat.fakeRole, 'mp-fake'));
+      const x = key.startsWith('st-') && seatStatus(seat).find(y => 'st-' + y.k === key);
+      if (x) return h('span', { class: 'mp-e', title: x.t, onclick: open }, h('i', { class: 'st-ico ' + x.k }, stampFace(x)));
       const f = key.startsWith('tg-') && tagFace(ctx.state, text);
-      if (!f) return h('span', { class: 'mp-e tag' + (text === '邪惡' ? ' bad' : text === '善良' ? ' good' : ''), title: text }, text); // 寫字的：紙條上寫全
+      if (!f) return h('span', { class: 'mp-e tag' + (text === '邪惡' ? ' bad' : text === '善良' ? ' good' : ''), title: text, onclick: open }, text); // 寫字的：紙條上寫全
       const tok = mini(f.r);
       tok.removeAttribute('title');
-      return h('span', { class: 'mp-e', title: text }, tok, tagBadge(f.b));
+      return h('span', { class: 'mp-e', title: text, onclick: open }, tok, tagBadge(f.b));
     }));
+}
+
+// ───── 點座位上的標記：彈出解釋卡 ─────
+// 卡上是這枚標記（大一號）和名字、一句它在規則上意味著什麼、誰的能力造成的、到什麼時候（服務器 st.why）。
+// 說書人貼的標記（和系統掛的提醒）在卡上取下，不再點一下圖章就沒了（容易誤點）
+// 正在桌上點人（選目標、裁定時點人、線下舉手計票）時，點到標記就是點這個座位，不彈卡
+function tapsSeat(ctx, seat) {
+  const s = ctx.state, pk = pickingNow(ctx);
+  if (pk && (pk.can.has(seat.id) || pk.on?.has(seat.id) || pk.fixed?.has(seat.id) || pk.why?.(seat.id))) return true;
+  if (sel.on && seatsWanted(sel.on)) return true;
+  return !!(s.nomination?.hand && !s.st?.ruling);
+}
+function markTap(ctx, seat, key) {
+  if (!ctx.state.isSt || ctx.state.peek) return null;
+  return e => { if (tapsSeat(ctx, seat)) return; e.stopPropagation(); openMore(ctx, seat.id, true, key); };
+}
+const STATUS_RULE = {
+  poison: '能力失效：他得到的信息可以是假的。', drunk: '能力失效：他得到的信息可以是假的。', protect: '今晚惡魔殺不死他。', safe: '今天被處決也不會死。',
+  curse: '明天他只要提名，自己就會死。', charge: '上一夜沒有殺人：下一夜可以殺死三人。', undead: '第一次死亡後仍然活著，但大家都當他已經死了。',
+  used: '每局一次的能力已經用掉了。', extra: '惡魔被處決後，遊戲再進行一天。',
+};
+const TAG_RULE = {
+  紅鯡魚: '占卜師查驗時，他會被當作惡魔。', 管家的主人: '管家只有在他投贊成票時才能投贊成票。', 孫子: '祖母知道他是誰；惡魔殺死他時，祖母也會死。',
+  善良: '他現在是善良陣營，和角色原本的陣營不同。', 邪惡: '他現在是邪惡陣營，和角色原本的陣營不同。',
+};
+// 到什麼時候：tick 是 2 × 夜數（夜裏）、2 × 天數 + 1（白天）
+const until = till => (till == null ? null : till >= 1e8 ? '整局' : till % 2 ? `到第 ${(till - 1) / 2} 天` : `到第 ${till / 2} 夜`);
+function markCard(ctx, seat, key) {
+  const s = ctx.state, why = s.st?.why?.[seat.id] || {}, rows = [];
+  let face, name, rule, note = null, text = null;
+  if (key === 'fake') {
+    if (!seat.fakeRole || !ROLES[seat.role]) return null;
+    face = mini(seat.fakeRole, 'mc-fake');
+    name = `以為是${ROLES[seat.fakeRole].name}`;
+    rule = ROLES[seat.fakeRole].ability;
+    rows.push(h('div', { class: 'mc-src' }, mini(seat.role), w(`其實是${ROLES[seat.role].name}`, 'ink')));
+  } else if (key.startsWith('st-')) {
+    const x = seatStatus(seat).find(y => 'st-' + y.k === key);
+    if (!x) return null;
+    const as = x.t.startsWith('瘋狂：') && roleNamed(x.t.slice(3));
+    text = x.t;
+    face = h('i', { class: 'st-ico ' + x.k }, stampFace(x));
+    name = as ? '瘋狂' : x.t;
+    rule = as ? `明天他要「瘋狂」地證明自己是${ROLES[as].name}，否則可能被處決。`
+      : x.k === 'protect' && (why[x.t] || []).some(e => e.src === 'innkeeper') ? '今晚他不會死。' : STATUS_RULE[x.k];
+  } else {
+    text = key.slice(3);
+    const f = tagFace(s, text);
+    face = f ? [mini(f.r), tagBadge(f.b)] : icon('quill', 'mc-q');
+    name = text;
+    rule = TAG_RULE[text] || (f ? ROLES[f.r].ability : '你自己寫的標記。');
+    if (f && !TAG_RULE[text] && /選$/.test(text)) note = '系統不認識這個角色：效果要你自己結算，下一次入夜時清掉。';
+  }
+  for (const e of why[text] || []) {
+    rows.push(h('div', { class: 'mc-src' }, e.src ? mini(e.src) : icon('quill', 'mc-q'), e.by ? seatBadge(s, e.by) : !e.src && w('說書人設的', 'ink'), until(e.till) && w(until(e.till), 'muted')));
+  }
+  const mine = text != null && (s.st?.marks?.[seat.id] || []).includes(text);
+  const card = h('div', { class: 'mk-card', 'data-key': `card-${seat.id}-${key}`, 'data-seat': seat.id, 'data-mark': key, 'data-exit': true },
+    h('div', { class: 'mc-head' }, h('span', { class: 'mc-face' }, face), h('b', {}, name)),
+    rule && h('p', { class: 'mc-rule' }, rule),
+    note && h('p', { class: 'mc-note' }, note),
+    rows,
+    mine && h('button', { class: 'btn sm mc-take', onclick: () => { ctx.st('remind', { seatId: seat.id, text, on: false }); closeMore(ctx); } }, '取下'));
+  card.querySelectorAll('.token').forEach(t => t.removeAttribute('title')); // 卡上已經寫明了，懸停不再冒能力全文
+  return card;
 }
 // 寫字的標記在手機上截短：中文留兩個字；英文不能按字截（「失去」翻不出來），翻好整句取第一個詞
 const cut = t => (getLang() === 'en' ? tr(t).split(/[\s:]/)[0] : [...t].slice(0, 2).join(''));

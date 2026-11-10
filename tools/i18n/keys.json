@@ -63,10 +63,6 @@
  "（錯誤信息）": [
   "lib/engine.js"
  ],
- "(登記)": [
-  "lib/engine.js",
-  "public/js/town.js"
- ],
  "（紅唇女郎）": [
   "public/js/log.js"
  ],
@@ -316,9 +312,6 @@
  ],
  "{0}不能選擇自己": [
   "public/js/town.js"
- ],
- "{0}查": [
-  "lib/engine.js"
  ],
  "{0}攻擊 {1}，但他{2}": [
   "lib/engine.js"
@@ -912,6 +905,9 @@
  "單設備按「展示」，說完「已告知」": [
   "public/js/help.js"
  ],
+ "單設備的座位直接定人數": [
+  "lib/debug.js"
+ ],
  "但他是士兵": [
   "lib/night.js"
  ],
@@ -933,6 +929,12 @@
  ],
  "到底是誰的邪教": [
   "public/js/community.js"
+ ],
+ "到第 {0} 天": [
+  "public/js/town.js"
+ ],
+ "到第 {0} 夜": [
+  "public/js/town.js"
  ],
  "到點按舉著的手結算；說書人可隨時暫停或重新計時": [
   "public/js/help.js"
@@ -1002,6 +1004,9 @@
  "第一次進房間": [
   "public/js/help.js"
  ],
+ "第一次死亡後仍然活著，但大家都當他已經死了。": [
+  "public/js/town.js"
+ ],
  "點別人的座位，扔一枚少一枚": [
   "public/js/help.js"
  ],
@@ -1034,6 +1039,12 @@
  ],
  "點桌上的善良玩家": [
   "public/js/flow.js"
+ ],
+ "調試": [
+  "public/js/debug.js"
+ ],
+ "調試模式": [
+  "public/js/debug.js"
  ],
  "頂欄，一步步往回退": [
   "public/js/help.js"
@@ -1080,6 +1091,9 @@
   "public/js/help.js",
   "public/js/infofmt.js",
   "public/js/roles.js"
+ ],
+ "惡魔被處決後，遊戲再進行一天。": [
+  "public/js/town.js"
  ],
  "惡魔的偽裝不夠 3 個": [
   "public/js/flow.js"
@@ -1445,7 +1459,11 @@
   "public/js/town.js"
  ],
  "管家的主人": [
-  "lib/night.js"
+  "lib/night.js",
+  "lib/util.js"
+ ],
+ "管家只有在他投贊成票時才能投贊成票。": [
+  "public/js/town.js"
  ],
  "規則沒判到的勝負，例如呆瓜選中邪惡": [
   "public/js/help.js"
@@ -1593,6 +1611,12 @@
  "霍爾特的復仇": [
   "public/js/community.js"
  ],
+ "機器人{0}": [
+  "lib/debug.js"
+ ],
+ "機器人坐滿 {0} 人": [
+  "public/js/debug.js"
+ ],
  "積分榜": [
   "public/js/help.js",
   "public/js/scores.js",
@@ -1639,6 +1663,9 @@
   "public/js/flow.js",
   "public/js/stepcard.js",
   "public/js/trial.js"
+ ],
+ "加 1 個機器人": [
+  "public/js/debug.js"
  ],
  "加備註": [
   "public/js/town.js"
@@ -1806,6 +1833,9 @@
  "今天被處決的玩家是【{0}】": [
   "public/js/infofmt.js"
  ],
+ "今天被處決也不會死。": [
+  "public/js/town.js"
+ ],
  "今天沒有人被處決。": [
   "lib/day.js"
  ],
@@ -1845,11 +1875,17 @@
  "今晚不再有人死亡": [
   "lib/night.js"
  ],
+ "今晚惡魔殺不死他。": [
+  "public/js/town.js"
+ ],
  "今晚誰死？": [
   "lib/night.js"
  ],
  "今晚順序不變": [
   "public/js/setup.js"
+ ],
+ "今晚他不會死。": [
+  "public/js/town.js"
  ],
  "僅本人與說書人可見": [
   "public/js/trial.js"
@@ -2024,6 +2060,9 @@
  "離世": [
   "public/js/town.js"
  ],
+ "離席時自動主持": [
+  "public/js/debug.js"
+ ],
  "離線": [
   "public/js/town.js"
  ],
@@ -2173,8 +2212,14 @@
  "沒有符合的劇本": [
   "public/js/manual.js"
  ],
+ "沒有機器人": [
+  "lib/debug.js"
+ ],
  "沒有進行中的投票": [
   "lib/day.js"
+ ],
+ "沒有開調試模式": [
+  "lib/ops.js"
  ],
  "沒有可以撤銷的": [
   "public/js/topbar.js"
@@ -2224,6 +2269,9 @@
  "煤氣燈下": [
   "public/js/community.js"
  ],
+ "每局一次的能力已經用掉了。": [
+  "public/js/town.js"
+ ],
  "每人看自己的身份": [
   "public/js/manual.js"
  ],
@@ -2269,6 +2317,12 @@
  "名字": [
   "public/js/town.js"
  ],
+ "明天他要「瘋狂」地證明自己是{0}，否則可能被處決。": [
+  "public/js/town.js"
+ ],
+ "明天他只要提名，自己就會死。": [
+  "public/js/town.js"
+ ],
  "酩酊": [
   "public/js/community.js"
  ],
@@ -2307,6 +2361,9 @@
  ],
  "能力失效，信息可能是錯的，他自己不知道": [
   "public/js/help.js"
+ ],
+ "能力失效：他得到的信息可以是假的。": [
+  "public/js/town.js"
  ],
  "能力無效": [
   "public/js/flow.js"
@@ -2425,6 +2482,9 @@
  "你中毒或其實是酒鬼時，這一槍可能會被說書人判定無效。": [
   "public/js/town.js"
  ],
+ "你自己寫的標記。": [
+  "public/js/town.js"
+ ],
  "暱稱": [
   "public/js/lobby.js"
  ],
@@ -2478,6 +2538,9 @@
  "七號座位之歌": [
   "public/js/community.js"
  ],
+ "其實是{0}": [
+  "public/js/town.js"
+ ],
  "其他爪牙：{0}": [
   "lib/night.js"
  ],
@@ -2499,6 +2562,9 @@
  ],
  "牽線搭橋": [
   "public/js/community.js"
+ ],
+ "切換身份": [
+  "public/js/debug.js"
  ],
  "清除我的備註": [
   "public/js/town.js"
@@ -2589,6 +2655,9 @@
  ],
  "驅魔人 {0} 選中了你：今晚你不會被喚醒": [
   "lib/night.js"
+ ],
+ "取下": [
+  "public/js/town.js"
  ],
  "取消": [
   "public/js/flow.js",
@@ -2785,6 +2854,9 @@
  ],
  "上一局邪惡獲勝": [
   "public/js/scores.js"
+ ],
+ "上一夜沒有殺人：下一夜可以殺死三人。": [
+  "public/js/town.js"
  ],
  "社交提線": [
   "public/js/community.js"
@@ -2984,6 +3056,7 @@
  "說書人": [
   "lib/ops.js",
   "lib/util.js",
+  "public/js/debug.js",
   "public/js/gamelog.js",
   "public/js/hud.js",
   "public/js/lobby.js",
@@ -3041,6 +3114,9 @@
  ],
  "說書人取消了本次提名，雙方今天可以重新提名 / 被提名。": [
   "lib/day.js"
+ ],
+ "說書人設的": [
+  "public/js/town.js"
  ],
  "說書人收回了 {0} 的{1}": [
   "lib/engine.js"
@@ -3171,6 +3247,12 @@
   "public/js/town.js"
  ],
  "他是惡魔": [
+  "public/js/town.js"
+ ],
+ "他現在是善良陣營，和角色原本的陣營不同。": [
+  "public/js/town.js"
+ ],
+ "他現在是邪惡陣營，和角色原本的陣營不同。": [
   "public/js/town.js"
  ],
  "他做的": [
@@ -3451,6 +3533,9 @@
  "系統幫你做的": [
   "public/js/help.js"
  ],
+ "系統不認識這個角色：效果要你自己結算，下一次入夜時清掉。": [
+  "public/js/town.js"
+ ],
  "系統已留好可選項": [
   "public/js/help.js"
  ],
@@ -3676,6 +3761,9 @@
  ],
  "選 MVP": [
   "public/js/help.js"
+ ],
+ "選不出合規的人": [
+  "lib/debug.js"
  ],
  "選角色": [
   "public/js/flow.js",
@@ -3983,6 +4071,9 @@
  "移出房間": [
   "public/js/town.js"
  ],
+ "移除 {0} 個機器人": [
+  "public/js/debug.js"
+ ],
  "移除座位": [
   "public/js/topbar.js"
  ],
@@ -4059,7 +4150,7 @@
   "public/js/help.js",
   "public/js/log.js"
  ],
- "以為是{0}：{1}": [
+ "以為是{0}": [
   "public/js/town.js"
  ],
  "以為自己是鎮民，能力無效": [
@@ -4140,6 +4231,9 @@
  ],
  "遊戲中不能離開座位": [
   "lib/ops.js"
+ ],
+ "遊戲中不能移除機器人": [
+  "lib/debug.js"
  ],
  "遊戲中不能移除玩家": [
   "lib/ops.js"
@@ -4260,6 +4354,9 @@
  "展示爪牙和偽裝": [
   "public/js/stepcard.js"
  ],
+ "占卜師查驗時，他會被當作惡魔。": [
+  "public/js/town.js"
+ ],
  "占卜師的紅鯡魚：{0}": [
   "lib/util.js"
  ],
@@ -4329,6 +4426,7 @@
   "public/js/flow.js"
  ],
  "這個劇本最多 {0} 人": [
+  "lib/debug.js",
   "public/js/flow.js"
  ],
  "這個劇本最多 {0} 人，還能加 {1} 人": [
@@ -4393,6 +4491,9 @@
   "public/js/log.js"
  ],
  "睜開眼，聽聽昨晚發生了什麼": [
+  "public/js/town.js"
+ ],
+ "整局": [
   "public/js/town.js"
  ],
  "整局只有一發，白天公開開槍，所有人都會看到": [
@@ -4473,6 +4574,9 @@
  ],
  "只能在第一個白天猜": [
   "lib/day.js"
+ ],
+ "只能在準備階段加機器人": [
+  "lib/debug.js"
  ],
  "只剩 2 人存活": [
   "public/js/help.js"
@@ -4647,6 +4751,9 @@
  ],
  "祖母：選擇她的孫子": [
   "lib/night.js"
+ ],
+ "祖母知道他是誰；惡魔殺死他時，祖母也會死。": [
+  "public/js/town.js"
  ],
  "詛咒": [
   "lib/util.js",
