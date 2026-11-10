@@ -5,6 +5,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { spawn } from 'child_process';
+import net from 'net';
 import { fileURLToPath } from 'url';
 import { io } from 'socket.io-client';
 
@@ -65,17 +66,17 @@ function started(roles) {
   assert.strictEqual(botStep(r), false);
 }
 
-// 說書人換成占卜師的身份：機器人不碰這個座位，其餘座位和說書人的活都由機器人做，一直打到分出勝負
+// 說書人換成小惡魔的身份（每晚都醒）：機器人不碰這個座位，其餘座位和說書人的活都由機器人做，一直打到分出勝負
 {
   const r = started(['imp', 'poisoner', 'fortuneteller', 'empath', 'monk', 'chef', 'soldier']);
-  const ft = r.seats[2];
-  setPresence(r, [ft.id], false);
+  const me = r.seats[0];
+  setPresence(r, [me.id], false);
   let mine = 0, guard = 0;
   while (r.phase !== 'ended' && guard++ < 3000) {
     const step = r.g.step;
-    if (r.phase === 'night' && step?.status === 'choose' && step.seatId === ft.id) {
+    if (r.phase === 'night' && step?.status === 'choose' && step.seatId === me.id) {
       const { ids } = autoPicks(r, step);
-      ok(applyPlayerAction(r, ft.pid, { act: 'pick', ids }));
+      ok(applyPlayerAction(r, me.pid, { act: 'pick', ids }));
       mine++;
       continue;
     }
@@ -84,8 +85,8 @@ function started(roles) {
     assert.fail(`卡住了：${r.phase} ${JSON.stringify(step)}`);
   }
   assert.strictEqual(r.phase, 'ended', '打完一局');
-  assert.ok(mine > 0, '占卜師的選擇是自己做的');
-  assert.ok(r.chat.some(m => m.info && m.to === ft.id), '占卜師收到了信息');
+  assert.ok(mine > 0, '小惡魔的選擇是自己做的');
+  assert.ok(r.chat.some(m => m.info && m.to !== me.id), '代班說書人給機器人發了信息');
 }
 
 // 線下局：玩家自己不選人，說書人換成哪個座位，代班說書人都替所有人點，照樣打得完
@@ -148,13 +149,14 @@ const until = (s, pred, ms = 4000) => new Promise((res, rej) => {
   const f = v => { if (pred(v)) { clearTimeout(t); s.off('state', f); res(v); } };
   s.on('state', f);
 });
-const port = () => (p => (p === 4045 || p === 4190 ? p + 1 : p))(3900 + Math.floor(Math.random() * 300));
+// 向系統要一個空閒端口（隨機挑的會撞上本機開著的調試服務）
+const port = () => new Promise(res => { const s = net.createServer().listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
 
 let server;
 try {
   // 正式服：大廳沒有調試模式，建房帶上 debug 也不算，沒有機器人、不能換身份
   {
-    const P = port(), URL = `http://127.0.0.1:${P}`;
+    const P = await port(), URL = `http://127.0.0.1:${P}`;
     server = await start(P, false);
     const s = io(URL, { forceNew: true, transports: ['websocket'] });
     socks.push(s);
@@ -173,7 +175,7 @@ try {
   }
   // 測試服
   {
-    const P = port(), URL = `http://127.0.0.1:${P}`;
+    const P = await port(), URL = `http://127.0.0.1:${P}`;
     server = await start(P, true);
     const s = io(URL, { forceNew: true, transports: ['websocket'], autoConnect: false });
     socks.push(s);
