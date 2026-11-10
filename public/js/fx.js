@@ -1061,8 +1061,10 @@ export function onState(s) {
   // 白天被動能力觸發、等說書人裁定：響一聲（裁定卡在圓桌中央）
   if (s.isSt && s.st?.ruling && p?.isSt && !p.st?.ruling && !(s.offline && s.phase === 'night')) play('turn'); // 線下夜裏的裁定一響，全桌就知道有人的能力觸發了
   const evs = s.fx || [], top = evs.length ? evs.at(-1).seq : 0;
-  // 說書人代入視角、換回來：桌面內容整個換了，淡進來
-  if (p && who !== id && !reduced()) requestAnimationFrame(() => document.querySelector('.town')?.animate({ opacity: [0, 1] }, 260));
+  // 說書人代入視角、換回來（調試房間裏換成某個座位的身份也是）：桌面、角色牌、側欄、頂欄右邊整個換了一套，一起淡進來。
+  // 背景（天空、小鎮、側欄和頂欄的底色）不動，只淡裏面的東西
+  if (p && who !== id && !reduced()) requestAnimationFrame(() => document.querySelectorAll(['> .board', '> .side > *', '> .topbar > :not(.brand, .room)'].map(x => '.game:not(.gone) ' + x).join())
+    .forEach(el => el.animate({ opacity: [0, 1] }, 260)));
   if (!p || who !== id) { who = id; seen = Math.max(seen, top); followBgm(); if (!skyHold) firstSky(s.phase); return; }
   const now = Date.now();
   const wasDead = new Set(p.seats.filter(x => x.dead).map(x => x.id));

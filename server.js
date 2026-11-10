@@ -19,6 +19,7 @@ import { allow } from './lib/limit.js';
 import { guard } from './lib/util.js';
 import * as stats from './lib/stats.js';
 import { adminPage } from './lib/admin.js';
+import { DEBUG, isBot, renameBots, debugInfo, setPresence, botTick } from './lib/debug.js';
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -94,17 +95,26 @@ function ipOf(socket) {
   return fwd && PRIVATE.test(addr) ? String(fwd).split(',').pop().trim() : addr;
 }
 
+// 調試房間（測試服）裏說書人換成了哪個座位的身份：看到的、能做的都和那位玩家一樣
+const asSeat = (room, d) => (d.st && d.as && room.debug && room.seats.find(x => x.id === d.as)) || null;
+
 // 說書人可以「代入」某位玩家的視角：拿到的就是那位玩家看到的狀態（只讀）
 function viewOf(room, who, since, logFrom) {
+  const as = asSeat(room, who);
+  if (as) return { ...viewFor(room, { pid: as.pid }, since), debug: debugInfo(room, as.id) };
   const seat = who.st && who.peek && room.seats.find(x => x.id === who.peek);
-  if (!seat) return viewFor(room, who, since, logFrom);
+  if (!seat) {
+    const v = viewFor(room, who, since, logFrom);
+    if (who.st && room.debug) v.debug = debugInfo(room, null);
+    return v;
+  }
   const i = room.seats.indexOf(seat);
   return { ...viewFor(room, { pid: seat.pid }, since), peek: { seatId: seat.id, label: `${i + 1}號 ${seat.name}` } };
 }
 
 // 聊天只推新增的部分；新的一局、切換代入視角或剛連上時整體重發
 function emitState(socket, room) {
-  const d = socket.data, key = `${room.chatEpoch}|${d.peek || ''}`;
+  const d = socket.data, key = `${room.chatEpoch}|${d.peek || ''}|${asSeat(room, d)?.id || ''}`;
   const reset = d.chatKey !== key;
   // 流程日誌也只推新增的；換了一局（日誌變短）從頭發
   const logN = room.g?.log?.length || 0, logFrom = reset || (d.logN || 0) > logN ? 0 : d.logN || 0;
@@ -137,9 +147,13 @@ function broadcast(room) {
   const list = dropOrphans(room, socketsOf(room.code));
   const online = new Set(list.map(s => s.data.pid).filter(Boolean));
   room.stOnline = list.some(s => s.data.st);
+  // 調試：說書人代入的座位算在場（他在替這個座位操作），機器人一直在場；機器人跟著座位號改名
+  const drive = list.map(s => asSeat(room, s.data)?.id).filter(Boolean);
+  setPresence(room, drive, list.some(s => s.data.st && !asSeat(room, s.data)));
+  if (room.phase === 'lobby') renameBots(room);
   // 觀眾席：同一個人開了幾個標籤頁只坐一個位置
   room.watchers = [...new Map(list.filter(s => s.data.watch).map(s => [s.data.pid, { pid: s.data.pid, name: s.data.name }])).values()];
-  for (const seat of room.seats) seat.online = !!seat.local || online.has(seat.pid); // 線下座位沒有手機，一直算在場
+  for (const seat of room.seats) seat.online = !!seat.local || online.has(seat.pid) || isBot(seat) || drive.includes(seat.id); // 線下座位沒有手機，一直算在場
   guard(stats.observe)(room); // 統計出錯不能耽誤推送
   // 一個連接的狀態出錯不能拖累同房間的其他人，更不能帶走整個進程
   for (const s of list) {
@@ -150,10 +164,12 @@ function broadcast(room) {
   virginTick(room, broadcast);
   mvpTick(room, broadcast);
   pretendTick(room, broadcast);
+  botTick(room, broadcast);
 }
 
 io.on('connection', socket => {
   const ip = ipOf(socket);
+  if (DEBUG) socket.emit('debug'); // 測試服：大廳亮出「調試模式」
   // 回覆：字符串是錯誤，對象是附帶的數據
   const reply = (cb, r) => cb && cb(typeof r === 'string' ? { ok: false, error: r } : { ok: true, ...r });
   const handle = (fn) => (data = {}, cb) => {
@@ -174,20 +190,24 @@ io.on('connection', socket => {
   };
   const badPid = pid => typeof pid !== 'string' || !PID.test(pid);
 
-  socket.on('st:create', handle((_, cb) => {
+  // debug：大廳勾了調試模式（只有測試服認）
+  socket.on('st:create', handle(({ debug } = {}, cb) => {
     if (!allow('create:' + ip, LIMIT.create)) return reply(cb, '建房太頻繁，請稍後再試');
     if (!store.makeSpace(code => socketsOf(code).length > 0)) return reply(cb, '房間已滿，請稍後再試');
     const room = store.createRoom();
+    room.debug = DEBUG && !!debug;
     socket.data = { code: room.code, st: true };
     reply(cb, { code: room.code, stKey: room.stKey, inst: room.inst });
     broadcast(room);
   }));
 
-  socket.on('st:join', handle(({ code, stKey }, cb) => {
+  socket.on('st:join', handle(({ code, stKey, debug, as }, cb) => {
     const room = find(code, null, cb);
     if (!room) return;
     if (room.stKey !== stKey) { miss(); return reply(cb, '說書人密鑰錯誤'); }
+    room.debug = DEBUG && !!debug; // 調試模式跟著大廳的勾選走
     socket.data = { code: room.code, st: true };
+    if (room.debug && typeof as === 'string' && room.seats.some(s => s.id === as)) socket.data.as = as; // 刷新前換成的座位
     done(room, cb);
   }));
 
@@ -257,12 +277,23 @@ io.on('connection', socket => {
     emitState(socket, room);
   }));
 
+  // 調試：說書人換成某個座位的身份（seatId 空的是換回說書人）
+  socket.on('dbg:as', handle(({ seatId }, cb) => {
+    const room = store.get(socket.data.code);
+    if (!room || !socket.data.st || !room.debug) return reply(cb, '無權限');
+    socket.data.as = typeof seatId === 'string' && room.seats.some(s => s.id === seatId) ? seatId : null;
+    socket.data.peek = null;
+    reply(cb);
+    broadcast(room);
+  }));
+
   socket.on('pl:act', handle((act, cb) => {
     const room = store.get(socket.data.code);
-    if (!room || !socket.data.pid) return reply(cb, '未加入房間');
-    if (act.act === 'chat' && !allow(`chat:${room.code}:${socket.data.pid}`, LIMIT.chat)) return reply(cb, SLOW);
-    const err = applyPlayerAction(room, socket.data.pid, act);
-    if (act.act === 'leave' && !err) socket.data = {}; // 自己離座：不用再通知他「座位沒了」
+    const pid = socket.data.pid || (room && asSeat(room, socket.data)?.pid); // 調試：說書人替他換成的那個座位操作
+    if (!room || !pid) return reply(cb, '未加入房間');
+    if (act.act === 'chat' && !allow(`chat:${room.code}:${pid}`, LIMIT.chat)) return reply(cb, SLOW);
+    const err = applyPlayerAction(room, pid, act);
+    if (act.act === 'leave' && !err) { if (socket.data.st) socket.data.as = null; else socket.data = {}; } // 自己離座：不用再通知他「座位沒了」；調試中的說書人回到說書人視角
     done(room, cb, err);
   }));
 

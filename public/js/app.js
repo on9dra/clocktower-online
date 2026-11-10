@@ -26,6 +26,7 @@ import { setBgm } from './bgm.js';
 import { veiled, noteArrival } from './veil.js';
 import { closePass } from './pass.js';
 import { keepAwake } from './wake.js';
+import { debugBox, debugWanted, asKey, debugKey } from './debug.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
 Object.assign(window.boot, { locked, chime: ms => chime('night', ms) }); // 開屏結束時鐘響兩下，和音波同拍
@@ -52,6 +53,7 @@ params.delete('seat');
 const sock = io();
 let session = null, chat = [], fresh = false, dealt = null; // session：{ code, inst, st }；fresh：剛建好房間，桌面擺好（dealt）時彈邀請
 let linked = false, everOn = false; // linked：這個連接已經（重新）進了房間；everOn：連上過服務器
+let debugAvail = false; // 測試服（服務器說的）：大廳有「調試模式」
 const done = res => r => { if (!r.ok) toast(r.error); res(r); };
 const OFF = '正在重連，請稍候', SLOW = '網絡不通，請稍後再試';
 // 房間裏的操作。斷線、或者連回來還沒重新進房間時不發：socket.io 會先存著，連上後服務器還不認得這個連接，回「無權限」「未加入房間」，
@@ -70,6 +72,16 @@ export const ctx = {
     return send('pl:act', { act, ...args });
   },
   peek: seatId => send('st:peek', { seatId }),
+  // 調試房間（測試服）：說書人換成某個座位的身份，null 換回說書人。手上沒做完的選擇、菜單、彈窗都是原來那個身份的，收掉
+  dbgAs: seatId => {
+    const d = ctx.state?.debug;
+    if (!d || (d.as || null) === (seatId || null)) return Promise.resolve({ ok: !!d });
+    closeMenu(); closeModal(); closeRolePanel(); closePick(); closePass(); closeAct(ctx); sel.on = null;
+    return send('dbg:as', { seatId: seatId || null }).then(r => {
+      if (r.ok && session) { if (seatId) LS.set(asKey(session.code), seatId); else LS.del(asKey(session.code)); }
+      return r;
+    });
+  },
   // 觀戰的人入座（準備階段有空位時）
   sit: () => session && joinPlayer(session.code, LS.get('botc.name') || '', session.inst, true),
   // 說書人解散房間
@@ -161,7 +173,8 @@ function resume() {
     return sock.emit('pl:claim', { code, inst, pid, token }, r => (r.ok ? enter(code, false, inst) : (toast(r.error), resume())));
   }
   const key = LS.get('botc.st.' + code);
-  if (key) return sock.emit('st:join', { code, stKey: key }, r => {
+  // 調試模式（只有測試服認）：刷新、重連後回到原來換成的那個座位
+  if (key) return sock.emit('st:join', { code, stKey: key, debug: debugWanted(LS), as: LS.get(asKey(code)) }, r => {
     if (r.ok) return enter(code, true, inst);
     // 房號換了一個房間，本機記著的是舊房間的密鑰：丟掉，當玩家進
     if (r.error === '說書人密鑰錯誤') { LS.del('botc.st.' + code); return resume(); }
@@ -205,7 +218,7 @@ function lobby(code = params.get('room') || '') {
   }
   const create = () => {
     window.boot.more();
-    sock.emit('st:create', {}, r => {
+    sock.emit('st:create', { debug: debugWanted(LS) }, r => {
       if (!r.ok) return toast(r.error);
       LS.set('botc.st.' + r.code, r.stKey);
       fresh = true;
@@ -223,6 +236,7 @@ function lobby(code = params.get('room') || '') {
   });
   // 控件等開屏揭開才出來；第一次來先看介紹，介紹收起才出來。
   // 從邀請鏈接來的（房間號已經填好）是來入座的，朋友在等：不先看介紹（介紹講的是給說書人的好處），也不記成看過，下次自己打開網站再看
+  if (debugAvail) page.append(debugBox(LS));
   const show = () => page.classList.remove('pre');
   page.classList.add('pre');
   if (room) backToLobby(app, page, show);
@@ -324,6 +338,13 @@ sock.on('disconnect', why => {
 // 一直沒連上（服務器起不來、網絡不通）：開屏揭開幾秒後也掛出紙條，不然點什麼都沒反應
 window.boot.out.then(() => syncNet(4000));
 sock.on('bye', bye);
+// 測試服：大廳亮出「調試模式」。大廳先畫出來、連上才知道，這時候再插進去
+sock.on('debug', () => {
+  if (debugAvail) return;
+  debugAvail = true;
+  const page = document.querySelector('#app > .lobby:not(.off)');
+  if (page && !page.querySelector('.dbg-box')) page.append(debugBox(LS));
+});
 setRender(render);
 addEventListener('resize', fitTopbar); // 轉屏、改窗口：頂欄重新量一次放不放得下
 // 計票倒數、投票倒數、MVP 倒數每秒重繪
@@ -341,6 +362,7 @@ document.addEventListener('keydown', e => {
   const t = e.target, typing = t.closest && t.closest('input, textarea, select, [contenteditable]');
   if (e.key === 'Enter' && !typing) { e.preventDefault(); return; }
   if (!ctx.state) { if (e.key === 'Escape') closeModal(); return; } // 大廳：Esc 關掉「關於」
+  if (!typing && debugKey(ctx, e.key)) return; // 調試房間：數字鍵換座位，0 換回說書人
   const open = document.querySelector('.backdrop:not(.leaving)'), popped = document.querySelector('.popmenu:not(.leaving)');
   if (e.key === 'Escape') {
     if (closePass()) return;

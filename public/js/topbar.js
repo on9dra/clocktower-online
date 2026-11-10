@@ -13,6 +13,7 @@ import { openInvite, hostUrl } from './invite.js';
 import { showRole } from './manual.js';
 import { openAbout } from './about.js';
 import { openPass } from './roompass.js';
+import { debugWho } from './debug.js';
 
 // 複製：navigator.clipboard 只在 https（和 localhost）裏有，深圳那台用 IP 走 http 就沒有——退回藏起來的文本框 + execCommand。
 // 還是不行就把文字選好擺在底下一張紙上，自己長按複製；點別處收起
@@ -81,11 +82,13 @@ export function topbar(ctx) {
   const narrow = () => matchMedia('(max-width: 860px)').matches;
   // 手機上多設備線下局的說書人頂欄放不下（撤銷、四個標籤都得留）：展示角色卡、積分榜收進「⋯」（hud.css 同一個寬度把按鈕藏掉）
   const tucked = () => s.isSt && !s.peek && s.offline && !s.oneDevice && matchMedia('(max-width: 600px)').matches;
+  // 調試房間（測試服）的說書人：頂欄多了切換身份的按鈕，手機上積分榜也收進「⋯」
+  const boardTucked = () => !me && !!s.debug && matchMedia('(max-width: 600px)').matches;
   const more = e => menu(e.currentTarget, narrow() ? SCRIPTS[s.scriptId]?.name + (s.offline ? ' · 線下' : '') : null, [
     narrow() && { label: '規則與流程', onclick: help },
     narrow() && { label: [icon(muted() ? 'sound' : 'mute', 'menu-ico'), muted() ? '打開聲音' : '全部靜音'], onclick: sound },
     tucked() && { label: [icon('eye', 'menu-ico'), '展示角色卡'], onclick: () => showRole(ctx, null) },
-    tucked() && { label: [icon('trophy', 'menu-ico'), '積分榜'], onclick: () => openBoard(ctx) },
+    (tucked() || boardTucked()) && { label: [icon('trophy', 'menu-ico'), '積分榜'], onclick: () => openBoard(ctx) },
     // 很窄的手機上觀戰的頂欄放不下獎盃（hud.css），積分榜收到這裏
     !me && !s.isSt && matchMedia('(max-width: 374px)').matches && { label: [icon('trophy', 'menu-ico'), '積分榜'], onclick: () => openBoard(ctx) },
     stKey && { label: '複製說書人鏈接（換設備主持用）',
@@ -123,10 +126,11 @@ export function topbar(ctx) {
     // 線下：隨時亮一張角色牌給玩家看（比劃不出來的只有角色）。挑好之後先蓋著，確認了才翻（manual.js showRole）
     s.isSt && !s.peek && s.offline && h('button', { class: 'btn sm ghost show-role' + (s.oneDevice ? '' : ' many'), title: '展示角色卡', onclick: () => showRole(ctx, null) }, icon('eye'), h('span', {}, '展示角色卡')),
     !s.isSt && !s.peek && !s.stOnline && h('span', { class: 'warn' }, '說書人離線'),
-    s.isSt || s.peek ? h('span', { class: 'who' }, '說書人') : me ? h('span', { class: 'who' }, me.name)
+    // 調試房間（測試服）：身份位換成切換身份的按鈕
+    s.debug ? debugWho(ctx) : s.isSt || s.peek ? h('span', { class: 'who' }, '說書人') : me ? h('span', { class: 'who' }, me.name)
       : h('span', { class: 'watch-tag' }, icon('eye'), '觀戰'),
     // 自己的雞蛋數（點開積分榜）；結算時雞蛋飛進來跳一下「+N」。說書人是獎盃
-    me ? eggPill(ctx, me) : !s.oneDevice && h('button', { class: 'btn sm ghost icon-only board-btn' + (s.isSt && s.offline ? ' st-off' : ''), title: '積分榜', onclick: () => openBoard(ctx) }, icon('trophy')), // 單設備的座位只是名字，沒有積分榜
+    me ? eggPill(ctx, me) : !s.oneDevice && h('button', { class: 'btn sm ghost icon-only board-btn' + (s.isSt && s.offline ? ' st-off' : '') + (s.debug ? ' tuck' : ''), title: '積分榜', onclick: () => openBoard(ctx) }, icon('trophy')), // 單設備的座位只是名字，沒有積分榜
     h('button', { class: 'btn sm ghost icon-only sound', title: muted() ? '打開聲音' : '全部靜音', onclick: sound }, icon(muted() ? 'mute' : 'sound')),
     h('button', { class: 'btn sm help', onclick: help }, '規則與流程'),
     sheetTabs(ctx),

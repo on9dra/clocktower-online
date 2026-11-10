@@ -1078,3 +1078,23 @@ button.hv:active { transform: scale(.94); }
   :root[data-lang="en"] .hud .hud-me .token .token-name { font-size: 10px; padding: 0 2px; }
   :root[data-lang="en"] .hud:is(.min, .pick) .hud-me .token .token-name { font-size: 8px; }
 }
+
+/* 調試（測試服）：頂欄的身份位是個按鈕，虛線框 + 紅印「調試」，點開換身份（debug.js）。手機上只留印和座位號 */
+.topbar .dbg-who { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 5px; border: 1.5px dashed var(--brass); white-space: nowrap; }
+.dbg-tag { flex: none; padding: 1px 4px 1px 5px; background: #a3271d; color: #f4eedf; font: 900 11px/1.35 var(--serif); font-style: normal; letter-spacing: .12em; border-radius: 2px; rotate: -4deg; }
+.dbg-who .sb, .dbg-row .sb { flex: none; font-size: 13px; font-weight: 700; }
+.dbg-ico { flex: none; width: 17px; height: 17px; }
+.dbg-who .dbg-name { max-width: 8em; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+@media (max-width: 600px) {
+  .topbar .btn.dbg-who { gap: 2px; padding: 0 3px 0 2px; border-color: transparent; }
+  .dbg-who .dbg-ico { width: 15px; height: 15px; }
+  .dbg-who .dbg-tag { writing-mode: vertical-rl; padding: 3px 1px; font-size: 10px; letter-spacing: .02em; line-height: 1.15; rotate: -6deg; }
+  .dbg-who .dbg-name, .topbar .board-btn.tuck { display: none; }
+}
+.dbg-row { display: flex; align-items: center; gap: 8px; min-width: 170px; }
+.dbg-row .dbg-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbg-role { display: inline-flex; align-items: center; gap: 5px; font-size: 15px; }
+.dbg-role small { min-width: 4.5em; color: var(--muted); font-size: 12px; }
+.dbg-turn { display: inline-grid; color: var(--brass); }
+.dbg-turn .ico { width: 15px; height: 15px; }
+.popmenu button:has(> .dbg-row.cur) { background: var(--hover); box-shadow: inset 3px 0 0 var(--brass); font-weight: 700; }

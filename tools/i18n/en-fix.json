@@ -122,5 +122,19 @@
  "提名你來點": "You tap the nominations",
  "點提名的人、被提名的人，再按確認": "Tap the nominator, then the nominee, then Confirm",
  "可以登記為這個角色": "Can register as this character",
- "真的是這個角色": "Really is this character"
+ "真的是這個角色": "Really is this character",
+ "調試模式": "Debug mode",
+ "調試": "Debug",
+ "切換身份": "Switch identity",
+ "加 1 個機器人": "Add 1 bot",
+ "機器人坐滿 {0} 人": "Fill with bots to {0} players",
+ "移除 {0} 個機器人": "Remove {0} bot(s)",
+ "離席時自動主持": "Auto-host while I'm in a seat",
+ "機器人{0}": "Bot {0}",
+ "沒有開調試模式": "Debug mode is off",
+ "只能在準備階段加機器人": "Bots can only be added before the game starts",
+ "遊戲中不能移除機器人": "Bots can't be removed during a game",
+ "單設備的座位直接定人數": "On a single device, set the player count instead",
+ "沒有機器人": "There are no bots",
+ "選不出合規的人": "No legal choice"
 }
