@@ -940,7 +940,10 @@ button.hv:active { transform: scale(.94); }
 @media (max-width: 600px) { :root[data-lang="en"] .topbar :is(.undo .undo-k, .show-role > span) { display: none; } }
 .topbar .undo small { color: var(--muted); font-size: 11px; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar .undo.disabled { opacity: .4; pointer-events: auto; } /* 灰著也能點：點了說沒有可撤銷的 */
-@media (max-width: 600px) { .topbar .undo:not(.one) .undo-k, .topbar .undo small { display: none; } } /* 單設備頂欄空出了位置，「撤銷」兩個字留著，不然像刷新鍵 */
+@media (max-width: 600px) { .topbar .undo:not(.one) .undo-k, .topbar .undo small { display: none; } }
+/* 手機上多設備線下局的說書人：頂欄要留撤銷和四個標籤，展示角色卡、積分榜收進「⋯」（topbar.js tucked）。單設備在很窄的手機上「展示角色卡」只留眼睛 */
+@media (max-width: 600px) { .topbar :is(.show-role.many, .board-btn.st-off) { display: none; } }
+@media (max-width: 374px) { .topbar .show-role > span { display: none; } } /* 單設備頂欄空出了位置，「撤銷」兩個字留著，不然像刷新鍵 */
 /* 建房選模式的第二步：回到線上 / 線下 */
 .venue-pane { flex-wrap: wrap; }
 .venue-back { flex-basis: 100%; margin-top: 4px; background: none; border: 0; color: var(--muted); font: 600 13px var(--sans); cursor: pointer; }

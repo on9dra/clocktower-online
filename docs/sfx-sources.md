@@ -59,6 +59,6 @@
 | 文件 | 用在 | 原名 | 作者 |
 |---|---|---|---|
 | `lobby.m4a` | 大廳、房間裏等開局 | [Town Theme RPG](https://opengameart.org/content/town-theme-rpg) | cynicmusic（The Cynic Project，cynicmusic.com） |
-| `day.m4a` | 白天 | [Suspicious Loop](https://opengameart.org/content/suspicious-loop) | Hazmat Harry |
+| `day-2.m4a` | 白天 | [Suspicious Loop](https://opengameart.org/content/suspicious-loop) | Hazmat Harry |
 | `night.m4a` | 夜晚 | [Mysterious](https://opengameart.org/content/mysterious) | nene |
 | `vote.m4a` | 提名 | 追逼 | 自編 |

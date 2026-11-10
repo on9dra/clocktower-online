@@ -240,42 +240,79 @@ function crow() {
   el.innerHTML = CROW;
   return el;
 }
-// 訃告擺在哪：電腦上（桌面寬）放左上角「第 N 天」下面；手機上先放正上方，壓到座位（頭像、名牌、標記）就往上提一點，還壓到就也退到左上角。
-// 量好的位置記在 obitAt，重繪時跟著帶上（不然每次重繪先回到正中再挪過去）；第一次量好之前不掛下來，免得先落在中間再跳走
-const obitAt = { key: null, y: 0, aside: false, placed: false };
-let obitWait = 0;
+// 訃告擺在哪：哪裏不壓東西掛哪裏。電腦上先試左上角「第 N 天」下面；手機上先試正上方（壓到就往上提一點），再試左上角、右上角。
+// 整塊都放不下就換成一行的小條（.slim：只留「昨夜 ⑥ 離世」，沒有標題和烏鴉），左上、右上、「第 N 天」右邊挨個試；
+// 小條也放不下（人多、屏矮、死了好幾個）再縮成骷髏加座位號（.mini）。
+// 「東西」＝座位的頭像、名牌、標記、皇冠，「第 N 天」，圓桌中間的牌和按鈕，浮在小鎮上的角色牌、觀眾席。量好的位置記在 obitAt，重繪時跟著帶上；第一次量好之前不掛下來
+const obitAt = { key: null, l: null, t: null, form: 0, placed: false, fade: false }; // form：0 整塊、1 小條、2 骷髏加座位號
+let obitWait = 0, obitTown = null;
+const obitRO = typeof ResizeObserver === 'function' ? new ResizeObserver(() => { clearTimeout(obitWait); obitWait = setTimeout(placeObit, 120); }) : null;
 function placeObit() {
-  const ob = document.querySelector('.town > .obit:not(.leaving)'), town = ob?.parentElement;
-  if (!ob) return;
+  const ob = document.querySelector('.town > .obit:not(.leaving)'), town = ob?.parentElement, ring = town?.querySelector(':scope > .ring');
+  if (!ob || !ring) return;
   clearTimeout(obitWait);
-  const set = (y, aside) => {
-    Object.assign(obitAt, { y, aside, placed: true });
-    ob.style.setProperty('--oy', y + 'px');
-    ob.classList.toggle('aside', aside);
-    ob.classList.remove('unplaced');
+  // 角色牌收起 / 展開、轉屏、處決台出現都會讓桌子換位置：跟著重新量
+  if (obitRO && obitTown !== town) { obitRO.disconnect(); obitRO.observe(town); obitRO.observe(ring); obitTown = town; }
+  // 桌子、座位還在動（發牌、入場、拖動、給處決台讓位）時量到的不是最後的位置：等動完再量。一直循環的動畫不算
+  const moving = el => el.getAnimations().some(x => x.playState === 'running' && x.effect?.getComputedTiming().iterations !== Infinity);
+  if ([ring, ...ring.querySelectorAll(':scope > .seat')].some(moving)) { obitWait = setTimeout(placeObit, 300); return; }
+  const t = town.getBoundingClientRect(), paper = ob.querySelector('.ob-paper'), tag = town.querySelector(':scope > .phase-tag')?.getBoundingClientRect();
+  const rect = el => el.getBoundingClientRect(), seen = r => r.width && r.height;
+  // 頭像是圓的，按圓算（按方框算會把四個角上的空地也當成壓到）；名牌、標記、皇冠、圓桌中間的東西按方框
+  const tokens = [...ring.querySelectorAll(':scope > .seat > .seat-token')].map(rect).filter(seen).map(r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }));
+  const parts = [...ring.querySelectorAll(':scope > .seat > :is(.plate, .seat-more), :scope > .seat .crown, :scope > .center > *')].map(rect).filter(seen);
+  // 「第 N 天」、觀眾席，還有橫屏時浮在小鎮左上角的角色牌（.board 裏和 .town 並排的那幾個）：紙不能掛到它們底下，繩子可以從角色牌底下垂出來
+  const around = [...town.querySelectorAll(':scope > :not(.ring, .obit)'), ...[...town.parentElement.children].filter(el => el !== town)].map(rect).filter(seen);
+  const mourn = ob.classList.contains('mourn'), wide = town.offsetWidth > 640, pad = wide ? 14 : 10;
+  const tagB = tag ? tag.bottom - t.top : 26;
+  const lap = (r, L, T, R, B) => Math.max(0, Math.min(r.right, R) - Math.max(r.left, L)) * Math.max(0, Math.min(r.bottom, B) - Math.max(r.top, T));
+  // 一個候選位置壓到別的東西多少（0 = 不壓）。over：紙上面還有繩子、烏鴉
+  const cover = (l, top, w, h, over) => {
+    if (l < 2 || l + w > t.width - 2 || top - over < -8) return Infinity;
+    const L = t.left + l - 4, R = t.left + l + w + 4, T = t.top + top, B = T + h + 4, up = T - over - 2;
+    let n = 0;
+    for (const r of parts) n += lap(r, L, up, R, B);
+    for (const r of around) n += lap(r, L, T - 2, R, B);
+    for (const c of tokens) { const d = Math.hypot(c.x - Math.min(Math.max(c.x, L), R), c.y - Math.min(Math.max(c.y, up), B)); if (d < c.r) n += (c.r - d) ** 2; }
+    return n;
   };
-  if (town.offsetWidth > 640) return set(0, true);
-  // 座位還在動（發牌、入場、拖動）時量到的不是它最後的位置：等動完再量
-  if ([...town.querySelectorAll('.ring > .seat')].some(el => el.getAnimations().some(a => a.playState === 'running'))) { obitWait = setTimeout(placeObit, 300); return; }
-  ob.classList.remove('aside');
-  ob.style.setProperty('--oy', '0px');
-  const t = town.getBoundingClientRect(), paper = ob.querySelector('.ob-paper');
-  const w = paper.offsetWidth, h = paper.offsetHeight + 18, base = t.top + ob.offsetTop - 16, x = t.left + t.width / 2 - w / 2;
-  const boxes = [...town.querySelectorAll('.ring > .seat > :is(.seat-token, .plate, .seat-more), .ring > .seat .crown')].map(el => el.getBoundingClientRect()).filter(r => r.width); // 頭上的皇冠也算
-  const free = top => boxes.every(r => r.right < x - 4 || r.left > x + w + 4 || r.bottom < top || r.top > top + h);
-  const up = [0, 24].find(d => free(base - d));
-  set(up === undefined ? 0 : -up, up === undefined);
+  const tries = [];
+  const shape = form => { ob.classList.toggle('slim', form > 0); ob.classList.toggle('mini', form > 1); };
+  for (const form of mourn ? [0, 1, 2] : [0, 1]) {
+    const slim = form > 0;
+    shape(form);
+    const w = paper.offsetWidth, h = paper.offsetHeight, over = slim ? 10 : mourn ? 22 : 15;
+    const spots = [[pad, tagB + over + 4], [t.width - w - pad, over + 8], [t.width - w - pad, over - 6]]; // 左上角「第 N 天」下面、右上角（再不行貼著上沿，繩子從上面的牌底下垂下來）
+    if (!slim && !wide) spots.unshift([(t.width - w) / 2, 40], [(t.width - w) / 2, 16]);
+    if (slim && tag) spots.push([tag.right - t.left + 12, tag.top - t.top + over - 4], [tag.right - t.left + 12, over - 6]); // 「第 N 天」右邊同一行
+    for (const [l, top] of spots) tries.push({ l: Math.round(l), t: Math.round(top), form, n: cover(l, top, w, h, over) });
+  }
+  shape(obitAt.form);
+  const least = tries.at(-1).form, pick = tries.find(x => x.n === 0) || tries.filter(x => x.form === least).sort((x, y) => x.n - y.n)[0];
+  const set = () => {
+    Object.assign(obitAt, { l: pick.l, t: pick.t, form: pick.form, placed: true });
+    ob.style.setProperty('--ol', pick.l + 'px');
+    ob.style.setProperty('--ot', pick.t + 'px');
+    shape(pick.form);
+    void ob.offsetWidth; // 第一次：先到位再掛下來，不從別處滑過來
+    ob.classList.remove('unplaced', 'fade');
+    obitAt.fade = false;
+  };
+  if (obitAt.placed && obitAt.form === pick.form && obitAt.l === pick.l && obitAt.t === pick.t) return;
+  // 已經掛著、要換大小：先淡掉再換，不在眼前變形（只挪位置的由 left / top 的過渡帶過去）
+  // fade 記在 obitAt 上、重繪時帶著：淡掉的這一會兒有別的重繪也不會先亮回來
+  if (obitAt.placed && obitAt.form !== pick.form) { obitAt.fade = true; ob.classList.add('fade'); obitWait = setTimeout(set, 280); } else set();
 }
 function obituary(s) {
   if ((s.phase !== 'dawn' && s.phase !== 'day') || !s.lastNight || dawnHeld()) return null;
   const dead = s.lastNight, any = dead.length > 0, key = `obit-${s.day}`, at = obitAt;
-  if (at.key !== key) Object.assign(at, { key, y: 0, aside: false, placed: false });
-  return h('div', { class: 'obit ' + (any ? 'mourn' : 'calm') + (at.aside ? ' aside' : '') + (at.placed ? '' : ' unplaced'), 'data-key': key, 'data-exit': true,
-    style: { '--oy': at.y + 'px' } },
+  if (at.key !== key) Object.assign(at, { key, l: null, t: null, form: 0, placed: false, fade: false });
+  return h('div', { class: 'obit ' + (any ? 'mourn' : 'calm') + (at.form > 0 ? ' slim' : '') + (at.form > 1 ? ' mini' : '') + (at.fade ? ' fade' : '') + (at.placed ? '' : ' unplaced'), 'data-key': key, 'data-exit': true,
+    style: at.placed ? { '--ol': at.l + 'px', '--ot': at.t + 'px' } : {} },
     h('i', { class: 'ob-str l' }), h('i', { class: 'ob-str r' }),
     h('div', { class: 'ob-paper' }, any && crow(),
       h('b', { class: 'ob-h' }, any ? '訃告' : '告示'),
-      h('div', { class: 'ob-line' }, any ? [w('昨夜', 'ink'), dead.map(id => seatBadge(s, id)), w('離世', 'ink')] : w('昨夜平安', 'ink'))));
+      h('div', { class: 'ob-line' }, any ? [icon('skull', 'ob-ico'), w('昨夜', 'ink'), dead.map(id => seatBadge(s, id)), w('離世', 'ink')] : w('昨夜平安', 'ink'))));
 }
 
 // 觀眾席：桌子右下角一張小紙條，寫前幾個名字，點開看全部。手機上只剩眼睛和人數（board.css）
