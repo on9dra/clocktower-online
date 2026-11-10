@@ -206,13 +206,21 @@ function toldObj(s, t) {
     default: return h('span', { class: 'frm' }, formula(s, f.filter(x => !x.op)));
   }
 }
-// 單設備：這一步要私下告訴的人，一人一份 { to, line 卡上照著念的一句, body 整屏給他看的核心 }。
+// 單設備：這一步要私下告訴的人，一人一份 { to, lines 卡上照著念的話, pages 整屏給他看的頁 }。
 // 舞蛇人換到惡魔：兩人各自的新角色（先告知還睜著眼的舞蛇人，再叫醒原惡魔）；教父首夜：在場的外來者（沒有就是 0）；鏡像雙子：兩人各看對方是誰；
-// 服務端 step.told（麻臉巫婆變了他的角色、小惡魔傳位、洗腦師讓他瘋狂、驅魔人選中了惡魔……）上面沒說到的人每人一份
+// 服務端 step.told（麻臉巫婆變了他的角色、小惡魔傳位、洗腦師讓他瘋狂、驅魔人選中了惡魔……）每人一份。
+// 同一個人有幾件事（莽夫被麻臉巫婆選中：陣營變了，角色也變了）合在他那一份裏，一次叫醒說完、展示一件一頁；
+// 同一件事不說兩遍（舞蛇人交換已經說了「變成了」，換角色的那條系統消息就不再加）
+const FACT = { become: 0, align: 2 }; // 換了角色排最前，陣營排最後，其餘在中間
 function tells(s, step) {
   const { e, f } = step.result || {}, role = id => s.seats.find(x => x.id === id)?.role, out = [];
   const awake = id => id === step.seatId && (step.picks || []).length > 0; // 這一步替他點過人：他還睜著眼
-  const add = (to, kind, obj, body) => { if (!out.some(p => p.to === to)) out.push({ to, line: tellLine(s, to, kind, obj, awake(to)), body }); };
+  const add = (to, kind, obj, body) => {
+    let p = out.find(x => x.to === to);
+    if (kind && p?.facts.some(x => x.kind === kind)) return;
+    if (!p) out.push(p = { to, facts: [] });
+    p.facts.push({ kind, obj, body });
+  };
   if (e?.swap && e.to?.[0]) { add(e.seat, 'become', named(e.swap.role), bigRoles([e.swap.role])); add(e.to[0], 'become', named(e.swap.gave), bigRoles([e.swap.gave])); }
   else if (step.roleId === 'godfather' && f) { const r = f.filter(t => t.r).map(t => t.r); add(step.seatId, r.length ? 'outsiders' : 'noOutsider', r.map(named), r.length ? bigRoles(r) : bigNum(0)); }
   else if (step.roleId === 'eviltwin' && e?.to?.[0]) {
@@ -220,8 +228,13 @@ function tells(s, step) {
     add(a, 'twin', [seatBadge(s, b), named(role(b))], bigCore(s, { seats: [b], roles: [role(b)] }));
     add(b, 'twin', [seatBadge(s, a), named(role(a))], bigCore(s, { seats: [a], roles: [role(a)] }));
   }
-  for (const t of step.told || []) add(t.seatId, toldKind(t), toldObj(s, t), toldCore(s, t.f));
-  return out;
+  // 陣營變了（莽夫）：整屏只要一個大大的「邪惡 / 善良」，不印莽夫的牌（同一步裏他的角色可能也換了）
+  for (const t of step.told || []) { const k = toldKind(t); add(t.seatId, k, toldObj(s, t), toldCore(s, k === 'align' ? t.f?.filter(x => !x.r) : t.f)); }
+  // 第一句叫醒他（行動者還睜著眼就是「告知」），後面幾句他已經醒著
+  return out.map(({ to, facts }) => {
+    const l = facts.map((x, k) => [x, k]).sort(([a, i], [b, j]) => (FACT[a.kind] ?? 1) - (FACT[b.kind] ?? 1) || i - j).map(([x]) => x);
+    return { to, lines: l.map((x, k) => tellLine(s, to, x.kind, x.obj, k > 0 || awake(to))), pages: l.map(x => ({ to, body: x.body })) };
+  });
 }
 // 要告訴兩個人以上的（舞蛇人換到惡魔、鏡像雙子、理髮師換了兩人……）拆成一人一張卡，和兩步一樣：
 // 「告知 ⑨：他變成了 方古」展示完按「下一個」，才換成「叫醒 ③，讓他得知自己變成了 舞蛇人」，最後一個人的「下一個」才往下走。
@@ -245,9 +258,9 @@ function ackCard(ctx, step) {
     : picks.length ? [w('選了', 'ink'), picks.map(id => seatBadge(s, id))] : w('沒有使用能力', 'muted');
   const next = () => stepOp(ctx, 'ack');
   // 展示：只給這張卡上的這個人看（按的時候用最新的狀態）
-  const show = () => { const p = tells(ctx.state, step)[i]; p && showPages(ctx.state, [{ to: p.to, body: p.body }]); };
+  const show = () => { const p = tells(ctx.state, step)[i]; p && showPages(ctx.state, p.pages); };
   return h('div', { class: 'card focus infocard spread' },
-    h('div', { class: 'ic-top' }, head(s, step), what && h('div', { class: 'frm big' + (parts.length ? ' sub' : '') }, what), goonLine(s, step), parts[i]?.line),
+    h('div', { class: 'ic-top' }, head(s, step), what && h('div', { class: 'frm big' + (parts.length ? ' sub' : '') }, what), goonLine(s, step), parts[i]?.lines),
     h('div', { class: 'ic-foot' }, parts.length ? h('div', { class: 'row' }, B([icon('eye'), '展示'], show), last ? B('下一個', next, stepLock()) : B('下一個', () => nextPart(ctx, step)))
       : B('確認', next, 'wide' + stepLock())));
 }
