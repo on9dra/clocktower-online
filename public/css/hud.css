@@ -947,6 +947,15 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .comm-row:hover { background: var(--hover); }
 .comm-row.on { background: var(--ink); color: var(--card); }
 .comm-row.on span, .comm-row.on i { color: inherit; opacity: .75; }
+/* 上傳劇本：這台設備導入過的劇本，點名字直接用，✕ 從本機刪掉；下面是導入新的 */
+.mine-box { display: grid; gap: 12px; }
+.mine-list { display: grid; align-content: start; max-height: min(52svh, 420px); overflow-y: auto; scrollbar-width: thin; }
+.comm-row.mine { align-items: center; padding: 0; cursor: default; }
+.mine-use { display: grid; gap: 1px; min-width: 0; padding: 7px 6px; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
+.mine-use b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mine-x { margin-right: 2px; color: inherit; opacity: .5; }
+.mine-x:hover { opacity: 1; }
+.mine-new { justify-self: center; }
 /* 矮橫屏攤著審判牌時偽裝卡讓開（面板也收起，見 hud.js），審判牌收起或結束再淡回來 */
 @media (max-width: 1180px) and (max-height: 500px) and (orientation: landscape) {
   .board > .bluffs { transition: opacity .25s ease; }

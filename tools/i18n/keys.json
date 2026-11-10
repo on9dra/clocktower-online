@@ -854,6 +854,9 @@
  "刺殺了 {0}": [
   "lib/night.js"
  ],
+ "從這台設備上刪掉": [
+  "public/js/manual.js"
+ ],
  "錯": [
   "public/js/infoform.js"
  ],
@@ -926,6 +929,9 @@
  "擋下": [
   "public/js/fx-ab-dlc.js",
   "public/js/fx-ab.js"
+ ],
+ "導入新的 Json": [
+  "public/js/manual.js"
  ],
  "到底是誰的邪教": [
   "public/js/community.js"
@@ -1329,6 +1335,9 @@
  ],
  "個": [
   "public/js/infofmt.js"
+ ],
+ "個角色": [
+  "public/js/manual.js"
  ],
  "給": [
   "public/js/pass.js",
@@ -2731,7 +2740,8 @@
  ],
  "上傳劇本": [
   "public/js/flow.js",
-  "public/js/help.js"
+  "public/js/help.js",
+  "public/js/manual.js"
  ],
  "上次沒有選人：選擇三名玩家，使其": [
   "public/js/glyph.js"

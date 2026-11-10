@@ -29,7 +29,27 @@ const MAX_FILE = 4 * 1024 * 1024, MAX_SEND = 60 * 1024; // 服務端單條消息
 // 圖片（可能內嵌得很大）、風味文字不用，發之前去掉
 const slim = e => (e && typeof e === 'object' ? Object.fromEntries(KEEP.filter(k => k in e).map(k => [k, e[k]])) : e);
 
-export function uploadScript(ctx) {
+// 本機記住導入過的劇本（每台設備自己的，最近用的在前），下次點「上傳劇本」直接從列表裏選，不用再找文件
+const MINE = 'botc.myScripts', MINE_MAX = 12;
+const mine = ctx => { try { const a = JSON.parse(ctx.ls.get(MINE) || '[]'); return Array.isArray(a) ? a.filter(x => x && Array.isArray(x.entries)) : []; } catch { return []; } };
+const keepMine = (ctx, list) => {
+  // 存不下（瀏覽器空間滿了）就丟掉最舊的再試
+  for (let l = list.slice(0, MINE_MAX); l.length; l = l.slice(0, -1)) {
+    try { localStorage.setItem(MINE, JSON.stringify(l)); return; } catch { /* 太大 */ }
+  }
+};
+const remember = (ctx, r, entries) => {
+  const meta = entries.find(e => e && typeof e === 'object' && e.id === '_meta') || {};
+  const one = { name: r.name, author: String(meta.author || '').slice(0, 40), roles: r.roles, entries };
+  keepMine(ctx, [one, ...mine(ctx).filter(x => !(x.name === one.name && x.author === one.author))]);
+};
+async function send(ctx, entries, fresh) {
+  const r = await ctx.st('upload', { entries });
+  if (!r.ok) return;
+  remember(ctx, r, entries);
+  if (fresh) toast(`${r.name}：${r.roles} 個角色` + (r.skipped.length ? `，跳過 ${r.skipped.join('、').slice(0, 40)}` : ''), 4000);
+}
+function pickFile(ctx) {
   const input = h('input', { type: 'file', accept: '.json,application/json' });
   input.onchange = async () => {
     const file = input.files[0];
@@ -40,11 +60,28 @@ export function uploadScript(ctx) {
     if (!Array.isArray(entries)) return toast('這不是劇本 Json');
     entries = entries.map(slim);
     if (JSON.stringify(entries).length > MAX_SEND) return toast('這本劇本太大了');
-    const r = await ctx.st('upload', { entries });
-    if (!r.ok) return;
-    toast(`${r.name}：${r.roles} 個角色` + (r.skipped.length ? `，跳過 ${r.skipped.join('、').slice(0, 40)}` : ''), 4000);
+    send(ctx, entries, true);
   };
   input.click();
+}
+// 沒導入過：直接開文件框。導入過：先列出這台設備上導入過的，下面是導入新的
+export function uploadScript(ctx) {
+  const list = mine(ctx);
+  if (!list.length) return pickFile(ctx);
+  const cur = ctx.state.scriptId === 'custom' && SCRIPTS.custom?.name;
+  const row = x => {
+    const el = h('div', { class: 'comm-row mine' + (x.name === cur ? ' on' : '') },
+      h('button', { class: 'mine-use', onclick: () => { closeModal(); if (x.name !== cur) send(ctx, x.entries); } },
+        h('b', {}, x.name), h('span', {}, [x.roles + ' 個角色', x.author].filter(Boolean).join(' · '))),
+      h('button', { class: 'icon-btn mine-x', title: '從這台設備上刪掉', onclick: () => {
+        keepMine(ctx, mine(ctx).filter(y => !(y.name === x.name && y.author === x.author)));
+        el.style.pointerEvents = 'none';
+        el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(-24px)' }], { duration: 200, easing: 'ease-in', fill: 'forwards' }).onfinish = () => el.remove();
+      } }, '✕'));
+    return el;
+  };
+  modal('上傳劇本', h('div', { class: 'mine-box' }, h('div', { class: 'mine-list' }, list.map(row)),
+    h('button', { class: 'btn ghost mine-new', onclick: () => { closeModal(); pickFile(ctx); } }, '導入新的 Json')));
 }
 
 // 社區劇本：全是內置角色的放前面；有系統不認識的角色的，那幾個角色到時說書人自己處理
