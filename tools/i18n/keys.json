@@ -617,9 +617,6 @@
  "不接任": [
   "public/js/flow.js"
  ],
- "不能猜自己": [
-  "public/js/manual.js"
- ],
  "不能和上一晚選同一名玩家": [
   "lib/engine.js",
   "public/js/town.js"
@@ -1003,6 +1000,9 @@
  "點任意座位": [
   "public/js/help.js"
  ],
+ "點提名的人、被提名的人，再按確認": [
+  "public/js/help.js"
+ ],
  "點頭搖頭，或整屏給他看": [
   "public/js/help.js"
  ],
@@ -1353,7 +1353,13 @@
  "公開猜他的角色（還有 {0} 次）": [
   "public/js/town.js"
  ],
+ "公開猜自己的角色（還有 {0} 次）": [
+  "public/js/town.js"
+ ],
  "公開宣稱自己是獵手，向 {0} 開槍？": [
+  "public/js/town.js"
+ ],
+ "公開宣稱自己是獵手，向自己開槍？": [
   "public/js/town.js"
  ],
  "攻擊": [
@@ -2273,6 +2279,9 @@
  "你和 {0}【{1}】是鏡像雙子": [
   "lib/night.js"
  ],
+ "你今天被提名過了": [
+  "public/js/town.js"
+ ],
  "你今天提名過了": [
   "public/js/town.js"
  ],
@@ -2549,6 +2558,12 @@
  ],
  "確認開局": [
   "public/js/help.js"
+ ],
+ "確認開槍": [
+  "public/js/manual.js"
+ ],
+ "確認提名": [
+  "public/js/manual.js"
  ],
  "讓 {0} 瘋狂證明自己是{1}": [
   "lib/night.js"
@@ -3050,16 +3065,19 @@
  "提名過": [
   "public/js/fx-ab-dlc.js"
  ],
+ "提名你來點": [
+  "public/js/help.js"
+ ],
  "提名取消": [
   "public/js/gamelog.js"
  ],
  "提名他": [
   "public/js/town.js"
  ],
- "替死、三人勝": [
-  "public/js/help.js"
+ "提名自己": [
+  "public/js/town.js"
  ],
- "替他提名": [
+ "替死、三人勝": [
   "public/js/help.js"
  ],
  "天快亮了，核對一下今晚": [
@@ -3307,6 +3325,9 @@
  "先選一個答案": [
   "public/js/infoform.js"
  ],
+ "先在桌上點開槍的人": [
+  "public/js/manual.js"
+ ],
  "先在桌上點他猜的人": [
   "public/js/manual.js"
  ],
@@ -3315,6 +3336,9 @@
  ],
  "先在桌上點他指的人": [
   "public/js/stepcard.js"
+ ],
+ "先在桌上點提名的人": [
+  "public/js/manual.js"
  ],
  "陷阱": [
   "public/js/help.js"
@@ -3482,8 +3506,8 @@
  "宣稱獵手：向他開槍": [
   "public/js/town.js"
  ],
- "宣稱獵手開槍": [
-  "public/js/help.js"
+ "宣稱獵手：向自己開槍": [
+  "public/js/town.js"
  ],
  "宣稱獵手開槍，沒有打中": [
   "public/js/town.js"
@@ -3977,6 +4001,12 @@
  ],
  "再": [
   "public/js/help.js"
+ ],
+ "再點被提名的人": [
+  "public/js/manual.js"
+ ],
+ "再點他射向的人": [
+  "public/js/manual.js"
  ],
  "再來一局": [
   "public/js/flow.js"

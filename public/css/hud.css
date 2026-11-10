@@ -139,7 +139,8 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .center:has(> .st-card > .on-table) .phase-title { display: block; }
   .st-card:has(> .on-table) { width: auto; max-width: none; max-height: none; margin: 0; padding: 0; overflow: visible; }
   .st-card > .card.on-table { --rtk: 46px; display: block; }
-  .tb-roles, .tb-foot { position: absolute; left: 50%; width: 96vw; translate: -50% 0; }
+  /* --hole-y：圓心那一小張為躲座位標記挪過的距離（town.js fitHole）。這幾塊也在 .center 裏，反著挪回去，仍貼著圓桌 */
+  .tb-roles, .tb-foot { position: absolute; left: 50%; width: 96vw; translate: -50% calc(-1 * var(--hole-y, 0px)); }
   /* 鎮民擺不下時圓桌讓位（上面），最後才在這一塊裏滾動，不衝出屏幕；內邊距給角上的「真」和選中的金圈留位置 */
   .tb-roles { bottom: calc(50% + var(--rw) / 2 + 16px); width: 100vw; max-height: var(--up); padding: 11px 8px 2px; overflow-y: auto; scrollbar-width: none; }
   .tb-foot { top: calc(50% + var(--rw) / 2 + 18px); }
@@ -162,7 +163,7 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .spread > .ic-top .frm-line { justify-content: center; margin: 0; font-size: 16px; }
   .spread .ic-slip { display: grid; justify-items: center; gap: 2px; padding: 4px 10px; color: var(--ink); background: var(--card); border-radius: 6px; box-shadow: 0 4px 12px #0005; }
   .spread .ic-slip .frm-line { justify-content: center; margin: 0; font-size: 16px; }
-  .spread .ic-body, .spread .ic-foot, .st-card > .spread > .row { position: absolute; left: 50%; display: grid; width: 96vw; translate: -50% 0; }
+  .spread .ic-body, .spread .ic-foot, .st-card > .spread > .row { position: absolute; left: 50%; display: grid; width: 96vw; translate: -50% calc(-1 * var(--hole-y, 0px)); }
   /* 選項多時圓桌讓位（見上面的 --bh），最後才在這裏滾動，超出邊界的全被裁掉：內邊距給選項角上的「真」和選中的金框留位置 */
   .spread .ic-body { bottom: calc(50% + var(--rw) / 2 + 16px); width: 100vw; padding: 8px 8px 2px; justify-items: center; gap: 4px; max-height: var(--up); overflow-y: auto; scrollbar-width: thin; }
   /* 下方一條：每一步的主按鈕都在這裏（代為選擇、繼續、確認、發送、天亮），次要的（跳過、取消）在它左邊 */
@@ -533,6 +534,11 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .btn.sw { display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
 .btn.sw .ico { width: 16px; height: 16px; }
 .jg-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; max-width: 220px; margin: 2px auto 0; }
+/* 線下代行卡上點好的人：點一下收回重選（manual.js actCard） */
+.act-slot { all: unset; display: inline-flex; flex: none; border-radius: 50%; cursor: pointer; transition: scale .12s; }
+.act-slot:hover .sb { border-color: var(--brass); }
+.act-slot:active { scale: .9; }
+.act-slot:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .hand-form .rm-add { flex-wrap: nowrap; }
 .hand-form .rm-add input { flex: 1; min-width: 0; }
 .hand-form .rm-add .btn { flex: none; }

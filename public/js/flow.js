@@ -174,7 +174,7 @@ export function stCenter(ctx) {
   return null;
 }
 
-// 線下白天：玩家當面提名、宣稱開槍，說書人點這兩個鍵，再在桌上先點做事的人、再點對象，點齊了直接進審判 / 裁定（manual.js actPicking）。
+// 線下白天：玩家當面提名、宣稱開槍，說書人點這兩個鍵，再在桌上先點做事的人、再點對象（可以是他自己），按卡上的確認才進審判 / 裁定（manual.js actPicking）。
 // 提名是一天裏的正事（寬），開槍一局難得一次（窄）。沒人能提名了（處決過、都提名過）鍵照樣在，點了說原因
 function dayActs(ctx) {
   const s = ctx.state, can = !s.dayOver && s.seats.some(x => mayNominate(s, x));

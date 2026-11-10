@@ -85,6 +85,15 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   assert(imp.dead && r.phase === 'ended', '惡魔被處決，遊戲結束');
   ok(st(r, 'undo'));
   assert(!r.seats[0].dead && !r.g.dayOver && r.phase === 'day'); // 撤銷換回的是整份狀態，座位是新的對象
+  // 自己提名自己、向自己開槍：規則允許，說書人照樣能替他點
+  const self = r.seats[3].id;
+  ok(st(r, 'nominate', { fromId: self, toId: self }));
+  assert.deepStrictEqual([r.nomination.nominatorId, r.nomination.nomineeId], [self, self]);
+  ok(st(r, 'cancelVote'));
+  ok(st(r, 'slayFor', { fromId: self, toId: self }));
+  assert.deepStrictEqual([r.g.ruling.kind, r.g.ruling.seatId, r.g.ruling.to], ['slayer', self, self]);
+  ok(st(r, 'rule', { work: false }));
+  assert(!r.seats[3].dead);
   console.log('單設備開局、代點、計票和撤銷 ✔');
 }
 

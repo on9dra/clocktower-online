@@ -61,7 +61,7 @@ export function communityScripts(ctx) {
 
 // ───── 白天替玩家做事：圓桌中央一張小卡 ─────
 // kind：nom 提名 / slay 宣稱獵手開槍 / juggle 雜耍藝人猜；from 是做事的人，to 是點到的人，guesses 是雜耍藝人猜的 [{ id, role }]
-// 提名、開槍從圓桌中央的兩個按鈕開始（flow.js stCenter）：先點做事的人，再點對象，點齊了直接結算（提名進審判、開槍進裁定），不用再按一次
+// 提名、開槍從圓桌中央的兩個按鈕開始（flow.js stCenter）：先點做事的人，再點對象（可以是他自己），點齊了按卡上的「確認」才結算（提名進審判、開槍進裁定）
 let act = null;
 export const mayNominate = (s, seat) => s.phase === 'day' && !s.nomination && !s.dayOver && !seat.dead && !s.nominators.includes(seat.id);
 const free = s => s.phase === 'day' && !s.nomination && !s.st?.ruling;
@@ -73,9 +73,11 @@ const live = s => {
 };
 export function startAct(ctx, kind, seat = null) { act = { kind, from: seat?.id || null, to: null, guesses: [] }; ctx.render(); }
 export function closeAct(ctx) { if (!act) return false; act = null; ctx.render(); return true; }
-// 點齊了就發：提名 → 審判牌，開槍 → 裁定卡。服務器說不行（他今天提名過了……）就退回第二步，提示原因
+// 按了確認才發：提名 → 審判牌，開槍 → 裁定卡。服務器說不行（他今天提名過了……）就退回第二步，提示原因
 function fire(ctx) {
-  const { kind, from, to, guesses } = act, done = r => { if (r.ok) closeAct(ctx); else if (act) { act.to = null; ctx.render(); } };
+  if (act.busy) return; // 連點兩下確認：只發一次
+  act.busy = true;
+  const mine = act, { kind, from, to, guesses } = act, done = r => { if (act !== mine) return; act.busy = false; if (r.ok) closeAct(ctx); else if (kind !== 'juggle') { act.to = null; ctx.render(); } };
   if (kind === 'nom') ctx.st('nominate', { fromId: from, toId: to }).then(done);
   if (kind === 'slay') ctx.st('slayFor', { fromId: from, toId: to }).then(done);
   if (kind === 'juggle') ctx.st('juggleFor', { seatId: from, guesses: guesses.map(g => ({ id: g.id, role: g.role })) }).then(done);
@@ -92,21 +94,20 @@ export const actPicking = ctx => {
     const why = id => (dead(id) ? (act.kind === 'nom' ? '死去的玩家不能提名' : '死去的玩家不能開槍') : act.kind === 'nom' && s.nominators.includes(id) ? '他今天提名過了' : null);
     return { can: new Set(can), on: new Set(), fixed: new Set(), why, pick: id => { act.from = id; ctx.render(); } };
   }
-  const others = s.seats.filter(x => x.id !== act.from).map(x => x.id);
-  if (act.kind === 'juggle') return { can: new Set(others), on: new Set(act.guesses.map(g => g.id)), fixed: new Set([act.from]), why: () => '不能猜自己',
+  // 做事的人金圈、點到的人亮起（是同一個人時亮起）
+  const me = on => new Set(on.includes(act.from) ? [] : [act.from]);
+  // 雜耍藝人可以猜自己：點過的人亮著，再點一下撤回
+  if (act.kind === 'juggle') return { can: new Set(s.seats.map(x => x.id)), on: new Set(act.guesses.map(g => g.id)), fixed: me(act.guesses.map(g => g.id)),
     pick: id => {
       const i = act.guesses.findIndex(g => g.id === id);
       if (i >= 0) { act.guesses.splice(i, 1); return ctx.render(); }
       if (act.guesses.length >= 5) return toast('最多猜五個');
       rolePicker(ctx, role => { act.guesses.push({ id, role }); ctx.render(); }, [mini('juggler'), seatBadge(s, id)]);
     } };
-  // 第二步：對象。再點一下做事的人就退回第一步重選
-  const can = act.kind === 'nom' ? s.seats.filter(x => !s.nominees.includes(x.id)).map(x => x.id) : others;
-  return { can: new Set([...can, act.from]), on: new Set([act.from]), fixed: new Set(), why: () => '他今天被提名過了',
-    pick: id => {
-      if (id === act.from) { act.from = null; return ctx.render(); }
-      act.to = id; ctx.render(); fire(ctx);
-    } };
+  // 第二步：對象，可以是他自己（自己提名自己、向自己開槍）。點別人就換成別人，再點一下對象收回；要換做事的人，點卡上他的頭像
+  const can = act.kind === 'nom' ? s.seats.filter(x => !s.nominees.includes(x.id)).map(x => x.id) : s.seats.map(x => x.id);
+  return { can: new Set(can), on: new Set([act.to].filter(Boolean)), fixed: me([act.to]), why: () => '他今天被提名過了',
+    pick: id => { act.to = act.to === id ? null : id; ctx.render(); } };
 };
 // 給 town.js：圓桌中央現在要放的代行卡，沒有就返回 null
 export function actBubble(ctx) {
@@ -116,19 +117,24 @@ export function actBubble(ctx) {
 const VERB = { nom: ['提名', 'bad'], slay: ['開槍', 'bad'], juggle: ['猜', 'ink'] };
 // 卡頂的索引籤：這一步點誰（給說書人看的）
 const ASK = { nom: ['選擇提名的人', '選擇被提名的人'], slay: ['選擇開槍的人', '選擇他射向的人'] };
+const CONFIRM = { nom: '確認提名', slay: '確認開槍' };
+const WANT = { nom: ['先在桌上點提名的人', '再點被提名的人'], slay: ['先在桌上點開槍的人', '再點他射向的人'] };
 function actCard(ctx) {
   const s = ctx.state, { kind, from, to, guesses } = act, [verb, tone] = VERB[kind];
-  const slot = id => (id ? seatBadge(s, id, 'lg') : h('span', { class: 'sb empty lg' }));
+  // 點好的人可以點掉重選：點做事的人回到第一步，點對象只收回對象
+  const slot = (id, undo) => (id ? h('button', { class: 'act-slot', onclick: () => { undo(); ctx.render(); } }, seatBadge(s, id, 'lg')) : h('span', { class: 'sb empty lg' }));
   const tagText = kind === 'juggle' ? null : ASK[kind][from ? 1 : 0];
   // 雜耍藝人猜的另起一塊、可以折行（最多五個，一行放不下）
   const list = kind === 'juggle' && guesses.length > 0 && h('div', { class: 'jg-list' }, guesses.map(g => h('span', { class: 'jg' }, seatBadge(s, g.id), mini(g.role))));
   const head = kind === 'juggle' ? [mini('juggler'), seatBadge(s, from, 'lg'), w(verb, tone), !guesses.length && h('i', { class: 'op-sep' })]
-    : [kind === 'slay' && mini('slayer'), slot(from), w(verb, tone), slot(to)];
+    : [kind === 'slay' && mini('slayer'), slot(from, () => { act.from = act.to = null; }), w(verb, tone), slot(to, () => { act.to = null; })];
   // 手機上拆開（hud.css .spread）：誰對誰在圓桌中間，按鈕在下方
   return h('div', { class: 'card focus infocard spread' },
     h('div', { class: 'ic-top' }, tagText && h('div', { class: 'ic-tag say', 'data-key': tagText }, tagText), h('div', { class: 'ic-head' }, head), list),
-    h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, B('取消', () => closeAct(ctx), 'ghost'),
-      kind === 'juggle' && BW(guesses.length ? `${verb} ${guesses.length} 個` : verb, () => guesses.length && fire(ctx), '', guesses.length ? null : '先在桌上點他猜的人'))));
+    // 結算只在按下這個鍵時發生（點齊人不算）：鍵一開始就在，人沒點齊時變暗，點了說還差什麼
+    h('div', { class: 'ic-foot' }, h('div', { class: 'row r73' }, B('取消', () => closeAct(ctx), 'ghost'),
+      kind === 'juggle' ? BW(guesses.length ? `${verb} ${guesses.length} 個` : verb, () => guesses.length && fire(ctx), '', guesses.length ? null : '先在桌上點他猜的人')
+        : BW(CONFIRM[kind], () => from && to && fire(ctx), '', !from ? WANT[kind][0] : !to ? WANT[kind][1] : null))));
 }
 
 // 從劇本的角色裏挑一個（雜耍藝人公開猜、展示身份）：整屏的劇本單（rolepick.js），點一個就收走。

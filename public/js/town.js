@@ -421,7 +421,7 @@ export function fitTableCard() {
   const center = el.closest('.center'), ring = center?.parentElement;
   card.style.zoom = card.style.width = el.style.maxHeight = el.style.overflowY = '';
   turn?.classList.remove('flat');
-  if (center) { center.classList.remove('tight'); center.style.translate = ''; }
+  if (center) { center.classList.remove('tight'); center.style.translate = ''; center.style.removeProperty('--hole-y'); }
   const css = getComputedStyle(el);
   if (el === st && css.position === 'absolute') return fitBeside(st, ring); // 橫屏卡在圓桌旁邊（hud.css）
   if (el === st && css.overflowY === 'visible') { fitAround(st, ring); return fitHole(st, ring); } // 手機上卡拆開在圓桌上下
@@ -516,8 +516,9 @@ function fitHole(st, ring) {
   // .center 往裏順著 offsetParent 加，不受牌彈出動畫的影響
   let y = center.getBoundingClientRect().top - ring.getBoundingClientRect().top;
   for (let e = top; e && e !== center; e = e.offsetParent) y += e.offsetTop;
-  const mid = y + (u + (b - u) / 2) * z;
-  center.style.translate = `0 ${Math.round(room.shift + ring.offsetWidth / 2 - mid)}px`;
+  const mid = y + (u + (b - u) / 2) * z, dy = Math.round(room.shift + ring.offsetWidth / 2 - mid);
+  center.style.translate = `0 ${dy}px`;
+  center.style.setProperty('--hole-y', dy + 'px'); // 只挪圓心那一小張：圓桌上方的選項、下方的按鈕反著挪回去，仍貼著圓桌（hud.css）
 }
 // 手機橫屏：卡在圓桌右邊。選項多得卡裏放不下時圓桌一點點縮小（--rk，最小六成），卡跟著變寬、一行多放幾個，不用在卡裏滾。
 // 縮了也不見矮的內容（間諜的魔典）不白縮：取放得下的最大一檔，都放不下就取最矮的那檔裏最大的。
@@ -808,19 +809,21 @@ function onSeat(ctx, seat, anchor) {
   if (!me && s.phase === 'lobby') return; // 觀戰的人準備階段沒什麼可做
   const day = s.phase === 'day' && me && !me.dead;
   const canNominate = day && !s.nomination && !s.dayOver && !s.nominators.includes(me.id) && !s.nominees.includes(seat.id);
-  const nomWhy = day && !s.offline && !s.nomination && !s.dayOver && !seat.mine ? (s.nominators.includes(me.id) ? '你今天提名過了' : s.nominees.includes(seat.id) ? '他今天被提名過了' : null) : null;
+  // 自己提名自己、向自己開槍、猜自己的角色都可以：自己的座位上照樣有這幾項，字換成「自己」
+  const nomWhy = day && !s.offline && !s.nomination && !s.dayOver ? (s.nominators.includes(me.id) ? '你今天提名過了' : s.nominees.includes(seat.id) ? (seat.mine ? '你今天被提名過了' : '他今天被提名過了') : null) : null;
+  const nomText = seat.mine ? '提名自己' : '提名他';
   // 扔雞蛋：任何時候都能扔，後面是自己還剩幾枚
   const eggs = me ? shownEggs(me.eggs) : 0;
   menu(anchor, title, [
     me && !seat.mine && { label: [icon('egg', 'menu-ico'), '扔雞蛋', h('b', { class: 'menu-n' + (eggs ? '' : ' none') }, eggs)],
       onclick: () => (eggs ? ctx.act('egg', { targetId: seat.id }) : toast('雞蛋用完了')) },
-    canNominate && !s.offline && { label: '提名他', onclick: () => ctx.act('nominate', { targetId: seat.id }) }, // 線下當面說，說書人替他提名
-    day && s.dayOver && { label: [h('s', {}, '提名他'), h('small', {}, '今日已執行處決')], off: true },
+    canNominate && !s.offline && { label: nomText, onclick: () => ctx.act('nominate', { targetId: seat.id }) }, // 線下當面說，說書人替他提名
+    day && s.dayOver && { label: [h('s', {}, nomText), h('small', {}, '今日已執行處決')], off: true },
     // 每人每天只能提名一次、被提名一次：照樣列出來，寫明為什麼現在不行
-    nomWhy && { label: [h('s', {}, '提名他'), h('small', {}, nomWhy)], off: true },
-    day && !seat.mine && !s.offline && { label: '宣稱獵手：向他開槍', onclick: () => (s.myRole === 'slayer' ? aimAsk(ctx, seat)
-      : ask(`公開宣稱自己是獵手，向 ${title} 開槍？`, () => ctx.act('slay', { targetId: seat.id }), '開槍')) },
-    day && s.juggleLeft > 0 && !seat.mine && { label: `公開猜他的角色（還有 ${s.juggleLeft} 次）`, onclick: () => pickJuggle(ctx, seat, title) },
+    nomWhy && { label: [h('s', {}, nomText), h('small', {}, nomWhy)], off: true },
+    day && !s.offline && { label: seat.mine ? '宣稱獵手：向自己開槍' : '宣稱獵手：向他開槍', onclick: () => (s.myRole === 'slayer' ? aimAsk(ctx, seat)
+      : ask(seat.mine ? '公開宣稱自己是獵手，向自己開槍？' : `公開宣稱自己是獵手，向 ${title} 開槍？`, () => ctx.act('slay', { targetId: seat.id }), '開槍')) },
+    day && s.juggleLeft > 0 && { label: seat.mine ? `公開猜自己的角色（還有 ${s.juggleLeft} 次）` : `公開猜他的角色（還有 ${s.juggleLeft} 次）`, onclick: () => pickJuggle(ctx, seat, title) },
     me && s.phase !== 'lobby' && !seat.mine && { label: '私聊', onclick: () => openChat(ctx, seat.id) },
     !s.peek && s.phase !== 'lobby' && !seat.mine && { label: '標記角色猜測', onclick: () => pickGuess(ctx, seat.id) },
     !s.peek && s.phase !== 'lobby' && { label: '加備註', onclick: () => addNote(ctx, seat.id) },
