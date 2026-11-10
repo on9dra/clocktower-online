@@ -148,7 +148,7 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   console.log('瘋子的假爪牙按座位順序，多設備不停 ✔');
 }
 
-// 單設備：占卜師這類查驗，點完人停在結果卡上（整屏提示該告訴他什麼），說書人點「下一個」才結束；被查的人掛「誰查過」的標記，日誌記下結果
+// 單設備：占卜師這類查驗，點完人停在結果卡上（整屏提示該告訴他什麼），說書人點「下一個」才結束；日誌記下結果，桌上不掛「誰查過」
 {
   const r = createRoom();
   ok(st(r, 'venue', { venue: 'offline', devices: 'one' }));
@@ -164,11 +164,11 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   const [imp, , chef] = r.seats;
   ok(st(r, 'pick', { ids: [imp.id, chef.id] }));
   assert.deepStrictEqual([r.g.step.roleId, r.g.step.status, r.g.step.form.truth.yes], ['fortuneteller', 'confirm', true], '點完停在結果卡上，答案預填好');
-  assert.ok(r.g.marks[imp.id].includes('占卜師查') && r.g.marks[chef.id].includes('占卜師查'));
+  assert.ok(!Object.values(r.g.marks).flat().some(t => t.endsWith('查')), '桌上不掛「占卜師查」');
   ok(st(r, 'confirm', { fields: r.g.step.form.truth }));
   assert.notStrictEqual(r.g.step?.roleId, 'fortuneteller', '點了下一個才往下走');
   assert.ok(r.g.log.some(l => l.e?.k === 'info' && l.e.src === 'fortuneteller'), '日誌記下結果');
-  // 第二晚再查：標記只掛在最近查的人身上
+  // 第二晚再查
   const [, ft, , empath, monk] = r.seats;
   for (let k = 0; r.phase !== 'ended' && !(r.phase === 'night' && r.g.step?.roleId === 'fortuneteller') && k < 40; k++) {
     if (r.phase === 'day' || r.phase === 'dawn') { ok(st(r, 'next')); continue; }
@@ -183,8 +183,6 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   ok(st(r, 'pick', { ids: [empath.id, chef.id] }));
   assert.strictEqual(r.g.step.roleId, 'fortuneteller', '中毒時停下來');
   assert.strictEqual(r.g.step.status, 'confirm');
-  assert.ok(!r.g.marks[imp.id].includes('占卜師查'), '之前查過的人摘掉標記');
-  assert.ok(r.g.marks[empath.id].includes('占卜師查'));
   ok(st(r, 'confirm', { fields: { yes: !r.g.step.form.truth.yes } }));
   console.log('單設備查驗點完停在結果卡 ✔');
 }

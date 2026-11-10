@@ -17,14 +17,13 @@ const room = n => { const r = createRoom(); for (let i = 0; i < n; i++) joinPlay
   assert.ok(!r.chat.some(m => oldIds.has(m.id)), '上一局的消息不帶進新局');
   assert.strictEqual(r.chat.filter(m => m.text?.startsWith('你的角色')).length, r.seats.length);
 }
-// B2 洗衣婦的魔典標記在說書人確認後才寫上，標在實際給出的兩人身上
+// B2 洗衣婦給出的兩人不掛到桌上（只記日誌）：給過的信息不再影響裁定，留在座位上只會擠
 {
   const r = setup(['washerwoman', 'imp', 'poisoner', 'chef', 'soldier', 'saint']);
   await runOnly(r, 'washerwoman');
-  assert.ok(!Object.values(r.g.marks).flat().some(t => t.startsWith('洗衣婦')), '確認前沒有標記');
   st(r, 'confirm', { fields: { a: S(r, 'chef').id, b: S(r, 'saint').id, role: 'chef' } });
-  assert.deepStrictEqual(r.g.marks[S(r, 'chef').id], ['洗衣婦:廚師']);
-  assert.deepStrictEqual(r.g.marks[S(r, 'saint').id], ['洗衣婦:錯誤']);
+  assert.ok(!Object.values(r.g.marks).flat().some(t => t.startsWith('洗衣婦')), '桌上沒有洗衣婦的標記');
+  assert.ok(r.g.log.some(l => l.e?.k === 'info' && l.e.src === 'washerwoman'), '日誌記下給了誰');
 }
 // B5 取消提名後，雙方今天可以重新提名 / 被提名
 {

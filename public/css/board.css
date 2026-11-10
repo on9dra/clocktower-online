@@ -39,16 +39,9 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
   .seat .token .token-name, .ring.crowded .token .token-name { font-size: clamp(9px, calc(var(--tk) * .145), 14px); }
 }
 .seat-token { position: relative; }
-/* 說書人看到的假身份：頭像右下角一枚虛線框的小副牌，下面寫名字；懸停看能力 */
-.fake-badge { position: absolute; right: calc(var(--tk) * -.22); bottom: 4px; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 50%; cursor: help; }
+/* 說書人看到的假身份：一枚虛線框的小副牌騎在頭像邊上（位置由 seatmarks.js 排），懸停看能力 */
+.fake-badge { position: absolute; z-index: 2; display: grid; width: 44%; cursor: help; }
 .seat .fake-badge .token.xs { width: 100%; height: auto; aspect-ratio: 1; font-size: inherit; border-style: dashed; box-shadow: 0 0 0 2px var(--card), inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px var(--team); }
-.fake-name { margin-top: -5px; padding: 0 4px; background: var(--card); border: 1.2px dashed var(--ink); border-radius: 3px;
-  font: 700 11px/1.35 var(--serif); color: var(--ink); white-space: nowrap; }
-/* 手機上頭像小，副牌下面那行名字會蓋住頭像上的角色名（酒鬼）：只留虛線小牌，挪到右肩，頭像下沿的字露出來 */
-@media (max-width: 860px), (max-height: 520px) {
-  .fake-badge { top: 24%; bottom: auto; right: calc(var(--tk) * -.28); width: 44%; }
-  .fake-badge .fake-name { display: none; }
-}
 .ring.crowded .token .token-name { font-size: 12px; }
 .seat.mine .token { outline: 3px solid var(--brass); outline-offset: 3px; }
 .seat.nominee .token { outline: 3px solid var(--evil); outline-offset: 3px; }
@@ -83,8 +76,8 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .st-fx.mad { inset: -5px; border: 2px solid transparent; border-top-color: #6b3f8a; border-right-color: #6b3f8a66; animation: quiet-in .5s ease, st-spin 5s linear infinite; }
 .st-fx.charge { inset: -4px; box-shadow: 0 0 0 2px var(--evil); animation: quiet-in .5s ease, st-pulse 1.8s ease-in-out infinite; }
 .st-fx.used, .st-fx.undead { background: color-mix(in srgb, var(--card) 55%, transparent); }
-/* 小圖章：紙圓片 + 墨色圖標，按 --a 的角度掛在頭像邊上；蓋上去時像章一樣砸下來。說書人自己貼的可以點掉 */
-.st-ico { --c: var(--ink); position: absolute; z-index: 3; left: calc(50% + cos(var(--a)) * 50%); top: calc(50% + sin(var(--a)) * 50%); translate: -50% -50%;
+/* 小圖章：紙圓片 + 墨色圖標，騎在頭像邊上（位置由 seatmarks.js 排）；蓋上去時像章一樣砸下來。說書人自己貼的可以點掉 */
+.st-ico { --c: var(--ink); position: absolute; z-index: 3;
   display: grid; place-items: center; width: clamp(15px, calc(var(--tk) * .34), 24px); aspect-ratio: 1; border-radius: 50%; color: var(--c);
   background: var(--card); box-shadow: 0 0 0 1.5px var(--c), 0 1px 2px #0004; pointer-events: none; animation: st-stamp .32s cubic-bezier(.4, 0, .6, 1); }
 .st-ico .ico { width: 64%; height: 64%; }
@@ -113,17 +106,17 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .fake { font-size: 11px; color: #d8cfb9; margin-top: 2px; }
 .phase-day .fake, .phase-lobby .fake, .phase-ended .fake { color: var(--muted); }
 .tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
-/* 標記（說書人的提示、玩家的推理、積分）從頭像朝圓心那一邊掛出去（--ux、--uy 是座位的方向，town.js）：
-   不把座位頂高，頭像不跟著挪，朝裏也碰不到兩邊的鄰座。
-   上半圈離正上方 66° 以內的座位（--up 為 1）朝裏是往下，名牌就在頭像正下方，斜著掛出去會壓住名牌的一頭：整串掛到名牌下面，橫向照樣朝圓心錯開 */
+/* 準備階段的積分行從頭像朝圓心那一邊掛出去（--ux、--uy 是座位的方向，town.js）：不把座位頂高，頭像不跟著挪。
+   上半圈離正上方 66° 以內的座位（--up 為 1）朝裏是往下，名牌就在頭像正下方：掛到名牌下面。
+   遊戲中的標記（說書人的提示、玩家的推理）不走這套，由 seatmarks.js 一枚枚排（本文件末尾 .mk-on） */
 .seat-more { --up: clamp(0, (-1 * var(--uy) - .4) * 1000, 1); position: absolute; z-index: 3; left: calc(50% - var(--ux) * (var(--tk) / 2 + 3px));
   top: calc((1 - var(--up)) * (var(--tk) / 2 - var(--uy) * (var(--tk) / 2 + 3px) + max(0px, -1 * var(--uy) * (var(--ph) + var(--pm))))
     + var(--up) * (var(--tk) + var(--pm) + var(--ph) + 2px));
   translate: calc(-50% - 50% * var(--ux)) calc((1 - var(--up)) * (-50% - 50% * var(--uy))); display: flex; flex-direction: column; align-items: center; gap: 2px; width: max-content; }
 .seat-more:empty { display: none; }
 /* 線下說書人：輪到誰行動，他頭頂一個慢慢跳的箭頭（town.js turnArrow，herald.js turnSeat）。紙色描邊墊底、墨線、銅色，夜空上也看得清。
-   從上面落下來（turn-drop），之後一直慢慢上下跳（turn-bob）。下半圈靠近正下方的座位，標記朝圓心掛在頭頂上：輪到他時整串往上讓出箭頭的位置（--lift） */
-.seat { --aw: clamp(16px, calc(var(--tk) * .42), 26px); --lift: clamp(0, (var(--uy, 0) - .65) * 1000, 1); }
+   從上面落下來（turn-drop），之後一直慢慢上下跳（turn-bob）。座位上的標記把箭頭當成擋路的，自己讓開（seatmarks.js） */
+.seat { --aw: clamp(16px, calc(var(--tk) * .42), 26px); }
 .turn-arrow { position: absolute; z-index: 4; left: calc(50% - var(--aw) / 2); bottom: calc(100% + 3px); width: var(--aw); height: calc(var(--aw) * 1.25); pointer-events: none;
   animation: turn-drop .5s cubic-bezier(.3, 1.5, .5, 1) both, turn-bob 1.1s ease-in-out .5s infinite alternate; }
 .turn-arrow svg { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -139,10 +132,7 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 @keyframes turn-bob-l { to { translate: calc(var(--aw) * -.28) 0; } }
 @keyframes turn-drop-r { from { translate: var(--aw) 0; opacity: 0; } }
 @keyframes turn-bob-r { to { translate: calc(var(--aw) * .28) 0; } }
-.seat-more { transition: margin-top .3s ease; }
-.seat.turn .seat-more { margin-top: calc(var(--lift) * (var(--aw) * -1.55 - 6px)); } /* 箭頭高 1.25 個寬，跳起來再高 .28 */
 @media (prefers-reduced-motion: reduce) { .turn-arrow { animation: none; } }
-.seat-more :is(.tags, .pmarks) { margin-top: 0; max-width: max(80px, calc(var(--tk) * 1.6)); }
 .tag { font-size: 11px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 2px; padding: 0 4px; }
 .tag.bad { border-color: var(--evil); color: var(--evil); }
 .tag.good { border-color: var(--good); color: var(--good); }
@@ -456,7 +446,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   /* 左右留一點邊：3 點、9 點方向的名牌不被屏幕邊緣切掉 */
   .ring { --rw: min(96cqw, 100cqh - 10px); }
   .seat .token .token-name { font-size: clamp(8px, calc(var(--tk) * .17), 11px); padding: 0 2px; }
-  .ring.crowded .token .token-name, .ring.crowded .fake-name { display: none; }
+  .ring.crowded .token .token-name { display: none; }
   .fake { display: none; }
   .phase-title { font-size: clamp(16px, 5.5cqmin, 24px); letter-spacing: 2px; }
   .phase-sub { font-size: 12px; }
@@ -1226,15 +1216,13 @@ body.art .token.blank.named { color: #2a2622; }
 .tag .t-l { font-style: normal; }
 /* 認得出角色的標記（town.js tagView）：只有角色小牌，右下角一枚小符號（✓ 真、橙 ✓ 登記、✗ 錯誤、數字、刀、交換、紅魚），不寫字 */
 .seat-more .tag.by-role { position: relative; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; }
-.seat-more .tag.by-role .tag-ico { width: 22px; height: 22px; border-width: 1px; box-shadow: inset 0 0 0 1px var(--card), inset 0 0 0 1.8px var(--team), 0 0 0 1.5px var(--card), 0 1px 2px #0005; }
+.seat-more .tag.by-role .tag-ico { border-width: 1px; box-shadow: inset 0 0 0 1px var(--card), inset 0 0 0 1.8px var(--team), 0 0 0 1.5px var(--card), 0 1px 2px #0005; }
 /* 座位選中、可選、提名、計票的描邊和底色只給頭像本身：標記、狀態圖章、假身份副牌裏的小牌不跟著描（.seat.selected .token 這些規則都在前面） */
 .seat :is(.seat-more, .st-ico, .fake-badge, .pmarks) .token { outline: none; background: var(--card); }
-.seat-more .tags:has(.by-role) { gap: 3px 5px; }
 .tg-b { position: absolute; right: -4px; bottom: -3px; display: grid; place-items: center; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); color: #fff;
   box-shadow: 0 0 0 1.2px var(--card); font: 800 9px/1 var(--sans); font-style: normal; letter-spacing: 0; pointer-events: none; }
 .tag .tg-b .ico, .tg-b .ico { width: 80%; height: 80%; } /* 壓過 hud.css 的 .tag .ico */
 .tg-b.yes { background: var(--good); }
-.tg-b.reg { background: #a8641a; }
 .tg-b.no { background: var(--evil); }
 .tg-b.swap { background: var(--brass); }
 .tg-b.fish { background: var(--card); color: #c0392b; box-shadow: 0 0 0 1.2px #c0392b; }
@@ -1242,20 +1230,42 @@ body.art .token.blank.named { color: #2a2622; }
 .seat-more .tag.by-role.pick { cursor: pointer; }
 .seat-more .tag.by-role.pick:hover { text-decoration: none; opacity: .6; }
 @media (max-width: 860px), (max-height: 520px) {
-  .seat-more .tags { gap: 2px; max-width: calc(var(--tk) * 1.2); }
-  .seat-more .tags:has(.by-role) { gap: 2px 4px; }
   .seat-more .tag:not(.by-role) { display: grid; place-items: center; height: 17px; padding: 0 3px; border-radius: 3px; font: 700 10.5px/1 var(--serif); white-space: nowrap; }
   .seat-more .tag .t-s { display: inline-flex; align-items: center; gap: 1px; }
   .seat-more .tag .t-l { display: none; }
-  .seat-more .tag.by-role .tag-ico { width: 16px; height: 16px; }
   .tg-b { width: 10px; height: 10px; right: -4px; bottom: -3px; font-size: 8px; }
-}
-/* 手機上一個座位最多擺三枚標記，多的收成「+n」（點座位菜單的「記錄」看全部），不堆到鄰座和桌心的卡上 */
-@media (max-width: 860px), (max-height: 520px) {
-  .seat-more .tags.many .tag:nth-child(n+4) { display: none; }
-  .seat-more .tags.many::after { content: attr(data-more); display: grid; place-items: center; height: 17px; padding: 0 3px; border: 1px dashed var(--line-strong); border-radius: 3px; background: var(--card); color: var(--muted); font: 700 10.5px/1 var(--sans); }
 }
 /* 紅鯡魚（flow.js herringRow）：偽裝下面一行，占卜師上場才有；點了在桌上點人，這一格空著閃 */
 .herring-row { gap: 6px; }
 .bluff-pick.herring { min-width: 44px; border-color: var(--line-strong); }
 .bluff-pick.herring.on { border-color: var(--brass); background: var(--hover); }
+
+/* ───── 座位標記排位（seatmarks.js）：座位身上的小東西由一個函數一起排，不各按固定位置擺 ─────
+   .seat-more 變成一塊和頭像一樣大、疊在頭像上的空框，裏面的標記按算好的 --mx / --my（相對頭像中心）擺；狀態圖章、假身份副牌留在 .seat-token 裏，也按 --mx / --my。
+   第一次排好之前不顯示（同一幀裏就排好，看不到）；換位置時滑過去 */
+.seat-more.mk-on { --mks: clamp(18px, calc(var(--tk) * .4), 28px); left: calc(50% - var(--tk) / 2); top: 0; width: var(--tk); height: var(--tk); translate: none; display: block; pointer-events: none; }
+.seat-more.mk-on :is(.tags, .pmarks) { display: contents; }
+.seat .mk { position: absolute; }
+.seat .mk:not(.at) { visibility: hidden; }
+.seat .mk.at { left: calc(50% + var(--mx)); top: calc(50% + var(--my)); right: auto; bottom: auto; translate: -50% -50%; }
+.seat-more.mk-on .mk { position: absolute; margin: 0; pointer-events: auto; }
+.seat .mk.glide { transition: left .35s cubic-bezier(.3, .7, .3, 1), top .35s cubic-bezier(.3, .7, .3, 1); }
+.seat .mk-off { display: none !important; }
+.seat-more.mk-on .tag.by-role .tag-ico { width: var(--mks); height: var(--mks); }
+.seat-more.mk-on .tag:not(.by-role):not(.more-chip) { white-space: nowrap; }
+/* 放不下的收成「+N」：虛線圓片，說書人懸停 / 點開看收起來的是哪幾枚 */
+.seat-more .tag.more-chip { display: grid; place-items: center; width: var(--mks); height: var(--mks); padding: 0; border: 1px dashed var(--line-strong); border-radius: 50%; background: var(--card); color: var(--muted); font: 800 10px/1 var(--sans); }
+.is-st .seat-more .tag.more-chip { cursor: pointer; }
+.seat-more .tag.more-chip:not(.mk-off):empty { visibility: hidden; }
+/* 攤開：一張直角紙條，從「+N」裏彈出來 */
+.more-pop { position: absolute; z-index: 7; translate: -50% -50%; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px; width: max-content; max-width: 210px; padding: 9px 11px;
+  background: var(--card); border: 1.5px solid var(--ink); box-shadow: 3px 4px 0 #0003, 0 8px 18px #0005; pointer-events: none;
+  transform-origin: calc(50% + var(--ox, 0px)) calc(50% + var(--oy, 0px)); animation: mp-open .22s cubic-bezier(.2, .8, .3, 1.15); }
+.more-pop.sticky { pointer-events: auto; }
+@keyframes mp-open { from { scale: .25; opacity: 0; } }
+.mp-e { position: relative; display: grid; }
+.more-pop .mp-e > .token { width: 34px; height: 34px; }
+.more-pop .mp-e > .token.mp-fake { border-style: dashed; }
+.more-pop .mp-e > .tg-b { width: 15px; height: 15px; right: -4px; bottom: -3px; font-size: 10px; }
+.more-pop .mp-e.tag { height: 26px; padding: 0 8px; font: 700 14px/26px var(--serif); }
+@media (prefers-reduced-motion: reduce) { .seat .mk.glide { transition: none; } .more-pop { animation: none; } }

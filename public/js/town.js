@@ -17,6 +17,7 @@ import { showBluffs } from './pass.js';
 import { openSeatLink } from './invite.js';
 import { tr, getLang } from './lang.js';
 import { heraldHeld, turnSeat } from './herald.js';
+import { decorateSeat, placeMarks, more, openMore, closeMore, overflowOf } from './seatmarks.js';
 
 // 當前的選人狀態：{ count, notSelfId, ids, key }
 export const sel = { on: null };
@@ -149,11 +150,14 @@ export function renderTown(ctx) {
     if (died) cls.push(died.cls);
     // 今天的提名情況：誰已經提名過、誰已經被提名過（每人每天各一次）
     const nominated = s.phase === 'day' && s.nominators.includes(seat.id), nominee = s.phase === 'day' && s.nominees.includes(seat.id);
-    // 說書人：常見狀態畫在頭像上（statusView），其餘的標記朝圓心掛成一排角色小牌（tagView）
+    // 說書人：常見狀態畫在頭像邊上（statusView），其餘的標記是角色小牌（tagView）。桌上只放此刻還影響裁定的東西
     // 正在處理的這一步自己的「某角色選」先不掛：卡上寫著選了誰，座位也圈著金圈，再掛一枚只會把桌心的卡擠小（下一步起照常顯示）
-    // 死亡票用掉了：頭像上那張票不見了就是，不另掛標記
-    const status = s.isSt ? seatStatus(seat) : [], words = s.isSt ? (seat.tags || []).filter(t => !statusOf(t) && t !== ownPick && t !== '死亡票已用') : [];
-    ring.append(h('div', {
+    // 死亡票用掉了：頭像上那張票不見了就是，不另掛標記。舊存檔裏給過的信息（told）也不畫
+    const status = s.isSt ? seatStatus(seat) : [], words = s.isSt ? (seat.tags || []).filter(t => !statusOf(t) && t !== ownPick && t !== '死亡票已用' && !told(t)) : [];
+    // 排位（seatmarks.js）按這個先後，放不下時從後面收進「+N」：陣營改了，再是角色的提醒（紅鯡魚、主人、孫子……），最後是說書人自己寫的字
+    const flip = t => t === '善良' || t === '邪惡';
+    const shown = [...words.filter(flip), ...words.filter(t => tagFace(s, t)), ...words.filter(t => !flip(t) && !tagFace(s, t))];
+    const seatEl = h('div', {
       class: cls.join(' '), 'data-key': seat.id, 'data-i': i, 'data-exit': s.phase === 'lobby' || null, // 準備階段拿掉的座位淡出去，不是一下子沒了
       // --ux、--uy：座位在圓桌上的方向，標記朝圓心掛（board.css .seat-more）
       style: { left: 50 + 41 * Math.cos(ang) + '%', top: 50 + 41 * Math.sin(ang) + '%', '--ux': Math.cos(ang).toFixed(3), '--uy': Math.sin(ang).toFixed(3), ...(died && died.style), ...(nom && nom.nomineeId === seat.id ? syncDelay(1600) : {}) },
@@ -186,9 +190,9 @@ export function renderTown(ctx) {
       h('b', {}, i + 1), naming === seat.id && canName(s, seat) ? nameInput(ctx, seat) : token.classList.contains('named') ? null : h('span', { class: 'pname' }, seat.name),
       !seat.online && h('i', { class: 'off', title: '離線' })),
     h('div', { class: 'seat-more' }, s.phase === 'lobby' && !s.oneDevice && scoreRow(seat), // 單設備的座位只是名字，不記積分
-    s.isSt && words.length > 0 && h('div', { class: 'tags' + (words.length > 3 ? ' many' : ''), 'data-more': `+${words.length - 3}` },
+    s.isSt && words.length > 0 && h('div', { class: 'tags' },
       // 寫全名一行就佔半個桌心，三枚疊起來把中間的操作卡擠沒了：只畫角色小牌和角上的符號（tagView）
-      words.map(t => tagView(ctx, seat, t, s.st?.marks?.[seat.id]?.includes(t)))),
+      shown.map(t => tagView(ctx, seat, t, s.st?.marks?.[seat.id]?.includes(t))), moreChip(ctx, seat)),
     (missed.some(x => x.from === seat.id) || picks.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
       // 開槍沒打中、死後公開選人：圖標 + 對方的座位號，不寫字（全句在 title 裏）
       missed.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot' + (fxFor('shot', seat.id, 600) ? ' fx-shot' : ''), title: `射${num(x.to)}號失敗` },
@@ -198,9 +202,13 @@ export function renderTown(ctx) {
       !s.isSt && (acts[seat.id] || []).map(actMarkView),
       team[seat.id] && g[seat.id] && h('span', { class: 'pm q', title: '你的猜測' }, mini(g[seat.id])),
       (auto[seat.id] || []).filter(k => !k.t).map(markView),
-      (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t)))),
-    turnAt === seat.id && turnArrow(seat.id)));
+      (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t)), moreChip(ctx, seat))),
+    turnAt === seat.id && turnArrow(seat.id));
+    decorateSeat(seatEl, seat.id); // 狀態圖章、假身份副牌、標記的位置（seatmarks.js，畫完後 fitTableCard 裏排）
+    ring.append(seatEl);
   });
+  const popSeat = s.isSt && more.seat && s.seats.find(x => x.id === more.seat), popEl = popSeat && morePop(ctx, popSeat);
+  if (popEl) ring.append(popEl);
 
   // 說書人的操作卡和玩家輪到自己時的牌一樣，放在圓桌中央「第 N 夜 / 天」下面；貞潔者小窗貼桌面左上角，不擋計票；
   // 提名期間的裁定卡蓋在審判牌上。桌上圈出行動者，裁定的另一方（開槍的目標、提名貞潔者的人）紅虛線圈
@@ -274,7 +282,7 @@ function placeObit() {
   const rect = el => el.getBoundingClientRect(), seen = r => r.width && r.height;
   // 頭像是圓的，按圓算（按方框算會把四個角上的空地也當成壓到）；名牌、標記、皇冠、圓桌中間的東西按方框
   const tokens = [...ring.querySelectorAll(':scope > .seat > .seat-token')].map(rect).filter(seen).map(r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }));
-  const parts = [...ring.querySelectorAll(':scope > .seat > :is(.plate, .seat-more), :scope > .seat .crown, :scope > .center > *')].map(rect).filter(seen);
+  const parts = [...ring.querySelectorAll(':scope > .seat > :is(.plate, .seat-more:not(.mk-on)), :scope > .seat .mk.at, :scope > .seat .crown, :scope > .center > *')].map(rect).filter(seen);
   // 「第 N 天」、觀眾席，還有橫屏時浮在小鎮左上角的角色牌（.board 裏和 .town 並排的那幾個）：紙不能掛到它們底下，繩子可以從角色牌底下垂出來
   const around = [...town.querySelectorAll(':scope > :not(.ring, .obit)'), ...[...town.parentElement.children].filter(el => el !== town)].map(rect).filter(seen);
   const mourn = ob.classList.contains('mourn'), wide = town.offsetWidth > 640, pad = wide ? 14 : 10;
@@ -393,11 +401,18 @@ function stBubble(ctx) {
 // 人數是單數時上下不對稱，往空的那邊挪一點能放大不少。按佈局位置算，發牌、死亡這些演出的位移不影響；留的 16px 是選中時的金圈
 function seatRoom(ring, w, h) {
   const c = ring.offsetWidth / 2, parts = [], o = ring.getBoundingClientRect();
-  for (const seat of ring.querySelectorAll('.seat')) for (const el of seat.children) {
-    if (!el.offsetWidth) continue;
-    const more = el.classList.contains('seat-more') && el.getBoundingClientRect(); // 標記靠 translate 擺位，offsetLeft 量不到
-    const x = more ? more.left - o.left : seat.offsetLeft - seat.offsetWidth / 2 + el.offsetLeft, y = more ? more.top - o.top : seat.offsetTop - seat.offsetHeight / 2 + el.offsetTop;
-    parts.push({ dx: Math.max(x - c, c - x - el.offsetWidth), y: y - c, b: y + el.offsetHeight - c });
+  for (const seat of ring.querySelectorAll('.seat')) {
+    const sx = seat.offsetLeft - seat.offsetWidth / 2, sy = seat.offsetTop - seat.offsetHeight / 2;
+    // 排過位的標記（seatmarks.js）一枚枚算：按佈局位置（left / top 減去 -50% 的 translate），蓋章動畫的放大不算
+    const els = [...seat.children].filter(el => !el.classList.contains('mk-on'));
+    els.push(...seat.querySelectorAll(':scope > .seat-token > .mk.at, :scope > .seat-more.mk-on .mk.at'));
+    for (const el of els) {
+      if (!el.offsetWidth) continue;
+      const mk = el.classList.contains('mk'), more = !mk && el.classList.contains('seat-more') && el.getBoundingClientRect(); // 標記靠 translate 擺位，offsetLeft 量不到
+      const x = mk ? sx + el.offsetParent.offsetLeft + el.offsetLeft - el.offsetWidth / 2 : more ? more.left - o.left : sx + el.offsetLeft;
+      const y = mk ? sy + el.offsetParent.offsetTop + el.offsetTop - el.offsetHeight / 2 : more ? more.top - o.top : sy + el.offsetTop;
+      parts.push({ dx: Math.max(x - c, c - x - el.offsetWidth), y: y - c, b: y + el.offsetHeight - c });
+    }
   }
   let best = { k: -Infinity, shift: 0 };
   for (const i of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8]) { // 從圓心往外試，一樣大時不挪
@@ -409,7 +424,13 @@ function seatRoom(ring, w, h) {
 }
 // 圓桌中間的東西不壓座位：放得下就原樣；放不下先讓掉「第 N 夜」，玩家的牌再換成橫版（圓心左右比上下寬），還不夠才整張縮小（最小 60%）。
 // 再不行牌就在留出來的高度裏滾動，座位也在牌上面（board.css），並且可以收起。審判牌上的裁定卡只管別超出框。畫完後調用
+// 座位標記按量出來的位置擺（seatmarks.js）：圓桌大小變了（轉屏、側欄收起、角色牌展開）就重排，不只等窗口的 resize
+let ringSeen = null;
+const ringRO = typeof ResizeObserver === 'function' ? new ResizeObserver(() => requestAnimationFrame(fitTableCard)) : null;
 export function fitTableCard() {
+  const ringNow = document.querySelector('.town > .ring');
+  if (ringRO && ringNow !== ringSeen) { ringRO.disconnect(); if (ringNow) ringRO.observe(ringNow); ringSeen = ringNow; }
+  placeMarks(ringNow);
   placeObit();
   const turn = document.querySelector('.center > .turn-pane:not(.leaving)'), st = document.querySelector('.st-card:not(.corner):not(.leaving)');
   const middle = document.querySelector('.center:not(.has-blk)'); // 沒有牌：準備、天亮、白天的按鈕，連標題一起算
@@ -566,11 +587,11 @@ function seatPos(s, id) {
   const a = (s.seats.findIndex(x => x.id === id) / s.seats.length) * Math.PI * 2 - Math.PI / 2;
   return { x: 50 + 41 * Math.cos(a), y: 50 + 41 * Math.sin(a) };
 }
-// 說書人看到的假身份副牌：小角色牌 + 名字，懸停看「以為是 X：能力」
+// 說書人看到的假身份副牌：虛線框的小角色牌，騎在頭像邊上（seatmarks.js 排位），懸停看「以為是 X：能力」
 function fakeBadge(id) {
   const r = ROLES[id], tok = roleToken(id, { size: 'xs' });
   tok.removeAttribute('title');
-  return h('span', { class: 'fake-badge', title: `以為是${r.name}：${r.ability}` }, tok, h('b', { class: 'fake-name' }, r.name));
+  return h('span', { class: 'fake-badge', 'data-key': 'fake', title: `以為是${r.name}：${r.ability}` }, tok);
 }
 // 邪惡隊友的陣營牌：惡魔 / 爪牙（不知道具體角色），和角色牌一樣的雙圈印章
 function teamToken(team) {
@@ -624,12 +645,10 @@ function pickingNow(ctx) {
 
 // ───── 座位狀態：常見的狀態不寫成字籤，畫在頭像上 ─────
 // 影響整個頭像的效果（中毒：綠墨從底下滲上來、冒泡；醉酒：頭像晃、一塊酒漬；被保護：一圈藍墨環……），
-// 加一枚沿頭像邊掛的小圖章（說書人自己貼的，點圖章取下）。誰查過誰、紅鯡魚、提醒標記是朝圓心掛的角色小牌（tagView），說書人自己寫的字照舊是字籤
+// 加一枚騎在頭像邊上的小圖章（說書人自己貼的，點圖章取下；位置由 seatmarks.js 排）。紅鯡魚、提醒標記是角色小牌（tagView），說書人自己寫的字照舊是字籤
 const STATUS = { 中毒: ['poison', 'drop'], 醉酒: ['drunk', 'cup'], 被保護: ['protect', 'shield'], 處決不死: ['safe', 'shield'], 詛咒: ['curse', 'bolt'],
   瘋狂: ['mad', 'mask'], 蓄力: ['charge', 'pitchfork'], 假死: ['undead', 'skull'], 能力已用: ['used', 'check'], 額外一天: ['extra', 'sun'] };
 const statusOf = t => STATUS[t] || (t.startsWith('瘋狂：') ? STATUS.瘋狂 : null);
-// 圖章沿頭像邊掛的角度：左上、右上、左、右（正上方是死亡票，右下是假身份副牌）
-const RIM = [-140, -40, 180, 0];
 function seatStatus(seat) {
   const seen = new Set(), out = [];
   for (const t of seat.tags || []) {
@@ -641,16 +660,16 @@ function seatStatus(seat) {
 function statusView(ctx, seat, list) {
   const s = ctx.state, mine = t => s.st?.marks?.[seat.id]?.includes(t);
   return [list.map(x => h('i', { class: 'st-fx ' + x.k, 'data-key': 'fx-' + x.k, 'data-exit': true })),
-    list.map((x, n) => {
+    list.map(x => {
       const as = x.t.startsWith('瘋狂：') && roleNamed(x.t.slice(3)); // 瘋狂成哪個角色：圖章上是那個角色的小牌
-      return h('i', { class: 'st-ico ' + x.k + (mine(x.t) ? ' pick' : ''), 'data-key': 'st-' + x.k, 'data-exit': true, title: x.t, style: { '--a': RIM[n % RIM.length] + 'deg' },
+      return h('i', { class: 'st-ico ' + x.k + (mine(x.t) ? ' pick' : ''), 'data-key': 'st-' + x.k, 'data-exit': true, title: x.t,
         onclick: mine(x.t) ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: x.t, on: false }); } : null }, as ? mini(as) : icon(x.ico));
     })];
 }
 
 // ───── 說書人的其他標記：只畫圖標，不寫字 ─────
 // 誰的能力落在這個座位上，就掛那個角色的小牌；要多說一點的，小牌右下角加一枚小符號：
-// ✓ 真的是、橙色 ✓ 能登記成、✗ 錯誤（干擾項）、數字（第幾晚、醉酒幾天）、刀（死亡）、交換、紅魚（紅鯡魚）。
+// ✓ 是、✗ 錯誤（干擾項）、數字（第幾晚、醉酒幾天）、刀（死亡）、交換、紅魚（紅鯡魚）。
 // 全名在 title 裏（座位菜單的「標記」裏是一顆顆帶字的籤）；認不出是哪個角色的（說書人自己寫的字、陣營改了）照舊寫字
 let byName = null;
 const roleNamed = n => (byName ||= new Map(Object.entries(ROLES).map(([id, r]) => [r.name, id]))).get(n);
@@ -659,7 +678,6 @@ const CN = { 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5 };
 function badgeOf(word) {
   if (word === '干擾項') return 'fish'; // 占卜師的官方標記「干擾項」就是紅鯡魚
   if (/錯誤|^X$/.test(word)) return 'no';
-  if (word.endsWith('(登記)')) return 'reg';
   if (/^(?:鎮民|外來者|爪牙|惡魔|是惡魔|猜測正確)$/.test(word)) return 'yes';
   if (/死亡|死於|被殺/.test(word) && !/不會|沒有/.test(word)) return 'kill';
   if (/理髮|交換/.test(word)) return 'swap';
@@ -669,26 +687,43 @@ function badgeOf(word) {
 // 標記 → { r: 角色, b: 角上的符號 }；認不出角色時 null（寫字）
 function tagFace(s, t) {
   if (t === '紅鯡魚') return { r: 'fortuneteller', b: 'fish' };
-  let m = t.match(/^(.+?)[:：](.+)$/);
-  // 信息類給出的「洗衣婦:士兵」「洗衣婦:士兵(登記)」「洗衣婦:錯誤」
-  if (m && roleNamed(m[1])) return { r: roleNamed(m[1]), b: m[2] === '錯誤' ? 'no' : badgeOf(m[2]) === 'reg' ? 'reg' : 'yes' };
-  m = t.match(/^(.+)[查選]$/); // 查驗類「占卜師查」、系統不認識的角色「某某選」
+  let m = t.match(/^(.+)選$/); // 系統不認識的角色「某某選」
   if (m && roleNamed(m[1])) return { r: roleNamed(m[1]), b: null };
   m = t.match(/^(.+?)(?:·|的)(.+)$/); // 兩個角色同名的標記「寡婦·得知」、系統掛的「管家的主人」
   if (m && roleNamed(m[1])) return { r: roleNamed(m[1]), b: badgeOf(m[2]) };
   const own = (s.st?.reminders || []).find(x => x.t === t); // 在場角色自己的提醒標記（「孫子」「第一晚」……）
   return own ? { r: own.r, b: badgeOf(t) } : null;
 }
-const BADGE = { yes: 'check', reg: 'check', no: 'cross', kill: 'dagger', swap: 'become', fish: 'fish' };
+const BADGE = { yes: 'check', no: 'cross', kill: 'dagger', swap: 'become', fish: 'fish' };
 const tagBadge = b => b != null && h('i', { class: 'tg-b ' + (BADGE[b] ? b : 'n') }, BADGE[b] ? icon(BADGE[b]) : String(b));
 function tagView(ctx, seat, t, mine) {
   const f = tagFace(ctx.state, t), cls = 'tag' + (mine ? ' pick' : '');
   // 說書人自己貼的標記：點一下取下
   const off = mine ? e => { e.stopPropagation(); ctx.st('remind', { seatId: seat.id, text: t, on: false }); } : null;
-  if (!f) return h('span', { class: cls + (t === '邪惡' ? ' bad' : t === '善良' ? ' good' : ''), title: t, onclick: off }, h('b', { class: 't-s' }, cut(t)), h('i', { class: 't-l' }, t));
+  if (!f) return h('span', { class: cls + (t === '邪惡' ? ' bad' : t === '善良' ? ' good' : ''), 'data-key': 'tg-' + t, title: t, onclick: off }, h('b', { class: 't-s' }, cut(t)), h('i', { class: 't-l' }, t));
   const tok = mini(f.r, 'tag-ico');
   tok.removeAttribute('title'); // 懸停看的是這枚標記的全名，不是角色能力
-  return h('span', { class: cls + ' by-role', title: t, onclick: off }, tok, tagBadge(f.b));
+  return h('span', { class: cls + ' by-role', 'data-key': 'tg-' + t, title: t, onclick: off }, tok, tagBadge(f.b));
+}
+// 給過的信息（舊版本掛在桌上的「洗衣婦:士兵」「圖書管理員:錯誤」、單設備查驗的「占卜師查」）：已經發生過的事，不再影響裁定，
+// 不上桌（日誌和座位的「記錄」裏有）。現在系統不再掛，舊存檔裏的也不畫
+const told = t => { let m = t.match(/^(.+?)[:：](.+)$/); if (m && roleNamed(m[1])) return true; m = t.match(/^(.+)查$/); return !!(m && roleNamed(m[1])); };
+// 放不下的收成最後一格「+N」（seatmarks.js 算 N、決定收哪幾枚）。說書人懸停 / 點一下攤開成一張紙條，看收起來的是哪幾枚
+const moreChip = (ctx, seat) => h('span', { class: 'tag more-chip', 'data-key': 'more', ...(ctx.state.isSt && {
+  onclick: e => { e.stopPropagation(); openMore(ctx, seat.id, true); },
+  onmouseenter: canHover() ? () => openMore(ctx, seat.id) : null, onmouseleave: canHover() ? () => closeMore(ctx, true) : null }) });
+function morePop(ctx, seat) {
+  const list = overflowOf(seat.id);
+  if (!list.length) return null;
+  return h('div', { class: 'more-pop' + (more.sticky ? ' sticky' : ''), 'data-key': 'more-' + seat.id, 'data-seat': seat.id, 'data-exit': true },
+    list.map(({ key, text }) => {
+      if (key === 'fake' && seat.fakeRole) return h('span', { class: 'mp-e', title: text }, mini(seat.fakeRole, 'mp-fake'));
+      const f = key.startsWith('tg-') && tagFace(ctx.state, text);
+      if (!f) return h('span', { class: 'mp-e tag' + (text === '邪惡' ? ' bad' : text === '善良' ? ' good' : ''), title: text }, text); // 寫字的：紙條上寫全
+      const tok = mini(f.r);
+      tok.removeAttribute('title');
+      return h('span', { class: 'mp-e', title: text }, tok, tagBadge(f.b));
+    }));
 }
 // 寫字的標記在手機上截短：中文留兩個字；英文不能按字截（「失去」翻不出來），翻好整句取第一個詞
 const cut = t => (getLang() === 'en' ? tr(t).split(/[\s:]/)[0] : [...t].slice(0, 2).join(''));
