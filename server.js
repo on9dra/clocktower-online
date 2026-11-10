@@ -82,7 +82,9 @@ app.use(express.static(path.join(ROOT, 'public'), { setHeaders: (res, file) => {
   if (IMG.test(file)) res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=2592000');
 } }));
 const server = http.createServer(app);
-const io = new Server(server, { maxHttpBufferSize: 64 * 1024 }); // 單條消息最多 64KB
+// 單條消息最多 64KB。websocket 開壓縮（permessage-deflate，socket.io 默認關著）：每次操作推回的狀態是幾 KB 的 JSON，
+// 前後兩次大同小異，壓完只剩四分之一左右。大陸到香港服務器的線路慢（實測十幾 KB/s），少傳一點就少等一點；幾百字節的回覆不壓
+const io = new Server(server, { maxHttpBufferSize: 64 * 1024, perMessageDeflate: { threshold: 512 } });
 
 // 客戶端 IP：直連的就是對端地址；經本機 / 內網的反向代理（Caddy、nginx、Docker）時，取代理追加在 X-Forwarded-For 最後的那個
 const PRIVATE = /^(::1$|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|f[cd]|fe80:)/i;

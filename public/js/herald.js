@@ -17,8 +17,9 @@ const stored = () => { try { return sessionStorage.getItem(SS); } catch { return
 const store = key => { try { sessionStorage.setItem(SS, key); } catch { /* 隱私模式 */ } };
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.hidden;
 const later = (ms, fn) => setTimeout(fn, calm() ? 0 : ms);
-// 進度條的金線走到這一格、牌被拽一下之後，紙牌才從它身上升起來
-const RISE_AFTER = 420;
+// 收到新的一步就升起來，不等進度條的金線描完（線上服務器遠，回覆本來就晚了幾百毫秒，再等就是拖）；
+// 留的這一點只是讓這一輪重繪做完，量得到那一格的位置
+const RISE_AFTER = 40;
 
 // 現在是不是一個人自己的回合（線下說書人的夜晚）
 function turnOf(s) {
