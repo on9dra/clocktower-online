@@ -253,6 +253,9 @@
  "{0} 醉酒到下個黃昏": [
   "lib/night.js"
  ],
+ "{0}-{1}人": [
+  "public/js/manual.js"
+ ],
  "{0}，能力無效": [
   "lib/night.js"
  ],
@@ -340,6 +343,7 @@
   "lib/engine.js"
  ],
  "{0}人": [
+  "public/js/manual.js",
   "public/js/stepcard.js"
  ],
  "{0}殺死了 {1}": [
@@ -374,9 +378,6 @@
  ],
  "5 人以上時惡魔死亡：她接任": [
   "public/js/help.js"
- ],
- "5-6人": [
-  "public/js/manual.js"
  ],
  "7 人存活要 4 票：一半，向上取整": [
   "public/js/help.js"
@@ -701,9 +702,6 @@
  ],
  "步": [
   "public/js/infofmt.js"
- ],
- "部分角色說書人處理": [
-  "public/js/manual.js"
  ],
  "猜": [
   "public/js/glyph.js",
@@ -1423,6 +1421,12 @@
  "勾選順序": [
   "public/js/topbar.js"
  ],
+ "官方角色": [
+  "public/js/manual.js"
+ ],
+ "官方推薦": [
+  "public/js/manual.js"
+ ],
  "關閉": [
   "public/js/help.js",
   "public/js/rolepick.js",
@@ -1479,6 +1483,12 @@
  ],
  "還有一張死亡票": [
   "public/js/town.js"
+ ],
+ "海外熱門": [
+  "public/js/manual.js"
+ ],
+ "含原創": [
+  "public/js/manual.js"
  ],
  "好月升起": [
   "public/js/community.js"
@@ -1885,6 +1895,9 @@
  "劇本不存在": [
   "lib/ops.js"
  ],
+ "劇本下載失敗，再試一次": [
+  "public/js/manual.js"
+ ],
  "卡在圓桌中央；結果唯一時只有一個按鈕": [
   "public/js/help.js"
  ],
@@ -1994,6 +2007,9 @@
  "快速、簡約、精美的線上魔典": [
   "public/js/about.js",
   "public/js/lobby.js"
+ ],
+ "快速上手": [
+  "public/js/manual.js"
  ],
  "離開": [
   "public/js/topbar.js"
@@ -2154,6 +2170,9 @@
  "沒有反芻": [
   "lib/night.js"
  ],
+ "沒有符合的劇本": [
+  "public/js/manual.js"
+ ],
  "沒有進行中的投票": [
   "lib/day.js"
  ],
@@ -2239,6 +2258,9 @@
  ],
  "蔑視": [
   "public/js/community.js"
+ ],
+ "民間創意": [
+  "public/js/manual.js"
  ],
  "名": [
   "public/js/help.js",
@@ -2591,6 +2613,9 @@
  "去基礎化": [
   "public/js/community.js"
  ],
+ "全部": [
+  "public/js/manual.js"
+ ],
  "全部恢復隨機": [
   "public/js/setup.js"
  ],
@@ -2689,6 +2714,9 @@
  ],
  "入座": [
   "public/js/flow.js"
+ ],
+ "賽事劇本": [
+  "public/js/manual.js"
  ],
  "三": [
   "public/js/stepcard.js"
@@ -3092,6 +3120,9 @@
  "四": [
   "public/js/stepcard.js"
  ],
+ "搜索劇本名、作者": [
+  "public/js/manual.js"
+ ],
  "算猜錯（賭徒死亡）": [
   "lib/night.js"
  ],
@@ -3327,6 +3358,9 @@
  "未處理的 Promise 拒絕": [
   "server.js"
  ],
+ "未分類": [
+  "public/js/manual.js"
+ ],
  "未加入房間": [
   "server.js"
  ],
@@ -3549,6 +3583,9 @@
  ],
  "小心陷阱": [
   "public/js/help.js"
+ ],
+ "小型劇本": [
+  "public/js/manual.js"
  ],
  "邪惡": [
   "lib/engine.js",
@@ -4029,7 +4066,8 @@
   "public/js/help.js"
  ],
  "佚名": [
-  "public/js/community.js"
+  "public/js/community.js",
+  "public/js/manual.js"
  ],
  "音樂音量": [
   "public/js/settings.js"
@@ -4120,6 +4158,9 @@
  ],
  "與": [
   "public/js/infofmt.js"
+ ],
+ "原創角色": [
+  "public/js/manual.js"
  ],
  "月蝕": [
   "public/js/community.js"
@@ -4262,6 +4303,9 @@
  "這本劇本太大了": [
   "public/js/manual.js"
  ],
+ "這本只能 {0}-{1} 人玩，現在是 {2} 人": [
+  "public/js/manual.js"
+ ],
  "這不是劇本 Json": [
   "lib/script.js",
   "public/js/manual.js"
@@ -4353,6 +4397,9 @@
  ],
  "整局只有一發，白天公開開槍，所有人都會看到": [
   "public/js/town.js"
+ ],
+ "整理：鐘樓劇本博物館": [
+  "public/js/manual.js"
  ],
  "正在投票": [
   "public/js/progress.js"
@@ -4520,6 +4567,9 @@
  ],
  "主人是 {0}": [
   "lib/night.js"
+ ],
+ "主題玩法": [
+  "public/js/manual.js"
  ],
  "轉移": [
   "public/js/fx-ab.js"

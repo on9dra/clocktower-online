@@ -128,5 +128,30 @@ for (const c of COMMUNITY) {
     remove(r.code);
   }
 }
+// 博物館的社區劇本（tools/community-build.mjs 生成）：目錄裏每一本都有文件、解析得了、在標的最少人數開得了局
+{
+  const fs = await import('fs');
+  const dir = new URL('../public/community/', import.meta.url);
+  const { list } = JSON.parse(fs.readFileSync(new URL('index.json', dir), 'utf8'));
+  assert.ok(list.length > 100, '博物館目錄');
+  const cats = new Set(['official', 'learn', 'small', 'match', 'fun', 'original', 'folk', 'more']);
+  for (const x of list) {
+    assert.ok(cats.has(x.cat), x.name + ' 的分類 ' + x.cat + ' 在 manual.js 的 CATS 裏');
+    const entries = JSON.parse(fs.readFileSync(new URL(`s/${x.k}.json`, dir), 'utf8'));
+    assert.ok(JSON.stringify(entries).length <= 60 * 1024, x.name + ' 太大，服務端收不了');
+    const s = parse(entries);
+    assert.strictEqual(typeof s, 'object', x.name);
+    assert.ok(x.lo >= 5 && x.hi <= 15 && x.lo <= x.hi, x.name);
+    let ok = false;
+    for (let i = 0; i < 5 && !ok; i++) {
+      const r = createRoom();
+      for (let p = 0; p < x.lo; p++) joinPlayer(r, 'p' + p, 'x' + p);
+      applyStOp(r, { op: 'upload', entries });
+      ok = applyStOp(r, { op: 'next' }) === undefined && r.phase === 'night';
+      remove(r.code);
+    }
+    assert.ok(ok, `${x.name} ${x.lo} 人開不了局`);
+  }
+}
 console.log('上傳劇本測試通過 ✔');
 process.exit(0);

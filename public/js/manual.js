@@ -84,32 +84,119 @@ export function uploadScript(ctx) {
     h('button', { class: 'btn ghost mine-new', onclick: () => { closeModal(); pickFile(ctx); } }, '導入新的 Json')));
 }
 
-// 社區劇本：全是內置角色的放前面；有系統不認識的角色的，那幾個角色到時說書人自己處理
+// 社區劇本：海外熱門（community.js，botcscripts 收藏榜）+ 鐘樓劇本博物館整理的（tools/community-build.mjs 生成的 public/community/）
+// 博物館的目錄打開列表時才下載，某一本選中時才下載那一本。左邊分類，上面搜索和「全自動 / 官方角色 / 含原創」篩選；
+// 現在的人數開不了的變暗，點了說原因。換分類只換列表那一頁；篩選、搜索只藏 / 露行，不重畫
+let museum = null; // 目錄的 Promise：{ list: [{ k, name, author, cat, kind, lo, hi, n }] }
+const loadMuseum = () => (museum ||= fetch('/community/index.json').then(r => (r.ok ? r.json() : Promise.reject())).catch(() => { museum = null; return null; }));
+// 博物館的分類（順序、名字在這裏定，index.json 裏只是 key）
+const CATS = [['official', '官方推薦'], ['learn', '快速上手'], ['small', '小型劇本'], ['match', '賽事劇本'], ['fun', '主題玩法'], ['original', '原創角色'], ['folk', '民間創意'], ['more', '未分類']];
+const KINDS = [['all', '全部'], ['auto', '全自動'], ['off', '官方角色'], ['home', '含原創']];
+const raw = s => document.createTextNode(s); // 博物館的劇本名、作者照原樣顯示，不過翻譯（海外熱門的名字是自己譯的繁體，照常走 tr）
 export function communityScripts(ctx) {
-  const cur = ctx.state.scriptId === 'custom' && SCRIPTS.custom?.name;
-  const row = c => h('button', { class: 'comm-row' + (c.name === cur ? ' on' : ''), onclick: async () => {
+  const s = ctx.state, cur = s.scriptId === 'custom' && SCRIPTS.custom?.name, seats = s.seats.length;
+  const botc = COMMUNITY.map(c => ({ name: c.name, author: c.author, en: c.en, cat: 'botc', kind: c.auto ? 'auto' : 'off', lo: 5, hi: c.small ? 6 : 15, c }));
+  const view = { cat: 'botc', kind: 'all', q: '' };
+  const range = x => (x.lo === 5 && x.hi === 15 ? null : x.lo === x.hi ? `${x.lo}人` : `${x.lo}-${x.hi}人`);
+  const fits = x => seats < 5 || (seats >= x.lo && seats <= x.hi);
+  const use = async (x, el) => {
+    if (x.name === cur) return closeModal();
+    if (!fits(x)) return toast(`這本只能 ${x.lo}-${x.hi} 人玩，現在是 ${seats} 人`);
+    if (x.c) { closeModal(); return ctx.st('upload', { entries: [{ id: '_meta', name: x.c.name, author: x.c.author, small: x.c.small }, ...x.c.roles] }); }
+    if (el.classList.contains('busy')) return;
+    el.classList.add('busy');
+    const entries = await fetch(`/community/s/${x.k}.json`).then(r => (r.ok ? r.json() : null)).catch(() => null);
+    el.classList.remove('busy');
+    if (!entries) return toast('劇本下載失敗，再試一次');
     closeModal();
-    if (c.name === cur) return;
-    await ctx.st('upload', { entries: [{ id: '_meta', name: c.name, author: c.author, small: c.small }, ...c.roles] });
-  } }, h('b', {}, c.name), c.small && h('i', {}, '5-6人'), h('span', {}, `${c.en} · ${c.author}`));
-  // 兩頁：全自動 / 有角色要說書人自己處理。頁籤只換頁，不重畫；先翻到現在用的那個劇本所在的頁
-  const pages = [[true, '全自動'], [false, '部分角色說書人處理']].map(([auto, title]) => {
-    const list = COMMUNITY.filter(c => !!c.auto === auto);
-    return { title, n: list.length, has: list.some(c => c.name === cur), body: h('div', { class: 'comm-list' }, list.map(row)) };
-  });
-  let at = Math.max(0, pages.findIndex(p => p.has));
-  const tabs = pages.map((p, i) => h('button', { class: 'comm-tab' + (i === at ? ' on' : ''), onclick: () => go(i) }, p.title, h('i', {}, String(p.n))));
-  const view = h('div', { class: 'comm-view' }, pages[at].body);
-  function go(i) {
-    if (i === at) return;
-    const dir = i > at ? 1 : -1;
-    tabs[at].classList.remove('on'); tabs[i].classList.add('on');
-    at = i;
-    view.replaceChildren(pages[i].body);
-    view.scrollTop = 0;
-    pages[i].body.animate([{ transform: `translateX(${dir * 40}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2, .8, .3, 1)' });
+    ctx.st('upload', { entries });
+  };
+  const row = x => {
+    const tag = x.kind === 'auto' ? '全自動' : null; // 只標少見的；含原創角色的太多了，標了每行都有，交給上面的篩選
+    const el = h('button', { class: 'comm-row' + (x.name === cur ? ' on' : '') + (fits(x) ? '' : ' off') },
+      h('b', {}, x.c ? x.name : raw(x.name)), h('i', {}, [range(x), tag].filter(Boolean).join(' · ')),
+      h('span', {}, x.c ? `${x.en} · ${x.author}` : raw(x.author || '佚名')));
+    el.onclick = () => use(x, el);
+    el.x = x;
+    return el;
+  };
+  // 每個分類的列表第一次打開時才建；篩選、搜索只改 hidden
+  const all = [...botc], lists = new Map(), navBtn = new Map();
+  const listOf = cat => {
+    if (!lists.has(cat)) lists.set(cat, h('div', { class: 'comm-list' }, all.filter(x => cat === '*' || x.cat === cat).map(row)));
+    return lists.get(cat);
+  };
+  const match = x => (view.kind === 'all' || x.kind === view.kind) && (!view.q || [x.name, x.author, x.en].some(t => t && t.toLowerCase().includes(view.q)));
+  const empty = h('p', { class: 'comm-empty', hidden: true }, '沒有符合的劇本');
+  const pane = h('div', { class: 'comm-view' });
+  function apply() {
+    const cat = view.q ? '*' : view.cat, list = listOf(cat);
+    for (const el of list.children) el.hidden = !match(el.x);
+    empty.hidden = [...list.children].some(el => !el.hidden);
+    for (const [k, b] of navBtn) {
+      b.classList.toggle('on', !view.q && k === view.cat);
+      b.lastChild.textContent = all.filter(x => x.cat === k && match(x)).length;
+    }
+    return list;
   }
-  modal('社區劇本', h('div', { class: 'comm' }, h('nav', { class: 'comm-tabs' }, tabs), view), { wide: true, cls: 'comm-modal' });
+  // 手機上分類是一排橫滑的：選中的那個不在視野裏就滑過去
+  const reveal = (smooth = true) => {
+    const on = !view.q && navBtn.get(view.cat), nav = on?.parentElement;
+    if (!on || nav.scrollWidth <= nav.clientWidth) return;
+    const r = on.getBoundingClientRect(), n = nav.getBoundingClientRect();
+    if (r.left < n.left || r.right > n.right) nav.scrollBy({ left: r.left - n.left - 24, behavior: smooth ? 'smooth' : 'auto' });
+  };
+  function show(dir = 0) {
+    const list = apply();
+    reveal(dir !== 0); // 點分類時滑過去；剛打開、搜索時直接停好
+    if (pane.firstChild === list) return;
+    pane.replaceChildren(list, empty);
+    pane.scrollTop = 0;
+    if (dir) list.animate([{ transform: `translateY(${dir * 18}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'cubic-bezier(.2, .8, .3, 1)' });
+  }
+  const order = () => [...navBtn.keys()];
+  const go = k => {
+    if (k === view.cat && !view.q) return;
+    const dir = Math.sign(order().indexOf(k) - order().indexOf(view.cat)) || 1;
+    view.cat = k; ctx.ls.set('botc.commCat', k);
+    if (view.q) { view.q = ''; search.value = ''; }
+    show(dir);
+  };
+  const navItem = (k, name) => {
+    const b = h('button', { class: 'comm-cat' }, name, h('i', {}, '0'));
+    b.onclick = () => go(k);
+    navBtn.set(k, b);
+    return b;
+  };
+  const nav = h('nav', { class: 'comm-cats' }, navItem('botc', '海外熱門'));
+  const search = h('input', { class: 'comm-q', type: 'search', placeholder: '搜索劇本名、作者' });
+  search.oninput = () => { view.q = search.value.trim().toLowerCase(); show(); };
+  const kinds = KINDS.map(([k, t]) => h('button', { class: 'comm-kind' + (k === 'all' ? ' on' : ''), onclick: e => {
+    view.kind = k;
+    for (const b of kinds) b.classList.toggle('on', b === e.currentTarget);
+    show();
+  } }, t));
+  modal('社區劇本', h('div', { class: 'comm' }, h('div', { class: 'comm-top' }, search, h('div', { class: 'comm-kinds' }, kinds)), h('div', { class: 'comm-body' }, nav, pane)),
+    { wide: true, cls: 'comm-modal' });
+  const saved = ctx.ls.get('botc.commCat');
+  show();
+  // 博物館的分類到了再一個個加進左邊（淡入），之前選過的分類到了就翻過去
+  loadMuseum().then(m => {
+    if (!m || !nav.isConnected) return;
+    all.push(...m.list);
+    lists.delete('*');
+    CATS.forEach(([k, name], i) => {
+      if (!m.list.some(x => x.cat === k)) return;
+      const b = navItem(k, name);
+      nav.append(b);
+      b.animate([{ opacity: 0, transform: 'translateX(-8px)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: i * 30, easing: 'ease-out', fill: 'backwards' });
+    });
+    nav.append(h('small', { class: 'comm-src' }, '整理：鐘樓劇本博物館'));
+    const mine = cur && all.find(x => x.name === cur); // 先翻到現在用的那本所在的分類，沒有就是上次看的
+    view.cat = mine ? mine.cat : saved && navBtn.has(saved) ? saved : view.cat;
+    pane.replaceChildren();
+    show();
+  });
 }
 
 // ───── 白天替玩家做事：圓桌中央一張小卡 ─────
