@@ -138,11 +138,6 @@
  "沒有機器人": "There are no bots",
  "選不出合規的人": "No legal choice",
  "取下": "Remove",
- "整局": "All game",
- "說書人設的": "Set by the Storyteller",
- "其實是{0}": "Actually the {0}",
- "到第 {0} 天": "Until day {0}",
- "到第 {0} 夜": "Until night {0}",
  "今晚他不會死。": "They cannot die tonight.",
  "你自己寫的標記。": "A reminder you wrote.",
  "能力失效：他得到的信息可以是假的。": "No ability: the information they get may be false.",
@@ -159,5 +154,9 @@
  "他現在是善良陣營，和角色原本的陣營不同。": "Now good, unlike their character.",
  "他現在是邪惡陣營，和角色原本的陣營不同。": "Now evil, unlike their character.",
  "明天他要「瘋狂」地證明自己是{0}，否則可能被處決。": "Tomorrow they must be \"mad\" that they are the {0}, or they might be executed.",
- "系統不認識這個角色：效果要你自己結算，下一次入夜時清掉。": "The app does not know this character: resolve the effect yourself. Cleared at the next night."
+ "系統不認識這個角色：效果要你自己結算，下一次入夜時清掉。": "The app does not know this character: resolve the effect yourself. Cleared at the next night.",
+ "來源：": "Source:",
+ "持續到：": "Until:",
+ "其實是：": "Actually:",
+ "遊戲結束": "End of game"
 }

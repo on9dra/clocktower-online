@@ -774,6 +774,9 @@
  "成為": [
   "public/js/log.js"
  ],
+ "持續到：": [
+  "public/js/town.js"
+ ],
  "抽取": [
   "public/js/topbar.js"
  ],
@@ -929,12 +932,6 @@
  ],
  "到底是誰的邪教": [
   "public/js/community.js"
- ],
- "到第 {0} 天": [
-  "public/js/town.js"
- ],
- "到第 {0} 夜": [
-  "public/js/town.js"
  ],
  "到點按舉著的手結算；說書人可隨時暫停或重新計時": [
   "public/js/help.js"
@@ -2047,6 +2044,9 @@
  "快速上手": [
   "public/js/manual.js"
  ],
+ "來源：": [
+  "public/js/town.js"
+ ],
  "離開": [
   "public/js/topbar.js"
  ],
@@ -2538,7 +2538,7 @@
  "七號座位之歌": [
   "public/js/community.js"
  ],
- "其實是{0}": [
+ "其實是：": [
   "public/js/town.js"
  ],
  "其他爪牙：{0}": [
@@ -3114,9 +3114,6 @@
  ],
  "說書人取消了本次提名，雙方今天可以重新提名 / 被提名。": [
   "lib/day.js"
- ],
- "說書人設的": [
-  "public/js/town.js"
  ],
  "說書人收回了 {0} 的{1}": [
   "lib/engine.js"
@@ -4193,6 +4190,9 @@
  "遊戲還沒開始": [
   "lib/ops.js"
  ],
+ "遊戲結束": [
+  "public/js/town.js"
+ ],
  "遊戲結束：{0}陣營獲勝（{1}）": [
   "lib/rules.js"
  ],
@@ -4491,9 +4491,6 @@
   "public/js/log.js"
  ],
  "睜開眼，聽聽昨晚發生了什麼": [
-  "public/js/town.js"
- ],
- "整局": [
   "public/js/town.js"
  ],
  "整局只有一發，白天公開開槍，所有人都會看到": [

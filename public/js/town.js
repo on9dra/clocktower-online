@@ -750,8 +750,10 @@ const TAG_RULE = {
   紅鯡魚: '占卜師查驗時，他會被當作惡魔。', 管家的主人: '管家只有在他投贊成票時才能投贊成票。', 孫子: '祖母知道他是誰；惡魔殺死他時，祖母也會死。',
   善良: '他現在是善良陣營，和角色原本的陣營不同。', 邪惡: '他現在是邪惡陣營，和角色原本的陣營不同。',
 };
-// 到什麼時候：tick 是 2 × 夜數（夜裏）、2 × 天數 + 1（白天）
-const until = till => (till == null ? null : till >= 1e8 ? '整局' : till % 2 ? `到第 ${(till - 1) / 2} 天` : `到第 ${till / 2} 夜`);
+// 持續到什麼時候：tick 是 2 × 夜數（夜裏）、2 × 天數 + 1（白天）
+const until = till => (till == null ? null : till >= 1e8 ? '遊戲結束' : till % 2 ? `第 ${(till - 1) / 2} 天` : `第 ${till / 2} 夜`);
+// 卡下面的一行行「來源：…」「持續到：…」：左邊短詞，右邊內容，兩列對齊
+const kv = (k, ...v) => [h('span', { class: 'mc-k' }, k), h('span', { class: 'mc-v' }, v)];
 function markCard(ctx, seat, key) {
   const s = ctx.state, why = s.st?.why?.[seat.id] || {}, rows = [];
   let face, name, rule, note = null, text = null;
@@ -760,7 +762,7 @@ function markCard(ctx, seat, key) {
     face = mini(seat.fakeRole, 'mc-fake');
     name = `以為是${ROLES[seat.fakeRole].name}`;
     rule = ROLES[seat.fakeRole].ability;
-    rows.push(h('div', { class: 'mc-src' }, mini(seat.role), w(`其實是${ROLES[seat.role].name}`, 'ink')));
+    rows.push(h('div', { class: 'mc-src' }, kv('其實是：', mini(seat.role), w(ROLES[seat.role].name, 'ink'))));
   } else if (key.startsWith('st-')) {
     const x = seatStatus(seat).find(y => 'st-' + y.k === key);
     if (!x) return null;
@@ -779,7 +781,9 @@ function markCard(ctx, seat, key) {
     if (f && !TAG_RULE[text] && /選$/.test(text)) note = '系統不認識這個角色：效果要你自己結算，下一次入夜時清掉。';
   }
   for (const e of why[text] || []) {
-    rows.push(h('div', { class: 'mc-src' }, e.src ? mini(e.src) : icon('quill', 'mc-q'), e.by ? seatBadge(s, e.by) : !e.src && w('說書人設的', 'ink'), until(e.till) && w(until(e.till), 'muted')));
+    // 來源：誰（座位號 + 角色）；沒有角色的是說書人自己設的。持續到：哪一天 / 哪一夜，跟著來源走的沒有期限就不寫
+    rows.push(h('div', { class: 'mc-src' }, kv('來源：', ...(e.src ? [e.by && seatBadge(s, e.by), mini(e.src), w(ROLES[e.src]?.name || '', 'ink')] : [w('說書人', 'ink')])),
+      until(e.till) && kv('持續到：', w(until(e.till), 'ink'))));
   }
   const mine = text != null && (s.st?.marks?.[seat.id] || []).includes(text);
   const card = h('div', { class: 'mk-card', 'data-key': `card-${seat.id}-${key}`, 'data-seat': seat.id, 'data-mark': key, 'data-exit': true },
