@@ -66,9 +66,6 @@
  "（可以不指定）": [
   "public/js/stepcard.js"
  ],
- "（沒有選）": [
-  "lib/engine.js"
- ],
  "（死亡）": [
   "lib/night.js"
  ],
@@ -277,7 +274,8 @@
   "lib/engine.js"
  ],
  "{0}（{1}）{2}：能力無效": [
-  "lib/engine.js"
+  "lib/engine.js",
+  "lib/night.js"
  ],
  "{0}（{1}）死亡：{2}": [
   "lib/rules.js"
@@ -297,10 +295,16 @@
  "{0}（祖母）的孫子被惡魔殺死，祖母也死亡": [
   "lib/night.js"
  ],
+ "{0}{1}，沒有死亡": [
+  "public/js/stepcard.js"
+ ],
  "{0}{1}：能力無效": [
   "lib/night.js"
  ],
  "{0}查": [
+  "lib/engine.js"
+ ],
+ "{0}攻擊 {1}，但他{2}": [
   "lib/engine.js"
  ],
  "{0}號": [
@@ -319,8 +323,14 @@
  "{0}號{1}": [
   "lib/util.js"
  ],
+ "{0}讓 {1} {2}": [
+  "lib/engine.js"
+ ],
  "{0}人": [
   "public/js/stepcard.js"
+ ],
+ "{0}殺死了 {1}": [
+  "lib/engine.js"
  ],
  "{0}選": [
   "lib/engine.js"
@@ -432,6 +442,9 @@
  ],
  "保護了 {0}（明天處決不死）": [
   "lib/night.js"
+ ],
+ "被{0}殺死": [
+  "lib/engine.js"
  ],
  "被保護": [
   "lib/rules.js",
@@ -891,6 +904,9 @@
  "得知處決": [
   "public/js/help.js"
  ],
+ "的死亡被說書人收回": [
+  "lib/engine.js"
+ ],
  "登": [
   "public/js/infoform.js",
   "public/js/town.js"
@@ -900,6 +916,9 @@
  ],
  "等說書人開局": [
   "public/js/town.js"
+ ],
+ "等他選完，或者在桌上替他點": [
+  "public/js/stepcard.js"
  ],
  "第 {0} 局": [
   "public/js/fx.js"
@@ -1160,7 +1179,7 @@
  "非惡魔": [
   "public/js/side.js"
  ],
- "鯡魚": [
+ "鯡": [
   "public/js/town.js"
  ],
  "分享": [
@@ -1244,7 +1263,11 @@
  ],
  "告訴 {0}": [
   "public/js/flow.js",
+  "public/js/stepcard.js",
   "public/js/town.js"
+ ],
+ "告訴他": [
+  "public/js/stepcard.js"
  ],
  "告知": [
   "lib/night.js",
@@ -1414,7 +1437,8 @@
   "public/js/flow.js",
   "public/js/glyph.js",
   "public/js/log.js",
-  "public/js/topbar.js"
+  "public/js/topbar.js",
+  "public/js/town.js"
  ],
  "紅鯡魚必須是善良玩家": [
   "lib/setup.js"
@@ -1640,6 +1664,9 @@
  "解除中毒": [
   "public/js/log.js",
   "public/js/town.js"
+ ],
+ "解除醉酒": [
+  "public/js/log.js"
  ],
  "解散": [
   "public/js/topbar.js"
@@ -1935,6 +1962,9 @@
  "輪到你才出現，點一下就好": [
   "public/js/intro.js"
  ],
+ "輪到你了": [
+  "lib/engine.js"
+ ],
  "輪到時一張標記卡，你自己處理": [
   "public/js/help.js"
  ],
@@ -2104,6 +2134,9 @@
  ],
  "男爵隨機時只在 7 人及以上出現。": [
   "public/js/setup.js"
+ ],
+ "能力結果": [
+  "public/js/topbar.js"
  ],
  "能力失常": [
   "public/js/infofmt.js"
@@ -2349,6 +2382,9 @@
  ],
  "請選擇數字": [
   "public/js/infofmt.js"
+ ],
+ "請選擇玩家": [
+  "lib/engine.js"
  ],
  "請選擇一個角色": [
   "lib/engine.js"
@@ -2640,6 +2676,7 @@
   "lib/rules.js"
  ],
  "是士兵": [
+  "lib/engine.js",
   "lib/night.js"
  ],
  "是水手": [
@@ -2786,6 +2823,9 @@
  "說書人取消了本次提名，雙方今天可以重新提名 / 被提名。": [
   "lib/day.js"
  ],
+ "說書人收回了 {0} 的{1}": [
+  "lib/engine.js"
+ ],
  "說書人手動標記": [
   "lib/ops.js"
  ],
@@ -2892,9 +2932,6 @@
  ],
  "他是惡魔": [
   "public/js/town.js"
- ],
- "他指了誰就點誰": [
-  "public/js/stepcard.js"
  ],
  "他做的": [
   "public/js/log.js"
@@ -3076,6 +3113,7 @@
   "public/js/flow.js"
  ],
  "未知操作": [
+  "lib/engine.js",
   "lib/ops.js"
  ],
  "未中": [
@@ -3181,6 +3219,12 @@
  "先在桌上點他猜的人": [
   "public/js/manual.js"
  ],
+ "先在桌上點他選的人": [
+  "lib/engine.js"
+ ],
+ "先在桌上點他指的人": [
+  "public/js/stepcard.js"
+ ],
  "陷阱": [
   "public/js/help.js"
  ],
@@ -3204,6 +3248,9 @@
   "public/js/topbar.js"
  ],
  "現在沒有要記的": [
+  "lib/engine.js"
+ ],
+ "現在沒有要結算的": [
   "lib/engine.js"
  ],
  "線上": [
@@ -3365,6 +3412,7 @@
   "public/js/help.js"
  ],
  "選了": [
+  "public/js/hud.js",
   "public/js/log.js",
   "public/js/stepcard.js"
  ],
@@ -3409,6 +3457,7 @@
   "public/js/help.js"
  ],
  "選擇 {0} 名玩家": [
+  "lib/engine.js",
   "public/js/flow.js"
  ],
  "選擇被提名的人": [
@@ -3458,6 +3507,9 @@
  ],
  "選擇提名的人": [
   "public/js/manual.js"
+ ],
+ "選擇玩家": [
+  "lib/engine.js"
  ],
  "選擇一個{0}和另一名玩家，並告知他": [
   "public/js/infoform.js"
@@ -3599,6 +3651,7 @@
   "public/js/help.js"
  ],
  "夜裏被惡魔殺死": [
+  "lib/engine.js",
   "lib/night.js",
   "lib/rules.js"
  ],
@@ -3924,6 +3977,9 @@
  ],
  "照樣開始": [
   "public/js/flow.js"
+ ],
+ "照樣殺死": [
+  "public/js/stepcard.js"
  ],
  "遮住": [
   "public/js/hud.js"

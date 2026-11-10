@@ -287,7 +287,7 @@ span.ic-why .ico { width: 78%; height: 78%; }
 
 /* 玩家左上角面板：寬屏時佔桌面左邊一欄（不擋座位），收起後只剩角色牌浮在左上角 */
 .hud { position: relative; z-index: 7; flex: none; align-self: flex-start; margin: 12px 0 12px 12px; width: 320px; max-height: calc(100% - 24px);
-  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto 1fr; gap: 4px 12px; padding: 12px;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 4px 12px; padding: 12px; /* minmax：一行長字（英文長詞）不把整欄撐出牌外 */
   background: var(--card) url(../img/grain.svg); border: 2px solid var(--team); border-radius: 14px; box-shadow: 0 10px 28px #0005; }
 .hud-body { display: contents; }
 .hud-me { grid-row: 1 / 3; background: none; border: 0; padding: 0; cursor: pointer; align-self: start; }
@@ -338,7 +338,8 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .hud-n { display: flex; align-items: center; gap: 2px; padding-top: 8px; color: #4a5272; font: 700 17px var(--serif); }
 .hud-rows { display: grid; gap: 5px; }
 /* 英文：「Night 1」比「第 1 夜」寬，標籤列按內容寬，不折行；標題右邊讓出「Cover」「Hide」兩個按鈕 */
-:root[data-lang="en"] .hud-night { grid-template-columns: auto 1fr; }
+:root[data-lang="en"] .hud-night { grid-template-columns: auto minmax(0, 1fr); }
+:root[data-lang="en"] .hud-row { flex-wrap: wrap; row-gap: 2px; }
 :root[data-lang="en"] .hud-n { white-space: nowrap; font-size: 14px; }
 :root[data-lang="en"] .hud-name { padding-right: 118px; }
 .hud-row { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card); cursor: pointer; font-size: 22px; }
@@ -350,6 +351,7 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .act-chip { display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; border-radius: 50%; color: #fff; flex: none; margin-right: -4px; }
 .act-chip .ico { width: 64%; height: 64%; }
 .act-chip.poison { background: #3d8b3d; }
+:root[data-lang="en"] .hud-team { display: inline-block; } /* 名字和陣營之間沒有空格，英文不會在那裏折行（中文字之間隨處可折） */
 .act-chip.good { background: var(--good); }
 .act-chip.evil { background: var(--evil); }
 .act-chip.brass { background: var(--brass); }
@@ -969,3 +971,5 @@ button.hv:active { transform: scale(.94); }
   :root[data-lang="en"] .hud .hud-me .token .token-name { font-size: 10px; padding: 0 2px; }
   :root[data-lang="en"] .hud:is(.min, .pick) .hud-me .token .token-name { font-size: 8px; }
 }
+/* 「真」角標：英文「True」放不進小圓，改成小膠囊（寬度跟字走，位置不變） */
+:root[data-lang="en"] .tm { width: auto !important; min-width: 16px; padding: 0 4px; border-radius: 8px; font-size: 9px !important; letter-spacing: 0; }

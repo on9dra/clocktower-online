@@ -37,7 +37,9 @@ const PATS = EN ? EN.PATTERNS.map(([k, v]) => {
   const weak = k.replace(/\{\d+\}|\s/g, '').length <= 2;
   // 一般的佔位符可以是空的（「{0}：告知「{1}」{2}」末尾那段常常沒有）；弱模板的至少一個字
   const re = '^' + k.split(/\{\d+\}/).map((l, i) => (i ? (l.startsWith('號') ? '([0-9]+)' : weak ? '(.+?)' : '(.*?)') : '') + esc(l)).join('') + '$';
-  return [new RegExp(re, 's'), [...k.matchAll(/\{(\d+)\}/g)].map(m => +m[1]), v, weak];
+  // 夾在一對括號裏的佔位符（「告知「{1}」」）：裏面整段是引用的原話，可以有換行、句號
+  const lits = k.split(/\{\d+\}/), boxed = lits.slice(1).map((l, i) => '「【（(［'.includes(lits[i].slice(-1)) && !!l[0] && '」】）)］'.includes(l[0]));
+  return [new RegExp(re, 's'), [...k.matchAll(/\{(\d+)\}/g)].map(m => +m[1]), v, weak, boxed];
 }) : [];
 // 沒翻到的句子記下來，開發時在控制台看 window.__trMiss；__trFrom 記著它是從哪整句裏切出來的
 const miss = typeof window !== 'undefined' ? (window.__trMiss = new Set()) : new Set();
@@ -49,8 +51,8 @@ const memo = new Map();
 // 括號在空格之前切（「告知「場上…有 1 對」」裏面那句要整句翻）；切到底還有中文，就把裏面的角色名換成英文（「1=僧侶 2=廚師」）
 const SEPS = [['\n', '\n'], ['：', ': '], [':', ':'], ['；', '; '], ['。', '. '], ['！', '! '], ['？', '? '], ['，', ', '], ['、', ', '],
   ['()'], [' · ', ' · '], ['=', '='], [' ', ' ']];
-const BRACKETS = /([（）「」【】()])/;
-const BR = { '（': ' (', '）': ') ', '(': ' (', ')': ') ', '「': ' "', '」': '" ', '【': ' ', '】': ' ' };
+const BRACKETS = /([（）「」【】［］()])/;
+const BR = { '（': ' (', '）': ') ', '(': ' (', ')': ') ', '「': ' "', '」': '" ', '【': ' ', '】': ' ', '［': ' [', '］': '] ' };
 const NAMES = EN ? EN.NAMES.slice().sort((a, b) => b.length - a.length) : [];
 function split(t) {
   for (const [sep, to] of SEPS) {
@@ -78,7 +80,7 @@ function split(t) {
 }
 
 // 佔位符抓到的內容括號要成對：「{0} 和 {1}」這種寬模板不能從「告知「3號 和 1號…」」的括號中間切開
-const OPEN = '「【（(', CLOSE = '」】）)';
+const OPEN = '「【（(［', CLOSE = '」】）)］';
 function balanced(s) {
   const st = [];
   for (const c of s) {
@@ -88,7 +90,7 @@ function balanced(s) {
   return !st.length;
 }
 // 弱模板的佔位符：一個詞；帶中文的話必須整個是能翻的詞（角色名之類），不然「{0}人」會把「魔鬼代言人」的「人」吃掉
-const WORD = /^[^\s「」【】（）()：；。，、=]*$/;
+const WORD = /^[^\s「」【】（）()［］：；。，、=]*$/;
 let quiet = 0; // 試翻佔位符時不記漏翻
 const word = x => {
   if (!WORD.test(x) || !CJK.test(x)) return WORD.test(x);
@@ -99,9 +101,9 @@ const word = x => {
 const clause = x => !/[；。\n]/.test(x) || whole(x.trim()) != null;
 function whole(t) {
   if (Object.hasOwn(EN.EXACT, t)) return EN.EXACT[t];
-  for (const [re, order, out, weak] of PATS) {
+  for (const [re, order, out, weak, boxed] of PATS) {
     const m = re.exec(t);
-    if (!m || !m.slice(1).every(balanced) || (weak && !m.slice(1).every(word)) || !m.slice(1).every(clause)) continue;
+    if (!m || !m.slice(1).every(balanced) || (weak && !m.slice(1).every(word)) || !m.slice(1).every((x, i) => boxed[i] || clause(x))) continue;
     const got = {};
     order.forEach((n, i) => { got[n] = m[i + 1]; });
     // 句中的佔位符：翻出來的普通詞改小寫（「but they're Already dead」）；角色名、人名不動

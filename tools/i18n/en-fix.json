@@ -45,5 +45,19 @@
  "選擇一名玩家，明天他提名就|死亡": "Choose a player: if they nominate tomorrow, they *die*",
  "選擇一名玩家和一個角色，使其|瘋狂": "Choose a player and a character to make them *mad*",
  "選擇一名玩家和一個角色，使其|變成該角色": "Choose a player and a character: they *become that character*",
- "理髮師死了：可以選擇兩名玩家|交換角色": "The Barber died: you may choose 2 players to *swap characters*"
+ "理髮師死了：可以選擇兩名玩家|交換角色": "The Barber died: you may choose 2 players to *swap characters*",
+ "{0} 和 {1} 之中有一位是惡魔": "One of {0} and {1} is the Demon",
+ "{0} 和 {1} 之中有一位是【{2}】": "One of {0} and {1} is the {2}",
+ "惡魔偽裝": "Demon bluffs",
+ "魔典": "Grimoire",
+ "鯡": "RH",
+ "{0}：已告知": "{0}: told",
+ "沒有要告知的": "Nothing to tell",
+ "渦流在場：今天沒有人被處決，邪惡陣營會直接獲勝。確定結束白天？": "The Vortox is in play: nobody was executed today, so evil wins. End the day anyway?",
+ "已發到手機": "Sent to their phone",
+ "選擇惡魔和另一名玩家，並告知他": "Pick the Demon + 1 other; tell them",
+ "選擇一個{0}和另一名玩家，並告知他": "Pick one {0} + 1 other; tell them",
+ "核對失效的能力，把數字告訴他": "Count failed abilities; tell them",
+ "核對他猜對幾個，把數字告訴他": "Count correct guesses; tell them",
+ "挑一個答案告訴他（可以是錯的）": "Pick any answer (may be false)"
 }

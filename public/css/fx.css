@@ -204,6 +204,8 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 /* 信息卡頂上給說書人的一句（infoform.js guide）：句子比標題長，字距收緊，壓在中間那一小張的正上方居中，手機上不衝出屏幕 */
 .ic-tag.say { left: 50%; translate: -50% -100%; width: max-content; max-width: min(62vw, 15em); padding-inline: 12px; letter-spacing: .06em; font-size: 13px;
   white-space: normal; text-align: center; text-wrap: balance; }
+/* 英文句子字母多：放寬到一行放得下（兩行時上面那行會被桌面頂邊蓋住），en-fix.json 裏這些句子也寫短 */
+:root[data-lang="en"] .ic-tag.say { max-width: min(84vw, 22em); }
 .on-table > .ic-top { position: relative; display: grid; justify-items: center; margin-top: 18px; }
 /* 貞潔者的角落小窗貼著桌面頂邊，籤長不出去：放在正文左邊 */
 .infocard.ruling.corner > .ic-tag { position: static; translate: none; align-self: start; justify-self: start; }
