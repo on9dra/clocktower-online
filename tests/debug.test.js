@@ -42,6 +42,10 @@ function started(roles) {
   ok(st(r, 'swapSeats', { a: r.seats[0].id, b: r.seats[4].id }));
   renameBots(r);
   assert.strictEqual(r.seats[0].name, '機器人1');
+  ok(applyPlayerAction(r, r.seats[1].pid, { act: 'rename', name: '一個很長的名字' }));
+  ok(st(r, 'swapSeats', { a: r.seats[1].id, b: r.seats[2].id }));
+  renameBots(r);
+  assert.deepStrictEqual([r.seats[1].name, r.seats[2].name], ['機器人2', '一個很長的名字'], '改過名的機器人不再自動改名');
   ok(st(r, 'addBots', { n: 20 }));
   assert.strictEqual(r.seats.length, 15, '最多坐滿劇本人數');
   assert.match(st(r, 'addBots', { n: 1 }), /最多/);
