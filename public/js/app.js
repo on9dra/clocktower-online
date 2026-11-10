@@ -21,7 +21,7 @@ import { openAbout } from './about.js';
 import { heraldSync, resetHerald } from './herald.js';
 import { askPass } from './roompass.js';
 import { countPop } from './trial.js';
-import { chime, locked, wake, loadSfx } from './sfx.js';
+import { chime, locked, wake, loadSfx, setScope } from './sfx.js';
 import { setBgm } from './bgm.js';
 import { veiled, noteArrival } from './veil.js';
 import { closePass } from './pass.js';
@@ -200,7 +200,7 @@ function lobby(code = params.get('room') || '') {
   // 離開房間（解散、被移出、自己離開、進不去）：掛在 body 上、不跟著桌面走的東西也收掉——選角色的紙（收著的索引籤也算）、
   // 懸停的角色表、單設備的整屏卡、彈窗、菜單，屏幕常亮放開。不收的話它們留在大廳上面，開著的還壓暗、擋住整個大廳
   if (room) {
-    resetFx(); resetSide(); resetHerald(); chat = []; sel.on = null; closeAct(ctx);
+    resetFx(); setScope(null); resetSide(); resetHerald(); chat = []; sel.on = null; closeAct(ctx);
     closeMenu(); closeModal(); closeRolePanel(); closePick(); closePass(); keepAwake(false);
   }
   const create = () => {
@@ -296,6 +296,7 @@ sock.on('state', s => {
   ctx.offset = s.serverNow - Date.now();
   // 說書人用密鑰回來、舊鏈接沒帶 r 時：從狀態裏補上房間實例標識
   if (session && s.inst && session.inst !== s.inst) enter(session.code, session.st, s.inst);
+  setScope(s.offline && !s.isSt ? 'offline' : null); // 線下局的玩家、觀眾默認靜音，自己打開過的另記一份（sfx.js）
   keepAwake(s.isSt && s.offline && s.phase !== 'lobby' && s.phase !== 'ended'); // 線下局說書人的設備一直擺在桌上：開局後不讓屏幕熄掉
   noteArrival(ctx, s);
   const shown = veiled(ctx, s, true); // 遮住時新信息不演出、不展開面板，按住看的時候才亮出來

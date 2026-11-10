@@ -206,7 +206,8 @@ async function runQueue() {
   followBgm();
 }
 // 音樂跟著演出走：排著的演出播完才換，入夜的鐘、天亮、提名和計票的章這幾處在自己的那一拍換
-const followBgm = () => setBgm(lastState?.phase, !!lastState?.nomination);
+// 線下夜裏不放音樂：大家閉眼坐在一起，說書人在桌邊悄悄叫人，音樂只會蓋住說話聲。入夜的鐘照響，天亮再淡回白天那首
+const followBgm = () => setBgm(lastState?.offline && lastState.phase === 'night' ? null : lastState?.phase, !!lastState?.nomination);
 setBusy(() => running && !!cur?.block); // 煙花不在擋操作的演出上面放
 function skipAll() {
   skipping = true;
@@ -222,7 +223,7 @@ const wait = ms => (cur.skip ? Promise.resolve() : new Promise(r => {
 const anim = (el, frames, opts) => (cur.skip || !el ? null : el.animate(frames, typeof opts === 'number' ? { duration: opts, fill: 'forwards', easing: 'ease-out' } : { fill: 'forwards', ...opts }));
 const sfx = (name, k) => !cur.skip && !cur.quiet && play(name, k);
 // 線下：說書人的設備擺在桌上、玩家的手機也在身邊，響一聲全桌都聽得見。
-// 只有全桌本來就知道的事出聲（入夜、天亮、提名、計票、處決、開槍、勝負……）；夜裏的結算、自己的行動、私下得知的信息只演不響。音樂照放
+// 只有全桌本來就知道的事出聲（入夜、天亮、提名、計票、處決、開槍、勝負……）；夜裏的結算、自己的行動、私下得知的信息只演不響。夜裏不放音樂（followBgm）
 const LOUD = new Set(['curtain', 'night', 'dawn', 'nominate', 'callvote', 'votes', 'virgin', 'execute', 'noexec', 'slay', 'win', 'mvp', 'saint', 'mayor', 'curse', 'revive', 'vortex']);
 
 // 座位牌在屏幕上的中心

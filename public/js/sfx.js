@@ -35,14 +35,24 @@ export const onSoundChange = fn => watchers.push(fn);
 const DEF = { sfx: true, vol: 0.8, music: true, musicVol: 0.5, fw: true, fwSound: true };
 // 音樂整體壓低約 4dB：墊在聊天和演出後面，不搶、不吵。乘在音量滑塊上，滑塊的數值不變，調過的人也一起變輕
 const TRIM = 0.63;
-let kept = null; // 存不進 localStorage（Safari 無痕、關了存儲的 WebView）時記在這裏：這一頁裏靜音、音量照樣算數
-export function prefs() { if (kept) return { ...DEF, ...kept }; try { return { ...DEF, ...JSON.parse(localStorage.getItem(PREFS) || '{}') }; } catch { return { ...DEF }; } }
-export function setPref(k, v) {
-  const p = { ...prefs(), [k]: v };
-  try { localStorage.setItem(PREFS, JSON.stringify(p)); kept = null; } catch { kept = p; }
+// 線下局的玩家（說書人以外，觀眾也算）：手機就在桌邊，大家當面玩，默認全靜音。在這裏打開過聲音、調過音量的另記一份，下次線下沿用，不動線上那份
+const QUIET = { sfx: false, music: false };
+let scope = null; // null 平常；'offline' 線下局的玩家（app.js 跟著房間狀態設）
+const key = () => (scope ? `${PREFS}.${scope}` : PREFS);
+const base = () => (scope ? { ...DEF, ...QUIET } : DEF);
+let kept = {}; // 存不進 localStorage（Safari 無痕、關了存儲的 WebView）時記在這裏：這一頁裏靜音、音量照樣算數
+export function prefs() { if (kept[key()]) return { ...base(), ...kept[key()] }; try { return { ...base(), ...JSON.parse(localStorage.getItem(key()) || '{}') }; } catch { return { ...base() }; } }
+function apply() {
+  const p = prefs();
   if (master) master.gain.value = 0.6 * p.vol;
   if (music) music.gain.value = TRIM * p.musicVol;
   watchers.forEach(fn => fn());
+}
+export function setScope(s) { if (s !== scope) { scope = s; before = null; apply(); } }
+export function setPref(k, v) {
+  const p = { ...prefs(), [k]: v };
+  try { localStorage.setItem(key(), JSON.stringify(p)); delete kept[key()]; } catch { kept[key()] = p; }
+  apply();
 }
 // 全部靜音（頂欄喇叭）：再按一下回到之前的樣子。舊版的靜音記號換成兩個開關都關
 export const muted = () => { const p = prefs(); return !p.sfx && !p.music; };
