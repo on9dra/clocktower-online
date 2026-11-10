@@ -234,6 +234,12 @@
  "{0} 提名了 {1}。提名者陳述、被提名者辯護後，說書人開始計票。": [
   "lib/day.js"
  ],
+ "{0} 天後的晚上": [
+  "public/js/town.js"
+ ],
+ "{0} 天後的早上": [
+  "public/js/town.js"
+ ],
  "{0} 向 {1} 開槍": [
   "lib/day.js"
  ],
@@ -869,6 +875,12 @@
  ],
  "大多也自動": [
   "public/js/help.js"
+ ],
+ "大後天晚上": [
+  "public/js/town.js"
+ ],
+ "大後天早上": [
+  "public/js/town.js"
  ],
  "大家都閉上了眼": [
   "public/js/town.js"
@@ -1549,6 +1561,12 @@
  "紅鯡魚只能是善良玩家": [
   "public/js/flow.js"
  ],
+ "後天晚上": [
+  "public/js/town.js"
+ ],
+ "後天早上": [
+  "public/js/town.js"
+ ],
  "互認": [
   "public/js/help.js",
   "public/js/topbar.js"
@@ -1839,6 +1857,9 @@
  "今天沒有人被處決。確定結束白天、直接入夜？": [
   "public/js/flow.js"
  ],
+ "今天晚上": [
+  "public/js/town.js"
+ ],
  "今天無人被處決": [
   "public/js/gamelog.js"
  ],
@@ -1860,6 +1881,9 @@
  ],
  "今天有外來者死亡：選擇一名玩家殺死": [
   "lib/night.js"
+ ],
+ "今天早上": [
+  "public/js/town.js"
  ],
  "今晚": [
   "public/js/flow.js"
@@ -2321,6 +2345,12 @@
   "public/js/town.js"
  ],
  "明天他只要提名，自己就會死。": [
+  "public/js/town.js"
+ ],
+ "明天晚上": [
+  "public/js/town.js"
+ ],
+ "明天早上": [
   "public/js/town.js"
  ],
  "酩酊": [
@@ -2925,6 +2955,9 @@
  "失敗": [
   "public/js/fx.js",
   "public/js/help.js"
+ ],
+ "失去能力時": [
+  "public/js/town.js"
  ],
  "失效": [
   "public/js/fx-ab.js",

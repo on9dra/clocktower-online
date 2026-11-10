@@ -158,5 +158,16 @@
  "來源：": "Source:",
  "持續到：": "Until:",
  "其實是：": "Actually:",
- "遊戲結束": "End of game"
+ "遊戲結束": "End of game",
+ "今天早上": "This morning",
+ "今天晚上": "This evening",
+ "明天早上": "Tomorrow morning",
+ "明天晚上": "Tomorrow evening",
+ "後天早上": "Morning in 2 days",
+ "後天晚上": "Evening in 2 days",
+ "大後天早上": "Morning in 3 days",
+ "大後天晚上": "Evening in 3 days",
+ "{0} 天後的早上": "Morning in {0} days",
+ "{0} 天後的晚上": "Evening in {0} days",
+ "失去能力時": "loses their ability"
 }

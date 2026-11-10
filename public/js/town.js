@@ -750,8 +750,16 @@ const TAG_RULE = {
   紅鯡魚: '占卜師查驗時，他會被當作惡魔。', 管家的主人: '管家只有在他投贊成票時才能投贊成票。', 孫子: '祖母知道他是誰；惡魔殺死他時，祖母也會死。',
   善良: '他現在是善良陣營，和角色原本的陣營不同。', 邪惡: '他現在是邪惡陣營，和角色原本的陣營不同。',
 };
-// 持續到什麼時候：tick 是 2 × 夜數（夜裏）、2 × 天數 + 1（白天）
-const until = till => (till == null ? null : till >= 1e8 ? '遊戲結束' : till % 2 ? `第 ${(till - 1) / 2} 天` : `第 ${till / 2} 夜`);
+// 持續到什麼時候：從「現在」說，今天晚上、明天早上、後天晚上……不寫第幾天讓人去算。
+// tick：第 n 夜是 2n，第 n 天是 2n + 1；效果到 till 那一拍結束。一夜結束是第二天早上，一天結束是那天晚上（入夜）。
+// 「今天」按日曆算：第 n 夜是第 n - 1 天的晚上（夜裏說「明天早上」就是天亮時），白天就是第 n 天
+const ENDS = { morning: ['今天早上', '明天早上', '後天早上', '大後天早上'], evening: ['今天晚上', '明天晚上', '後天晚上', '大後天晚上'] };
+function until(s, till) {
+  if (till == null) return null;
+  if (till >= 1e8) return '遊戲結束';
+  const morning = till % 2 === 0, end = morning ? till / 2 : (till - 1) / 2, today = s.phase === 'night' ? s.night - 1 : s.night, k = end - today;
+  return ENDS[morning ? 'morning' : 'evening'][k] || (morning ? `${k} 天後的早上` : `${k} 天後的晚上`);
+}
 // 卡下面的一行行「來源：…」「持續到：…」：左邊短詞，右邊內容，兩列對齊
 const kv = (k, ...v) => [h('span', { class: 'mc-k' }, k), h('span', { class: 'mc-v' }, v)];
 function markCard(ctx, seat, key) {
@@ -783,7 +791,8 @@ function markCard(ctx, seat, key) {
   for (const e of why[text] || []) {
     // 來源：誰（座位號 + 角色）；沒有角色的是說書人自己設的。持續到：哪一天 / 哪一夜，跟著來源走的沒有期限就不寫
     rows.push(h('div', { class: 'mc-src' }, kv('來源：', ...(e.src ? [e.by && seatBadge(s, e.by), mini(e.src), w(ROLES[e.src]?.name || '', 'ink')] : [w('說書人', 'ink')])),
-      until(e.till) && kv('持續到：', w(until(e.till), 'ink'))));
+      // 跟著來源走、沒有期限的（哲學家、亡骨魔、諾-達鯴……）：寫來源那個人失去能力時，不寫「遊戲結束」
+      e.live && e.by && (e.till == null || e.till >= 1e8) ? kv('持續到：', seatBadge(s, e.by), w('失去能力時', 'ink')) : until(s, e.till) && kv('持續到：', w(until(s, e.till), 'ink'))));
   }
   const mine = text != null && (s.st?.marks?.[seat.id] || []).includes(text);
   const card = h('div', { class: 'mk-card', 'data-key': `card-${seat.id}-${key}`, 'data-seat': seat.id, 'data-mark': key, 'data-exit': true },
