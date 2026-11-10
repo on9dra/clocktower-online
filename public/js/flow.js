@@ -176,9 +176,11 @@ export function stCenter(ctx) {
 // 提名是一天裏的正事（寬），開槍一局難得一次（窄）。沒人能提名了（處決過、都提名過）鍵照樣在，點了說原因
 function dayActs(ctx) {
   const s = ctx.state, can = !s.dayOver && s.seats.some(x => mayNominate(s, x));
+  // 開槍：誰都可以宣稱自己是獵手，所以不看場上有沒有；但劇本裏根本沒有獵手（黯月初升……）就沒人會這麼說，按鈕不放
+  const gun = SCRIPTS[s.scriptId]?.roles.includes('slayer') || s.seats.some(x => x.role === 'slayer' || x.fakeRole === 'slayer');
   return h('div', { class: 'row r73 day-acts' },
     BW('提名', () => startAct(ctx, 'nom'), 'big', can ? null : s.dayOver ? '今天已經處決過，不能再提名' : '活著的人今天都提名過了'),
-    B([icon('aim'), '開槍'], () => startAct(ctx, 'slay'), 'big'));
+    gun && B([icon('aim'), '開槍'], () => startAct(ctx, 'slay'), 'big'));
 }
 
 // 白天要私下給信息的角色（博學者每天、藝術家一次）：小圓牌，點了直接補發，發過就收起

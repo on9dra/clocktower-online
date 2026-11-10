@@ -1,7 +1,8 @@
 // 線下局：系統判規則，說書人當面主持、替玩家點。單設備的座位是名字，多設備的玩家手機只看身份和信息。用法：node tests/offline.test.js
 import assert from 'assert';
 import { createRoom } from '../lib/store.js';
-import { applyStOp, applyPlayerAction, joinPlayer, WATCH, undoOf } from '../lib/ops.js';
+import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH, undoOf } from '../lib/ops.js';
+import { stLog } from '../lib/util.js';
 import { viewFor } from '../lib/view.js';
 import { autoPicks } from '../lib/engine.js';
 import { ok, st } from './helpers.js';
@@ -257,4 +258,57 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   assert.strictEqual(r.g.step.form.truth.yes, true, '改了紅鯡魚，答案重算');
   assert.strictEqual(st(r, 'setRedHerring', { seatId: r.seats[0].id }), '紅鯡魚必須是善良玩家');
   console.log('占卜師紅鯡魚 ✔');
+}
+
+// 撤銷不回退玩家自己做的事（多設備）：之後進來的人、改的名字、換的設備、新發的重連鏈接都留著；撤銷「移出房間」連移出名單一起退
+{
+  const r = createRoom();
+  ok(st(r, 'venue', { venue: 'offline', devices: 'many' }));
+  for (let i = 0; i < 5; i++) joinPlayer(r, 'p' + i, 'n' + i);
+  const [a, b, c] = r.seats.map(s => s.id), seat = id => r.seats.find(s => s.id === id);
+  ok(st(r, 'moveSeat', { seatId: a, dir: 1 })); // 說書人挪了一下座位
+  joinPlayer(r, 'late', '遲到的'); // 之後：有人掃碼進來
+  ok(applyPlayerAction(r, 'p1', { act: 'rename', name: '改名' })); // 有人改了名字
+  assert(st(r, 'seatLink', { seatId: c }).token); // 說書人給 3 號發了重連鏈接（這一步本身不進撤銷）
+  assert.strictEqual(claimSeat(r, 'newphone', seat(c).claim), undefined, '用鏈接換到新手機');
+  ok(applyPlayerAction(r, 'p4', { act: 'leave' })); // 有人離開
+  assert.strictEqual(undoOf(r), 'moveSeat');
+  ok(st(r, 'undo'));
+  assert.deepStrictEqual(r.seats.slice(0, 2).map(s => s.id), [a, b], '座位順序退回去了');
+  assert(r.seats.some(s => s.pid === 'late'), '遲到的人還在座位上');
+  assert.strictEqual(seat(b).name, '改名', '改的名字還在');
+  assert.strictEqual(seat(c).pid, 'newphone', '換的設備還在');
+  assert(!seat(c).claim, '用過的鏈接不會復活');
+  assert(!r.seats.some(s => s.pid === 'p4'), '離開的人不被拉回來');
+  assert(r.players.late && r.players.newphone, '積分檔案跟著人');
+  // 移出再撤銷：人回來，也不在移出名單裏
+  ok(st(r, 'kick', { seatId: a }));
+  assert(r.banned.includes('p0') && !seat(a));
+  ok(st(r, 'undo'));
+  assert(seat(a) && !r.banned.includes('p0'), '撤銷移出：人回到座位，刷新也進得來');
+  assert.strictEqual(joinPlayer(r, 'p0', ''), undefined);
+  console.log('撤銷不回退玩家自己做的事 ✔');
+}
+
+// 撤銷的快照不抄流程日誌：日誌寫得再長，一張快照也只有這局的狀態那麼大；撤銷後日誌截回當時的長度
+{
+  const r = createRoom();
+  ok(st(r, 'venue', { venue: 'offline', devices: 'one' }));
+  ok(st(r, 'addSeats', { names: ['甲', '乙', '丙', '丁', '戊', '己', '庚'] }));
+  ok(st(r, 'next', { force: true }));
+  for (let i = 0; i < 400; i++) stLog(r, '填滿日誌的一行，長一點長一點長一點長一點長一點長一點 ' + i, { k: 'fix', what: 'x', seat: r.seats[0].id });
+  const before = r.g.log.length, log = r.g.log;
+  const heap = () => { global.gc?.(); return process.memoryUsage().heapUsed; };
+  const h0 = heap();
+  for (let i = 0; i < 30; i++) ok(st(r, 'setAlign', { seatId: r.seats[i % 7].id, align: i % 2 ? 'evil' : 'good' }));
+  const grown = heap() - h0;
+  if (global.gc) assert(grown < 3e6, `三十張快照佔了 ${Math.round(grown / 1024)}KB`);
+  const added = r.g.log.length - before;
+  ok(st(r, 'undo'));
+  assert.strictEqual(r.g.log, log, '日誌還是同一份');
+  assert(r.g.log.length <= before + added && r.g.log.length >= before, '後加的截掉了');
+  for (let i = 0; i < 29; i++) ok(st(r, 'undo'));
+  assert.strictEqual(r.g.log.length, before, '全部撤銷：日誌回到當時的長度');
+  bad(r, 'undo');
+  console.log('撤銷快照不抄日誌 ✔');
 }

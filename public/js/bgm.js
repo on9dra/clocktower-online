@@ -11,6 +11,9 @@ const SEAM = { lobby: 0.1, day: 0.03, night: 4, vote: 4 };
 // 大廳：開頭一段沒有低音，只第一次放；之後每圈從第二遍 A 段（帶低音）的尾巴回到第一遍低音進來後。文件在 97.068 秒剪進了第一遍（tools/bgm-build.py 的 SPLICE）
 // 白天：44.356 秒一圈，文件尾巴補了 1.5 秒開頭（bgm-build.py 的 TAIL），在 0.87 秒那個空檔交接
 const LOOP = { lobby: [21.25, 97.248], day: [0.87, 45.226] };
+// 文件名。音頻緩存一天（server.js），重做過的曲子要換名字：不然回來的玩家拿舊文件配新的交接點，每圈接不上（tools/bgm-build.py 的 FILE 跟著改）
+const FILE = { day: 'day-2' };
+const url = (name, at) => `bgm/${FILE[name] || name}.m4a#t=${at}`;
 // 循環時後一副提前這麼久靜音起播：剛起的頭零點幾秒，放出來的聲音還沒對上位置，跟前一副疊著淡會互相抵消、凹下去一塊；放穩了再交接
 const PREROLL = 0.5;
 const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
@@ -59,7 +62,7 @@ function prime(name, at = 0) {
   if (decks.some(d => d !== live && d.primed === name)) return;
   const d = spare();
   d.primed = name;
-  d.el.src = `bgm/${name}.m4a#t=${at}`;
+  d.el.src = url(name, at);
   d.el.load();
 }
 // lead：從 at 前這麼多秒靜音起，等舊的放到 until 再交接（循環用）
@@ -71,7 +74,7 @@ function start(name, sec, at, out = sec, lead = 0, until = 0) {
   d.looping = false;
   const from = at - lead;
   if (d.primed === name) { if (Math.abs(d.el.currentTime - from) > 0.01) d.el.currentTime = from; }
-  else d.el.src = `bgm/${name}.m4a#t=${from}`;
+  else d.el.src = url(name, from);
   d.primed = null;
   // 真的響了才開始換，網慢的時候舊的不會先沒了聲
   d.el.play().then(() => {

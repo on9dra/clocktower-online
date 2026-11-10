@@ -837,6 +837,9 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .token.blank.solid { border: 2px solid var(--ink); color: var(--ink); background: var(--card); }
 .blk { position: absolute; left: 50%; top: 50%; z-index: 3; width: 150px; height: 214px; transform: translate(-50%, -54%); pointer-events: none; }
 .blk .gallows { position: absolute; left: 0; top: 0; width: 150px; height: 170px; }
+/* 圓桌中間來了操作卡（線下替玩家提名、開槍、猜）：絞刑架先讓開，卡是眼下要點的，被架子擋著讀不到；卡走了再回來 */
+.ring > .blk { transition: opacity .25s ease; }
+.ring:has(> .center > .st-card:not(.corner, .leaving)) > .blk { opacity: 0; }
 .gallows .g-wood { fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: square; }
 .gallows .g-rope { fill: none; stroke: var(--brass); stroke-width: 3.5; }
 .blk-tok { position: absolute; left: 33px; top: 62px; }
@@ -989,6 +992,11 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
     .lobby-after .frm-line { flex-wrap: nowrap; gap: 3px; }
     .lobby-after .bluff-pick { padding-inline: 1px; }
   }
+  /* 單設備這一排開頭多了「− N 人 +」，三樣一排放不下（隨機抽取會出屏）：人數自己一行，按鈕在下面；整塊往上提一行 */
+  @container (orientation: landscape) and (max-height: 500px) and (min-width: 780px) {
+    .lp-act .row:has(> .add-seats) { flex-wrap: wrap; }
+    .town.picking .ring:has(.lp-act .add-seats) { --lp: calc(50% - 84px); }
+  }
   /* 大屏手機還留著側欄，右邊窄：按鈕豎著排，偽裝只留名字 */
   @container (orientation: landscape) and (max-height: 500px) and (max-width: 779.9px) {
     .town.picking .ring { --aw: 150px; --lp: calc(50% - 104px); }
@@ -1055,11 +1063,21 @@ body[data-phase="night"] .town > .phase-tag, body[data-phase="dawn"] .town > .ph
 .town > .phase-tag { transition: color 1.4s ease, opacity .3s ease; }
 /* 訃告（town.js obituary）：天亮後掛在桌子正上方，兩根繩吊著從上面晃下來，晃幾下停住；入夜時淡掉。
    有人死是黑色雙框的「訃告」，紙頂停著一隻烏鴉（隔一會兒歪一下頭）；平安夜是銅框的「告示」 */
-/* --x：水平位置。手機上正上方居中（壓到座位時 town.js placeObit 用 --oy 提一點）；電腦上、手機上放不下時 .aside 在左上角「第 N 天」下面 */
-.town > .obit { --x: -50%; position: absolute; left: 50%; top: calc(44px + var(--oy, 0px)); z-index: 3; translate: var(--x) 0; transform-origin: 50% -14px; pointer-events: none;
-  animation: ob-hang 1.25s cubic-bezier(.3, .7, .4, 1) .35s both; transition: opacity .3s ease; }
-.town > .obit.aside { --x: 0px; left: 14px; top: 58px; }
-.town > .obit.unplaced { animation-play-state: paused; } /* 位置量好之前停在動畫第一幀（看不見），量好了才掛下來 */
+/* 位置由 town.js placeObit 量：--ol / --ot 是紙的左上角（相對小鎮），哪裏不壓座位掛哪裏；整塊放不下時 .slim 換成一行的小條 */
+.town > .obit { position: absolute; left: var(--ol, 14px); top: var(--ot, 58px); z-index: 3; width: max-content; transform-origin: 50% -14px; pointer-events: none; /* max-content：靠右掛時不被剩下的寬度擠窄、標題不折行 */
+  animation: ob-hang 1.25s cubic-bezier(.3, .7, .4, 1) .35s both; transition: opacity .28s ease, left .4s ease, top .4s ease; }
+.town > .obit.unplaced { animation-play-state: paused; transition: none; } /* 位置量好之前停在動畫第一幀（看不見），量好了才掛下來 */
+.town > .obit.fade { opacity: 0; } /* 換大小前先淡掉（placeObit） */
+.town > .obit.slim { transform-origin: 50% -9px; }
+.obit.slim .ob-h, .obit.slim .ob-crow { display: none; }
+.obit.slim .ob-str { top: -9px; height: 11px; }
+.obit.slim .ob-paper { padding: 2px 9px 3px; }
+.obit.slim.mourn .ob-paper { border-width: 2px; box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px #1d1a16, 0 3px 8px #0005; }
+.obit.slim .ob-line { margin-top: 0; }
+.obit .ob-ico { display: none; width: 15px; height: 15px; flex: none; color: #1d1a16; }
+.obit.mini .ob-ico { display: block; }
+.obit.mini .ob-line .w { display: none; }
+.obit.mini .ob-paper { padding: 2px 6px 3px; }
 .ob-str { position: absolute; top: -14px; width: 1.5px; height: 16px; background: #5a4a33; }
 .ob-str.l { left: 24%; rotate: -12deg; } .ob-str.r { right: 24%; rotate: 12deg; }
 .ob-paper { position: relative; padding: 5px 14px 6px; color: #1d1a16; background: var(--card) var(--paper-tex, none) 0 0 / 320px; text-align: center; }
@@ -1071,11 +1089,11 @@ body[data-phase="night"] .town > .phase-tag, body[data-phase="dawn"] .town > .ph
 .ob-line .w { font-size: 13px; } .ob-line .sb { font-size: 15px; }
 .ob-crow { position: absolute; right: 2px; top: -21px; width: 30px; height: 24px; fill: #1d1a16; color: #1d1a16; }
 .ob-crow .ob-head { transform-box: fill-box; transform-origin: 30% 70%; animation: ob-tilt 6s ease-in-out 2.2s infinite; }
-@keyframes ob-hang { from { translate: var(--x) calc(-100% - 40px); rotate: 0deg; opacity: 0; } 12% { opacity: 1; } 55% { translate: var(--x) 0; rotate: 6deg; }
-  72% { rotate: -3.5deg; } 87% { rotate: 1.5deg; } to { translate: var(--x) 0; rotate: 0deg; } }
+@keyframes ob-hang { from { translate: 0 calc(-100% - 40px); rotate: 0deg; opacity: 0; } 12% { opacity: 1; } 55% { translate: 0 0; rotate: 6deg; }
+  72% { rotate: -3.5deg; } 87% { rotate: 1.5deg; } to { translate: 0 0; rotate: 0deg; } }
 @keyframes ob-tilt { 0%, 78%, 100% { rotate: 0deg; } 83% { rotate: -22deg; } 90% { rotate: 8deg; } }
 @media (max-width: 640px) {
-  .town > .obit { top: calc(40px + var(--oy, 0px)); } .ob-h { font-size: 15px; } .ob-line .w { font-size: 12px; } .ob-line .sb { font-size: 13px; }
+  .ob-h { font-size: 15px; } .ob-line .w { font-size: 12px; } .ob-line .sb { font-size: 13px; }
   .town:has(.st-card .spread > .ic-body, .st-card .on-table .tb-roles, .trial) > .obit { opacity: 0; } /* 圓桌上方那一條給卡片的選項 / 審判牌時讓開 */
 }
 @media (prefers-reduced-motion: reduce) { .town > .obit, .ob-crow .ob-head { animation: none; } }

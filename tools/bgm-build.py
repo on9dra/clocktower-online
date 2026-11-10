@@ -16,6 +16,8 @@ LOUD = {'day': -21, 'night': -21, 'vote': -18, 'lobby': -22}
 # 無縫循環的曲子：文件尾巴多帶這麼多秒開頭，bgm.js 循環時兩副播放器放的是同樣的聲音，交叉淡化才不打架。
 # 要夠 bgm.js 的 LOOP 在開頭之後找個兩個音之間的交接點，再留點餘量
 TAIL = {'day': 1.5}
+# 輸出的文件名：重做過的曲子換名字（音頻緩存一天，同名替換會讓回來的玩家拿到舊文件），和 public/js/bgm.js 的 FILE 一致
+FILE = {'day': 'day-2'}
 # 有前奏的曲子：(從, 接到)。原曲放到「從」那一秒，聽起來就是「接到」那一秒，在那裏剪開，後面補 SPLICE_TAIL 秒「接到」之後的音樂。
 # bgm.js 的 LOOP 在剪口之後、兩個音之間交接，兩副播放器放的是同一段聲音。
 # 大廳那首：A 段 0–21 秒沒有低音，76 秒起帶著低音再奏一遍 A，到 B 段要起的地方原曲淡出。
@@ -41,7 +43,7 @@ def main(raw, names):
         src = glob.glob(os.path.join(raw, name + '.*'))[0]
         level, peak = loudness(src)
         gain = min(target - level, -1 - peak)  # 峰值頂到 -1dB 時寧可輕一點
-        out = os.path.join(OUT, name + '.m4a')
+        out = os.path.join(OUT, FILE.get(name, name) + '.m4a')
         enc = ['-ar', '44100', '-c:a', 'aac', '-b:a', '80k', '-movflags', '+faststart', out]
         if name in SPLICE:
             cut, to = SPLICE[name]
