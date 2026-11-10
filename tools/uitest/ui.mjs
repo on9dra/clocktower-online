@@ -20,7 +20,7 @@
 //   save <名字> / load <名字> / saves    存檔、讀檔、列出存檔（房間 + 每台設備的身份和網址）
 //   sync [文件…]           把改過的代碼同步進快照：public 的刷新頁面，lib / server.js 的重啓服務（房間不丟）
 //   restart / reload [設備] / fast on|off / devices / drop <設備> / status
-//   views <設備> [寬x高…]   一次截幾種屏幕（說書人：電腦、手機、橫屏）      link <設備>   給內置瀏覽器面板用的網址
+//   views <設備> [all|寬x高…]   一次截幾種屏幕（默認 說書人：電腦、手機、橫屏；all = 再加矮屏和小屏）      link <設備>   給內置瀏覽器面板用的網址
 //   eval <設備> <JS>        在頁面裏跑一段 JS      measure <設備> <選擇器> [樣式 / --變量…]   量位置尺寸和樣式
 // preset、load 時 rig 沒在跑，就自動在後台起一台（名字 auto<端口>，服務 = 控制端口 - 2），一個半小時沒人用自己收攤
 import { spawn } from 'node:child_process';

@@ -501,10 +501,13 @@ const CMD = {
     } return { viewport: innerWidth + 'x' + innerHeight, n: document.querySelectorAll(${JSON.stringify(sel)}).length, out }; })()`);
     return `${v.viewport}，匹配 ${v.n} 個${v.n > 10 ? '（列前 10 個）' : ''}\n` + v.out.map(o => JSON.stringify(o)).join('\n');
   },
-  // 一次截幾種屏幕：說書人默認 電腦 1280x800、手機 375x664、橫屏 844x390；玩家手機默認 375x664、360x640、橫屏 844x390。截完回到原來的尺寸
+  // 一次截幾種屏幕：說書人默認 電腦 1280x800、手機 375x664、橫屏 844x390；玩家手機默認 375x664、360x640、橫屏 844x390。截完回到原來的尺寸。
+  // all：手機規矩裏要查的全套（iPhone Safari、矮屏、安卓、小屏、橫屏），說書人再加電腦
   async views(dev, ...sizes) {
     const d = need(dev), was = [d.w, d.h];
-    const list = sizes.length ? sizes.map(WH).filter(Boolean) : dev === 'st' ? [[1280, 800], [375, 664], [844, 390]] : [[375, 664], [360, 640], [844, 390]];
+    const ALL = [[375, 664], [375, 553], [360, 640], [320, 568], [844, 390]];
+    const list = sizes[0] === 'all' ? (dev === 'st' ? [[1280, 800], ...ALL] : ALL)
+      : sizes.length ? sizes.map(WH).filter(Boolean) : dev === 'st' ? [[1280, 800], [375, 664], [844, 390]] : [[375, 664], [360, 640], [844, 390]];
     const out = [];
     for (const [w, h] of list) { await size(d, w, h); await sleep(1000); out.push(`${w}x${h}：${await shoot(d, `${w}x${h}`)}`); }
     await size(d, ...was);
