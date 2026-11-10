@@ -613,6 +613,7 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .team-n i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--team); box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 9px var(--team); }
 .maybe { display: inline-flex; align-items: center; gap: 2px; font: 700 15px var(--serif); color: #3f7f86; opacity: .8; transition: opacity .25s ease; }
 .maybe.off { opacity: 0; }
+.frm-line.maybes { justify-content: center; gap: 4px 12px; min-height: 24px; margin: 0; } /* 空著也佔一行：暗流 7 人才出男爵，中間的東西不跳 */
 .rule { position: relative; display: inline-flex; }
 .rule.lock { box-shadow: 0 0 0 2px var(--brass); border-radius: 50%; }
 .rule.ban .token { opacity: .4; }

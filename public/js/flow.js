@@ -380,6 +380,8 @@ function lobbyPane(ctx) {
   const off = t => !!due && c[t] !== due[t] && !(flex && ['outsider', 'townsfolk'].includes(t));
   // 可能抽到、會改變外來者數量的角色（男爵 7 人以下隨機不出現）。抽完淡掉但位置還在，這一行的高度不變，圓桌中央的東西不動
   const shifts = SCRIPTS[s.scriptId].roles.filter(id => changesSetup(id) && !rules[id] && !(id === 'baron' && n < 7));
+  // 劇本裏有這種角色，這一行就一直留著（暗流 7 人才出男爵）：加人、改必選時開始遊戲不會被往下擠
+  const shiftLine = SCRIPTS[s.scriptId].roles.some(changesSetup);
   const delta = id => { const x = ROLES[id].setup.outsider; return Array.isArray(x) ? '±1' : (x > 0 ? '+' : '') + x; };
   // 寬屏兩塊連著放在圓桌中央；手機和窄桌面 lp-act 放到圓桌外面，其餘還在中央（board.css）
   // 帶 key：從選模式那一塊換過來時，選模式的牌整塊在原地淡掉，不拆開塞進這一塊（版式不一樣，會擠到中間）
@@ -388,8 +390,9 @@ function lobbyPane(ctx) {
       // 單設備空桌：先點人數
       s.oneDevice && !n ? countPick(ctx) : [
         // 配比對不上的陣營：數字後面小字寫應該是幾（男爵、教父這些改外來者人數的也算進去了），點了不攔
-        c && row(CORE.map(t => h('span', { class: 'team-n' + (off(t) ? ' off' : ''), style: { '--team': TEAMS[t].color }, title: off(t) ? `應為 ${due[t]}` : null }, h('i'), c[t], off(t) && h('small', { class: 'team-due' }, `應${due[t]}`))),
-          n >= 5 && shifts.map(id => h('span', { class: 'maybe' + (st.draft ? ' off' : '') }, mini(id), delta(id)))),
+        // 四個陣營單獨一行，對準圓心；可能改外來者人數的角色放下面一行，有幾個都不會把上面推歪
+        c && row(CORE.map(t => h('span', { class: 'team-n' + (off(t) ? ' off' : ''), style: { '--team': TEAMS[t].color }, title: off(t) ? `應為 ${due[t]}` : null }, h('i'), c[t], off(t) && h('small', { class: 'team-due' }, `應${due[t]}`)))),
+        c && shiftLine && h('div', { class: 'frm-line maybes' }, n >= 5 && shifts.map(id => h('span', { class: 'maybe' + (st.draft ? ' off' : '') }, mini(id), delta(id)))),
         (locked.length > 0 || banned.length > 0) && row(locked.map(id => h('span', { class: 'rule lock' }, mini(id))), banned.map(id => h('span', { class: 'rule ban' }, mini(id), icon('cross', 'rule-x')))),
         startButton(ctx, due, off)]),
     h('div', { class: 'lp-act' },
