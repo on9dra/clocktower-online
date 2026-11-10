@@ -18,11 +18,13 @@ function seg(i, done) {
   return h('i', { class: 'pg-seg' + (done ? ' done' : ''), 'data-key': 'seg' + i, style: { '--i': i } }, loose, gold);
 }
 // 一張掛著的牌：k 是 done / now，key 讓同一張牌在重繪時保持不變（不重播動畫）；line 是它在彈窗表裏的一行
-const item = (key, k, kids, title, extra = '', line = null) => {
-  const cls = `${k ? ' ' + k : ''}${extra ? ' ' + extra : ''}`;
+// tap：手動局說書人點一下就勾掉 / 取消（條上的牌和彈窗表裏的行都能點）
+const item = (key, k, kids, title, extra = '', line = null, tap = null) => {
+  const cls = `${k ? ' ' + k : ''}${extra ? ' ' + extra : ''}${tap ? ' tap' : ''}`;
+  const on = tap && (e => { e.stopPropagation(); tap(); });
   return { k,
-    el: i => h('div', { class: 'pg-it' + cls, 'data-key': key, style: { '--i': i }, title }, h('i', { class: 'pg-knot' }), kids),
-    line: () => h('div', { class: 'pg-row' + cls, 'data-key': key }, line?.()) };
+    el: i => h('div', { class: 'pg-it' + cls, 'data-key': key, style: { '--i': i }, title, onclick: on }, h('i', { class: 'pg-knot' }), kids),
+    line: () => h('div', { class: 'pg-row' + cls, 'data-key': key, onclick: on }, line?.()) };
 };
 // 兩端的章：雙線圓章，夜晚是月亮、白天是太陽（第幾夜 / 天寫在圓桌中央，這裏不重複）
 const seal = (key, k, ico, title) => item(key, k, h('span', { class: 'pg-seal ' + ico }, icon(ico)), title, 'seal');

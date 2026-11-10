@@ -9,7 +9,8 @@ import { inkFilters } from './press.js';
 const KEY = 'botc.intro';
 export const introSeen = ls => !!ls.get(KEY);
 
-const NUM = '一二三', BIG = '壹貳參';
+// 英文：圓點用 1 2 3，印章和角標用羅馬數字
+const EN = getLang() === 'en', NUM = EN ? '123' : '一二三', BIG = EN ? ['I', 'II', 'III'] : '壹貳參';
 const seal = n => h('span', { class: 'it-n' }, BIG[n]);
 const head = (n, text, ...kids) => h('header', { class: 'it-h' }, seal(n), h('h2', {}, text), kids);
 const tok = id => roleToken(id, { size: 'md' });
@@ -191,7 +192,7 @@ export function showIntro(ls, { wait, after } = {}) {
     setTimeout(() => root.remove(), 260);
   }
   function key(e) {
-    if (e.isComposing) return;
+    if (e.isComposing || e.keyCode === 229) return; // Safari 用回車確認拼音時，keydown 晚於 compositionend，isComposing 已經是 false，只能看 229
     const k = { ArrowRight: 1, ArrowLeft: -1, Escape: 0 }[e.key];
     if (k === undefined) return;
     e.preventDefault(); e.stopPropagation();
@@ -213,6 +214,6 @@ export function showIntro(ls, { wait, after } = {}) {
   nav(0);
   next.focus();
   // 印刷件和字體到了才發牌，不然版框會在牌落定之後才冒出來；網絡慢時最多等 1.5 秒
-  const printed = Promise.all([document.fonts.load(`900 1em "Card ${getLang().toUpperCase()}"`), ...INK.map(n => { const i = new Image(); i.src = `img/press/${n}.webp`; return i.decode(); })]).catch(() => {});
+  const printed = Promise.all([document.fonts.load(`900 1em "Card ${getLang() === 'sc' ? 'SC' : 'TC'}"`), ...INK.map(n => { const i = new Image(); i.src = `img/press/${n}.webp`; return i.decode(); })]).catch(() => {});
   Promise.all([wait, Promise.race([printed, new Promise(ok => setTimeout(ok, 1500))])]).then(() => root.classList.remove('hold'));
 }

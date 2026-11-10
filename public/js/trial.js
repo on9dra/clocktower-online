@@ -25,9 +25,33 @@ export function trialStub(ctx) {
     vb && h('div', { class: 'tr-k' }, vb.yes(count(nom.votes)), vb.no(count(nom.abstain))));
 }
 
+// 線下局的審判牌：大家當面舉手，說書人點名字記下。只留誰提名誰、票數和一排能投票的人（舉手的亮著），沒有棄權、倒數
+function handTrial(ctx) {
+  const s = ctx.state, nom = s.nomination, need = needVotes(s), tap = s.isSt && !s.peek;
+  const num = id => s.seats.findIndex(x => x.id === id) + 1, up = s.seats.filter(x => nom.votes[x.id]).length;
+  const who = id => { const seat = s.seats.find(x => x.id === id), r = seat.role || (seat.mine && s.myRole);
+    return h('div', { class: 'tr-who' }, r ? roleToken(r) : h('div', { class: 'token md blank' }, num(id)), h('div', { class: 'tr-plate' }, h('b', {}, num(id)), h('span', {}, seat.name))); };
+  // 死了、死亡票也用了的人不能投，淡著不能點
+  const hand = seat => {
+    const on = !!nom.votes[seat.id], spent = seat.dead && seat.voteUsed && !on;
+    return h(tap ? 'button' : 'span', { class: 'hv' + (on ? ' on' : '') + (spent ? ' spent' : '') + (seat.dead ? ' dead' : ''), 'data-key': 'hv-' + seat.id, title: seat.name,
+      onclick: tap && !spent ? () => ctx.st('handVote', { seatId: seat.id, v: on ? null : 'yes' }) : null },
+    h('b', {}, num(seat.id)), h('span', {}, seat.name), icon('hand', 'hv-ico')); // 手的位置一直留著（沒舉時看不見），點了名字不變寬、不擠動別的名字
+  };
+  return h('div', { class: 'trial hand-trial' + (nomFx() ? ' fx-pop' : ''), style: nomFx(), 'data-key': 'trial', 'data-exit': true },
+    h('div', { class: 'tr-head' }, who(nom.nominatorId),
+      h('div', { class: 'tr-verb' }, h('span', { class: 'tr-stamp', 'data-key': 'nom' }, '提名'), icon('to')), who(nom.nomineeId)),
+    h('div', { class: 'tr-mid' + (up >= need ? ' enough' : '') },
+      h('b', { class: 'tr-num', 'data-key': 'n' + up }, up),
+      h('div', { class: 'tr-slots', title: `需 ${need} 票` }, Array.from({ length: Math.max(need, up) }, (_, i) => h('i', { class: i < up ? 'on' : '' })))),
+    h('div', { class: 'hv-row' }, s.seats.map(hand)),
+    trialButtons(ctx), foldButton(ctx, foldKey(nom)));
+}
+
 export function trialPanel(ctx) {
   const s = ctx.state, nom = s.nomination, ck = clockState(ctx), need = needVotes(s);
   if (isFolded(foldKey(nom))) return null;
+  if (nom.hand) return handTrial(ctx);
   const yes = [], no = [], idle = [];
   for (const seat of s.seats) (nom.votes[seat.id] ? yes : nom.abstain?.[seat.id] ? no : idle).push(seat);
   const num = id => s.seats.findIndex(x => x.id === id) + 1;

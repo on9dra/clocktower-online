@@ -8,6 +8,10 @@
 .w { font: 700 14px/1 var(--serif); color: var(--muted); flex: none; }
 .w.bad, .w.evil { color: var(--evil); } .w.good { color: var(--good, #2f5f8f); } .w.ink { color: var(--ink); }
 .op-br { flex-basis: 100%; height: 0; }
+/* 線下卡上「叫醒他/她指定一人［投毒］」的動作詞：一枚斜蓋的小墨章，顏色跟角色的行動走（stepcard.js stSay） */
+.act-v { display: inline-block; padding: 1px 5px 2px; border: 1.5px solid currentColor; color: var(--ink); font: 700 15px/1 var(--serif); letter-spacing: .12em;
+  transform: rotate(-4deg); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent); flex: none; }
+.act-v.evil { color: var(--evil); } .act-v.good { color: var(--good); } .act-v.brass { color: var(--brass); } .act-v.poison { color: #3d8b3d; }
 .tag { display: inline-flex; align-items: center; gap: .3em; height: 1.5rem; padding: 0 .6em 0 .45em; border-radius: 999px; border: 1.5px solid var(--team); color: var(--team); background: var(--card); font: 700 13px/1 var(--serif); flex: none; }
 .tag .ico { width: 15px; height: 15px; }
 .rn { display: inline-flex; align-items: center; gap: .2em; flex: none; }
@@ -77,7 +81,6 @@ span.ic-why .ico { width: 78%; height: 78%; }
 /* 數學家：從黎明起的行為，手機上是圓桌中間一張紙條 */
 .ic-events { display: grid; align-content: start; gap: 1px; max-height: 190px; padding: 4px 6px; overflow-y: auto; scrollbar-width: thin; background: #2a26220a; box-shadow: inset 0 0 0 1px var(--line); }
 .ic-events .log-row { padding: 1px 2px; font-size: 16px; }
-.ic-count { display: flex; align-items: center; gap: 4px; padding-bottom: 3px; border-bottom: 1px solid var(--line); font-size: 16px; }
 .ic-preview { display: flex; justify-content: center; align-items: center; min-height: 60px; padding: 10px; border: 2px solid var(--line); border-radius: 10px; background: var(--card); }
 .ic-preview.good { border-color: #c9a227; box-shadow: 0 0 0 3px #e9c46a44; }
 .ic-preview.alt { border-color: #d9a066; border-style: dashed; }
@@ -145,18 +148,18 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .center:has(> .st-card > .spread) .phase-title { display: block; }
   .st-card:has(> .spread) { width: auto; max-width: none; max-height: none; margin: 0; padding: 0; overflow: visible; }
   .st-card > .card.spread { display: block; padding: 0; border: 0; background: none; box-shadow: none; }
+  .st-card > .card.spread:has(> .ic-top > .ic-tag) { margin-top: 14px; } /* 標題籤長在中間那一小張的上方，和「第 N 夜」隔開 */
   .st-card > :is(.spread, .on-table) { position: static; } /* 拆開的幾塊按圓桌中心定位 */
   .st-card > :is(.spread, .on-table) > .fold-x { display: none; } /* 拆開之後圓桌中間只有一小張，沒什麼可收的 */
   .st-card > :is(.spread, .on-table) .ic-head { padding-right: 0; }
   .spread > :is(.ic-head, .ic-top) { justify-content: center; width: max-content; max-width: 50vw; margin: 0 auto; padding: 3px 8px; font-size: 16px; color: var(--ink); background: var(--card); border-radius: 6px; box-shadow: 0 4px 12px #0005; }
   .center:has(> .st-card > .spread > .ic-events) .phase-title { display: none; } /* 圓桌中間只放得下行動者和紙條 */
   .spread > .ic-events { width: calc(var(--rw) * .56); max-height: calc(var(--rw) * .29); margin: 4px auto 0; color: var(--ink); background: var(--card) url(../img/grain.svg); box-shadow: 0 4px 12px #0005; text-align: left; }
-  .spread > .ic-events .log-row, .spread > .ic-events .ic-count { font-size: 14px; }
+  .spread > .ic-events .log-row { font-size: 14px; }
   .spread > .ic-top { display: grid; justify-items: center; gap: 2px; }
   .spread > .ic-top .ic-head { font-size: inherit; }
   .spread > .ic-top .frm.big { justify-content: center; gap: 4px; font-size: 15px; }
   .spread > .ic-top .frm-line { justify-content: center; margin: 0; font-size: 16px; }
-  .spread > .ic-top .rule-k { font-size: 14px; }
   .spread .ic-slip { display: grid; justify-items: center; gap: 2px; padding: 4px 10px; color: var(--ink); background: var(--card); border-radius: 6px; box-shadow: 0 4px 12px #0005; }
   .spread .ic-slip .frm-line { justify-content: center; margin: 0; font-size: 16px; }
   .spread .ic-body, .spread .ic-foot, .st-card > .spread > .row { position: absolute; left: 50%; display: grid; width: 96vw; translate: -50% 0; }
@@ -170,6 +173,9 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .st-card > .spread .ic-foot .row, .st-card > .spread > .row { display: flex; justify-content: center; flex-wrap: nowrap; margin: 0; }
   .spread .ic-foot .row .btn, .st-card > .spread > .row .btn { flex: 1; min-height: 46px; }
   .spread .ic-foot .row .btn.ghost, .st-card > .spread > .row .btn.ghost { order: -1; }
+  /* 主次一眼看得出：正事（確認、提名、傳閱身份）佔七成，次要的（取消、跳過、不使用）三成。兩個都是主或都是次的照舊平分 */
+  .spread .ic-foot .row:has(> .btn.ghost):has(> .btn:not(.ghost)) > .btn:not(.ghost) { flex: 7; }
+  .spread .ic-foot .row:has(> .btn.ghost):has(> .btn:not(.ghost)) > .btn.ghost { flex: 3; }
   .spread .ic-foot .btn.disabled { color: var(--muted); background: var(--card); opacity: .8; } /* 夜裏桌面是黑的，墨底的灰按鈕看不見 */
   /* 預覽一行放得下：式子小一號（拆開時預覽在發送左邊，圓桌就不用為它讓位）；實在放不下（間諜看到的惡魔偽裝名字長）才折成兩行，不衝出紙條 */
   .spread .ic-preview { min-height: 46px; padding: 4px 8px; }
@@ -237,6 +243,7 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .center > .st-card .ic-preview { order: 2; min-height: 38px; padding: 2px 6px; }
   .center > .st-card .ic-events { order: 1; max-height: 96px; } /* 數字排在前面，不用先滾過列表 */
   .center > .st-card .btn.wide { order: 3; position: sticky; bottom: 0; z-index: 1; margin-top: 0; padding-block: 6px; } /* 選項再多，發送也一直看得見 */
+  .center > .st-card .btn.wide:has(~ .btn.wide), .center > .st-card > .spread .ic-foot .btn.wide { position: static; }
   .center > .st-card .tb-roles { max-height: calc(100cqh - 150px); padding: 11px 8px 2px; gap: 6px; overflow-y: auto; scrollbar-width: thin; }
   .center > .st-card .on-table .btn.wide { width: 100%; min-width: 0; }
   .center > .st-card .frm.big { font-size: 15px; }
@@ -293,7 +300,31 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .hud-x { position: absolute; right: 8px; top: 8px; padding: 1px 8px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 10px;
   color: var(--muted); font: 600 12px/1.5 var(--sans); }
 .hud-x:hover { color: var(--ink); border-color: var(--ink); }
-.hud-name { padding-right: 44px; }
+.hud-name { padding-right: 92px; }
+/* 「遮住」和「收起」並排在右上角 */
+.hud-tools { position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; }
+.hud-tools .hud-x { position: relative; right: auto; top: auto; }
+/* 遮住身份：只剩一張背面朝上的牌，按住翻開（veil.js）。按的時候不選字、不彈長按菜單 */
+.hud.min.veil, body.art .hud.min.veil { padding: 0; background: none; border: 0; border-image: none; box-shadow: none; border-radius: 0; text-align: center;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.hud.veil .hud-me { position: relative; display: block; touch-action: none; }
+.token.back { border-radius: 50%; background: radial-gradient(circle, #3a3026 0 55%, #2a221b 56%); box-shadow: inset 0 0 0 3px #b48a3c, 0 2px 6px #0006; }
+body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/card-back.webp) center / cover; }
+.hud.veil .hud-me:active .token { transform: scale(.94); }
+.hud.veil .token.back { animation: veil-flip .22s ease-out backwards; }
+@keyframes veil-flip { from { transform: perspective(300px) rotateY(90deg); } }
+/* 按住看：面板浮在桌面上翻開，不佔位置（不然整張圓桌跟著挪一下） */
+.hud.peek { position: absolute; left: 0; top: 0; z-index: 30; transform-origin: 45px 45px; animation: hud-peek .18s ease-out backwards;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; } /* 手指還按著：別讓瀏覽器當成滾動、選字（會打斷按住） */
+@keyframes hud-peek { from { opacity: 0; transform: scale(.55); } }
+.veil-say { display: inline-block; margin-top: 4px; padding: 1px 6px; background: var(--card); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 3px; font: 600 12px/1.4 var(--sans); letter-spacing: 1px; } /* 紙條底色：白天的天空上也看得清 */
+.veil-off { position: absolute; right: -24px; bottom: 18px; width: 22px; height: 22px; display: grid; place-items: center; padding: 0; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--line-strong); color: var(--muted); }
+.veil-off:hover { color: var(--ink); border-color: var(--ink); }
+.veil-off svg { width: 14px; height: 14px; }
+.veil-new { position: absolute; right: 2px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--evil); box-shadow: 0 0 0 2px var(--card);
+  animation: veil-dot .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes veil-dot { from { transform: scale(0); } }
 /* 開局 / 接任翻牌時面板先空著：虛線圈等牌落進來，牌落定後名字、能力、信息淡入 */
 .hud { transition: border-color .4s; }
 .hud.held { border-color: var(--line-strong); }
@@ -306,6 +337,10 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .hud-night { display: grid; grid-template-columns: 36px 1fr; gap: 6px; align-items: start; }
 .hud-n { display: flex; align-items: center; gap: 2px; padding-top: 8px; color: #4a5272; font: 700 17px var(--serif); }
 .hud-rows { display: grid; gap: 5px; }
+/* 英文：「Night 1」比「第 1 夜」寬，標籤列按內容寬，不折行；標題右邊讓出「Cover」「Hide」兩個按鈕 */
+:root[data-lang="en"] .hud-night { grid-template-columns: auto 1fr; }
+:root[data-lang="en"] .hud-n { white-space: nowrap; font-size: 14px; }
+:root[data-lang="en"] .hud-name { padding-right: 118px; }
 .hud-row { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card); cursor: pointer; font-size: 22px; }
 .hud-row .frm { font-size: 22px; }
 .hud-row:hover, .hud-row.on { border-color: var(--brass); background: var(--lit); }
@@ -354,6 +389,9 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .hud.min { position: absolute; left: 4px; top: 4px; width: auto; max-height: none; margin: 0; padding: 4px; }
   .hud:is(.min, .pick) { position: absolute; left: 4px; top: 4px; width: auto; max-height: none; margin: 0; padding: 4px; }
   .hud:is(.min, .pick) .hud-me .token { width: 44px; height: 44px; }
+  .hud.peek { right: 0; }
+  .hud.min.veil .hud-me .token { width: 52px; height: 52px; } /* 要按住的東西，手機上大一點 */
+  .veil-off { bottom: 20px; }
   .pm { font-size: 16px; }
 }
 
@@ -456,6 +494,16 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .log-text { font-size: 13px; color: var(--muted); }
 .voters { display: inline-flex; flex-wrap: wrap; gap: 2px; font-size: 13px; }
 .log-empty { display: grid; place-items: center; height: 80px; color: var(--line-strong); font-size: 32px; }
+.infocard.mark .mk-tip { max-width: 15em; margin: 0 auto; font-size: 12px; line-height: 1.4; color: var(--muted); text-align: left; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+.infocard.mark .mk-tip.open { -webkit-line-clamp: unset; }
+.btn.sw { display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.btn.sw .ico { width: 16px; height: 16px; }
+.jg-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; max-width: 220px; margin: 2px auto 0; }
+.hand-form .rm-add { flex-wrap: nowrap; }
+.hand-form .rm-add input { flex: 1; min-width: 0; }
+.hand-form .rm-add .btn { flex: none; }
+.seat-log .sl-h { margin: 4px 0 -6px; font: 700 13px var(--serif); color: var(--ink); letter-spacing: .1em; }
+.seat-log .sl-h ~ .sl-h { margin-top: 10px; }
 
 /* 演出舞台：平塗壓暗的桌面上放紙牌、紙片圓牌和墨線印章（不漸變、不發光） */
 #stage, .stage-ghost { position: fixed; inset: 0; z-index: 85; pointer-events: none; }
@@ -618,6 +666,8 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .pc-seal .ink-ring { width: 120px; height: 120px; margin: -60px 0 0 -60px; border-width: 3px; }
 .pc-title { font: 900 clamp(40px, 9vmin, 76px)/1.1 var(--serif); letter-spacing: .16em; padding-left: .16em; white-space: nowrap; }
 .pc-title span { display: inline-block; }
+:root[data-lang="en"] .pc-title { letter-spacing: .02em; }
+:root[data-lang="en"] .pc-title span + span { margin-left: .3em; }
 .pc-title.good { color: var(--good); }
 .pc-title.evil { color: var(--evil); }
 .pc-sub { font: 700 clamp(15px, 2.6vmin, 20px)/1.4 var(--serif); letter-spacing: .08em; color: var(--muted); max-width: 70vw; }
@@ -695,6 +745,9 @@ span.ic-why .ico { width: 78%; height: 78%; }
 
 /* 上傳劇本和模式：都在劇本卡裏。上傳是虛線格，和「還沒有的東西」同一個意思；名字長的自製劇本截斷 */
 .script-card .sc-group { display: grid; gap: 2px; min-width: 0; }
+/* 英文劇本名比四個漢字長：卡片寬一點，名字可以折成兩行，不截斷 */
+:root[data-lang="en"] .script-card { width: 140px; }
+:root[data-lang="en"] .script-card .chip { white-space: normal; line-height: 1.15; overflow: visible; text-overflow: clip; }
 .script-card .sc-mode { grid-template-columns: auto auto; margin-top: 4px; padding-top: 5px; border-top: 1px solid var(--line-strong); }
 .script-card .sc-mode .chip { overflow: visible; padding-inline: 1px; font-size: 12.5px; }
 .script-card .chip { overflow: hidden; padding-inline: 5px; text-overflow: ellipsis; }
@@ -744,11 +797,6 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .bp-slots.live .pinned .token { animation: role-stamp .22s cubic-bezier(.5,0,.7,1) both; }
 .bp-slot .pin-mark { left: 4px; top: 4px; transition: scale .18s cubic-bezier(.2,1.4,.4,1); animation: none; }
 .bp-slot:not(.pinned) .pin-mark { scale: 0; }
-.guess-pick.off { color: var(--muted); cursor: default; }
-.guess-pick.off:hover { background: none; }
-.guess-pick.off .token { opacity: .4; }
-.bluff-modal .guess-pick { position: relative; }
-.bluff-modal .guess-pick small { position: absolute; left: 34px; bottom: 2px; margin: 0; padding: 0 2px; background: var(--card); border: 1px solid var(--line-strong); color: var(--ink); font-size: 10px; line-height: 12px; }
 /* 懸停座位時旁邊的角色表：直角的紙，尾巴指著頭像；換座位時滑過去 */
 .seat-pick { --dx: 8px; position: fixed; z-index: 55; display: flex; flex-direction: column; width: 408px; max-height: calc(100vh - 16px); padding: 5px 8px 8px; background-color: var(--card); color: var(--ink);
   border: 1.5px solid var(--ink); box-shadow: 0 6px 16px #2a262255; transition: left .16s ease, top .16s ease; animation: sp-in .15s ease-out; transform-origin: right var(--ay); }
@@ -849,4 +897,75 @@ span.ic-why .ico { width: 78%; height: 78%; }
 @media (max-width: 1180px) and (max-height: 500px) and (orientation: landscape) {
   .board > .bluffs { transition: opacity .25s ease; }
   .board:has(.trial) > .bluffs { opacity: 0; pointer-events: none; }
+}
+
+/* 線下局把設備轉給玩家看的整屏（pass.js）：樣式在 show.css */
+
+/* 建房後先選線上 / 線下：兩張紙牌並排在圓桌中央（flow.js venuePane） */
+.venue-pane { display: flex; gap: clamp(10px, 3vw, 22px); justify-content: center; max-width: calc(100vw - 24px); }
+.board .center:has(> .cx.venue-pane) { width: max-content; max-width: calc(100vw - 24px); }
+.pc.venue-pick, body.art .pc.venue-pick { flex: none; flex-direction: column; gap: 6px; width: clamp(136px, 40vw, 210px); padding: 14px 8px 12px; --fw: 18px; cursor: pointer; font: inherit; color: var(--ink); text-align: center;
+  rotate: var(--tilt, -1.5deg); transition: translate .18s ease, box-shadow .18s ease; animation: venue-in .42s cubic-bezier(.2, .9, .3, 1.1) backwards; }
+.pc.venue-pick + .pc.venue-pick { --tilt: 1.5deg; animation-delay: .08s; }
+.pc.venue-pick:hover { translate: 0 -4px; }
+.pc.venue-pick:active { translate: 0 1px; }
+.vp-ico .ico { width: clamp(34px, 9vw, 48px); height: clamp(34px, 9vw, 48px); color: var(--brass); }
+.venue-pick b { font: 700 clamp(24px, 6.4vw, 32px)/1.1 var(--serif); letter-spacing: .15em; }
+.venue-pick small { font: 13px/1.4 var(--sans); color: var(--muted); }
+@keyframes venue-in { from { opacity: 0; translate: 0 26px; rotate: 6deg; } }
+/* 線下局加座位：名字框 + 入座，在準備按鈕上面 */
+.add-seats { display: flex; gap: 6px; flex-wrap: nowrap; }
+.add-seats input { flex: 1; min-width: 0; max-width: 220px; }
+/* 線下局的審判牌（trial.js handTrial）：一排能投票的人，舉手的亮成金色帶手；點名字舉 / 放 */
+.hand-trial .tr-mid { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.hv-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.hv { position: relative; display: inline-flex; align-items: center; gap: 5px; height: 38px; max-width: 128px; padding: 0 10px; border: 1.5px solid var(--ink); border-radius: 3px;
+  background: var(--card); color: var(--ink); font: 600 14px var(--sans); transition: background .15s ease, color .15s ease, transform .12s ease; }
+button.hv { cursor: pointer; }
+button.hv:active { transform: scale(.94); }
+.hv b { font: 800 15px var(--serif); }
+.hv > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hv.on { background: var(--brass); border-color: var(--brass); color: #fff; }
+.hv-ico { width: 16px; height: 16px; visibility: hidden; }
+.hv.on .hv-ico { visibility: visible; animation: hv-up .3s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes hv-up { from { transform: translateY(8px) scale(.4); opacity: 0; } }
+.hv.dead:not(.on) { border-style: dashed; }
+.hv.spent { opacity: .35; text-decoration: line-through; }
+/* 線下局撤銷（頂欄）：圖標 + 「撤銷」+ 要撤的那一步；手機上只留圖標 */
+.topbar .undo { display: inline-flex; align-items: center; gap: 4px; }
+.topbar .undo .ico { width: 15px; height: 15px; transform: scaleX(-1); }
+/* 英文按鈕字長：手機上撤銷、展示角色卡只留圖標（title 照樣說明） */
+@media (max-width: 600px) { :root[data-lang="en"] .topbar :is(.undo .undo-k, .show-role > span) { display: none; } }
+.topbar .undo small { color: var(--muted); font-size: 11px; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .undo.disabled { opacity: .4; pointer-events: auto; } /* 灰著也能點：點了說沒有可撤銷的 */
+@media (max-width: 600px) { .topbar .undo:not(.one) .undo-k, .topbar .undo small { display: none; } } /* 單設備頂欄空出了位置，「撤銷」兩個字留著，不然像刷新鍵 */
+/* 建房選模式的第二步：回到線上 / 線下 */
+.venue-pane { flex-wrap: wrap; }
+.venue-back { flex-basis: 100%; margin-top: 4px; background: none; border: 0; color: var(--muted); font: 600 13px var(--sans); cursor: pointer; }
+.venue-back:hover { color: var(--ink); }
+.jg { display: inline-flex; align-items: center; gap: 2px; }
+/* 線下首夜爪牙 / 惡魔信息卡：一行一個人，角色只用小牌，整張卡放得進圓桌中間 */
+.ic-line { flex-wrap: wrap; justify-content: center; gap: 4px 6px; font-size: 18px; }
+.ic-line .frm { flex-wrap: wrap; justify-content: center; gap: 4px; }
+.ic-line .token.xs { width: 30px; height: 30px; }
+.ic-line .tag { font-size: 14px; padding: 1px 6px; }
+/* 桌心小卡右上角的「收起」不壓標題（今晚無人死亡、聖徒被處決、鎮長勝利……）：卡頂留出它那一條 */
+.st-card > .card:not(.spread):has(> .fold-x) { padding-top: 30px; }
+.st-card > .card:not(.spread) > .fold-x { top: 4px; right: 6px; }
+.team-due { margin-left: 2px; font: 700 11px var(--sans); color: var(--evil); }
+/* 手機上的舉手審判牌：頭像、數字、名字都收一號，名單整排放得下，不被卡底切掉 */
+@media (max-width: 860px) {
+  .trial.hand-trial { gap: 6px; padding: 8px 10px; }
+  .hand-trial .tr-who .token { width: 44px; height: 44px; }
+  .hand-trial .tr-head { gap: 6px; }
+  .hand-trial .tr-num { font-size: 36px; }
+  .hv-row { gap: 4px; }
+  .hv { height: 30px; padding: 0 6px; font-size: 12.5px; max-width: 100px; }
+  .hv b { font-size: 13px; }
+  .hv-ico { width: 13px; height: 13px; }
+}
+/* 英文角色名比中文長：手機上左上角那枚小牌（54 / 44px）名字按牌的大小縮，不衝出圓圈 */
+@media (max-width: 860px) {
+  :root[data-lang="en"] .hud .hud-me .token .token-name { font-size: 10px; padding: 0 2px; }
+  :root[data-lang="en"] .hud:is(.min, .pick) .hud-me .token .token-name { font-size: 8px; }
 }

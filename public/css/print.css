@@ -102,4 +102,5 @@ body.art .pg::before { --fw: 14px; background: #e8e0d0 var(--paper-tex) 0 0 / 32
   body.art .town > .st-card.corner > .card { --fw: 12px; }
 }
 /* 手機上「收起」貼著角，別壓到能力說明 */
-body.art .hud-x { right: 0; top: 0; }
+body.art :is(.hud-x, .hud-tools) { right: 0; top: 0; }
+body.art .hud-tools .hud-x { right: auto; top: auto; }

@@ -1,0 +1,4311 @@
+{
+ "，不在場": [
+  "lib/night.js"
+ ],
+ "，猜錯你會死": [
+  "public/js/glyph.js"
+ ],
+ "，但他{0}": [
+  "lib/day.js",
+  "lib/night.js"
+ ],
+ "，賭徒死亡": [
+  "lib/night.js"
+ ],
+ "，死亡": [
+  "lib/day.js"
+ ],
+ "，他明晚死亡": [
+  "public/js/glyph.js"
+ ],
+ "，跳過 {0}": [
+  "public/js/manual.js"
+ ],
+ "；{0} 醉酒": [
+  "lib/night.js"
+ ],
+ "；不選的話，下次殺三人": [
+  "public/js/glyph.js"
+ ],
+ "；占卜師紅鯡魚：{0}": [
+  "lib/setup.js"
+ ],
+ "：{0} 醉酒三天三夜": [
+  "lib/night.js"
+ ],
+ "：{0}號": [
+  "public/js/progress.js"
+ ],
+ "。{0} 是瘋子": [
+  "lib/night.js"
+ ],
+ "· 線下": [
+  "public/js/topbar.js"
+ ],
+ "· 原{0}": [
+  "public/js/hud.js"
+ ],
+ "‹ 上一頁": [
+  "public/js/intro.js"
+ ],
+ "（{0} 票為平票）": [
+  "public/js/flow.js"
+ ],
+ "（傳位）": [
+  "public/js/log.js"
+ ],
+ "（錯誤信息）": [
+  "lib/engine.js"
+ ],
+ "(登記)": [
+  "lib/engine.js"
+ ],
+ "（紅唇女郎）": [
+  "public/js/log.js"
+ ],
+ "（可以不指定）": [
+  "public/js/stepcard.js"
+ ],
+ "（沒有選）": [
+  "lib/engine.js"
+ ],
+ "（死亡）": [
+  "lib/night.js"
+ ],
+ "(以為是{0})": [
+  "lib/setup.js"
+ ],
+ "（以為是{0}）": [
+  "lib/night.js",
+  "lib/setup.js"
+ ],
+ "（隱士/間諜登記）": [
+  "lib/engine.js"
+ ],
+ "{0} {1} 個": [
+  "public/js/manual.js"
+ ],
+ "{0} {1} 個，按人數應該 {2} 個": [
+  "public/js/flow.js"
+ ],
+ "{0} {1}，變成{2}": [
+  "lib/rules.js"
+ ],
+ "{0} {1}，沒有死亡": [
+  "lib/night.js"
+ ],
+ "{0} 被處決，但他{1}，沒有死亡": [
+  "lib/rules.js"
+ ],
+ "{0} 被處決了": [
+  "lib/rules.js"
+ ],
+ "{0} 被擊中，但他{1}": [
+  "lib/day.js"
+ ],
+ "{0} 被女巫詛咒後發起提名": [
+  "lib/day.js"
+ ],
+ "{0} 步": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 猜 {1} 是【{2}】": [
+  "lib/day.js"
+ ],
+ "{0} 從此醉酒": [
+  "lib/night.js"
+ ],
+ "{0} 代替鎮長死亡": [
+  "lib/night.js"
+ ],
+ "{0} 倒下了！": [
+  "lib/day.js"
+ ],
+ "{0} 得到 {1} 票": [
+  "lib/day.js"
+ ],
+ "{0} 得到 {1} 票（至少需要 {2} 票）": [
+  "lib/day.js"
+ ],
+ "{0} 的標記": [
+  "public/js/manual.js"
+ ],
+ "{0} 的記錄": [
+  "public/js/town.js"
+ ],
+ "{0} 的角色是【{1}】": [
+  "public/js/infofmt.js"
+ ],
+ "{0} 對": [
+  "public/js/fx-ab.js"
+ ],
+ "{0} 復活了。": [
+  "lib/engine.js"
+ ],
+ "{0} 號": [
+  "public/js/pass.js"
+ ],
+ "{0} 號還沒有角色：點「隨機抽取」補上，或者點座位指定": [
+  "public/js/flow.js"
+ ],
+ "{0} 和 {1}": [
+  "lib/night.js"
+ ],
+ "{0} 和 {1} 交換了角色": [
+  "lib/night.js"
+ ],
+ "{0} 和 {1} 之中有一位是": [
+  "public/js/infofmt.js"
+ ],
+ "{0} 換設備": [
+  "public/js/invite.js"
+ ],
+ "{0} 接任小惡魔": [
+  "lib/night.js"
+ ],
+ "{0} 可以被當作{1}：算不算猜對？": [
+  "lib/night.js"
+ ],
+ "{0} 可以被當作另一陣營：算不算善良？": [
+  "lib/night.js"
+ ],
+ "{0} 沒有死亡。": [
+  "lib/rules.js"
+ ],
+ "{0} 沒有選人。": [
+  "lib/day.js"
+ ],
+ "{0} 名": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 票": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/scores.js"
+ ],
+ "{0} 人": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 人：鎮民 {1}、外來者 {2}、爪牙 {3}、惡魔 {4}": [
+  "public/js/setup.js"
+ ],
+ "{0} 人死亡": [
+  "public/js/fx.js"
+ ],
+ "{0} 人醒": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 是{1}，他選擇了 {2}。": [
+  "lib/day.js"
+ ],
+ "{0} 是【{1}】或【{2}】": [
+  "public/js/infofmt.js"
+ ],
+ "{0} 是僵怖：看起來死了，其實還活著": [
+  "lib/rules.js"
+ ],
+ "{0} 是爪牙：死後保留能力": [
+  "lib/night.js"
+ ],
+ "{0} 是貞潔者！提名者立即被處決。": [
+  "lib/day.js"
+ ],
+ "{0} 私聊了 {1}": [
+  "public/js/side.js"
+ ],
+ "{0} 死亡": [
+  "lib/night.js"
+ ],
+ "{0} 死亡。": [
+  "lib/day.js"
+ ],
+ "{0} 算善良？": [
+  "lib/night.js"
+ ],
+ "{0} 提名 {1}": [
+  "lib/day.js"
+ ],
+ "{0} 提名 {1}：{2} 票": [
+  "public/js/progress.js"
+ ],
+ "{0} 提名了 {1}。提名者陳述、被提名者辯護後，說書人開始計票。": [
+  "lib/day.js"
+ ],
+ "{0} 向 {1} 開槍": [
+  "lib/day.js"
+ ],
+ "{0} 宣稱自己是獵手，向 {1} 開槍……": [
+  "lib/day.js"
+ ],
+ "{0} 選中了莽夫 {1}：醉酒到下個黃昏，莽夫{2}": [
+  "lib/engine.js"
+ ],
+ "{0} 中毒": [
+  "lib/night.js"
+ ],
+ "{0} 醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "{0}，能力無效": [
+  "lib/night.js"
+ ],
+ "{0}，你現在是【{1}】：{2}": [
+  "lib/rules.js"
+ ],
+ "{0}，你現在是【{1}】。": [
+  "lib/rules.js"
+ ],
+ "{0}，聲明無效": [
+  "lib/night.js"
+ ],
+ "{0}：{1} 個角色": [
+  "public/js/manual.js"
+ ],
+ "{0}：告知「{1}」{2}": [
+  "lib/engine.js"
+ ],
+ "{0}：沒有可以選的玩家，跳過": [
+  "lib/engine.js"
+ ],
+ "{0}：說書人跳過": [
+  "lib/engine.js"
+ ],
+ "{0}：已發送": [
+  "lib/engine.js"
+ ],
+ "{0}：已告知": [
+  "lib/engine.js"
+ ],
+ "{0}（{1}）{2}：能力無效": [
+  "lib/engine.js"
+ ],
+ "{0}（{1}）死亡：{2}": [
+  "lib/rules.js"
+ ],
+ "{0}（{1}）選了 {2}": [
+  "lib/engine.js"
+ ],
+ "{0}（{1}{2}）被提名：說書人裁定{3}": [
+  "lib/day.js"
+ ],
+ "{0}（{1}{2}）被提名：無事": [
+  "lib/day.js"
+ ],
+ "{0}（邪惡隊友）": [
+  "public/js/town.js"
+ ],
+ "{0}（祖母）的孫子被惡魔殺死，祖母也死亡": [
+  "lib/night.js"
+ ],
+ "{0}{1}：能力無效": [
+  "lib/night.js"
+ ],
+ "{0}查": [
+  "lib/engine.js"
+ ],
+ "{0}號": [
+  "public/js/progress.js",
+  "public/js/ui.js"
+ ],
+ "{0}號 {1}": [
+  "public/js/fx.js",
+  "public/js/trial.js",
+  "public/js/ui.js",
+  "server.js"
+ ],
+ "{0}號 空座位": [
+  "public/js/ui.js"
+ ],
+ "{0}號{1}": [
+  "lib/util.js"
+ ],
+ "{0}人": [
+  "public/js/stepcard.js"
+ ],
+ "{0}選": [
+  "lib/engine.js"
+ ],
+ "{0}以為自己是哪個{1}？": [
+  "public/js/setup.js"
+ ],
+ "{0}只能以為自己是{1}": [
+  "lib/setup.js"
+ ],
+ "「流程」標籤": [
+  "public/js/help.js"
+ ],
+ "「中毒」": [
+  "public/js/intro.js"
+ ],
+ "← 線上 / 線下": [
+  "public/js/flow.js"
+ ],
+ "3 本官方，或上傳 Json": [
+  "public/js/help.js"
+ ],
+ "3號 · 小惡魔": [
+  "public/js/help.js"
+ ],
+ "5 人以上時惡魔死亡：她接任": [
+  "public/js/help.js"
+ ],
+ "5-6人": [
+  "public/js/manual.js"
+ ],
+ "7 人存活要 4 票：一半，向上取整": [
+  "public/js/help.js"
+ ],
+ "7 人以上首夜": [
+  "public/js/help.js"
+ ],
+ "按當前舉手結算": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "按規則這次只有一種結果": [
+  "lib/day.js"
+ ],
+ "按人數配比，隨機抽好": [
+  "public/js/intro.js"
+ ],
+ "按順序叫醒，時鐘數票": [
+  "public/js/intro.js"
+ ],
+ "按順序叫醒他們": [
+  "public/js/town.js"
+ ],
+ "按住看": [
+  "public/js/hud.js"
+ ],
+ "按住看自己的角色": [
+  "public/js/hud.js"
+ ],
+ "暗流湧動": [
+  "public/js/help.js",
+  "public/js/roles.js"
+ ],
+ "黯月初升": [
+  "public/js/help.js",
+  "public/js/roles.js"
+ ],
+ "黯月初升、夢殞春宵": [
+  "public/js/help.js"
+ ],
+ "把 {0} 從{1}變成{2}": [
+  "lib/night.js"
+ ],
+ "把 {0} 移出房間？他不能再進來。": [
+  "public/js/town.js"
+ ],
+ "把結果告訴他": [
+  "public/js/infoform.js"
+ ],
+ "把這個角色告訴他": [
+  "public/js/infoform.js"
+ ],
+ "把這個數字告訴他": [
+  "public/js/infoform.js"
+ ],
+ "把這兩個角色告訴他": [
+  "public/js/infoform.js"
+ ],
+ "白天": [
+  "public/js/help.js",
+  "public/js/lobby.js"
+ ],
+ "白天結束時處決；平票就沒人處決": [
+  "public/js/help.js"
+ ],
+ "保存房間失敗": [
+  "lib/store.js"
+ ],
+ "保護": [
+  "public/js/flow.js",
+  "public/js/fx-ab.js",
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "保護了 {0}": [
+  "lib/night.js"
+ ],
+ "保護了 {0}（明天處決不死）": [
+  "lib/night.js"
+ ],
+ "被保護": [
+  "lib/rules.js",
+  "lib/util.js",
+  "public/js/log.js",
+  "public/js/manual.js"
+ ],
+ "被茶藝師保護": [
+  "lib/rules.js"
+ ],
+ "被處決": [
+  "lib/rules.js",
+  "public/js/flow.js",
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "被處決：善良落敗": [
+  "public/js/help.js"
+ ],
+ "被處決者是": [
+  "public/js/infofmt.js"
+ ],
+ "被刺客刺殺": [
+  "lib/night.js"
+ ],
+ "被和平主義者保護": [
+  "lib/rules.js"
+ ],
+ "被教父殺死": [
+  "lib/night.js"
+ ],
+ "被教授復活": [
+  "lib/night.js"
+ ],
+ "被獵手擊殺": [
+  "lib/day.js",
+  "lib/rules.js"
+ ],
+ "被魔鬼代言人保護": [
+  "lib/rules.js"
+ ],
+ "被女巫詛咒": [
+  "lib/day.js"
+ ],
+ "被僧侶保護": [
+  "lib/night.js"
+ ],
+ "被沙巴洛斯反芻（復活）": [
+  "lib/night.js"
+ ],
+ "被殺": [
+  "public/js/log.js"
+ ],
+ "被射殺": [
+  "public/js/log.js"
+ ],
+ "被說書人復活": [
+  "lib/rules.js"
+ ],
+ "被提": [
+  "public/js/town.js"
+ ],
+ "被月之子選中": [
+  "lib/night.js"
+ ],
+ "被貞潔者反噬": [
+  "lib/day.js",
+  "lib/rules.js"
+ ],
+ "本局 MVP：{0}（{1} 票）": [
+  "lib/score.js"
+ ],
+ "本局不再假裝": [
+  "public/js/stepcard.js"
+ ],
+ "本局沒有人得到 MVP 票。": [
+  "lib/score.js"
+ ],
+ "比": [
+  "public/js/help.js"
+ ],
+ "必選": [
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "必選超額 {0}": [
+  "public/js/setup.js"
+ ],
+ "必選的{0}有 {1} 個，超過了名額（{2} 個）": [
+  "lib/setup.js"
+ ],
+ "閉上眼，輪到你時我會叫你": [
+  "public/js/town.js"
+ ],
+ "辯護": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "變成": [
+  "public/js/glyph.js",
+  "public/js/log.js"
+ ],
+ "變成{0}": [
+  "lib/night.js"
+ ],
+ "變成該角色": [
+  "public/js/glyph.js"
+ ],
+ "變身": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "變為{0}": [
+  "lib/engine.js"
+ ],
+ "標記": [
+  "public/js/stepcard.js",
+  "public/js/topbar.js"
+ ],
+ "標記角色猜測": [
+  "public/js/town.js"
+ ],
+ "標記死亡": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "標記死亡（糾錯）": [
+  "public/js/help.js"
+ ],
+ "標記為空": [
+  "lib/manual.js"
+ ],
+ "別人對他": [
+  "public/js/log.js"
+ ],
+ "博學者、藝術家等：座位菜單裏": [
+  "public/js/help.js"
+ ],
+ "補發信息": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "補發信息（彈窗告訴他）": [
+  "public/js/town.js"
+ ],
+ "補發信息給 {0}：「{1}」": [
+  "lib/ops.js"
+ ],
+ "不合規": [
+  "public/js/infoform.js"
+ ],
+ "不接任": [
+  "public/js/flow.js"
+ ],
+ "不能和上一晚選同一名玩家": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "不能扔自己": [
+  "lib/score.js"
+ ],
+ "不能提名": [
+  "public/js/help.js"
+ ],
+ "不能行動": [
+  "public/js/glyph.js"
+ ],
+ "不能選擇其他惡魔，交換無效": [
+  "lib/night.js"
+ ],
+ "不能選擇自己": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "不使用": [
+  "public/js/flow.js"
+ ],
+ "不是": [
+  "public/js/pass.js"
+ ],
+ "不是惡魔": [
+  "public/js/infofmt.js",
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "不是善良": [
+  "public/js/log.js"
+ ],
+ "不是鎮民": [
+  "public/js/log.js"
+ ],
+ "不數票直接結算": [
+  "public/js/help.js"
+ ],
+ "不死": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "不死亡": [
+  "public/js/flow.js"
+ ],
+ "不同陣營": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/infofmt.js"
+ ],
+ "不選": [
+  "public/js/stepcard.js"
+ ],
+ "不再遮住": [
+  "public/js/hud.js"
+ ],
+ "不在場": [
+  "public/js/flow.js",
+  "public/js/log.js",
+  "public/js/progress.js"
+ ],
+ "不在場，可偽裝成他們": [
+  "public/js/help.js"
+ ],
+ "步": [
+  "public/js/infofmt.js"
+ ],
+ "部分角色自己處理": [
+  "public/js/manual.js"
+ ],
+ "猜": [
+  "public/js/glyph.js",
+  "public/js/log.js",
+  "public/js/manual.js"
+ ],
+ "猜 {0} 是{1}": [
+  "lib/night.js"
+ ],
+ "猜 {0} 是{1}，猜錯了": [
+  "lib/night.js"
+ ],
+ "猜 {0} 是{1}，猜對了": [
+  "lib/night.js"
+ ],
+ "猜錯": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js"
+ ],
+ "猜對": [
+  "lib/night.js",
+  "public/js/infofmt.js"
+ ],
+ "猜他的角色": [
+  "public/js/glyph.js"
+ ],
+ "裁定": [
+  "public/js/flow.js",
+  "public/js/log.js"
+ ],
+ "操作太頻繁，請稍後再試": [
+  "server.js"
+ ],
+ "操作自動彈出": [
+  "public/js/intro.js"
+ ],
+ "查驗": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "查驗過": [
+  "public/js/manual.js"
+ ],
+ "場上鄰座的邪惡玩家有 {0} 對": [
+  "public/js/infofmt.js"
+ ],
+ "場上沒有{0}玩家": [
+  "lib/night.js"
+ ],
+ "場上沒有惡魔": [
+  "public/js/flow.js"
+ ],
+ "場上沒有其他{0}": [
+  "lib/night.js"
+ ],
+ "場上沒有其他善良玩家": [
+  "lib/night.js"
+ ],
+ "場上沒有外來者": [
+  "lib/night.js"
+ ],
+ "場上至少要有一名惡魔": [
+  "lib/engine.js"
+ ],
+ "撤銷": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "撤銷：{0}": [
+  "public/js/topbar.js"
+ ],
+ "成功": [
+  "public/js/mathcard.js"
+ ],
+ "成為": [
+  "public/js/log.js"
+ ],
+ "抽取": [
+  "public/js/topbar.js"
+ ],
+ "出錯了怎麼辦": [
+  "public/js/help.js"
+ ],
+ "處決": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/progress.js",
+  "public/js/topbar.js",
+  "public/js/town.js"
+ ],
+ "處決 {0}，然後入夜？": [
+  "public/js/flow.js"
+ ],
+ "處決{0}，入夜": [
+  "public/js/flow.js"
+ ],
+ "處決5號，入夜": [
+  "public/js/help.js"
+ ],
+ "處決惡魔": [
+  "public/js/help.js"
+ ],
+ "處決即敗": [
+  "public/js/help.js"
+ ],
+ "處決台：{0}": [
+  "public/js/progress.js"
+ ],
+ "處決台：{0} 票平票，無人在台上": [
+  "public/js/flow.js"
+ ],
+ "處決台：{0}（{1} 票）": [
+  "public/js/flow.js"
+ ],
+ "處決台：暫無": [
+  "public/js/flow.js"
+ ],
+ "處決台上的角色將死亡": [
+  "public/js/help.js"
+ ],
+ "處決提名者": [
+  "public/js/flow.js"
+ ],
+ "傳奇角色": [
+  "public/js/roles.js"
+ ],
+ "傳位": [
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "傳閱身份": [
+  "public/js/manual.js"
+ ],
+ "創建房間": [
+  "public/js/lobby.js"
+ ],
+ "刺殺": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "刺殺了 {0}": [
+  "lib/night.js"
+ ],
+ "錯": [
+  "public/js/infoform.js",
+  "public/js/town.js"
+ ],
+ "錯誤紅框，登記橙框": [
+  "public/js/help.js"
+ ],
+ "打開": [
+  "public/js/settings.js"
+ ],
+ "打開聲音": [
+  "public/js/topbar.js"
+ ],
+ "打亂座位": [
+  "public/js/flow.js",
+  "public/js/topbar.js"
+ ],
+ "大多也自動": [
+  "public/js/help.js"
+ ],
+ "大家都閉上了眼": [
+  "public/js/town.js"
+ ],
+ "呆瓜選人": [
+  "public/js/flow.js"
+ ],
+ "呆瓜選中了邪惡玩家": [
+  "lib/day.js"
+ ],
+ "代碼和原創美術以 MIT 許可發布，": [
+  "public/js/about.js"
+ ],
+ "代入視角中只能查看": [
+  "public/js/app.js"
+ ],
+ "代入他的視角": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "代替鎮長死亡": [
+  "lib/night.js",
+  "lib/rules.js"
+ ],
+ "代為選擇": [
+  "public/js/stepcard.js"
+ ],
+ "代選": [
+  "public/js/stepcard.js"
+ ],
+ "戴到下一次分出勝負": [
+  "public/js/help.js"
+ ],
+ "單設備": [
+  "public/js/flow.js"
+ ],
+ "單設備按「展示」，說完「已告知」": [
+  "public/js/help.js"
+ ],
+ "但他是士兵": [
+  "lib/night.js"
+ ],
+ "當面告知": [
+  "public/js/flow.js"
+ ],
+ "當面告知後點一下": [
+  "public/js/flow.js"
+ ],
+ "當前沒有投票": [
+  "lib/day.js"
+ ],
+ "擋下": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx-ab.js"
+ ],
+ "到點按舉著的手結算；說書人可隨時暫停或重新計時": [
+  "public/js/help.js"
+ ],
+ "倒數 5 分鐘": [
+  "public/js/help.js"
+ ],
+ "倒下": [
+  "public/js/gamelog.js"
+ ],
+ "得票": [
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "得知處決": [
+  "public/js/help.js"
+ ],
+ "登": [
+  "public/js/infoform.js",
+  "public/js/town.js"
+ ],
+ "登記": [
+  "public/js/infoform.js"
+ ],
+ "等說書人開局": [
+  "public/js/town.js"
+ ],
+ "第 {0} 局": [
+  "public/js/fx.js"
+ ],
+ "第 {0} 天": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/log.js",
+  "public/js/progress.js",
+  "public/js/town.js"
+ ],
+ "第 {0} 天。自由討論後，存活玩家可以點擊他人座位發起提名。": [
+  "lib/day.js"
+ ],
+ "第 {0} 夜": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/hud.js",
+  "public/js/log.js",
+  "public/js/progress.js",
+  "public/js/town.js"
+ ],
+ "第 {0} 夜降臨，所有人閉眼。": [
+  "lib/engine.js"
+ ],
+ "第 {0} 頁": [
+  "public/js/intro.js"
+ ],
+ "第 1 夜": [
+  "public/js/help.js",
+  "public/js/intro.js"
+ ],
+ "第{0}頁": [
+  "public/js/help.js"
+ ],
+ "第一次進房間": [
+  "public/js/help.js"
+ ],
+ "點別人的座位，扔一枚少一枚": [
+  "public/js/help.js"
+ ],
+ "點錯了就撤銷": [
+  "public/js/help.js"
+ ],
+ "點頂欄的雞蛋數": [
+  "public/js/help.js"
+ ],
+ "點角色切換": [
+  "public/js/help.js"
+ ],
+ "點角色切換：隨機（默認）→ 必選 → 排除。": [
+  "public/js/setup.js"
+ ],
+ "點卡上的選項，或直接點桌上的座位": [
+  "public/js/help.js"
+ ],
+ "點名字記一票，再點放下": [
+  "public/js/help.js"
+ ],
+ "點任意座位": [
+  "public/js/help.js"
+ ],
+ "點頭搖頭，或整屏給他看": [
+  "public/js/help.js"
+ ],
+ "點桌上的善良玩家": [
+  "public/js/flow.js"
+ ],
+ "頂欄，一步步往回退": [
+  "public/js/help.js"
+ ],
+ "頂欄「⋯」": [
+  "public/js/help.js"
+ ],
+ "毒了 {0}": [
+  "lib/night.js"
+ ],
+ "賭徒猜錯": [
+  "lib/night.js"
+ ],
+ "對": [
+  "public/js/infofmt.js",
+  "public/js/infoform.js"
+ ],
+ "對 {0} 說": [
+  "public/js/side.js"
+ ],
+ "對說書人說": [
+  "public/js/side.js"
+ ],
+ "對所有人說": [
+  "public/js/side.js"
+ ],
+ "對飲": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "多設備": [
+  "public/js/flow.js"
+ ],
+ "多天": [
+  "public/js/town.js"
+ ],
+ "躲過": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "額外一天": [
+  "lib/rules.js",
+  "lib/util.js"
+ ],
+ "惡魔": [
+  "lib/night.js",
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/infofmt.js",
+  "public/js/roles.js"
+ ],
+ "惡魔的偽裝不夠 3 個": [
+  "public/js/flow.js"
+ ],
+ "惡魔攻擊了鎮長：你可以讓另一名玩家代替他死亡": [
+  "lib/night.js"
+ ],
+ "惡魔今天沒投票": [
+  "public/js/infofmt.js"
+ ],
+ "惡魔今天投過票": [
+  "public/js/infofmt.js"
+ ],
+ "惡魔沒有交換角色": [
+  "lib/night.js"
+ ],
+ "惡魔殺": [
+  "public/js/stepcard.js"
+ ],
+ "惡魔是 {0}。": [
+  "lib/night.js"
+ ],
+ "惡魔死亡": [
+  "lib/rules.js"
+ ],
+ "惡魔死亡，紅唇女郎接任": [
+  "lib/day.js",
+  "lib/rules.js"
+ ],
+ "惡魔死於處決，主謀 {0} 讓遊戲再進行一夜一天": [
+  "lib/rules.js"
+ ],
+ "惡魔偽裝：{0}": [
+  "lib/night.js",
+  "lib/setup.js"
+ ],
+ "惡魔信息": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "惡魔已死，但鏡像雙子都活著：善良陣營還不能獲勝": [
+  "lib/rules.js"
+ ],
+ "惡魔與最近的爪牙相距 {0} 步": [
+  "public/js/infofmt.js"
+ ],
+ "二維碼": [
+  "public/js/about.js",
+  "public/js/invite.js"
+ ],
+ "發給所有人的公告": [
+  "public/js/side.js"
+ ],
+ "發送": [
+  "public/js/help.js",
+  "public/js/infoform.js",
+  "public/js/side.js"
+ ],
+ "翻開": [
+  "public/js/pass.js"
+ ],
+ "反芻": [
+  "lib/night.js"
+ ],
+ "反芻了 {0}": [
+  "lib/night.js"
+ ],
+ "反芻誰？": [
+  "lib/night.js"
+ ],
+ "反饋": [
+  "public/js/about.js"
+ ],
+ "反饋 · 關於": [
+  "public/js/topbar.js"
+ ],
+ "反饋內容": [
+  "public/js/about.js"
+ ],
+ "反噬": [
+  "lib/day.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "返回": [
+  "public/js/flow.js"
+ ],
+ "返回說書人視角": [
+  "public/js/app.js"
+ ],
+ "方古跳到外來者身上": [
+  "lib/night.js"
+ ],
+ "方古選中了你：你變成了邪惡的方古": [
+  "lib/night.js"
+ ],
+ "房間": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "房間不存在": [
+  "server.js"
+ ],
+ "房間存檔讀取失敗，已備份到 {0}": [
+  "lib/store.js"
+ ],
+ "房間號": [
+  "public/js/lobby.js"
+ ],
+ "房間密碼": [
+  "public/js/invite.js",
+  "public/js/roompass.js",
+  "public/js/topbar.js"
+ ],
+ "房間密碼不對": [
+  "lib/ops.js",
+  "public/js/app.js"
+ ],
+ "房間三天沒有動靜自動刪除，聊天記錄一起刪掉。": [
+  "public/js/about.js"
+ ],
+ "房間已解散": [
+  "public/js/app.js"
+ ],
+ "房間已滿，請稍後再試": [
+  "server.js"
+ ],
+ "放棄本局": [
+  "public/js/topbar.js"
+ ],
+ "放棄本局？所有角色和進度會清空，玩家留在座位上。": [
+  "public/js/topbar.js"
+ ],
+ "放棄本局…": [
+  "public/js/topbar.js"
+ ],
+ "放棄本局…!": [
+  "public/js/help.js"
+ ],
+ "非惡魔": [
+  "public/js/side.js"
+ ],
+ "鯡魚": [
+  "public/js/town.js"
+ ],
+ "分享": [
+  "public/js/about.js"
+ ],
+ "分享到…": [
+  "public/js/about.js"
+ ],
+ "分享房間": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "粉絲自製": [
+  "public/js/about.js"
+ ],
+ "瘋狂：": [
+  "public/js/town.js"
+ ],
+ "瘋狂：{0}": [
+  "lib/util.js"
+ ],
+ "瘋子 {0} 選擇了 {1}": [
+  "lib/engine.js"
+ ],
+ "瘋子看到的假信息：{0}": [
+  "lib/engine.js"
+ ],
+ "否": [
+  "public/js/pass.js"
+ ],
+ "服務器出錯：": [
+  "server.js"
+ ],
+ "附": [
+  "public/js/help.js"
+ ],
+ "訃告": [
+  "public/js/town.js"
+ ],
+ "復活了 {0}": [
+  "lib/night.js"
+ ],
+ "複製": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "複製鏈接": [
+  "public/js/about.js",
+  "public/js/invite.js"
+ ],
+ "複製說書人鏈接（換設備主持用）": [
+  "public/js/topbar.js"
+ ],
+ "複製邀請鏈接": [
+  "public/js/invite.js"
+ ],
+ "改名": [
+  "public/js/flow.js",
+  "public/js/topbar.js"
+ ],
+ "改為": [
+  "public/js/log.js"
+ ],
+ "改為 {0}（{1}）死亡": [
+  "lib/night.js"
+ ],
+ "改為善良": [
+  "public/js/town.js"
+ ],
+ "改為邪惡": [
+  "public/js/town.js"
+ ],
+ "改陣營": [
+  "public/js/topbar.js"
+ ],
+ "蓋上": [
+  "public/js/hud.js"
+ ],
+ "告示": [
+  "public/js/town.js"
+ ],
+ "告訴 {0}": [
+  "public/js/flow.js",
+  "public/js/town.js"
+ ],
+ "告知": [
+  "lib/night.js",
+  "public/js/log.js",
+  "public/js/stepcard.js"
+ ],
+ "告知他": [
+  "public/js/infoform.js"
+ ],
+ "個": [
+  "public/js/infofmt.js"
+ ],
+ "給": [
+  "public/js/pass.js"
+ ],
+ "給 {0} 加備註": [
+  "public/js/side.js"
+ ],
+ "給他看魔典": [
+  "public/js/infoform.js"
+ ],
+ "給他看身份": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "給他看偽裝": [
+  "public/js/town.js"
+ ],
+ "更多": [
+  "public/js/topbar.js"
+ ],
+ "更換角色": [
+  "public/js/help.js",
+  "public/js/setup.js",
+  "public/js/town.js"
+ ],
+ "更換角色會私下通知他": [
+  "public/js/help.js"
+ ],
+ "公佈死訊": [
+  "public/js/help.js"
+ ],
+ "公告": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "公共": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "公開猜他的角色（還有 {0} 次）": [
+  "public/js/town.js"
+ ],
+ "公開宣稱自己是獵手，向 {0} 開槍？": [
+  "public/js/town.js"
+ ],
+ "攻擊": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx-ab.js",
+  "public/js/glyph.js",
+  "public/js/log.js"
+ ],
+ "攻擊 {0}，被僧侶保護": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但{1}，能力無效": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但他{1}": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但他是士兵": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但他已經死亡": [
+  "lib/night.js"
+ ],
+ "攻擊鎮長 {0}": [
+  "lib/night.js"
+ ],
+ "勾選順序": [
+  "public/js/topbar.js"
+ ],
+ "關閉": [
+  "public/js/help.js",
+  "public/js/rolepick.js",
+  "public/js/ui.js"
+ ],
+ "關於": [
+  "public/js/lobby.js"
+ ],
+ "觀戰": [
+  "public/js/topbar.js"
+ ],
+ "觀眾席": [
+  "public/js/town.js"
+ ],
+ "觀眾席 {0} 人": [
+  "public/js/town.js"
+ ],
+ "管家的主人": [
+  "lib/night.js"
+ ],
+ "規則沒判到的勝負，例如呆瓜選中邪惡": [
+  "public/js/help.js"
+ ],
+ "規則與流程": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "過目": [
+  "public/js/fx-ab.js"
+ ],
+ "還不能開局": [
+  "public/js/flow.js"
+ ],
+ "還得知": [
+  "public/js/help.js"
+ ],
+ "還沒開局": [
+  "lib/ops.js"
+ ],
+ "還沒輪到你": [
+  "lib/engine.js"
+ ],
+ "還沒有角色：點「隨機抽取」，或者點座位指定": [
+  "public/js/flow.js"
+ ],
+ "還要點 {0} 人": [
+  "public/js/flow.js"
+ ],
+ "還要選角色": [
+  "public/js/flow.js"
+ ],
+ "還有人沒做完死後的選擇": [
+  "lib/day.js"
+ ],
+ "還有一張死亡票": [
+  "public/js/town.js"
+ ],
+ "和": [
+  "public/js/help.js",
+  "public/js/infofmt.js",
+  "public/js/intro.js",
+  "public/js/stepcard.js"
+ ],
+ "河的對岸": [
+  "public/js/community.js"
+ ],
+ "核對失效的能力，把數字告訴他": [
+  "public/js/infoform.js"
+ ],
+ "核對他猜對幾個，把數字告訴他": [
+  "public/js/infoform.js"
+ ],
+ "橫屏": [
+  "public/js/pass.js"
+ ],
+ "紅唇": [
+  "lib/rules.js"
+ ],
+ "紅唇女郎接任": [
+  "public/js/flow.js"
+ ],
+ "紅鯡魚": [
+  "lib/util.js",
+  "public/js/flow.js",
+  "public/js/glyph.js",
+  "public/js/log.js",
+  "public/js/topbar.js"
+ ],
+ "紅鯡魚必須是善良玩家": [
+  "lib/setup.js"
+ ],
+ "互認": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "換不了": [
+  "lib/ops.js"
+ ],
+ "換角色": [
+  "public/js/topbar.js"
+ ],
+ "換設備": [
+  "public/js/town.js"
+ ],
+ "換設備主持": [
+  "public/js/invite.js"
+ ],
+ "換誰死？": [
+  "public/js/stepcard.js"
+ ],
+ "換一個": [
+  "public/js/flow.js"
+ ],
+ "恢復隨機": [
+  "public/js/topbar.js"
+ ],
+ "回到 {0} 號房間": [
+  "public/js/lobby.js"
+ ],
+ "回到魔典": [
+  "public/js/pass.js"
+ ],
+ "回到準備": [
+  "public/js/gamelog.js"
+ ],
+ "回到準備階段，可以開始新的一局。": [
+  "lib/ops.js"
+ ],
+ "活著的人今天都提名過了": [
+  "public/js/flow.js"
+ ],
+ "或": [
+  "lib/engine.js",
+  "public/js/glyph.js",
+  "public/js/infofmt.js",
+  "public/js/infoform.js"
+ ],
+ "獲得": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js"
+ ],
+ "獲得他的能力": [
+  "public/js/glyph.js"
+ ],
+ "獲勝": [
+  "public/js/help.js"
+ ],
+ "積分榜": [
+  "public/js/help.js",
+  "public/js/scores.js",
+  "public/js/topbar.js"
+ ],
+ "積分榜，雞蛋 {0} 枚": [
+  "public/js/topbar.js"
+ ],
+ "擊殺": [
+  "public/js/fx-ab.js"
+ ],
+ "雞蛋": [
+  "public/js/help.js",
+  "public/js/scores.js"
+ ],
+ "雞蛋用完了": [
+  "lib/score.js",
+  "public/js/town.js"
+ ],
+ "幾人": [
+  "public/js/flow.js"
+ ],
+ "計票": [
+  "public/js/help.js",
+  "public/js/trial.js"
+ ],
+ "記錄": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "記下選擇": [
+  "public/js/topbar.js"
+ ],
+ "寄出": [
+  "public/js/about.js"
+ ],
+ "寄出失敗，請稍後再試": [
+  "server.js"
+ ],
+ "寄得太頻繁，請過一會兒再寄": [
+  "server.js"
+ ],
+ "繼續": [
+  "public/js/flow.js",
+  "public/js/stepcard.js",
+  "public/js/trial.js"
+ ],
+ "加備註": [
+  "public/js/town.js"
+ ],
+ "加入房間": [
+  "public/js/lobby.js"
+ ],
+ "加座位": [
+  "public/js/topbar.js"
+ ],
+ "甲乙": [
+  "public/js/help.js"
+ ],
+ "假獵手": [
+  "public/js/flow.js"
+ ],
+ "假死": [
+  "lib/util.js"
+ ],
+ "假貞潔者": [
+  "public/js/flow.js"
+ ],
+ "假裝叫醒": [
+  "public/js/stepcard.js"
+ ],
+ "簡略": [
+  "public/js/rolepick.js"
+ ],
+ "建房太頻繁，請稍後再試": [
+  "server.js"
+ ],
+ "獎勵": [
+  "public/js/help.js"
+ ],
+ "交給": [
+  "public/js/pass.js"
+ ],
+ "交還說書人": [
+  "public/js/pass.js"
+ ],
+ "交換": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js",
+  "public/js/log.js"
+ ],
+ "交換角色": [
+  "public/js/glyph.js"
+ ],
+ "交換身份": [
+  "public/js/glyph.js"
+ ],
+ "角色": [
+  "public/js/flow.js",
+  "public/js/glyph.js",
+  "public/js/infoform.js",
+  "public/js/setup.js",
+  "public/js/side.js"
+ ],
+ "角色表": [
+  "public/js/side.js"
+ ],
+ "角色不存在": [
+  "lib/day.js",
+  "lib/ops.js",
+  "lib/setup.js"
+ ],
+ "角色分配：": [
+  "lib/setup.js"
+ ],
+ "角色配置": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "角色是秘密": [
+  "public/js/help.js"
+ ],
+ "角色太多了（最多 {0} 個）": [
+  "lib/script.js"
+ ],
+ "叫醒他/她，點他指定的人": [
+  "public/js/help.js"
+ ],
+ "叫醒他/她指定{0}": [
+  "public/js/stepcard.js"
+ ],
+ "接任": [
+  "public/js/fx-ab.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "接任惡魔": [
+  "public/js/flow.js"
+ ],
+ "結束白天": [
+  "public/js/help.js"
+ ],
+ "結束白天，入夜": [
+  "public/js/flow.js"
+ ],
+ "結束白天並入夜？": [
+  "public/js/flow.js"
+ ],
+ "結算": [
+  "public/js/flow.js"
+ ],
+ "結算並結束白天": [
+  "public/js/flow.js"
+ ],
+ "結算當前投票，然後結束白天？": [
+  "public/js/flow.js"
+ ],
+ "結算投票": [
+  "public/js/topbar.js"
+ ],
+ "解除中毒": [
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "解散": [
+  "public/js/topbar.js"
+ ],
+ "解散房間？所有人退回大廳，房間和聊天記錄都會刪掉。": [
+  "public/js/topbar.js"
+ ],
+ "解散房間…": [
+  "public/js/topbar.js"
+ ],
+ "介紹": [
+  "public/js/intro.js",
+  "public/js/lobby.js"
+ ],
+ "界面清爽，動畫直觀": [
+  "public/js/intro.js"
+ ],
+ "今日已執行處決": [
+  "public/js/town.js"
+ ],
+ "今天被處決的玩家是【{0}】": [
+  "public/js/infofmt.js"
+ ],
+ "今天沒有人被處決。": [
+  "lib/day.js"
+ ],
+ "今天沒有人被處決。確定結束白天、直接入夜？": [
+  "public/js/flow.js"
+ ],
+ "今天無人被處決": [
+  "public/js/gamelog.js"
+ ],
+ "今天已經被提名過": [
+  "public/js/town.js"
+ ],
+ "今天已經處決過，不能再提名": [
+  "lib/day.js",
+  "public/js/flow.js"
+ ],
+ "今天已經處決過了": [
+  "lib/ops.js"
+ ],
+ "今天已經處決過人了": [
+  "public/js/town.js"
+ ],
+ "今天已經提名過": [
+  "public/js/town.js"
+ ],
+ "今天有外來者死亡：選擇一名玩家殺死": [
+  "lib/night.js"
+ ],
+ "今晚": [
+  "public/js/flow.js"
+ ],
+ "今晚不醒": [
+  "public/js/flow.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/progress.js"
+ ],
+ "今晚不再有人死亡": [
+  "lib/night.js"
+ ],
+ "今晚誰死？": [
+  "lib/night.js"
+ ],
+ "今晚順序不變": [
+  "public/js/setup.js"
+ ],
+ "僅本人與說書人可見": [
+  "public/js/trial.js"
+ ],
+ "僅你與說書人可見": [
+  "public/js/trial.js"
+ ],
+ "僅剩三人且無人被處決，鎮長獲勝": [
+  "lib/day.js"
+ ],
+ "進入大廳": [
+  "public/js/intro.js"
+ ],
+ "敬請期待": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "靜音": [
+  "public/js/settings.js"
+ ],
+ "糾錯": [
+  "public/js/help.js"
+ ],
+ "就當他沒有選人？": [
+  "public/js/stepcard.js"
+ ],
+ "舉手": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "舉手你來點": [
+  "public/js/help.js"
+ ],
+ "劇本": [
+  "public/js/flow.js"
+ ],
+ "劇本不存在": [
+  "lib/ops.js"
+ ],
+ "卡在圓桌中央；結果唯一時只有一個按鈕": [
+  "public/js/help.js"
+ ],
+ "開局": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/hud.js",
+  "public/js/log.js"
+ ],
+ "開局前": [
+  "public/js/help.js"
+ ],
+ "開局前看一下": [
+  "public/js/flow.js"
+ ],
+ "開槍": [
+  "public/js/flow.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/manual.js",
+  "public/js/town.js"
+ ],
+ "開始白天": [
+  "public/js/flow.js"
+ ],
+ "開始遊戲": [
+  "public/js/flow.js"
+ ],
+ "開源": [
+  "public/js/about.js"
+ ],
+ "看": [
+  "public/js/pass.js"
+ ],
+ "看完了": [
+  "public/js/pass.js"
+ ],
+ "看完了，蓋上": [
+  "public/js/pass.js"
+ ],
+ "可能被當作": [
+  "public/js/help.js"
+ ],
+ "可能失效": [
+  "public/js/mathcard.js"
+ ],
+ "可能是惡魔": [
+  "public/js/infofmt.js"
+ ],
+ "可算對": [
+  "public/js/infoform.js"
+ ],
+ "可以被當作惡魔": [
+  "public/js/flow.js"
+ ],
+ "可以被當作另一陣營": [
+  "public/js/flow.js"
+ ],
+ "可以被當作鎮民": [
+  "public/js/flow.js"
+ ],
+ "可以說真話，也可以說謊": [
+  "public/js/help.js"
+ ],
+ "可以選擇兩名玩家，得知他們是否同一陣營（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一個角色：如果在場，他醉酒三天三夜（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一個善良角色，獲得他的能力（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一名死亡的玩家：如果他是鎮民，他復活（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一名玩家：他死亡，無視任何保護（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一名玩家殺死（不選的話，下次可以殺三人）": [
+  "lib/night.js"
+ ],
+ "可用的{0}不夠（需要 {1} 個），請減少排除的角色": [
+  "lib/setup.js"
+ ],
+ "快速、簡約、精美的線上魔典": [
+  "public/js/about.js",
+  "public/js/lobby.js"
+ ],
+ "離開": [
+  "public/js/topbar.js"
+ ],
+ "離開房間": [
+  "public/js/flow.js",
+  "public/js/topbar.js"
+ ],
+ "離開房間？之後可以用同一個鏈接回來。": [
+  "public/js/topbar.js"
+ ],
+ "離世": [
+  "public/js/town.js"
+ ],
+ "離線": [
+  "public/js/town.js"
+ ],
+ "理髮師的能力讓你換了角色": [
+  "lib/night.js"
+ ],
+ "理髮師死了：可以選擇兩名玩家": [
+  "public/js/glyph.js"
+ ],
+ "理髮師死了：你可以選擇兩名玩家（不能選其他惡魔）交換角色": [
+  "lib/night.js"
+ ],
+ "立即處決": [
+  "public/js/town.js"
+ ],
+ "立即處決 {0}？按處決結算（聖徒、送葬者等），今天不能再處決別人。": [
+  "public/js/town.js"
+ ],
+ "立即處決（糾錯）!": [
+  "public/js/help.js"
+ ],
+ "立即反噬": [
+  "public/js/flow.js"
+ ],
+ "立即計票": [
+  "public/js/flow.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js"
+ ],
+ "立即結算": [
+  "public/js/flow.js"
+ ],
+ "例如：你得知 3 號是廚師": [
+  "public/js/town.js"
+ ],
+ "連接中": [
+  "public/js/app.js"
+ ],
+ "聯繫方式": [
+  "public/js/about.js"
+ ],
+ "鏈接已複製": [
+  "public/js/about.js"
+ ],
+ "鏈接已失效，請找說書人重新發": [
+  "lib/ops.js"
+ ],
+ "兩": [
+  "public/js/stepcard.js"
+ ],
+ "聊天": [
+  "public/js/side.js"
+ ],
+ "獵手開槍": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "鄰座的邪惡": [
+  "public/js/infofmt.js"
+ ],
+ "鄰座中邪惡": [
+  "public/js/help.js"
+ ],
+ "流程": [
+  "public/js/side.js"
+ ],
+ "留待信息齊全，投下關鍵一票！": [
+  "public/js/help.js"
+ ],
+ "路人": [
+  "server.js"
+ ],
+ "旅店老闆：選擇其中一人醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "旅行者": [
+  "public/js/roles.js"
+ ],
+ "輪到你": [
+  "public/js/fx.js",
+  "public/js/trial.js"
+ ],
+ "輪到你才出現，點一下就好": [
+  "public/js/intro.js"
+ ],
+ "輪到時一張標記卡，你自己處理": [
+  "public/js/help.js"
+ ],
+ "落敗": [
+  "public/js/fx-ab.js"
+ ],
+ "麻臉巫婆把你變了": [
+  "lib/night.js"
+ ],
+ "麻臉巫婆創造了惡魔": [
+  "lib/night.js"
+ ],
+ "麻臉巫婆創造了惡魔：今晚的死亡由你決定": [
+  "lib/night.js"
+ ],
+ "沒提名": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "沒投票": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "沒有": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx-ab.js"
+ ],
+ "沒有{0}": [
+  "public/js/infofmt.js",
+  "public/js/infoform.js"
+ ],
+ "沒有存活的玩家可以醉酒": [
+  "lib/night.js"
+ ],
+ "沒有待裁定的事項": [
+  "lib/day.js",
+  "lib/engine.js"
+ ],
+ "沒有待裁定的貞潔者": [
+  "lib/day.js"
+ ],
+ "沒有待確認的信息": [
+  "lib/engine.js"
+ ],
+ "沒有待確認的行動": [
+  "lib/engine.js"
+ ],
+ "沒有惡魔": [
+  "public/js/fx-ab.js"
+ ],
+ "沒有反芻": [
+  "lib/night.js"
+ ],
+ "沒有進行中的投票": [
+  "lib/day.js"
+ ],
+ "沒有可以撤銷的": [
+  "public/js/topbar.js"
+ ],
+ "沒有可以撤銷的操作": [
+  "lib/ops.js"
+ ],
+ "沒有可以跳過的步驟": [
+  "lib/engine.js"
+ ],
+ "沒有了": [
+  "lib/night.js"
+ ],
+ "沒有人得到 MVP 票": [
+  "public/js/gamelog.js"
+ ],
+ "沒有人接任": [
+  "public/js/log.js"
+ ],
+ "沒有使用能力": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "沒有外來者": [
+  "lib/night.js"
+ ],
+ "沒有選": [
+  "public/js/log.js"
+ ],
+ "沒有選人": [
+  "lib/night.js",
+  "public/js/hud.js"
+ ],
+ "沒有選人，下次可以殺三人": [
+  "lib/night.js"
+ ],
+ "沒有要告知的": [
+  "lib/ops.js"
+ ],
+ "沒有語音": [
+  "public/js/about.js"
+ ],
+ "沒有在假裝叫醒": [
+  "lib/engine.js"
+ ],
+ "每人看自己的身份": [
+  "public/js/manual.js"
+ ],
+ "每人一台手機看身份": [
+  "public/js/flow.js"
+ ],
+ "每天最多提名 1 次，最多被提名 1 次": [
+  "public/js/help.js"
+ ],
+ "夢殞春宵": [
+  "public/js/help.js",
+  "public/js/roles.js"
+ ],
+ "密碼是 4 位數字": [
+  "lib/ops.js"
+ ],
+ "免費、非商業的社區工具，不是官方產品。與 The Pandemonium Institute 無關，也未獲其認可；遊戲名、角色名和能力文字歸其所有。": [
+  "public/js/about.js"
+ ],
+ "免費開源": [
+  "public/js/intro.js"
+ ],
+ "免死": [
+  "public/js/town.js"
+ ],
+ "免疫": [
+  "public/js/help.js"
+ ],
+ "免註冊": [
+  "public/js/about.js",
+  "public/js/intro.js"
+ ],
+ "秒後反噬": [
+  "public/js/flow.js"
+ ],
+ "名": [
+  "public/js/help.js",
+  "public/js/infofmt.js"
+ ],
+ "名字": [
+  "public/js/town.js"
+ ],
+ "酩酊": [
+  "public/js/community.js"
+ ],
+ "命中": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "模式不存在": [
+  "lib/ops.js"
+ ],
+ "魔典：": [
+  "lib/night.js"
+ ],
+ "目標不存在": [
+  "lib/ops.js",
+  "lib/score.js"
+ ],
+ "目前將被處決的是 {0}。": [
+  "lib/day.js"
+ ],
+ "目前平票，無人將被處決。": [
+  "lib/day.js"
+ ],
+ "目前無人將被處決。": [
+  "lib/day.js"
+ ],
+ "男爵隨機時只在 7 人及以上出現。": [
+  "public/js/setup.js"
+ ],
+ "能力失常": [
+  "public/js/infofmt.js"
+ ],
+ "能力失效，信息可能是錯的，他自己不知道": [
+  "public/js/help.js"
+ ],
+ "能力無效": [
+  "public/js/flow.js"
+ ],
+ "能力已用": [
+  "lib/util.js",
+  "public/js/manual.js"
+ ],
+ "能力正常：只能給合規的信息": [
+  "public/js/infoform.js"
+ ],
+ "能力正常時只能給合規信息": [
+  "lib/engine.js"
+ ],
+ "能說話": [
+  "public/js/help.js"
+ ],
+ "你": [
+  "lib/ops.js"
+ ],
+ "你不能猜": [
+  "lib/day.js"
+ ],
+ "你不在這局遊戲中": [
+  "lib/ops.js"
+ ],
+ "你猜對了 {0} 個角色": [
+  "public/js/infofmt.js"
+ ],
+ "你存活的鄰座（{0}）中有 {1} 名邪惡玩家": [
+  "public/js/infofmt.js"
+ ],
+ "你的備註": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "你的猜測": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "你的角色是【{0}】（{1}）：{2}": [
+  "lib/engine.js"
+ ],
+ "你的暱稱": [
+  "public/js/flow.js"
+ ],
+ "你的雙子是 {0}【{1}】": [
+  "lib/night.js"
+ ],
+ "你的死亡票已經用過了": [
+  "lib/day.js"
+ ],
+ "你的爪牙：{0}。": [
+  "lib/night.js"
+ ],
+ "你的爪牙：{0}。三個不在場的善良角色（可用來偽裝）：{1}": [
+  "lib/night.js"
+ ],
+ "你的陣營變為{0}": [
+  "lib/engine.js"
+ ],
+ "你和 {0}【{1}】是鏡像雙子": [
+  "lib/night.js"
+ ],
+ "你今天已經開過槍了": [
+  "lib/day.js"
+ ],
+ "你今天已經提名過了": [
+  "lib/day.js"
+ ],
+ "你今晚的行動": [
+  "public/js/side.js"
+ ],
+ "你今晚沒有選人：下一次可以選三人": [
+  "lib/night.js"
+ ],
+ "你沒有使用能力": [
+  "lib/engine.js"
+ ],
+ "你是管家：主人舉手時你才能舉手": [
+  "lib/day.js"
+ ],
+ "你死了：公開選擇一名存活的玩家，他是善良的話，今晚死亡": [
+  "lib/view.js"
+ ],
+ "你死了：公開選擇一名存活的玩家，他是邪惡的話，你的陣營落敗": [
+  "lib/view.js"
+ ],
+ "你選的玩家中今晚有 {0} 人被喚醒": [
+  "public/js/infofmt.js"
+ ],
+ "你選擇了 {0}": [
+  "lib/engine.js"
+ ],
+ "你已被說書人移出房間": [
+  "public/js/app.js"
+ ],
+ "你已被說書人移出這個房間": [
+  "lib/ops.js"
+ ],
+ "你用舞蛇人的能力選中了惡魔，你們交換了角色和陣營": [
+  "lib/night.js"
+ ],
+ "你在今晚死去。選擇一名玩家，得知他的": [
+  "public/js/glyph.js"
+ ],
+ "你在夜裡死了。選擇一名玩家，得知他的角色": [
+  "lib/night.js"
+ ],
+ "你在這個房間已經有座位了": [
+  "lib/ops.js"
+ ],
+ "你中毒或其實是酒鬼時，這一槍可能會被說書人判定無效。": [
+  "public/js/town.js"
+ ],
+ "暱稱": [
+  "public/js/lobby.js"
+ ],
+ "鯰魚": [
+  "public/js/community.js"
+ ],
+ "弄臣免死": [
+  "lib/rules.js"
+ ],
+ "挪座位": [
+  "public/js/topbar.js"
+ ],
+ "排除": [
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "判定善良獲勝…": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "判定勝負": [
+  "public/js/topbar.js"
+ ],
+ "判定邪惡獲勝…": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "票數不足": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "票用": [
+  "public/js/town.js"
+ ],
+ "平安夜": [
+  "public/js/fx.js",
+  "public/js/gamelog.js"
+ ],
+ "平票": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "普卡（今晚沒有醒）：{0}": [
+  "lib/night.js"
+ ],
+ "其他爪牙：{0}": [
+  "lib/night.js"
+ ],
+ "其一": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "其一是惡魔": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "奇遇角色": [
+  "public/js/roles.js"
+ ],
+ "棄權": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/town.js",
+  "public/js/trial.js"
+ ],
+ "清除我的備註": [
+  "public/js/town.js"
+ ],
+ "請立即作出你的選擇": [
+  "public/js/fx.js"
+ ],
+ "請配合騰訊會議、微信語音等。": [
+  "public/js/about.js"
+ ],
+ "請確認": [
+  "public/js/ui.js"
+ ],
+ "請稍候，說書人正在處理": [
+  "lib/ops.js"
+ ],
+ "請輸入 4 位房間號": [
+  "public/js/lobby.js"
+ ],
+ "請輸入房間密碼": [
+  "lib/ops.js",
+  "public/js/app.js"
+ ],
+ "請輸入名字": [
+  "lib/ops.js"
+ ],
+ "請輸入暱稱": [
+  "public/js/lobby.js"
+ ],
+ "請先裁定能力是否生效": [
+  "lib/ops.js"
+ ],
+ "請先裁定貞潔者是否反噬": [
+  "lib/day.js",
+  "lib/ops.js"
+ ],
+ "請先抽取角色": [
+  "lib/setup.js"
+ ],
+ "請先處理裁定": [
+  "lib/ops.js"
+ ],
+ "請先選擇": [
+  "public/js/infofmt.js"
+ ],
+ "請選擇 {0} 名玩家": [
+  "lib/engine.js"
+ ],
+ "請選擇獲勝陣營": [
+  "lib/ops.js"
+ ],
+ "請選擇角色": [
+  "public/js/infofmt.js"
+ ],
+ "請選擇兩名不同的玩家": [
+  "public/js/infofmt.js"
+ ],
+ "請選擇數字": [
+  "public/js/infofmt.js"
+ ],
+ "請選擇一個角色": [
+  "lib/engine.js"
+ ],
+ "請選擇一個善良角色和一個邪惡角色": [
+  "public/js/infofmt.js"
+ ],
+ "請選擇一個選項": [
+  "lib/engine.js"
+ ],
+ "請選擇一名存活的其他玩家": [
+  "lib/day.js"
+ ],
+ "請選擇有或沒有": [
+  "public/js/infofmt.js"
+ ],
+ "請選擇陣營": [
+  "lib/manual.js"
+ ],
+ "請指示互認": [
+  "public/js/stepcard.js"
+ ],
+ "驅魔": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "驅魔人 {0} 選中了你：今晚你不會被喚醒": [
+  "lib/night.js"
+ ],
+ "取消": [
+  "public/js/flow.js",
+  "public/js/manual.js",
+  "public/js/town.js",
+  "public/js/ui.js"
+ ],
+ "取消抽取": [
+  "public/js/topbar.js"
+ ],
+ "取消密碼": [
+  "public/js/roompass.js"
+ ],
+ "取消提名": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "取消這次提名？雙方今天可以重新提名 / 被提名。": [
+  "public/js/flow.js"
+ ],
+ "全部恢復隨機": [
+  "public/js/setup.js"
+ ],
+ "全部靜音": [
+  "public/js/topbar.js"
+ ],
+ "全部選項解鎖，「真」是真實答案": [
+  "public/js/help.js"
+ ],
+ "全場醉酒": [
+  "lib/rules.js"
+ ],
+ "全程自動結算": [
+  "public/js/intro.js"
+ ],
+ "全自動": [
+  "public/js/manual.js"
+ ],
+ "缺少玩家標識": [
+  "server.js"
+ ],
+ "確定": [
+  "public/js/roompass.js",
+  "public/js/stepcard.js",
+  "public/js/ui.js"
+ ],
+ "確定翻開": [
+  "public/js/pass.js"
+ ],
+ "確定翻開？": [
+  "public/js/pass.js"
+ ],
+ "確定是 {0} 本人？": [
+  "public/js/pass.js"
+ ],
+ "確定是說書人本人？": [
+  "public/js/pass.js"
+ ],
+ "確認": [
+  "public/js/flow.js",
+  "public/js/intro.js",
+  "public/js/stepcard.js"
+ ],
+ "確認開局": [
+  "public/js/help.js"
+ ],
+ "讓 {0} 瘋狂證明自己是{1}": [
+  "lib/night.js"
+ ],
+ "讓移出的人回來（{0}）": [
+  "public/js/topbar.js"
+ ],
+ "讓鎮長 {0} 死亡": [
+  "lib/night.js"
+ ],
+ "人": [
+  "public/js/flow.js",
+  "public/js/gamelog.js",
+  "public/js/infofmt.js",
+  "public/js/lobby.js"
+ ],
+ "人人皆可玩": [
+  "public/js/community.js"
+ ],
+ "認主": [
+  "public/js/glyph.js",
+  "public/js/log.js"
+ ],
+ "扔雞蛋": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "日誌": [
+  "public/js/side.js"
+ ],
+ "入夜": [
+  "public/js/flow.js",
+  "public/js/progress.js"
+ ],
+ "入住": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "入座": [
+  "public/js/flow.js"
+ ],
+ "三": [
+  "public/js/stepcard.js"
+ ],
+ "三個不在場的善良角色（可用來偽裝）：{0}": [
+  "lib/night.js"
+ ],
+ "掃碼入座": [
+  "public/js/intro.js"
+ ],
+ "沙巴洛斯可以讓上一晚選中的一名死者復活": [
+  "lib/night.js"
+ ],
+ "殺人、傳位": [
+  "public/js/help.js"
+ ],
+ "殺死": [
+  "public/js/log.js"
+ ],
+ "殺死了 {0}": [
+  "lib/night.js"
+ ],
+ "善良": [
+  "lib/engine.js",
+  "lib/manual.js",
+  "lib/night.js",
+  "lib/ops.js",
+  "lib/rules.js",
+  "lib/util.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "善良的鏡像雙子被處決": [
+  "lib/rules.js"
+ ],
+ "善良獲勝": [
+  "public/js/flow.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/topbar.js",
+  "public/js/town.js"
+ ],
+ "上處決台": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "上傳劇本": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "上次沒有選人：選擇三名玩家，使其": [
+  "public/js/glyph.js"
+ ],
+ "上次你沒有選人：今晚選擇三名玩家殺死": [
+  "lib/night.js"
+ ],
+ "上一步": [
+  "public/js/topbar.js"
+ ],
+ "上一局善良獲勝": [
+  "public/js/scores.js"
+ ],
+ "上一局邪惡獲勝": [
+  "public/js/scores.js"
+ ],
+ "社區劇本": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/manual.js"
+ ],
+ "射": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "射{0}號失敗": [
+  "public/js/town.js"
+ ],
+ "射殺": [
+  "public/js/fx.js",
+  "public/js/town.js"
+ ],
+ "設為占卜師的紅鯡魚": [
+  "public/js/town.js"
+ ],
+ "設為中毒": [
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "設置": [
+  "public/js/settings.js",
+  "public/js/topbar.js"
+ ],
+ "什麼也不會發生": [
+  "public/js/town.js"
+ ],
+ "什麼也沒有發生。": [
+  "lib/day.js"
+ ],
+ "生效": [
+  "lib/day.js",
+  "public/js/flow.js",
+  "public/js/log.js"
+ ],
+ "聲明不成立，無人死亡": [
+  "lib/night.js"
+ ],
+ "勝負判定": [
+  "public/js/help.js"
+ ],
+ "勝利": [
+  "public/js/fx.js",
+  "public/js/scores.js"
+ ],
+ "勝利積分": [
+  "public/js/help.js",
+  "public/js/scores.js"
+ ],
+ "聖徒被處決": [
+  "lib/day.js",
+  "public/js/flow.js"
+ ],
+ "失敗": [
+  "public/js/fx.js",
+  "public/js/help.js"
+ ],
+ "失效": [
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "十": [
+  "public/js/help.js"
+ ],
+ "使用": [
+  "public/js/flow.js"
+ ],
+ "使用能力？": [
+  "public/js/flow.js"
+ ],
+ "士兵免疫": [
+  "public/js/log.js"
+ ],
+ "是": [
+  "lib/night.js",
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/infofmt.js",
+  "public/js/infoform.js",
+  "public/js/pass.js"
+ ],
+ "是弄臣（首次死亡不死）": [
+  "lib/rules.js"
+ ],
+ "是士兵": [
+  "lib/night.js"
+ ],
+ "是水手": [
+  "lib/rules.js"
+ ],
+ "是我，翻開": [
+  "public/js/pass.js"
+ ],
+ "試藥": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "收回": [
+  "public/js/flow.js",
+  "public/js/pass.js",
+  "public/js/scores.js",
+  "public/js/topbar.js"
+ ],
+ "收件人不存在": [
+  "lib/ops.js"
+ ],
+ "收起": [
+  "public/js/flow.js",
+  "public/js/hud.js",
+  "public/js/pass.js",
+  "public/js/rolepick.js",
+  "public/js/side.js"
+ ],
+ "收起側欄": [
+  "public/js/side.js"
+ ],
+ "收起角色面板": [
+  "public/js/hud.js"
+ ],
+ "手動擺牌": [
+  "public/js/intro.js"
+ ],
+ "受保護": [
+  "public/js/glyph.js"
+ ],
+ "署名": [
+  "public/js/about.js"
+ ],
+ "豎屏": [
+  "public/js/pass.js"
+ ],
+ "雙方今天可以重新提名": [
+  "public/js/help.js"
+ ],
+ "雙子": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/log.js"
+ ],
+ "雙子是 {0}": [
+  "lib/night.js"
+ ],
+ "誰成為": [
+  "public/js/stepcard.js"
+ ],
+ "誰從此醉酒？": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "誰會贏？": [
+  "public/js/help.js"
+ ],
+ "誰是孫子？": [
+  "lib/night.js"
+ ],
+ "誰中毒？": [
+  "lib/night.js"
+ ],
+ "誰醉酒？": [
+  "lib/night.js"
+ ],
+ "水手：選擇誰醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "水手不死": [
+  "lib/rules.js"
+ ],
+ "說明": [
+  "public/js/about.js"
+ ],
+ "說書人": [
+  "lib/ops.js",
+  "lib/util.js",
+  "public/js/gamelog.js",
+  "public/js/hud.js",
+  "public/js/lobby.js",
+  "public/js/side.js",
+  "public/js/topbar.js",
+  "public/js/town.js"
+ ],
+ "說書人把 {0} 從{1}改為{2}": [
+  "lib/setup.js"
+ ],
+ "說書人把 {0} 改為{1}": [
+  "lib/manual.js"
+ ],
+ "說書人把 {0} 設為中毒": [
+  "lib/ops.js"
+ ],
+ "說書人把占卜師的紅鯡魚改為 {0}": [
+  "lib/setup.js"
+ ],
+ "說書人裁定猜對": [
+  "lib/night.js"
+ ],
+ "說書人當面主持": [
+  "public/js/flow.js"
+ ],
+ "說書人放棄了本局，回到準備階段。": [
+  "lib/ops.js"
+ ],
+ "說書人更正了你的角色：你是【{0}】（{1}）：{2}": [
+  "lib/setup.js"
+ ],
+ "說書人解除了中毒": [
+  "lib/ops.js"
+ ],
+ "說書人離線": [
+  "public/js/topbar.js"
+ ],
+ "說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "說書人密鑰錯誤": [
+  "public/js/app.js",
+  "server.js"
+ ],
+ "說書人判定": [
+  "lib/ops.js",
+  "public/js/log.js"
+ ],
+ "說書人判定{0}陣營獲勝": [
+  "lib/ops.js"
+ ],
+ "說書人強制玩家發起投票，玩家按順序在短時間內必須投票，數完自動結算": [
+  "public/js/help.js"
+ ],
+ "說書人取消了本次提名，雙方今天可以重新提名 / 被提名。": [
+  "lib/day.js"
+ ],
+ "說書人手動標記": [
+  "lib/ops.js"
+ ],
+ "說書人提出": [
+  "public/js/fx.js"
+ ],
+ "說書人提出立即計票：從 {0} 開始順時針輪流選擇，到點沒有表態的算棄權。": [
+  "lib/day.js"
+ ],
+ "說書人選擇了劇本：{0}": [
+  "lib/ops.js"
+ ],
+ "說書人直接處決了 {0}": [
+  "lib/ops.js"
+ ],
+ "說書人只管講故事": [
+  "public/js/intro.js"
+ ],
+ "說書人指南": [
+  "public/js/help.js"
+ ],
+ "私聊": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "私聊記錄": [
+  "public/js/side.js"
+ ],
+ "私下通知他": [
+  "public/js/setup.js"
+ ],
+ "死了還在局裏": [
+  "public/js/help.js"
+ ],
+ "死亡 / 復活": [
+  "public/js/topbar.js"
+ ],
+ "死亡的玩家中有 {0} 名邪惡玩家": [
+  "public/js/infofmt.js"
+ ],
+ "死亡喚醒": [
+  "public/js/help.js"
+ ],
+ "死亡票": [
+  "public/js/help.js"
+ ],
+ "死亡票已用": [
+  "lib/util.js",
+  "public/js/glyph.js"
+ ],
+ "死亡玩家不能開槍": [
+  "lib/day.js"
+ ],
+ "死亡玩家不能提名": [
+  "lib/day.js"
+ ],
+ "死因未卜": [
+  "public/js/community.js"
+ ],
+ "死者中邪惡": [
+  "public/js/infofmt.js"
+ ],
+ "四": [
+  "public/js/stepcard.js"
+ ],
+ "算猜錯（賭徒死亡）": [
+  "lib/night.js"
+ ],
+ "算猜對": [
+  "lib/night.js"
+ ],
+ "算猜對？": [
+  "lib/night.js"
+ ],
+ "算善良（他死亡）": [
+  "lib/night.js"
+ ],
+ "算邪惡（無事）": [
+  "lib/night.js"
+ ],
+ "隨機": [
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "隨機抽取": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "孫子被惡魔殺死": [
+  "lib/night.js"
+ ],
+ "他": [
+  "lib/ops.js",
+  "public/js/infoform.js"
+ ],
+ "他的陣營落敗": [
+  "public/js/flow.js"
+ ],
+ "他今天已經被提名過了": [
+  "lib/day.js"
+ ],
+ "他立即死亡": [
+  "public/js/town.js"
+ ],
+ "他是惡魔": [
+  "public/js/town.js"
+ ],
+ "他指了誰就點誰": [
+  "public/js/stepcard.js"
+ ],
+ "他做的": [
+  "public/js/log.js"
+ ],
+ "討論、提名": [
+  "public/js/help.js"
+ ],
+ "討論和提名": [
+  "public/js/progress.js"
+ ],
+ "討論時間": [
+  "public/js/town.js"
+ ],
+ "提名": [
+  "public/js/flow.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/manual.js",
+  "public/js/progress.js",
+  "public/js/topbar.js",
+  "public/js/trial.js"
+ ],
+ "提名過": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "提名取消": [
+  "public/js/gamelog.js"
+ ],
+ "提名他": [
+  "public/js/town.js"
+ ],
+ "替死、三人勝": [
+  "public/js/help.js"
+ ],
+ "替他提名": [
+  "public/js/help.js"
+ ],
+ "天快亮了，核對一下今晚": [
+  "public/js/town.js"
+ ],
+ "天亮": [
+  "public/js/help.js",
+  "public/js/progress.js",
+  "public/js/topbar.js"
+ ],
+ "天亮，公佈死訊": [
+  "public/js/flow.js"
+ ],
+ "天亮了": [
+  "public/js/town.js"
+ ],
+ "天亮了。昨晚 {0} 死亡。": [
+  "lib/engine.js"
+ ],
+ "天亮了。昨晚是平安夜。": [
+  "lib/engine.js"
+ ],
+ "天亮前確認": [
+  "lib/engine.js",
+  "lib/night.js"
+ ],
+ "挑干擾項": [
+  "public/js/help.js"
+ ],
+ "挑一個答案告訴他（可以是錯的）": [
+  "public/js/infoform.js"
+ ],
+ "跳過": [
+  "public/js/fx.js",
+  "public/js/intro.js",
+  "public/js/log.js",
+  "public/js/manual.js",
+  "public/js/stepcard.js"
+ ],
+ "跳過 {0} 的行動？": [
+  "public/js/stepcard.js"
+ ],
+ "跳身": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/log.js"
+ ],
+ "貼標記": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "貼上": [
+  "public/js/manual.js"
+ ],
+ "聽到的標在座位上，隨時翻看": [
+  "public/js/intro.js"
+ ],
+ "同一陣營": [
+  "public/js/glyph.js"
+ ],
+ "統計寫盤出錯": [
+  "lib/stats.js"
+ ],
+ "投 MVP": [
+  "public/js/scores.js"
+ ],
+ "投毒": [
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "投給": [
+  "public/js/help.js"
+ ],
+ "投過票": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "投票限制": [
+  "public/js/help.js"
+ ],
+ "推進": [
+  "public/js/topbar.js"
+ ],
+ "推送狀態出錯": [
+  "server.js"
+ ],
+ "完成": [
+  "public/js/setup.js"
+ ],
+ "玩家": [
+  "public/js/lobby.js",
+  "public/js/scores.js"
+ ],
+ "玩家{0}": [
+  "lib/ops.js"
+ ],
+ "玩家不存在": [
+  "lib/engine.js",
+  "lib/score.js"
+ ],
+ "玩家看到的角色": [
+  "public/js/topbar.js"
+ ],
+ "玩家收到卡上這一句，接著自動到下一張": [
+  "public/js/help.js"
+ ],
+ "玩家自己提名": [
+  "public/js/help.js"
+ ],
+ "亡骨魔：{0} 中毒": [
+  "lib/night.js"
+ ],
+ "亡骨魔：選擇鄰近的一名鎮民中毒": [
+  "lib/night.js"
+ ],
+ "網絡不通，請稍後再試": [
+  "public/js/app.js"
+ ],
+ "偽裝": [
+  "public/js/fx-ab.js",
+  "public/js/glyph.js",
+  "public/js/topbar.js"
+ ],
+ "偽裝要是不在場的善良角色": [
+  "lib/setup.js"
+ ],
+ "偽裝只有三格": [
+  "lib/setup.js"
+ ],
+ "未表態": [
+  "public/js/trial.js"
+ ],
+ "未捕獲的錯誤": [
+  "server.js"
+ ],
+ "未處理的 Promise 拒絕": [
+  "server.js"
+ ],
+ "未加入房間": [
+  "server.js"
+ ],
+ "未設": [
+  "public/js/flow.js"
+ ],
+ "未知操作": [
+  "lib/ops.js"
+ ],
+ "未中": [
+  "public/js/flow.js",
+  "public/js/fx.js",
+  "public/js/log.js"
+ ],
+ "文件太大了": [
+  "public/js/manual.js"
+ ],
+ "渦流在場，白天無人被處決": [
+  "lib/rules.js"
+ ],
+ "渦流在場：今天沒有人被處決，邪惡陣營會直接獲勝。確定結束白天？": [
+  "public/js/flow.js"
+ ],
+ "渦流在場：鎮民只能得到錯誤信息": [
+  "lib/engine.js"
+ ],
+ "渦流在場：只能給錯誤信息": [
+  "public/js/infoform.js"
+ ],
+ "我是說書人": [
+  "public/js/lobby.js",
+  "public/js/pass.js"
+ ],
+ "我是玩家": [
+  "public/js/lobby.js"
+ ],
+ "無": [
+  "public/js/flow.js"
+ ],
+ "無權限": [
+  "server.js"
+ ],
+ "無人": [
+  "lib/night.js"
+ ],
+ "無人處決": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx.js"
+ ],
+ "無人死亡": [
+  "lib/night.js",
+  "public/js/flow.js",
+  "public/js/fx-ab.js"
+ ],
+ "無事": [
+  "lib/day.js"
+ ],
+ "無事發生": [
+  "public/js/flow.js",
+  "public/js/gamelog.js"
+ ],
+ "無效": [
+  "lib/day.js",
+  "lib/night.js",
+  "public/js/flow.js",
+  "public/js/log.js",
+  "public/js/stepcard.js"
+ ],
+ "五": [
+  "public/js/stepcard.js"
+ ],
+ "午夜綠洲": [
+  "public/js/community.js"
+ ],
+ "舞蛇人選中了你，你們交換了角色和陣營": [
+  "lib/night.js"
+ ],
+ "洗腦師選中了你：明天白天和夜晚，你要「瘋狂」地證明自己是【{0}】，否則可能被處決": [
+  "lib/night.js"
+ ],
+ "系統": [
+  "lib/util.js"
+ ],
+ "系統幫你做的": [
+  "public/js/help.js"
+ ],
+ "系統已留好可選項": [
+  "public/js/help.js"
+ ],
+ "系統自動推進": [
+  "public/js/flow.js"
+ ],
+ "下一個": [
+  "public/js/infoform.js",
+  "public/js/pass.js",
+  "public/js/stepcard.js"
+ ],
+ "下一頁 ›": [
+  "public/js/intro.js"
+ ],
+ "先給座位指定角色，其餘隨機": [
+  "public/js/help.js"
+ ],
+ "先選一個": [
+  "public/js/stepcard.js"
+ ],
+ "先選一個答案": [
+  "public/js/infoform.js"
+ ],
+ "先在桌上點他猜的人": [
+  "public/js/manual.js"
+ ],
+ "陷阱": [
+  "public/js/help.js"
+ ],
+ "現為善良": [
+  "public/js/hud.js"
+ ],
+ "現為邪惡": [
+  "public/js/hud.js"
+ ],
+ "現在 {0} 人，至少需要 5 人才能開局。": [
+  "public/js/setup.js"
+ ],
+ "現在不是白天": [
+  "lib/day.js"
+ ],
+ "現在不需要選擇": [
+  "lib/day.js",
+  "lib/engine.js"
+ ],
+ "現在沒有可以撤銷的": [
+  "public/js/topbar.js"
+ ],
+ "現在沒有要記的": [
+  "lib/engine.js"
+ ],
+ "線上": [
+  "public/js/flow.js"
+ ],
+ "線上魔典": [
+  "public/js/lobby.js"
+ ],
+ "線下": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "線下 · 單設備": [
+  "public/js/topbar.js"
+ ],
+ "線下局當面舉手，說書人會記下": [
+  "lib/ops.js"
+ ],
+ "線下局當面提名，說書人會替你點": [
+  "lib/ops.js"
+ ],
+ "線下局由說書人替你點": [
+  "lib/ops.js"
+ ],
+ "線下主持": [
+  "public/js/help.js"
+ ],
+ "相距": [
+  "public/js/infofmt.js"
+ ],
+ "詳細": [
+  "public/js/rolepick.js"
+ ],
+ "想把 {0} 變成{1}，但這個角色已在場，無事發生": [
+  "lib/night.js"
+ ],
+ "想保護 {0}，{1}，能力無效": [
+  "lib/night.js"
+ ],
+ "想毒 {0}，{1}": [
+  "lib/night.js"
+ ],
+ "向 {0} 開槍": [
+  "public/js/town.js"
+ ],
+ "向惡魔": [
+  "public/js/pass.js"
+ ],
+ "向惡魔展示可用的偽裝": [
+  "public/js/stepcard.js"
+ ],
+ "消息為空": [
+  "lib/ops.js"
+ ],
+ "小惡魔把惡魔身份傳給了你": [
+  "lib/night.js"
+ ],
+ "小惡魔自殺傳位": [
+  "lib/night.js",
+  "lib/rules.js"
+ ],
+ "小惡魔自殺了：選擇一名存活的爪牙成為新的小惡魔": [
+  "lib/night.js"
+ ],
+ "小紅書": [
+  "public/js/author.js"
+ ],
+ "小心陷阱": [
+  "public/js/help.js"
+ ],
+ "邪惡": [
+  "lib/engine.js",
+  "lib/manual.js",
+  "lib/night.js",
+  "lib/ops.js",
+  "lib/rules.js",
+  "lib/util.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "邪惡獲勝": [
+  "public/js/flow.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/topbar.js",
+  "public/js/town.js"
+ ],
+ "寫點什麼再寄出": [
+  "public/js/about.js",
+  "server.js"
+ ],
+ "心上人：{0}（{1}）從此醉酒": [
+  "lib/night.js"
+ ],
+ "心上人死了：選擇一名玩家從此醉酒": [
+  "lib/night.js"
+ ],
+ "新手上手快": [
+  "public/js/intro.js"
+ ],
+ "信任": [
+  "public/js/community.js"
+ ],
+ "信息": [
+  "public/js/topbar.js"
+ ],
+ "信息為空": [
+  "lib/ops.js"
+ ],
+ "信息自動收集": [
+  "public/js/intro.js"
+ ],
+ "行動": [
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "醒來": [
+  "public/js/glyph.js"
+ ],
+ "修正": [
+  "public/js/log.js"
+ ],
+ "需 {0} 票": [
+  "public/js/trial.js"
+ ],
+ "需要 {0} 票才能上處決台": [
+  "public/js/flow.js"
+ ],
+ "蓄力": [
+  "lib/night.js",
+  "lib/util.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "宣稱獵手：向他開槍": [
+  "public/js/town.js"
+ ],
+ "宣稱獵手開槍": [
+  "public/js/help.js"
+ ],
+ "宣稱獵手開槍，沒有打中": [
+  "public/js/town.js"
+ ],
+ "選": [
+  "public/js/flow.js",
+  "public/js/log.js",
+  "public/js/rolepick.js"
+ ],
+ "選 MVP": [
+  "public/js/help.js"
+ ],
+ "選角色": [
+  "public/js/flow.js",
+  "public/js/manual.js"
+ ],
+ "選劇本": [
+  "public/js/help.js"
+ ],
+ "選了": [
+  "public/js/log.js",
+  "public/js/stepcard.js"
+ ],
+ "選了 {0}": [
+  "lib/night.js"
+ ],
+ "選了 {0}，不是惡魔": [
+  "lib/night.js"
+ ],
+ "選了 {0}，不是善良玩家": [
+  "lib/night.js"
+ ],
+ "選了 {0}，不是鎮民": [
+  "lib/night.js"
+ ],
+ "選了 {0}，但他{1}": [
+  "lib/night.js"
+ ],
+ "選了 {0}，算邪惡，無事": [
+  "lib/night.js"
+ ],
+ "選了 {0}，他死亡": [
+  "lib/night.js"
+ ],
+ "選了 {0}，他已經死亡": [
+  "lib/night.js"
+ ],
+ "選了{0}": [
+  "lib/night.js"
+ ],
+ "選了自己，自己醉酒": [
+  "lib/night.js"
+ ],
+ "選人": [
+  "public/js/stepcard.js",
+  "public/js/topbar.js"
+ ],
+ "選填": [
+  "public/js/about.js"
+ ],
+ "選項是座位時": [
+  "public/js/help.js"
+ ],
+ "選擇 {0} 名玩家": [
+  "public/js/flow.js"
+ ],
+ "選擇被提名的人": [
+  "public/js/manual.js"
+ ],
+ "選擇除你以外的兩名存活的玩家，得知他們今晚有幾人被喚醒": [
+  "lib/night.js"
+ ],
+ "選擇惡魔和另一名玩家，並告知他": [
+  "public/js/infoform.js"
+ ],
+ "選擇角色": [
+  "public/js/flow.js"
+ ],
+ "選擇開槍的人": [
+  "public/js/manual.js"
+ ],
+ "選擇兩名其他存活的玩家，得知今晚幾人": [
+  "public/js/glyph.js"
+ ],
+ "選擇兩名玩家，查驗其中有沒有": [
+  "public/js/glyph.js"
+ ],
+ "選擇兩名玩家，得知其中是否有惡魔": [
+  "lib/night.js"
+ ],
+ "選擇兩名玩家，得知是否": [
+  "public/js/glyph.js"
+ ],
+ "選擇兩名玩家，使其": [
+  "public/js/glyph.js"
+ ],
+ "選擇兩名玩家，他們今晚": [
+  "public/js/glyph.js"
+ ],
+ "選擇兩名玩家：他們今晚不會死亡，但其中一人醉酒": [
+  "lib/night.js"
+ ],
+ "選擇兩名玩家殺死": [
+  "lib/night.js"
+ ],
+ "選擇你的主人（明天只有他投票時你才能投票）": [
+  "lib/night.js"
+ ],
+ "選擇他射向的人": [
+  "public/js/manual.js"
+ ],
+ "選擇提名的人": [
+  "public/js/manual.js"
+ ],
+ "選擇一個{0}和另一名玩家，並告知他": [
+  "public/js/infoform.js"
+ ],
+ "選擇一個角色，使其": [
+  "public/js/glyph.js"
+ ],
+ "選擇一個善良角色，": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名存活的玩家，明天他": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名存活的玩家，如果是惡魔就": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名存活的玩家：你或他": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名存活的玩家：你或他之一會醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "選擇一名存活的玩家：如果他是惡魔，你們交換角色和陣營": [
+  "lib/night.js"
+ ],
+ "選擇一名存活的玩家（不能和上一晚相同）：如果他明天被處決，他不會死亡": [
+  "lib/night.js"
+ ],
+ "選擇一名其他玩家，使其今晚": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名其他玩家作為你的": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名死亡的玩家，如果是鎮民，他": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家，得知他可能的": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家，明天他提名就": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家，如果是惡魔，他今晚": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家，使其": [
+  "public/js/glyph.js",
+  "public/js/intro.js"
+ ],
+ "選擇一名玩家，無視保護使其": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家：得知一個善良角色和一個邪惡角色，他是其中之一": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家（不能和上一晚相同）：如果是惡魔，他今晚不會被喚醒": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家保護（今晚惡魔對他無效）": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家並": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家並猜測他的角色：猜錯你會死亡": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家和一個角色，使其": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家和一個角色：如果該角色不在場，他變成該角色": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家和一個善良角色：他明天要瘋狂地證明自己是這個角色": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家殺死": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家殺死（可以選自己）": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家使其": [
+  "public/js/glyph.js"
+ ],
+ "選擇一名玩家下毒": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家下毒（上一個中毒的人會死亡）": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家詛咒：明天他發起提名就會死亡": [
+  "lib/night.js"
+ ],
+ "選中": [
+  "lib/night.js"
+ ],
+ "選中惡魔 {0}，惡魔今晚不行動": [
+  "lib/night.js"
+ ],
+ "選中惡魔 {0}：交換角色和陣營，原惡魔中毒": [
+  "lib/night.js"
+ ],
+ "選中外來者 {0}：他變成方古，原方古死亡": [
+  "lib/night.js"
+ ],
+ "血染鐘樓": [
+  "public/js/about.js",
+  "public/js/lobby.js",
+  "public/js/topbar.js"
+ ],
+ "血染鐘樓 · 線上魔典": [
+  "public/js/intro.js"
+ ],
+ "血染鐘樓魔典已啓動: http://localhost:{0}": [
+  "server.js"
+ ],
+ "押": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "煙花": [
+  "public/js/settings.js"
+ ],
+ "煙花聲": [
+  "public/js/settings.js"
+ ],
+ "延長線": [
+  "public/js/community.js"
+ ],
+ "演示頁不能寄出": [
+  "public/js/about.js"
+ ],
+ "邀請鏈接已複製": [
+  "public/js/invite.js"
+ ],
+ "要你裁定時": [
+  "public/js/help.js"
+ ],
+ "夜裏被惡魔殺死": [
+  "lib/night.js",
+  "lib/rules.js"
+ ],
+ "夜晚": [
+  "public/js/help.js",
+  "public/js/lobby.js"
+ ],
+ "夜晚還沒結束": [
+  "lib/engine.js"
+ ],
+ "夜晚會隨玩家行動自動推進": [
+  "lib/ops.js"
+ ],
+ "一": [
+  "public/js/stepcard.js"
+ ],
+ "一二三": [
+  "public/js/intro.js"
+ ],
+ "一二三四五六七八九": [
+  "public/js/help.js"
+ ],
+ "一個角色": [
+  "public/js/stepcard.js"
+ ],
+ "一天": [
+  "public/js/help.js"
+ ],
+ "一天怎麼過": [
+  "public/js/help.js"
+ ],
+ "一張死亡票": [
+  "public/js/help.js"
+ ],
+ "依次醒來": [
+  "public/js/help.js"
+ ],
+ "壹貳參": [
+  "public/js/intro.js"
+ ],
+ "移出": [
+  "public/js/town.js"
+ ],
+ "移出房間": [
+  "public/js/town.js"
+ ],
+ "移除座位": [
+  "public/js/topbar.js"
+ ],
+ "疑心之蛭": [
+  "public/js/community.js"
+ ],
+ "已撤銷：{0}": [
+  "public/js/topbar.js"
+ ],
+ "已發到手機": [
+  "public/js/stepcard.js"
+ ],
+ "已複製 {0}：{1}": [
+  "public/js/about.js"
+ ],
+ "已複製，發給 {0}": [
+  "public/js/invite.js"
+ ],
+ "已告知": [
+  "public/js/log.js"
+ ],
+ "已告知場上沒有外來者": [
+  "lib/night.js"
+ ],
+ "已告知在場的外來者：{0}": [
+  "lib/night.js"
+ ],
+ "已恢復 {0} 個房間": [
+  "lib/store.js"
+ ],
+ "已寄出": [
+  "public/js/about.js"
+ ],
+ "已結束": [
+  "public/js/lobby.js"
+ ],
+ "已經沒有座位了": [
+  "public/js/flow.js"
+ ],
+ "已經數過你了，不能再改": [
+  "lib/day.js"
+ ],
+ "已經死亡": [
+  "lib/rules.js"
+ ],
+ "已經在計票了": [
+  "lib/day.js"
+ ],
+ "已離開房間": [
+  "public/js/app.js"
+ ],
+ "已死": [
+  "public/js/fx-ab.js"
+ ],
+ "已死亡": [
+  "public/js/log.js"
+ ],
+ "已提": [
+  "public/js/town.js"
+ ],
+ "已投": [
+  "public/js/scores.js"
+ ],
+ "已完成": [
+  "public/js/flow.js"
+ ],
+ "已選": [
+  "public/js/trial.js"
+ ],
+ "已用": [
+  "public/js/town.js"
+ ],
+ "已在場": [
+  "public/js/log.js"
+ ],
+ "以為是": [
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "以為是{0}：{1}": [
+  "public/js/town.js"
+ ],
+ "以為自己是鎮民，能力無效": [
+  "public/js/help.js"
+ ],
+ "音樂音量": [
+  "public/js/settings.js"
+ ],
+ "音效音量": [
+  "public/js/settings.js"
+ ],
+ "印": [
+  "public/js/about.js"
+ ],
+ "應{0}": [
+  "public/js/flow.js"
+ ],
+ "應為 {0}": [
+  "public/js/flow.js"
+ ],
+ "贏家戴陣營皇冠": [
+  "public/js/help.js"
+ ],
+ "贏了有什麼": [
+  "public/js/help.js"
+ ],
+ "遊戲規則": [
+  "public/js/help.js"
+ ],
+ "遊戲還沒開始": [
+  "lib/ops.js"
+ ],
+ "遊戲結束：{0}陣營獲勝（{1}）": [
+  "lib/rules.js"
+ ],
+ "遊戲開始，共 {0} 名玩家。請查看你的角色。": [
+  "lib/engine.js"
+ ],
+ "遊戲日誌": [
+  "public/js/side.js"
+ ],
+ "遊戲已經結束": [
+  "lib/setup.js"
+ ],
+ "遊戲已經開始": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能改": [
+  "lib/setup.js"
+ ],
+ "遊戲中不能改配置": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能換": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能換劇本": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能換座": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能加減座位": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能加座位": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能離開座位": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能移除玩家": [
+  "lib/ops.js"
+ ],
+ "有": [
+  "public/js/fx-ab.js"
+ ],
+ "有 {0} 名玩家的能力失常": [
+  "public/js/infofmt.js"
+ ],
+ "有惡魔": [
+  "public/js/fx-ab.js"
+ ],
+ "有惡魔？": [
+  "public/js/side.js"
+ ],
+ "與": [
+  "public/js/infofmt.js"
+ ],
+ "月之子沒有選人": [
+  "lib/night.js"
+ ],
+ "雜耍藝人公開猜": [
+  "public/js/town.js"
+ ],
+ "再": [
+  "public/js/help.js"
+ ],
+ "再來一局": [
+  "public/js/flow.js"
+ ],
+ "再入夜": [
+  "public/js/help.js"
+ ],
+ "再寫一封": [
+  "public/js/about.js"
+ ],
+ "在場": [
+  "public/js/rolepick.js",
+  "public/js/setup.js"
+ ],
+ "在場的角色不能當偽裝": [
+  "public/js/setup.js"
+ ],
+ "在場的外來者：{0}": [
+  "lib/night.js"
+ ],
+ "暫停": [
+  "public/js/trial.js"
+ ],
+ "暫無記錄": [
+  "public/js/log.js"
+ ],
+ "贊成": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/town.js",
+  "public/js/trial.js"
+ ],
+ "贊成票": [
+  "public/js/town.js"
+ ],
+ "贊同處決，舉手時所有人可見，在倒計時結束前可隨時取消": [
+  "public/js/help.js"
+ ],
+ "造謠成真": [
+  "lib/night.js"
+ ],
+ "造謠成真，誰死？": [
+  "lib/night.js"
+ ],
+ "造謠成真：{0} 死亡": [
+  "lib/night.js"
+ ],
+ "造謠者今天的聲明是真的嗎？是的話選一名玩家死亡": [
+  "lib/night.js"
+ ],
+ "怎麼處決人": [
+  "public/js/help.js"
+ ],
+ "展開": [
+  "public/js/flow.js",
+  "public/js/hud.js"
+ ],
+ "展開側欄": [
+  "public/js/side.js"
+ ],
+ "展開角色面板": [
+  "public/js/hud.js"
+ ],
+ "展示": [
+  "public/js/infoform.js",
+  "public/js/stepcard.js"
+ ],
+ "展示角色卡": [
+  "public/js/manual.js",
+  "public/js/pass.js",
+  "public/js/topbar.js"
+ ],
+ "展示可用的偽裝": [
+  "public/js/pass.js"
+ ],
+ "占卜師的紅鯡魚：{0}": [
+  "lib/util.js"
+ ],
+ "占卜師的紅鯡魚還沒設（偽裝下面那一格）": [
+  "public/js/flow.js"
+ ],
+ "爪牙和惡魔": [
+  "public/js/help.js"
+ ],
+ "爪牙今天沒提名": [
+  "public/js/infofmt.js"
+ ],
+ "爪牙今天提名過": [
+  "public/js/infofmt.js"
+ ],
+ "爪牙死於處決：吟遊詩人讓其他所有人醉酒到明天黃昏": [
+  "lib/rules.js"
+ ],
+ "爪牙信息": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "照清單逐個叫醒": [
+  "public/js/intro.js"
+ ],
+ "照樣開始": [
+  "public/js/flow.js"
+ ],
+ "遮住": [
+  "public/js/hud.js"
+ ],
+ "哲學家獲得了新的能力": [
+  "lib/night.js"
+ ],
+ "這本劇本裏沒有能發給玩家的角色": [
+  "lib/script.js"
+ ],
+ "這本劇本太大了": [
+  "public/js/manual.js"
+ ],
+ "這不是劇本 Json": [
+  "lib/script.js",
+  "public/js/manual.js"
+ ],
+ "這個角色不能選": [
+  "lib/engine.js",
+  "public/js/rolepick.js"
+ ],
+ "這個角色不能選「沒有」": [
+  "public/js/infofmt.js"
+ ],
+ "這個角色已經是偽裝了": [
+  "lib/setup.js"
+ ],
+ "這個鏈接的那一局已經結束了": [
+  "server.js"
+ ],
+ "這個座位已在別的設備上打開": [
+  "public/js/app.js"
+ ],
+ "這局沒有占卜師": [
+  "lib/setup.js"
+ ],
+ "這些角色不在場，需要時可以偽裝成他們": [
+  "public/js/hud.js"
+ ],
+ "這一步需要你裁定，不能跳過": [
+  "lib/engine.js"
+ ],
+ "貞潔者被提名": [
+  "public/js/flow.js"
+ ],
+ "貞潔者反噬": [
+  "public/js/log.js"
+ ],
+ "真": [
+  "public/js/help.js",
+  "public/js/infoform.js",
+  "public/js/town.js"
+ ],
+ "真實": [
+  "public/js/infoform.js"
+ ],
+ "陣營不變": [
+  "lib/engine.js",
+  "public/js/log.js"
+ ],
+ "陣營不同": [
+  "public/js/infofmt.js"
+ ],
+ "陣營相同": [
+  "public/js/infofmt.js"
+ ],
+ "鎮民和外來者": [
+  "public/js/help.js"
+ ],
+ "鎮長 {0} 死亡": [
+  "lib/night.js"
+ ],
+ "鎮長的能力：無人死亡": [
+  "lib/night.js"
+ ],
+ "鎮長的能力轉移給 {0}，但他{1}，無人死亡": [
+  "lib/night.js"
+ ],
+ "鎮長獲勝": [
+  "public/js/fx-ab.js"
+ ],
+ "鎮長勝利": [
+  "public/js/flow.js"
+ ],
+ "鎮長替死": [
+  "public/js/log.js"
+ ],
+ "睜開眼，聽聽昨晚發生了什麼": [
+  "public/js/town.js"
+ ],
+ "整局只有一發，白天公開開槍，所有人都會看到": [
+  "public/js/town.js"
+ ],
+ "正在投票": [
+  "public/js/progress.js"
+ ],
+ "正在投票中": [
+  "lib/day.js"
+ ],
+ "正在以 {0} 的視角查看（只讀）": [
+  "public/js/app.js"
+ ],
+ "正在重連，請稍候": [
+  "public/js/app.js"
+ ],
+ "之中有": [
+  "public/js/help.js",
+  "public/js/intro.js"
+ ],
+ "知道了": [
+  "public/js/flow.js",
+  "public/js/stepcard.js"
+ ],
+ "直到一方獲勝": [
+  "public/js/help.js"
+ ],
+ "直接點桌上的座位；固定的目標亮金圈": [
+  "public/js/help.js"
+ ],
+ "直接判定善良陣營獲勝，結束本局？": [
+  "public/js/topbar.js"
+ ],
+ "直接判定邪惡陣營獲勝，結束本局？": [
+  "public/js/topbar.js"
+ ],
+ "只讀，確認信息送到了": [
+  "public/js/help.js"
+ ],
+ "只列合規的信息，真相已鎖定": [
+  "public/js/help.js"
+ ],
+ "只能點 {0} 人": [
+  "public/js/flow.js"
+ ],
+ "只能改線下座位的名字": [
+  "lib/ops.js"
+ ],
+ "只能觀戰": [
+  "lib/ops.js"
+ ],
+ "只能選擇存活的玩家": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "只能選擇死亡的玩家": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "只能在白天處決": [
+  "lib/ops.js"
+ ],
+ "只能在白天開槍": [
+  "lib/day.js"
+ ],
+ "只能在白天提名": [
+  "lib/day.js"
+ ],
+ "只能在第一個白天猜": [
+  "lib/day.js"
+ ],
+ "只剩 2 人存活": [
+  "public/js/help.js"
+ ],
+ "只剩 3 人且無人處決：善良獲勝": [
+  "public/js/help.js"
+ ],
+ "只剩兩名玩家存活": [
+  "lib/rules.js"
+ ],
+ "只用這一台，轉給玩家看": [
+  "public/js/flow.js"
+ ],
+ "只有單設備的線下局可以直接加座位": [
+  "lib/ops.js"
+ ],
+ "只有你和說書人看得到": [
+  "public/js/help.js"
+ ],
+ "只有線下局可以撤銷": [
+  "lib/ops.js"
+ ],
+ "只有線下局可以這樣操作": [
+  "lib/ops.js"
+ ],
+ "指定": [
+  "public/js/flow.js",
+  "public/js/town.js"
+ ],
+ "至樂無雙": [
+  "public/js/community.js"
+ ],
+ "至少需要 5 名玩家": [
+  "lib/setup.js"
+ ],
+ "至少要 5 人，現在 {0} 人": [
+  "public/js/flow.js"
+ ],
+ "至少要 5 人才能抽，現在 {0} 人": [
+  "public/js/flow.js"
+ ],
+ "至少要兩個人才能換座": [
+  "public/js/flow.js"
+ ],
+ "致作者：": [
+  "public/js/about.js"
+ ],
+ "製": [
+  "public/js/about.js"
+ ],
+ "中被喚醒": [
+  "public/js/infofmt.js"
+ ],
+ "中毒 / 酒鬼時": [
+  "public/js/help.js"
+ ],
+ "中毒 / 醉酒": [
+  "public/js/help.js"
+ ],
+ "中毒、保護、死亡，全部判好": [
+  "public/js/intro.js"
+ ],
+ "中毒/醉酒": [
+  "public/js/log.js"
+ ],
+ "中沒有惡魔": [
+  "public/js/infofmt.js"
+ ],
+ "中邪惡": [
+  "public/js/infofmt.js"
+ ],
+ "中有惡魔": [
+  "public/js/infofmt.js"
+ ],
+ "終局後 {0} 秒，點座位上的星星；平票一起當選": [
+  "public/js/help.js"
+ ],
+ "重複的角色：{0}": [
+  "public/js/flow.js"
+ ],
+ "重連中": [
+  "public/js/app.js"
+ ],
+ "重置為 5 分鐘": [
+  "public/js/trial.js"
+ ],
+ "主謀的額外一天，{0}玩家被處決": [
+  "lib/rules.js"
+ ],
+ "主謀的額外一天無人被處決": [
+  "lib/rules.js"
+ ],
+ "主人是 {0}": [
+  "lib/night.js"
+ ],
+ "轉移": [
+  "public/js/fx-ab.js"
+ ],
+ "準備": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "準備好就開始白天": [
+  "public/js/town.js"
+ ],
+ "準備中": [
+  "public/js/lobby.js"
+ ],
+ "桌上直接點，信息系統算好": [
+  "public/js/help.js"
+ ],
+ "紫羅蘭之亂": [
+  "public/js/community.js"
+ ],
+ "自定義": [
+  "lib/stats.js"
+ ],
+ "自動": [
+  "public/js/help.js",
+  "public/js/intro.js"
+ ],
+ "自動發角色": [
+  "public/js/intro.js"
+ ],
+ "自動結算能力": [
+  "public/js/intro.js"
+ ],
+ "自動推進流程": [
+  "public/js/intro.js"
+ ],
+ "自己記、自己判": [
+  "public/js/intro.js"
+ ],
+ "自己寫一個": [
+  "public/js/manual.js"
+ ],
+ "自殺，{0} 接任": [
+  "lib/night.js"
+ ],
+ "自殺，沒有存活的爪牙可以接任": [
+  "lib/night.js"
+ ],
+ "自殺傳位": [
+  "public/js/log.js"
+ ],
+ "自殺傳位，等待說書人選擇接任的爪牙": [
+  "lib/night.js"
+ ],
+ "自由放任": [
+  "public/js/community.js"
+ ],
+ "自製角色": [
+  "public/js/help.js"
+ ],
+ "自製劇本": [
+  "lib/script.js"
+ ],
+ "祖母：選擇她的孫子": [
+  "lib/night.js"
+ ],
+ "詛咒": [
+  "lib/util.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "詛咒了 {0}": [
+  "lib/night.js"
+ ],
+ "最多 1 人": [
+  "public/js/help.js"
+ ],
+ "最多 12 個字，只有你看得到": [
+  "public/js/side.js"
+ ],
+ "最多 15 名玩家": [
+  "lib/setup.js"
+ ],
+ "最多 15 人": [
+  "public/js/flow.js"
+ ],
+ "最多 15 人，還能加 {0} 人": [
+  "lib/ops.js"
+ ],
+ "最多猜五次": [
+  "lib/day.js"
+ ],
+ "最多猜五個": [
+  "public/js/manual.js"
+ ],
+ "最高票上台": [
+  "public/js/help.js"
+ ],
+ "醉酒三天": [
+  "public/js/glyph.js"
+ ],
+ "醉三天": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js"
+ ],
+ "昨夜": [
+  "public/js/town.js"
+ ],
+ "昨夜平安": [
+  "public/js/town.js"
+ ],
+ "座位不存在": [
+  "lib/manual.js",
+  "lib/ops.js"
+ ],
+ "座位菜單：他查過誰、得知了什麼": [
+  "public/js/help.js"
+ ],
+ "座位上已經有人了": [
+  "lib/ops.js"
+ ],
+ "MVP 次數": [
+  "public/js/help.js",
+  "public/js/scores.js"
+ ],
+ "MVP 投票還沒結束：按已投的票結算，然後回到準備？": [
+  "public/js/flow.js"
+ ],
+ "MVP 投票已結束": [
+  "lib/score.js"
+ ]
+}

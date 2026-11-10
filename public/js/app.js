@@ -2,16 +2,17 @@
 import { h, toast, closeModal, morph, closeMenu, leaveDom } from './ui.js';
 import { renderTown } from './town.js';
 import { renderSide, sideCollapsed, closeSheet, resetSide } from './side.js';
-import { syncPrompt } from './flow.js';
+import { syncPrompt, syncStPick } from './flow.js';
 import { progressBar } from './progress.js';
 import { sel, stopSelect, fitTableCard } from './town.js';
-import { syncSetup } from './setup.js';
+import { syncSetup, closePick } from './setup.js';
+import { closeRolePanel } from './rolepick.js';
 import { topbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView, intoRoom, backToLobby, resetFx } from './fx.js';
 import { renderHud, renderBluffs, onInfo } from './hud.js';
 import { installScript } from './roles.js';
 import { trimChat } from './infofmt.js';
-import { closeCompose } from './manual.js';
+import { closeAct } from './manual.js';
 import { onEggs } from './egg.js';
 import { renderLobby, recentList, recentRooms, rememberRoom, forgetRoom } from './lobby.js';
 import { openInvite } from './invite.js';
@@ -20,6 +21,10 @@ import { openAbout } from './about.js';
 import { askPass } from './roompass.js';
 import { countPop } from './trial.js';
 import { chime, locked, wake, loadSfx } from './sfx.js';
+import { setBgm } from './bgm.js';
+import { veiled, noteArrival } from './veil.js';
+import { closePass } from './pass.js';
+import { keepAwake } from './wake.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
 Object.assign(window.boot, { locked, chime: ms => chime('night', ms) }); // 開屏結束時鐘響兩下，和音波同拍
@@ -191,7 +196,12 @@ function lobby(code = params.get('room') || '') {
   const room = !!app.querySelector(':scope > .game');
   ctx.state = ctx.live = null;
   ensureScene();
-  if (room) { resetFx(); resetSide(); chat = []; sel.on = null; closeCompose(ctx); closeMenu(); }
+  // 離開房間（解散、被移出、自己離開、進不去）：掛在 body 上、不跟著桌面走的東西也收掉——選角色的紙（收著的索引籤也算）、
+  // 懸停的角色表、單設備的整屏卡、彈窗、菜單，屏幕常亮放開。不收的話它們留在大廳上面，開著的還壓暗、擋住整個大廳
+  if (room) {
+    resetFx(); resetSide(); chat = []; sel.on = null; closeAct(ctx);
+    closeMenu(); closeModal(); closeRolePanel(); closePick(); closePass(); keepAwake(false);
+  }
   const create = () => {
     window.boot.more();
     sock.emit('st:create', {}, r => {
@@ -218,6 +228,7 @@ function lobby(code = params.get('room') || '') {
   else {
     document.body.dataset.phase = 'lobby';
     app.replaceChildren(page);
+    window.boot.out.then(() => setBgm('lobby')); // 鐘響完、小鎮揭開，大廳的音樂起來
     if (introSeen(LS) || code) window.boot.out.then(show);
     else showIntro(LS, { wait: window.boot.out, after: show });
   }
@@ -237,13 +248,13 @@ function lobby(code = params.get('room') || '') {
 
 function render() {
   // 開新局拉幕時，幕布合上之前畫的還是上一局（fx.js heldView）
-  if (ctx.live) ctx.state = heldView() || ctx.live;
+  if (ctx.live) ctx.state = veiled(ctx, heldView() || ctx.live); // 遮住身份時把自己的私密信息裁掉（veil.js）
   const s = ctx.state;
   if (!s) return;
   const app = document.getElementById('app');
   const atBottom = {};
   app.querySelectorAll('[data-scroll]').forEach(el => { atBottom[el.dataset.scroll] = el.scrollHeight - el.scrollTop - el.clientHeight < 30; });
-  if (!s.isSt) syncPrompt(ctx); // 先建立玩家的選人狀態，桌面要用到
+  if (!s.isSt) syncPrompt(ctx); else syncStPick(ctx); // 先建立選人狀態，桌面要用到
   const side = renderSide(ctx);
   const town = renderTown(ctx);
   const tree = h('div', { class: `game phase-${s.phase}` + (s.isSt ? ' is-st' : '') + (sideCollapsed(ctx) ? ' side-min' : '') },
@@ -281,8 +292,11 @@ sock.on('state', s => {
   ctx.offset = s.serverNow - Date.now();
   // 說書人用密鑰回來、舊鏈接沒帶 r 時：從狀態裏補上房間實例標識
   if (session && s.inst && session.inst !== s.inst) enter(session.code, session.st, s.inst);
-  onInfo(ctx, s, render); onState(s); ctx.live = s; render();
-  if (fresh) { fresh = false; dealt.then(() => { if (ctx.state) openInvite(ctx); }); } // 剛建好房間：桌面擺好就把房間號、二維碼亮出來
+  keepAwake(s.isSt && s.offline && s.phase !== 'lobby' && s.phase !== 'ended'); // 線下局說書人的設備一直擺在桌上：開局後不讓屏幕熄掉
+  noteArrival(ctx, s);
+  const shown = veiled(ctx, s, true); // 遮住時新信息不演出、不展開面板，按住看的時候才亮出來
+  onInfo(ctx, shown, render); onState(shown); ctx.live = s; render();
+  if (fresh) { fresh = false; dealt.then(() => { if (ctx.state?.venue === 'online') openInvite(ctx); }); } // 剛建好房間：先選線上 / 線下（flow.js venuePane），選了線上才亮出房間號、二維碼
   onEggs(s); // 桌面畫好之後再扔，按座位現在的位置飛
   window.boot.ready();
   // 第一次進房間：音效等桌面的圖到齊再下（開屏 boot.more），不和桌面搶帶寬
@@ -317,16 +331,17 @@ setInterval(() => {
 
 // 快捷鍵：Esc 關閉菜單 / 彈窗 / 取消代選。回車不觸發任何操作，也不重複點焦點停著的按鈕；只有輸入框裏的回車算提交
 document.addEventListener('keydown', e => {
-  if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.isComposing || e.keyCode === 229 || e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target, typing = t.closest && t.closest('input, textarea, select, [contenteditable]');
   if (e.key === 'Enter' && !typing) { e.preventDefault(); return; }
   if (!ctx.state) { if (e.key === 'Escape') closeModal(); return; } // 大廳：Esc 關掉「關於」
   const open = document.querySelector('.backdrop:not(.leaving)'), popped = document.querySelector('.popmenu:not(.leaving)');
   if (e.key === 'Escape') {
+    if (closePass()) return;
     if (popped) closeMenu();
     else if (open) closeModal();
     else if (closeSheet(ctx)) return;
-    else if (closeCompose(ctx)) return;
+    else if (closeAct(ctx)) return;
     else if (sel.on && ctx.state.isSt) stopSelect(ctx);
   }
 });

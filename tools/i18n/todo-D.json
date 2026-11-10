@@ -1,0 +1,564 @@
+{
+ "：{0}號": [
+  "public/js/progress.js"
+ ],
+ "· 原{0}": [
+  "public/js/hud.js"
+ ],
+ "（傳位）": [
+  "public/js/log.js"
+ ],
+ "（紅唇女郎）": [
+  "public/js/log.js"
+ ],
+ "{0} 步": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 的記錄": [
+  "public/js/town.js"
+ ],
+ "{0} 對": [
+  "public/js/fx-ab.js"
+ ],
+ "{0} 名": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 票": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/scores.js"
+ ],
+ "{0} 人": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 人死亡": [
+  "public/js/fx.js"
+ ],
+ "{0} 人醒": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 提名 {1}：{2} 票": [
+  "public/js/progress.js"
+ ],
+ "{0}（邪惡隊友）": [
+  "public/js/town.js"
+ ],
+ "{0}號": [
+  "public/js/progress.js",
+  "public/js/ui.js"
+ ],
+ "{0}號 {1}": [
+  "public/js/fx.js",
+  "public/js/trial.js",
+  "public/js/ui.js",
+  "server.js"
+ ],
+ "按順序叫醒他們": [
+  "public/js/town.js"
+ ],
+ "按住看": [
+  "public/js/hud.js"
+ ],
+ "按住看自己的角色": [
+  "public/js/hud.js"
+ ],
+ "把 {0} 移出房間？他不能再進來。": [
+  "public/js/town.js"
+ ],
+ "被殺": [
+  "public/js/log.js"
+ ],
+ "被射殺": [
+  "public/js/log.js"
+ ],
+ "被提": [
+  "public/js/town.js"
+ ],
+ "閉上眼，輪到你時我會叫你": [
+  "public/js/town.js"
+ ],
+ "標記角色猜測": [
+  "public/js/town.js"
+ ],
+ "別人對他": [
+  "public/js/log.js"
+ ],
+ "補發信息（彈窗告訴他）": [
+  "public/js/town.js"
+ ],
+ "不是善良": [
+  "public/js/log.js"
+ ],
+ "不是鎮民": [
+  "public/js/log.js"
+ ],
+ "不死": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "不再遮住": [
+  "public/js/hud.js"
+ ],
+ "成為": [
+  "public/js/log.js"
+ ],
+ "處決台：{0}": [
+  "public/js/progress.js"
+ ],
+ "傳位": [
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "大家都閉上了眼": [
+  "public/js/town.js"
+ ],
+ "擋下": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx-ab.js"
+ ],
+ "倒下": [
+  "public/js/gamelog.js"
+ ],
+ "得票": [
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "等說書人開局": [
+  "public/js/town.js"
+ ],
+ "第 {0} 局": [
+  "public/js/fx.js"
+ ],
+ "第 {0} 天": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/log.js",
+  "public/js/progress.js",
+  "public/js/town.js"
+ ],
+ "第 {0} 夜": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/hud.js",
+  "public/js/log.js",
+  "public/js/progress.js",
+  "public/js/town.js"
+ ],
+ "多天": [
+  "public/js/town.js"
+ ],
+ "躲過": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "鯡魚": [
+  "public/js/town.js"
+ ],
+ "瘋狂：": [
+  "public/js/town.js"
+ ],
+ "訃告": [
+  "public/js/town.js"
+ ],
+ "改為": [
+  "public/js/log.js"
+ ],
+ "改為善良": [
+  "public/js/town.js"
+ ],
+ "改為邪惡": [
+  "public/js/town.js"
+ ],
+ "蓋上": [
+  "public/js/hud.js"
+ ],
+ "告示": [
+  "public/js/town.js"
+ ],
+ "給他看偽裝": [
+  "public/js/town.js"
+ ],
+ "公告": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "公共": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "公開猜他的角色（還有 {0} 次）": [
+  "public/js/town.js"
+ ],
+ "公開宣稱自己是獵手，向 {0} 開槍？": [
+  "public/js/town.js"
+ ],
+ "觀眾席": [
+  "public/js/town.js"
+ ],
+ "觀眾席 {0} 人": [
+  "public/js/town.js"
+ ],
+ "過目": [
+  "public/js/fx-ab.js"
+ ],
+ "還有一張死亡票": [
+  "public/js/town.js"
+ ],
+ "換設備": [
+  "public/js/town.js"
+ ],
+ "回到準備": [
+  "public/js/gamelog.js"
+ ],
+ "擊殺": [
+  "public/js/fx-ab.js"
+ ],
+ "雞蛋用完了": [
+  "lib/score.js",
+  "public/js/town.js"
+ ],
+ "加備註": [
+  "public/js/town.js"
+ ],
+ "解除中毒": [
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "今日已執行處決": [
+  "public/js/town.js"
+ ],
+ "今天無人被處決": [
+  "public/js/gamelog.js"
+ ],
+ "今天已經被提名過": [
+  "public/js/town.js"
+ ],
+ "今天已經處決過人了": [
+  "public/js/town.js"
+ ],
+ "今天已經提名過": [
+  "public/js/town.js"
+ ],
+ "僅本人與說書人可見": [
+  "public/js/trial.js"
+ ],
+ "僅你與說書人可見": [
+  "public/js/trial.js"
+ ],
+ "離世": [
+  "public/js/town.js"
+ ],
+ "離線": [
+  "public/js/town.js"
+ ],
+ "立即處決": [
+  "public/js/town.js"
+ ],
+ "立即處決 {0}？按處決結算（聖徒、送葬者等），今天不能再處決別人。": [
+  "public/js/town.js"
+ ],
+ "例如：你得知 3 號是廚師": [
+  "public/js/town.js"
+ ],
+ "輪到你": [
+  "public/js/fx.js",
+  "public/js/trial.js"
+ ],
+ "落敗": [
+  "public/js/fx-ab.js"
+ ],
+ "沒提名": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "沒投票": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "沒有": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx-ab.js"
+ ],
+ "沒有惡魔": [
+  "public/js/fx-ab.js"
+ ],
+ "沒有人得到 MVP 票": [
+  "public/js/gamelog.js"
+ ],
+ "沒有人接任": [
+  "public/js/log.js"
+ ],
+ "沒有選": [
+  "public/js/log.js"
+ ],
+ "免死": [
+  "public/js/town.js"
+ ],
+ "名字": [
+  "public/js/town.js"
+ ],
+ "你的備註": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "你的猜測": [
+  "public/js/side.js",
+  "public/js/town.js"
+ ],
+ "你中毒或其實是酒鬼時，這一槍可能會被說書人判定無效。": [
+  "public/js/town.js"
+ ],
+ "票數不足": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "票用": [
+  "public/js/town.js"
+ ],
+ "平安夜": [
+  "public/js/fx.js",
+  "public/js/gamelog.js"
+ ],
+ "平票": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "其一": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "其一是惡魔": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "清除我的備註": [
+  "public/js/town.js"
+ ],
+ "請立即作出你的選擇": [
+  "public/js/fx.js"
+ ],
+ "殺死": [
+  "public/js/log.js"
+ ],
+ "上一局善良獲勝": [
+  "public/js/scores.js"
+ ],
+ "上一局邪惡獲勝": [
+  "public/js/scores.js"
+ ],
+ "射{0}號失敗": [
+  "public/js/town.js"
+ ],
+ "射殺": [
+  "public/js/fx.js",
+  "public/js/town.js"
+ ],
+ "設為占卜師的紅鯡魚": [
+  "public/js/town.js"
+ ],
+ "什麼也不會發生": [
+  "public/js/town.js"
+ ],
+ "勝利": [
+  "public/js/fx.js",
+  "public/js/scores.js"
+ ],
+ "失效": [
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "士兵免疫": [
+  "public/js/log.js"
+ ],
+ "收起角色面板": [
+  "public/js/hud.js"
+ ],
+ "說書人": [
+  "lib/ops.js",
+  "lib/util.js",
+  "public/js/gamelog.js",
+  "public/js/hud.js",
+  "public/js/lobby.js",
+  "public/js/side.js",
+  "public/js/topbar.js",
+  "public/js/town.js"
+ ],
+ "說書人判定": [
+  "lib/ops.js",
+  "public/js/log.js"
+ ],
+ "說書人提出": [
+  "public/js/fx.js"
+ ],
+ "他立即死亡": [
+  "public/js/town.js"
+ ],
+ "他是惡魔": [
+  "public/js/town.js"
+ ],
+ "他做的": [
+  "public/js/log.js"
+ ],
+ "討論和提名": [
+  "public/js/progress.js"
+ ],
+ "討論時間": [
+  "public/js/town.js"
+ ],
+ "提名過": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "提名取消": [
+  "public/js/gamelog.js"
+ ],
+ "提名他": [
+  "public/js/town.js"
+ ],
+ "天快亮了，核對一下今晚": [
+  "public/js/town.js"
+ ],
+ "天亮了": [
+  "public/js/town.js"
+ ],
+ "跳身": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/log.js"
+ ],
+ "投 MVP": [
+  "public/js/scores.js"
+ ],
+ "投過票": [
+  "public/js/fx-ab-dlc.js"
+ ],
+ "玩家": [
+  "public/js/lobby.js",
+  "public/js/scores.js"
+ ],
+ "未表態": [
+  "public/js/trial.js"
+ ],
+ "無人處決": [
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx.js"
+ ],
+ "現為善良": [
+  "public/js/hud.js"
+ ],
+ "現為邪惡": [
+  "public/js/hud.js"
+ ],
+ "向 {0} 開槍": [
+  "public/js/town.js"
+ ],
+ "行動": [
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "修正": [
+  "public/js/log.js"
+ ],
+ "需 {0} 票": [
+  "public/js/trial.js"
+ ],
+ "宣稱獵手：向他開槍": [
+  "public/js/town.js"
+ ],
+ "宣稱獵手開槍，沒有打中": [
+  "public/js/town.js"
+ ],
+ "移出": [
+  "public/js/town.js"
+ ],
+ "移出房間": [
+  "public/js/town.js"
+ ],
+ "已告知": [
+  "public/js/log.js"
+ ],
+ "已死": [
+  "public/js/fx-ab.js"
+ ],
+ "已死亡": [
+  "public/js/log.js"
+ ],
+ "已提": [
+  "public/js/town.js"
+ ],
+ "已投": [
+  "public/js/scores.js"
+ ],
+ "已選": [
+  "public/js/trial.js"
+ ],
+ "已用": [
+  "public/js/town.js"
+ ],
+ "已在場": [
+  "public/js/log.js"
+ ],
+ "以為是{0}：{1}": [
+  "public/js/town.js"
+ ],
+ "有": [
+  "public/js/fx-ab.js"
+ ],
+ "有惡魔": [
+  "public/js/fx-ab.js"
+ ],
+ "雜耍藝人公開猜": [
+  "public/js/town.js"
+ ],
+ "暫停": [
+  "public/js/trial.js"
+ ],
+ "暫無記錄": [
+  "public/js/log.js"
+ ],
+ "贊成票": [
+  "public/js/town.js"
+ ],
+ "展開角色面板": [
+  "public/js/hud.js"
+ ],
+ "遮住": [
+  "public/js/hud.js"
+ ],
+ "這些角色不在場，需要時可以偽裝成他們": [
+  "public/js/hud.js"
+ ],
+ "貞潔者反噬": [
+  "public/js/log.js"
+ ],
+ "鎮長獲勝": [
+  "public/js/fx-ab.js"
+ ],
+ "鎮長替死": [
+  "public/js/log.js"
+ ],
+ "睜開眼，聽聽昨晚發生了什麼": [
+  "public/js/town.js"
+ ],
+ "整局只有一發，白天公開開槍，所有人都會看到": [
+  "public/js/town.js"
+ ],
+ "正在投票": [
+  "public/js/progress.js"
+ ],
+ "中毒/醉酒": [
+  "public/js/log.js"
+ ],
+ "重置為 5 分鐘": [
+  "public/js/trial.js"
+ ],
+ "轉移": [
+  "public/js/fx-ab.js"
+ ],
+ "準備好就開始白天": [
+  "public/js/town.js"
+ ],
+ "自殺傳位": [
+  "public/js/log.js"
+ ],
+ "昨夜": [
+  "public/js/town.js"
+ ],
+ "昨夜平安": [
+  "public/js/town.js"
+ ]
+}

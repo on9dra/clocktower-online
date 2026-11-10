@@ -164,7 +164,10 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .st-card .grim-tag { max-width: 100%; box-sizing: border-box; font-size: 12px; white-space: normal; overflow-wrap: anywhere; }
 .st-card > .card { position: relative; margin: 0; box-shadow: 0 12px 28px #0005; }
 .st-card .ic-head { padding-right: 40px; } /* 右上角是「收起」 */
+:root[data-lang="en"] .ic-head > .w { min-width: 0; flex-shrink: 1; } /* 英文標題長：可以收縮折行，不衝出卡片、不壓「Hide」 */
 .st-card > .card .btn.wide { position: sticky; bottom: 0; z-index: 1; } /* 選項多得要滾動時，發送也一直看得見 */
+/* 兩個寬按鈕上下排（展示偽裝 + 下一個）：只有最下面那個貼底，不然兩個都貼到底疊在一起；拆到圓桌下方的那一條不滾動，不用貼 */
+.st-card > .card .btn.wide:has(~ .btn.wide), .st-card > .spread .ic-foot .btn.wide { position: static; }
 .st-card.fresh > .card { animation: bubble-in .3s cubic-bezier(.2,.9,.3,1.2); }
 .town > .st-card.corner { position: absolute; left: 0; top: 0; z-index: 9; margin: 0; max-width: 30%; }
 .st-over { position: absolute; inset: 0; z-index: 9; display: grid; place-items: center; pointer-events: none; }
@@ -190,16 +193,27 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 }
 
 /* 白天的裁定卡：金色雙框 + 標題；按規則應有的結果是主按鈕、帶 ✓。裁定的另一方座位紅色虛線圈 */
+/* 卡片標題的索引籤（flow.js cardTag）：從卡片頂邊左側長出來的一小截墨色紙籤，和正文分開，不佔正文的行。
+   拆開的卡（手機）掛在圓桌中間那一小張上（.ic-top 定位），整張的卡掛在卡片上 */
+.ic-tag { position: absolute; left: 14px; top: 0; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 3px 11px 3px; translate: 0 -100%;
+  font: 700 12px/1.25 var(--serif); letter-spacing: .25em; color: var(--muted); background: var(--card) var(--paper-tex, none) 0 0 / 320px; white-space: nowrap; pointer-events: none;
+  clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 100%, 0 100%); }
+.ic-tag .ico { width: 12px; height: 12px; }
+.infocard.ruling .ic-tag { color: var(--card); background: var(--brass); }
+.spread > .ic-top { position: relative; }
+/* 信息卡頂上給說書人的一句（infoform.js guide）：句子比標題長，字距收緊，壓在中間那一小張的正上方居中，手機上不衝出屏幕 */
+.ic-tag.say { left: 50%; translate: -50% -100%; width: max-content; max-width: min(62vw, 15em); padding-inline: 12px; letter-spacing: .06em; font-size: 13px;
+  white-space: normal; text-align: center; text-wrap: balance; }
+.on-table > .ic-top { position: relative; display: grid; justify-items: center; margin-top: 18px; }
+/* 貞潔者的角落小窗貼著桌面頂邊，籤長不出去：放在正文左邊 */
+.infocard.ruling.corner > .ic-tag { position: static; translate: none; align-self: start; justify-self: start; }
 .infocard.ruling { border-color: var(--brass); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px var(--brass); }
-.rule-k { display: flex; align-items: center; gap: 6px; font: 700 17px var(--serif); color: var(--brass); letter-spacing: .1em; }
-.rule-k .ico { width: 20px; height: 20px; }
 .infocard.ruling .frm-line { font-size: 24px; }
 .infocard.ruling .row { justify-content: flex-end; }
 .infocard.ruling .btn .ico { width: 15px; height: 15px; margin-right: 4px; }
 .seat.ruled .token { outline: 3px dashed var(--evil); outline-offset: 4px; }
 /* 貞潔者小窗：投票照常進行，卡片縮小、不帶計時圖標 */
 .infocard.ruling.corner { padding: 10px 12px; gap: 6px; }
-.infocard.ruling.corner .rule-k { font-size: 14px; }
 .infocard.ruling.corner .frm-line { font-size: 18px; }
 .v-left { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; color: var(--evil); }
 .v-left .ico { width: 16px; height: 16px; }

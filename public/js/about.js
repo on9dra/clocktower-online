@@ -19,7 +19,7 @@ function card() {
   return h('div', { class: 'ab-card' },
     h('span', { class: 'ab-seal' + (seal ? '' : ' empty') }, seal || '印'),
     h('div', {},
-      h('div', { class: 'ab-by' }, h('b', { class: 'ab-name' + (a.name ? '' : ' empty') }, a.name || '署名'), h('small', {}, '製')),
+      h('div', { class: 'ab-by' }, getLang() === 'en' && h('small', {}, 'by'), h('b', { class: 'ab-name' + (a.name ? '' : ' empty') }, a.name || '署名'), getLang() !== 'en' && h('small', {}, '製')),
       h('div', { class: 'ab-links' }, a.links.map(link))));
 }
 

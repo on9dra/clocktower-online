@@ -46,18 +46,14 @@ const room = (n = 7, mode) => {
   assert.strictEqual(r.banned.at(-1), 'p0', '剛移出的人在名單裏');
 }
 
-// 手動局：參考表只能勾劇本上的角色；亂填的「以為自己是」不寫進座位
+// 亂填的「以為自己是」不寫進座位；以前的手動局操作已經沒有了
 {
   const roles = ['imp', 'poisoner', 'chef', 'monk', 'virgin', 'slayer', 'drunk'];
-  const r = room(roles.length, 'manual');
+  const r = room(roles.length);
   r.seats.forEach((s, i) => ok(st(r, 'setRole', { seatId: s.id, roleId: roles[i] })));
   ok(st(r, 'next'));
   assert.strictEqual(r.phase, 'night');
-  const before = [...r.g.ticks];
-  for (const roleId of ['x'.repeat(60000), { a: 1 }, null, 'nobody']) assert.strictEqual(st(r, 'tick', { roleId }), '角色不存在');
-  assert.deepStrictEqual(r.g.ticks, before, '亂填的不記');
-  ok(st(r, 'tick', { roleId: 'chef' }));
-  assert.ok(r.g.ticks.includes('chef'));
+  for (const op of ['tick', 'card', 'inform', 'evilInfo', 'mode']) assert.strictEqual(st(r, op, { roleId: 'chef' }), '未知操作', op);
 
   const drunk = r.seats[6], was = drunk.fakeRole;
   for (const fakeRole of [{ x: 1 }, 'nobody', ['chef']]) {

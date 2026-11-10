@@ -6,6 +6,7 @@ import { ROLES, TEAMS } from './roles.js';
 import { formula, formulaSeats, mini, w, icon, tag, ACTS } from './glyph.js';
 import { roleHeld, hudFx, msgHeld, msgShownAt, nightHeld } from './fx.js';
 import { openTrial } from './trial.js';
+import { veilOn, setVeil, isPeeking, isAutoOpen, startPeek } from './veil.js';
 
 const ui = { hover: null, pin: null, fresh: new Map(), openFor: null }; // fresh：消息 id -> 到達時間；openFor：選人時手動展開的那一步
 const SMALL = '(max-width: 1180px)'; // 和 hud.css 裏選人時收起的寬度一致
@@ -70,10 +71,22 @@ function rowBody(s, m) {
     m.f ? formula(s, m.f) : h('span', { class: 'hud-text' }, m.text)];
 }
 
+// 遮住身份時的面板：一張背面朝上的角色牌，按住翻開。角上的眼睛是不再遮；沒看過的新信息在另一角亮一個點
+function veilHud(ctx) {
+  const s = ctx.state, raw = ctx.live, seen = Number(ctx.ls.get(`botc.seen.${s.code}.${s.gameId}.${s.myId}`) || 0);
+  const unseen = raw.chat.some(m => m.info && m.to === s.myId && m.seq > seen); // 開局發的角色也算：遮著開局，牌角亮著點
+  return h('aside', { class: 'hud min veil', 'data-key': 'hud', 'data-exit': true, oncontextmenu: e => e.preventDefault() },
+    h('button', { class: 'hud-me', 'aria-label': '按住看自己的角色', onpointerdown: e => startPeek(ctx, e, () => onInfo(ctx, ctx.live, ctx.render)) },
+      h('div', { class: 'token back' }), unseen && h('i', { class: 'veil-new', 'data-key': 'new', 'data-exit': true }),
+      h('span', { class: 'veil-say' }, '按住看')), // 字也在按鈕裏：按字一樣能看
+    h('button', { class: 'veil-off', title: '不再遮住', 'aria-label': '不再遮住', onclick: () => setVeil(ctx, false) }, icon('eye')));
+}
+
 export function renderHud(ctx) {
   const s = ctx.state;
+  if (s.veiled) return veilHud(ctx);
   if (s.isSt || !s.myRole || s.phase === 'lobby') return null;
-  const r = ROLES[s.myRole], min = collapsed(ctx);
+  const peek = isPeeking(), float = peek || (isAutoOpen() && veilOn(ctx, s)), r = ROLES[s.myRole], min = collapsed(ctx) && !float;
   // 選人時自動收起（寬屏不生效，見 hud.css .hud.pick）。手機上收起會讓圓桌上移，所以和選人牌一起等前面的演出播完。
   // 矮橫屏上面板佔著左邊整條，攤開的審判牌被它蓋住半邊（贊成的人看不到），審判期間也收起。這一步 / 這張審判牌裏點牌可以再打開
   const why = s.prompt && !nightHeld() ? s.prompt.stepId : matchMedia(LAND).matches ? openTrial(s) : null;
@@ -92,9 +105,12 @@ export function renderHud(ctx) {
   groups.reverse();
   // 翻角色牌演出期間面板空著，等牌飛進來；落定後名字、能力、信息淡入
   const held = roleHeld(), fx = !held && hudFx();
-  return h('aside', { class: 'hud' + (min ? ' min' : '') + (pick ? ' pick' : '') + (held ? ' held' : '') + (fx ? ' fx-in' : ''), 'data-key': 'hud', 'data-exit': true, style: { '--team': TEAMS[r.team].color, ...fx } },
+  return h('aside', { class: 'hud' + (min ? ' min' : '') + (pick ? ' pick' : '') + (float ? ' peek' : '') + (held ? ' held' : '') + (fx ? ' fx-in' : ''), 'data-key': 'hud', 'data-exit': true, style: { '--team': TEAMS[r.team].color, ...fx } },
     h('button', { class: 'hud-me', title: min ? '展開' : '收起', 'aria-label': min ? '展開角色面板' : '收起角色面板', onclick: toggle }, roleToken(s.myRole)),
-    !min && h('button', { class: 'hud-x', onclick: () => setCollapsed(ctx, true) }, '收起'),
+    !min && !peek && h('div', { class: 'hud-tools' },
+      !s.peek && !veilOn(ctx, s) && h('button', { class: 'hud-x', onclick: () => setVeil(ctx, true) }, '遮住'),
+      !s.peek && veilOn(ctx, s) && h('button', { class: 'hud-x', onclick: () => setVeil(ctx, true) }, '蓋上'),
+      h('button', { class: 'hud-x', onclick: () => setCollapsed(ctx, true) }, '收起')),
     !min && h('div', { class: 'hud-body' },
       h('div', { class: 'hud-name' }, r.name, h('span', { class: 'hud-team' }, TEAMS[r.team].name, s.myWas && ` · 原${ROLES[s.myWas].name}`, s.myAlign && [' · ', w(s.myAlign === 'evil' ? '現為邪惡' : '現為善良', s.myAlign)])),
       h('div', { class: 'hud-ab' }, r.ability),

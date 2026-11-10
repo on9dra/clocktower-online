@@ -1,0 +1,40 @@
+/* 數學家：說書人信息卡上的兩組（mathcard.js）——成功、可能失效。每組一枚小印章寫組名（可能失效是兩行的方印），
+   後面一個個角色小牌，座位號掛在牌的右下角；算進數字的座位號紅底，和紅色的數字對得上。放得下時兩組並排一行，放不下再折行 */
+.math-groups { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.mg-row { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.mg-list { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 21px; line-height: 1; }
+.mg-seal { flex: none; display: grid; justify-items: center; padding: 2px 3px; border: 1.5px solid currentColor; border-radius: 2px;
+  font: 900 13px/1.12 var(--serif); letter-spacing: .02em; rotate: -6deg; animation: vstamp .3s cubic-bezier(.5,0,.7,1) both; }
+.mg-seal i { font-style: normal; white-space: nowrap; }
+.mg-row.ok .mg-seal { color: var(--good); }
+.mg-row.bad .mg-seal { color: var(--evil); animation-delay: .1s; }
+/* 一枚枚蓋上去。帶 data-key：說書人點數字、卡片重繪時不重播 */
+.mg-it { position: relative; display: inline-flex; margin-right: 4px; animation: mg-in .26s cubic-bezier(.5,0,.7,1) both; animation-delay: calc(.16s + var(--i, 0) * 45ms); }
+.mg-it .token.xs { width: 1.45em; height: 1.45em; }
+.mg-it .sb { position: absolute; right: -6px; bottom: -4px; font-size: 12.5px; box-shadow: 0 0 0 1.5px var(--card); }
+.mg-it.n .sb { color: #fff; background: var(--evil); border-color: var(--evil); }
+@keyframes mg-in { from { transform: scale(1.7); opacity: 0; } 60% { transform: scale(.94); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mg-seal, .mg-it { animation: none; } }
+
+/* 手機豎屏：一張撕邊的小紙條（夜裏桌面是黑的）。放在圓桌上方的選項區（.ic-body）時跟數字擺在一起，圓桌按它的高度讓位；
+   放在圓桌中間時跟在行動者下面，「第 N 夜」讓位，字小一號；單設備的卡（.ic-top）本身是紙，直接排在裏面 */
+@media (max-width: 640px) {
+  .spread .math-groups { justify-content: center; gap: 5px 14px; }
+  .spread .mg-row { gap: 6px; }
+  .spread .mg-list { gap: 5px 7px; font-size: 16px; }
+  .spread .mg-it .sb { right: -5px; bottom: -3px; font-size: 10.5px; }
+  .spread .ic-body > .math-groups, .spread > .math-groups { box-sizing: border-box; width: max-content; max-width: 100%; padding: 5px 12px 6px 10px;
+    color: var(--ink); background: var(--card) url(../img/grain.svg);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 3px) 22%, 100% 45%, calc(100% - 2px) 70%, 100% 100%, 0 100%, 3px 76%, 0 52%, 2px 26%); }
+  .spread .ic-body > .math-groups { max-width: calc(100vw - 16px); margin-bottom: 2px; } /* 選項區是按內容撐開的網格，100% 量不住 */
+  .center:has(> .st-card > .spread > .math-groups, > .st-card > .spread > .ic-top > .math-groups) .phase-title { display: none; }
+  .spread > .math-groups { max-width: calc(var(--rw) * .54); margin: 5px auto 0; }
+  .spread > :is(.math-groups, .ic-top) .mg-list { gap: 4px 5px; font-size: 13px; }
+  .spread > .ic-top > .math-groups { margin: 1px 0 2px; }
+}
+/* 矮的、窄的手機（瀏覽器工具欄佔掉一截）：牌再小一號，兩組多半擠得進一行，圓桌少讓一點 */
+@media (max-width: 640px) and (max-height: 720px) and (orientation: portrait) {
+  .spread .mg-list { gap: 4px 6px; font-size: 14px; }
+  .spread .math-groups { gap: 4px 12px; }
+}
+@media (max-width: 340px) { .spread .mg-list { gap: 4px 5px; font-size: 13px; } }

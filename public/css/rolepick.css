@@ -1,0 +1,175 @@
+/* 整屏選角色（public/js/rolepick.js）：一張從桌下抽出來的劇本單。直邊的紙，不是圓角卡片；頂邊是索引籤（誰、做什麼）和簡略 / 詳細兩張籤。
+   收起時紙推回桌下，只露出索引籤。紙是紙：夜裏桌面換了深色變量，這張紙不跟（和 print.css 的卡片一樣蓋回紙色） */
+.rp { --rp-band: 38px; --card: #e8e0d0; --paper: #dcd3c0; --ink: #2a2622; --muted: #635a4c; --line: #c2b7a1; --line-strong: #92866f; --hover: #d9cfba; --lit: #eddfb4;
+  --good: #2f5d8a; --evil: #8a1c1c; --brass: #7f6320; --sans: var(--serif);
+  position: fixed; inset: 0; z-index: 54; pointer-events: none; color: var(--ink); font-family: var(--serif); }
+.rp-wash { position: absolute; inset: 0; background: #12151f; opacity: 0; transition: opacity .28s ease; }
+.rp.open .rp-wash { opacity: .62; pointer-events: auto; }
+.rp.open.tucked .rp-wash, .rp.gone .rp-wash { opacity: 0; pointer-events: none; }
+
+/* 紙：從屏幕底下抽上來，收起時推回去只留索引籤，關掉時整張沉下去 */
+.rp-sheet { position: absolute; left: 50%; bottom: 0; display: flex; flex-direction: column; width: min(100%, 1120px); height: calc(100% - var(--rp-band)); box-sizing: border-box;
+  background: var(--card) var(--paper-tex, none) 0 0 / 320px; box-shadow: 0 -1.5px 0 var(--ink), 0 -12px 40px #0009; outline: 0; pointer-events: auto;
+  translate: -50% calc(100% + var(--rp-band) + 30px); rotate: -.6deg; transition: translate .36s cubic-bezier(.2,.8,.3,1), rotate .36s cubic-bezier(.2,.8,.3,1); }
+.rp.open .rp-sheet { translate: -50% 0; rotate: 0deg; }
+.rp.open.tucked .rp-sheet { translate: -50% 100%; transition-duration: .3s; }
+.rp.gone .rp-sheet { translate: -50% calc(100% + var(--rp-band) + 30px); rotate: .5deg; transition: translate .26s cubic-bezier(.55,0,.8,.3), rotate .26s ease-in; pointer-events: none; }
+.rp.tucked .rp-sheet { pointer-events: none; }
+@media (min-width: 1121px) { .rp-sheet { box-shadow: 0 -1.5px 0 var(--ink), 1.5px 0 0 var(--ink), -1.5px 0 0 var(--ink), 0 -12px 40px #0009; } }
+
+/* 頂邊的籤：梯形，和紙連成一張。墨線用一圈 drop-shadow 描（clip-path 剪掉的形狀描不了 border） */
+.rp-tabs { position: absolute; left: 0; right: 0; bottom: calc(100% - 2px); display: flex; align-items: flex-end; gap: 2px; padding: 0 10px; pointer-events: none;
+  filter: drop-shadow(0 -1.3px 0 #2a2622) drop-shadow(1.3px 0 0 #2a2622) drop-shadow(-1.3px 0 0 #2a2622) drop-shadow(0 -3px 6px #0006); }
+.rp-gap { flex: 1; }
+.rp-tab, .rp-mode { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; border: 0; color: var(--ink); background: var(--card) var(--paper-tex, none) 0 0 / 320px;
+  clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 100%, 0 100%); pointer-events: auto; cursor: pointer; font-family: var(--serif); }
+.rp-tab { min-width: 0; max-width: 62vw; height: 34px; padding: 2px 18px 0 16px; font: 700 15px var(--serif); letter-spacing: .06em; }
+.rp-tab-t { display: inline-flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; white-space: nowrap; }
+.rp-tab .sb { font-size: 13px; }
+.rp-tab .token.xs { font-size: 18px; }
+.rp-tab-pick:empty { display: none; }
+.rp-tab-pick { display: inline-flex; animation: rp-pop .22s cubic-bezier(.3,1.4,.5,1); }
+.rp-tab .rp-chev { width: 15px; height: 15px; flex: none; color: var(--muted); transition: rotate .3s ease, color .3s ease; }
+.rp.tucked .rp-tab .rp-chev { rotate: 180deg; color: var(--ink); }
+/* 收著時索引籤上多一個 ✕（單獨開的才有，卡片上開的不丟） */
+.rp-tab-x { width: 0; height: 34px; padding: 0; overflow: hidden; opacity: 0; transition: width .2s ease, opacity .2s ease; }
+.rp-tab-x .ico { width: 15px; height: 15px; flex: none; margin: 0 auto; }
+.rp.tucked .rp-tab-x { width: 42px; opacity: 1; }
+/* 簡略 / 詳細：兩張籤，選中的那張和紙連在一起，另一張壓在後面、矮一點、暗一點 */
+.rp-mode { height: 28px; padding: 1px 15px 0; background-color: #cfc5af; color: var(--muted); font: 600 13.5px var(--serif); letter-spacing: .12em;
+  transition: height .18s ease, background-color .18s ease, color .18s ease, opacity .2s ease, translate .25s ease; }
+.rp-mode.on { height: 33px; background-color: var(--card); color: var(--ink); font-weight: 800; }
+@media (hover: hover) { .rp-mode:not(.on):hover { height: 30px; color: var(--ink); } }
+.rp.tucked .rp-mode { opacity: 0; translate: 0 12px; pointer-events: none; }
+
+/* 紙頂一行：這一步選什麼；右邊收起、✕。下面一道文武線 */
+.rp-head { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px 11px 16px; box-sizing: border-box;
+  background: var(--r-wenwu, linear-gradient(var(--ink), var(--ink))) 0 100% / 600px 9px repeat-x; }
+.rp-lead { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font: 600 15px/1.45 var(--serif); }
+.rp-lead b { color: var(--tone, var(--brass)); }
+.rp-lead .w { font-size: 14px; }
+.rp-fold { display: inline-flex; align-items: center; gap: 3px; min-height: 34px; padding-inline: 8px 12px; }
+.rp-fold .rp-chev { width: 15px; height: 15px; }
+.rp-x { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1.5px solid var(--ink); border-radius: 50%; background: none; color: var(--ink); cursor: pointer; }
+.rp-x .ico { width: 16px; height: 16px; }
+@media (hover: hover) { .rp-x:hover { background: var(--ink); color: var(--card); } }
+
+/* 偽裝的三格、第二頁的問題 */
+.rp .bp-slots { padding: 10px 12px 12px; border-bottom: 0; background: var(--r-thin, none) 0 100% / 600px 7px repeat-x; }
+.rp-q { display: flex; align-items: center; gap: 10px; padding: 6px 4px 4px; font: 700 15.5px var(--serif); }
+.rp-back { min-height: 32px; padding-inline: 12px; font-size: 15px; }
+
+.rp-body { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 12px 18px; scrollbar-width: thin; }
+/* 翻頁時兩頁疊在同一格：舊的往外滑走，新的從另一邊進來，不上下錯開 */
+.rp-page { grid-area: 1 / 1; min-width: 0; }
+.rp-page[hidden] { display: none; }
+.rp-page.out { pointer-events: none; }
+.rp-foot { display: flex; justify-content: flex-end; padding: 10px 16px 12px; background: var(--r-thin, none) 0 0 / 600px 7px repeat-x; }
+.rp-foot .btn { min-width: 96px; min-height: 40px; }
+
+/* 一個陣營一段：段名豎著印在頁邊，段與段之間一道細線 */
+.rp-team { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 6px; padding: 9px 0 7px; }
+/* 段間的細線：換模式時角色牌在滑，線先淡掉，牌落定了再在新位置淡出來（.reflow），不跟著跳 */
+.rp-team + .rp-team::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 7px; background: var(--r-thin, linear-gradient(var(--line), var(--line))) 0 0 / 600px 7px repeat-x;
+  pointer-events: none; transition: opacity .22s ease; }
+.rp.reflow .rp-team + .rp-team::before { opacity: 0; transition-duration: .08s; }
+.rp-tn { align-self: start; justify-self: center; padding-top: 8px; color: var(--team); font: 800 13px/20px var(--serif); letter-spacing: .32em; writing-mode: vertical-rl; }
+.rp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 2px; }
+
+/* 一個角色：簡略時角色牌在上、名字在下；詳細時牌在左，名字和能力在右，一行一條虛線 */
+.rp-role { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 4px; min-width: 0; padding: 7px 2px 6px;
+  border: 0; background: none; color: var(--ink); font: 700 13px/1.25 var(--serif); text-align: center; cursor: pointer; transition: background-color .15s ease; }
+@media (hover: hover) { .rp-role:hover { background-color: #d9cfba80; } } /* 觸屏點過以後 :hover 會一直留著，只給鼠標 */
+.rp-role:active .rp-tk { translate: 0 1.5px; }
+.rp-tk { position: relative; display: block; }
+.rp-role .token.sm { width: 54px; height: 54px; cursor: inherit; transition: box-shadow .18s ease, opacity .18s ease; }
+.rp-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp-ab { display: none; }
+/* 寬屏：牌大一號，紙上不空 */
+@media (min-width: 1000px) { .rp-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); } .rp-role .token.sm { width: 60px; height: 60px; } }
+.rp.detail .rp-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); column-gap: 18px; }
+.rp.detail .rp-role { grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: auto 1fr; justify-items: start; column-gap: 10px; row-gap: 1px; padding: 8px 4px 10px; text-align: left; }
+/* 一行一條虛線，和能力字一起淡進淡出（rolepick.js setDetail 換模式時先加 .unmode 淡掉） */
+.rp.detail .rp-role::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: var(--r-dash, none) 0 0 / 600px 7px repeat-x; pointer-events: none; }
+.rp.detail .rp-tk { grid-row: 1 / 3; align-self: start; }
+.rp.detail .rp-role .token.sm { width: 46px; height: 46px; }
+.rp.detail .rp-name { font-size: 15px; }
+.rp.detail .rp-ab { display: block; font: 500 13px/1.55 var(--serif); color: #3a332b; }
+.rp.detail.moded .rp-ab, .rp.detail.moded .rp-role::after { animation: rp-ab-in .22s ease-out .08s backwards; }
+.rp.unmode .rp-ab, .rp.unmode .rp-role::after { opacity: 0; transition: opacity .11s ease-in; }
+@keyframes rp-ab-in { from { opacity: 0; translate: 0 3px; } }
+
+/* 選中：牌外一圈黃銅，角上蓋一個「選」字墨印 */
+.rp-seal { position: absolute; right: -9px; bottom: -4px; z-index: 1; display: grid; place-items: center; width: 22px; height: 22px; box-sizing: border-box; pointer-events: none;
+  color: var(--brass); background: #e8e0d0d9; border: 1.5px solid currentColor; box-shadow: inset 0 0 0 1.5px #e8e0d0, inset 0 0 0 2.5px currentColor;
+  font: 900 12.5px/1 var(--serif); font-style: normal; rotate: -8deg; opacity: 0; scale: .5; transition: opacity .16s ease, scale .16s ease; }
+.rp-role.on { background-color: #eddfb466; }
+.rp-role.on .token { box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--team), 0 0 0 3px var(--card), 0 0 0 5.5px var(--brass); }
+.rp-role.on .rp-seal { opacity: 1; scale: 1; mix-blend-mode: multiply; } /* 只給蓋上的那一個疊色，二十幾個隱形的印不各開一層 */
+/* 在場：右上角一張小籤；不能選的（偽裝不能用在場的）牌淡掉，點了說為什麼 */
+.rp-tag { position: absolute; right: 3px; top: 3px; padding: 0 3px; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); font: 500 10.5px/14px var(--serif); font-style: normal;
+  opacity: 0; transition: opacity .18s ease; pointer-events: none; }
+.rp-tag:empty { display: none; }
+.rp-role:is(.in, .off) .rp-tag { opacity: 1; }
+.rp-role.in .token { opacity: .55; }
+.rp-role.off { cursor: help; }
+.rp-role.off .token { opacity: .35; }
+.rp-role.off .rp-name, .rp-role.off .rp-ab { color: var(--muted); }
+@keyframes rp-pop { from { scale: 1.8; opacity: 0; } }
+
+/* 手機：籤和頂行緊一點；矮屏一屏放得下鎮民（一行五個） */
+@media (max-width: 640px) {
+  .rp { --rp-band: 36px; }
+  .rp-tabs { padding: 0 6px; }
+  .rp-tab { max-width: 58vw; height: 32px; padding: 2px 14px 0 13px; font-size: 14px; }
+  .rp-tab-x { height: 32px; }
+  .rp-mode { height: 26px; padding-inline: 11px; font-size: 13px; letter-spacing: .06em; }
+  .rp-mode.on { height: 31px; }
+  .rp-head { min-height: 42px; padding: 4px 8px 10px 12px; }
+  .rp-lead { font-size: 14px; line-height: 1.35; }
+  .rp-body { padding: 0 6px 14px 4px; }
+  .rp-team { grid-template-columns: 18px minmax(0, 1fr); gap: 3px; padding: 6px 0 4px; }
+  .rp-tn { font-size: 12px; line-height: 18px; letter-spacing: .24em; }
+  .rp-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 0; }
+  .rp-role { padding: 5px 1px 4px; gap: 3px; font-size: 12px; }
+  .rp-role .token.sm { width: 48px; height: 48px; }
+  .rp-seal { width: 20px; height: 20px; font-size: 11.5px; }
+  .rp.detail .rp-role { grid-template-columns: 42px minmax(0, 1fr); column-gap: 9px; padding: 7px 2px 9px; }
+  .rp.detail .rp-role .token.sm { width: 42px; height: 42px; }
+  .rp.detail .rp-name { font-size: 14.5px; }
+  .rp.detail .rp-ab { font-size: 13px; line-height: 1.5; }
+  .rp .bp-slots { gap: 8px; padding: 8px 6px 10px; }
+  .rp .bp-slot { width: 84px; }
+}
+/* 橫屏矮的手機：頂行和籤再省一點高度 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .rp { --rp-band: 32px; }
+  .rp-tab { height: 30px; }
+  .rp-mode.on { height: 29px; }
+  .rp-head { min-height: 38px; padding-block: 2px 9px; }
+  .rp-role .token.sm { width: 44px; height: 44px; }
+}
+
+/* 紙頂一行裏的小圖標（遊戲中換角色：今晚順序不變、私下通知他） */
+.rp-lead .rp-ico { width: 15px; height: 15px; color: var(--muted); }
+.rp-say { display: inline; }
+
+/* 卡上「使用能力？」：只選角色、可以不用的能力（哲學家、侍臣），先問用不用 */
+.ic-say.use-ask .w { font: 700 18px var(--serif); letter-spacing: .08em; }
+.row.use-row { justify-content: center; margin-top: 4px; }
+.row.use-row .btn { min-width: 84px; }
+
+/* 準備階段懸停座位的角色表：紙底下一條能力，指著哪個角色印哪個的，沒指著時是這個座位現在的角色。高度固定，字換了紙不變大小 */
+.seat-pick .sp-ab { flex: none; height: 4.4em; margin-top: 5px; padding: 5px 4px 0; overflow: hidden; border-top: 1px solid var(--line-strong);
+  font: 500 12.5px/1.45 var(--serif); color: var(--ink); }
+.seat-pick .sp-ab b { margin-right: 6px; font-weight: 800; }
+/* 索引籤上的「偽裝」：籤本身就是框，裏面不再套一個圓角的章 */
+.rp-tab .tag { height: auto; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; }
+.rp-tab .tag .ico { width: 17px; height: 17px; }
+/* 準備階段真人座位的兩件事（setup.js showPick acts）：換設備、移出房間，壓在角色表最底下，小字，不搶選角色 */
+.seat-pick .sp-foot { display: flex; justify-content: flex-end; gap: 6px; margin-top: 4px; padding-top: 5px; border-top: 1px dashed var(--line-strong); }
+.seat-pick .sp-foot[hidden] { display: none; }
+.sp-act { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 0; background: none; color: var(--muted); font: 600 13px/1.2 var(--serif); cursor: pointer; }
+.sp-act:hover { color: var(--ink); text-decoration: underline; }
+.sp-act.danger:hover { color: var(--evil); }
+.sp-act .ico { width: 13px; height: 13px; }

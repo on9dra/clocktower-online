@@ -1,0 +1,925 @@
+{
+ "‹ 上一頁": [
+  "public/js/intro.js"
+ ],
+ "「流程」標籤": [
+  "public/js/help.js"
+ ],
+ "「中毒」": [
+  "public/js/intro.js"
+ ],
+ "3 本官方，或上傳 Json": [
+  "public/js/help.js"
+ ],
+ "3號 · 小惡魔": [
+  "public/js/help.js"
+ ],
+ "5 人以上時惡魔死亡：她接任": [
+  "public/js/help.js"
+ ],
+ "7 人存活要 4 票：一半，向上取整": [
+  "public/js/help.js"
+ ],
+ "7 人以上首夜": [
+  "public/js/help.js"
+ ],
+ "按當前舉手結算": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "按人數配比，隨機抽好": [
+  "public/js/intro.js"
+ ],
+ "按順序叫醒，時鐘數票": [
+  "public/js/intro.js"
+ ],
+ "暗流湧動": [
+  "public/js/help.js",
+  "public/js/roles.js"
+ ],
+ "黯月初升": [
+  "public/js/help.js",
+  "public/js/roles.js"
+ ],
+ "黯月初升、夢殞春宵": [
+  "public/js/help.js"
+ ],
+ "白天": [
+  "public/js/help.js",
+  "public/js/lobby.js"
+ ],
+ "白天結束時處決；平票就沒人處決": [
+  "public/js/help.js"
+ ],
+ "保護": [
+  "public/js/flow.js",
+  "public/js/fx-ab.js",
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "被處決：善良落敗": [
+  "public/js/help.js"
+ ],
+ "比": [
+  "public/js/help.js"
+ ],
+ "必選": [
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "標記死亡": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "標記死亡（糾錯）": [
+  "public/js/help.js"
+ ],
+ "博學者、藝術家等：座位菜單裏": [
+  "public/js/help.js"
+ ],
+ "補發信息": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "不能提名": [
+  "public/js/help.js"
+ ],
+ "不數票直接結算": [
+  "public/js/help.js"
+ ],
+ "不在場，可偽裝成他們": [
+  "public/js/help.js"
+ ],
+ "操作自動彈出": [
+  "public/js/intro.js"
+ ],
+ "撤銷": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "出錯了怎麼辦": [
+  "public/js/help.js"
+ ],
+ "處決": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/progress.js",
+  "public/js/topbar.js",
+  "public/js/town.js"
+ ],
+ "處決5號，入夜": [
+  "public/js/help.js"
+ ],
+ "處決惡魔": [
+  "public/js/help.js"
+ ],
+ "處決即敗": [
+  "public/js/help.js"
+ ],
+ "處決台上的角色將死亡": [
+  "public/js/help.js"
+ ],
+ "錯誤紅框，登記橙框": [
+  "public/js/help.js"
+ ],
+ "大多也自動": [
+  "public/js/help.js"
+ ],
+ "代碼和原創美術以 MIT 許可發布，": [
+  "public/js/about.js"
+ ],
+ "代入他的視角": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "戴到下一次分出勝負": [
+  "public/js/help.js"
+ ],
+ "單設備按「展示」，說完「已告知」": [
+  "public/js/help.js"
+ ],
+ "到點按舉著的手結算；說書人可隨時暫停或重新計時": [
+  "public/js/help.js"
+ ],
+ "倒數 5 分鐘": [
+  "public/js/help.js"
+ ],
+ "得知處決": [
+  "public/js/help.js"
+ ],
+ "第 {0} 頁": [
+  "public/js/intro.js"
+ ],
+ "第 1 夜": [
+  "public/js/help.js",
+  "public/js/intro.js"
+ ],
+ "第{0}頁": [
+  "public/js/help.js"
+ ],
+ "第一次進房間": [
+  "public/js/help.js"
+ ],
+ "點別人的座位，扔一枚少一枚": [
+  "public/js/help.js"
+ ],
+ "點錯了就撤銷": [
+  "public/js/help.js"
+ ],
+ "點頂欄的雞蛋數": [
+  "public/js/help.js"
+ ],
+ "點角色切換": [
+  "public/js/help.js"
+ ],
+ "點卡上的選項，或直接點桌上的座位": [
+  "public/js/help.js"
+ ],
+ "點名字記一票，再點放下": [
+  "public/js/help.js"
+ ],
+ "點任意座位": [
+  "public/js/help.js"
+ ],
+ "點頭搖頭，或整屏給他看": [
+  "public/js/help.js"
+ ],
+ "頂欄，一步步往回退": [
+  "public/js/help.js"
+ ],
+ "頂欄「⋯」": [
+  "public/js/help.js"
+ ],
+ "二維碼": [
+  "public/js/about.js",
+  "public/js/invite.js"
+ ],
+ "發送": [
+  "public/js/help.js",
+  "public/js/infoform.js",
+  "public/js/side.js"
+ ],
+ "反饋": [
+  "public/js/about.js"
+ ],
+ "反饋內容": [
+  "public/js/about.js"
+ ],
+ "反噬": [
+  "lib/day.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "房間三天沒有動靜自動刪除，聊天記錄一起刪掉。": [
+  "public/js/about.js"
+ ],
+ "放棄本局…!": [
+  "public/js/help.js"
+ ],
+ "分享": [
+  "public/js/about.js"
+ ],
+ "分享到…": [
+  "public/js/about.js"
+ ],
+ "粉絲自製": [
+  "public/js/about.js"
+ ],
+ "附": [
+  "public/js/help.js"
+ ],
+ "複製鏈接": [
+  "public/js/about.js",
+  "public/js/invite.js"
+ ],
+ "給他看身份": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "更換角色": [
+  "public/js/help.js",
+  "public/js/setup.js",
+  "public/js/town.js"
+ ],
+ "更換角色會私下通知他": [
+  "public/js/help.js"
+ ],
+ "公佈死訊": [
+  "public/js/help.js"
+ ],
+ "關閉": [
+  "public/js/help.js",
+  "public/js/rolepick.js",
+  "public/js/ui.js"
+ ],
+ "規則沒判到的勝負，例如呆瓜選中邪惡": [
+  "public/js/help.js"
+ ],
+ "規則與流程": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "還得知": [
+  "public/js/help.js"
+ ],
+ "和": [
+  "public/js/help.js",
+  "public/js/infofmt.js",
+  "public/js/intro.js",
+  "public/js/stepcard.js"
+ ],
+ "河的對岸": [
+  "public/js/community.js"
+ ],
+ "互認": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "獲勝": [
+  "public/js/gamelog.js",
+  "public/js/help.js"
+ ],
+ "積分榜": [
+  "public/js/help.js",
+  "public/js/scores.js",
+  "public/js/topbar.js"
+ ],
+ "雞蛋": [
+  "public/js/help.js",
+  "public/js/scores.js"
+ ],
+ "計票": [
+  "public/js/help.js",
+  "public/js/trial.js"
+ ],
+ "記錄": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "寄出": [
+  "public/js/about.js"
+ ],
+ "甲乙": [
+  "public/js/help.js"
+ ],
+ "獎勵": [
+  "public/js/help.js"
+ ],
+ "角色配置": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "角色是秘密": [
+  "public/js/help.js"
+ ],
+ "叫醒他/她，點他指定的人": [
+  "public/js/help.js"
+ ],
+ "接任": [
+  "public/js/fx-ab.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "結束白天": [
+  "public/js/help.js"
+ ],
+ "介紹": [
+  "public/js/intro.js",
+  "public/js/lobby.js"
+ ],
+ "界面清爽，動畫直觀": [
+  "public/js/intro.js"
+ ],
+ "進入大廳": [
+  "public/js/intro.js"
+ ],
+ "敬請期待": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "糾錯": [
+  "public/js/help.js"
+ ],
+ "舉手": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "舉手你來點": [
+  "public/js/help.js"
+ ],
+ "卡在圓桌中央；結果唯一時只有一個按鈕": [
+  "public/js/help.js"
+ ],
+ "開局": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/hud.js",
+  "public/js/log.js"
+ ],
+ "開局前": [
+  "public/js/help.js"
+ ],
+ "開槍": [
+  "public/js/flow.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/manual.js",
+  "public/js/town.js"
+ ],
+ "開源": [
+  "public/js/about.js"
+ ],
+ "可能被當作": [
+  "public/js/help.js"
+ ],
+ "可以說真話，也可以說謊": [
+  "public/js/help.js"
+ ],
+ "快速、簡約、精美的線上魔典": [
+  "public/js/about.js",
+  "public/js/lobby.js"
+ ],
+ "立即處決（糾錯）!": [
+  "public/js/help.js"
+ ],
+ "立即計票": [
+  "public/js/flow.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js"
+ ],
+ "聯繫方式": [
+  "public/js/about.js"
+ ],
+ "鏈接已複製": [
+  "public/js/about.js"
+ ],
+ "獵手開槍": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "鄰座中邪惡": [
+  "public/js/help.js"
+ ],
+ "留待信息齊全，投下關鍵一票！": [
+  "public/js/help.js"
+ ],
+ "輪到你才出現，點一下就好": [
+  "public/js/intro.js"
+ ],
+ "輪到時一張標記卡，你自己處理": [
+  "public/js/help.js"
+ ],
+ "沒有語音": [
+  "public/js/about.js"
+ ],
+ "每天最多提名 1 次，最多被提名 1 次": [
+  "public/js/help.js"
+ ],
+ "夢殞春宵": [
+  "public/js/help.js",
+  "public/js/roles.js"
+ ],
+ "免費、非商業的社區工具，不是官方產品。與 The Pandemonium Institute 無關，也未獲其認可；遊戲名、角色名和能力文字歸其所有。": [
+  "public/js/about.js"
+ ],
+ "免費開源": [
+  "public/js/intro.js"
+ ],
+ "免疫": [
+  "public/js/help.js"
+ ],
+ "免註冊": [
+  "public/js/about.js",
+  "public/js/intro.js"
+ ],
+ "名": [
+  "public/js/help.js",
+  "public/js/infofmt.js"
+ ],
+ "酩酊": [
+  "public/js/community.js"
+ ],
+ "命中": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "能力失效，信息可能是錯的，他自己不知道": [
+  "public/js/help.js"
+ ],
+ "能說話": [
+  "public/js/help.js"
+ ],
+ "鯰魚": [
+  "public/js/community.js"
+ ],
+ "排除": [
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "判定善良獲勝…": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "判定邪惡獲勝…": [
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "棄權": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/town.js",
+  "public/js/trial.js"
+ ],
+ "請配合騰訊會議、微信語音等。": [
+  "public/js/about.js"
+ ],
+ "取消提名": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "全部選項解鎖，「真」是真實答案": [
+  "public/js/help.js"
+ ],
+ "全程自動結算": [
+  "public/js/intro.js"
+ ],
+ "確認": [
+  "public/js/flow.js",
+  "public/js/intro.js",
+  "public/js/stepcard.js"
+ ],
+ "確認開局": [
+  "public/js/help.js"
+ ],
+ "人人皆可玩": [
+  "public/js/community.js"
+ ],
+ "扔雞蛋": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "掃碼入座": [
+  "public/js/intro.js"
+ ],
+ "殺人、傳位": [
+  "public/js/help.js"
+ ],
+ "上處決台": [
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "上傳劇本": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "社區劇本": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/manual.js"
+ ],
+ "射": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "設為中毒": [
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/town.js"
+ ],
+ "勝負判定": [
+  "public/js/help.js"
+ ],
+ "勝利積分": [
+  "public/js/help.js",
+  "public/js/scores.js"
+ ],
+ "失敗": [
+  "public/js/fx.js",
+  "public/js/help.js"
+ ],
+ "十": [
+  "public/js/help.js"
+ ],
+ "手動擺牌": [
+  "public/js/intro.js"
+ ],
+ "署名": [
+  "public/js/about.js"
+ ],
+ "雙方今天可以重新提名": [
+  "public/js/help.js"
+ ],
+ "誰會贏？": [
+  "public/js/help.js"
+ ],
+ "說明": [
+  "public/js/about.js"
+ ],
+ "說書人強制玩家發起投票，玩家按順序在短時間內必須投票，數完自動結算": [
+  "public/js/help.js"
+ ],
+ "說書人只管講故事": [
+  "public/js/intro.js"
+ ],
+ "說書人指南": [
+  "public/js/help.js"
+ ],
+ "私聊": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "死了還在局裏": [
+  "public/js/help.js"
+ ],
+ "死亡喚醒": [
+  "public/js/help.js"
+ ],
+ "死亡票": [
+  "public/js/help.js"
+ ],
+ "死因未卜": [
+  "public/js/community.js"
+ ],
+ "隨機": [
+  "public/js/help.js",
+  "public/js/setup.js"
+ ],
+ "隨機抽取": [
+  "public/js/flow.js",
+  "public/js/help.js"
+ ],
+ "討論、提名": [
+  "public/js/help.js"
+ ],
+ "提名": [
+  "public/js/flow.js",
+  "public/js/fx.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js",
+  "public/js/manual.js",
+  "public/js/progress.js",
+  "public/js/topbar.js",
+  "public/js/trial.js"
+ ],
+ "替死、三人勝": [
+  "public/js/help.js"
+ ],
+ "替他提名": [
+  "public/js/help.js"
+ ],
+ "天亮": [
+  "public/js/help.js",
+  "public/js/progress.js",
+  "public/js/topbar.js"
+ ],
+ "挑干擾項": [
+  "public/js/help.js"
+ ],
+ "跳過": [
+  "public/js/fx.js",
+  "public/js/intro.js",
+  "public/js/log.js",
+  "public/js/manual.js",
+  "public/js/stepcard.js"
+ ],
+ "貼標記": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "聽到的標在座位上，隨時翻看": [
+  "public/js/intro.js"
+ ],
+ "投毒": [
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "投給": [
+  "public/js/help.js"
+ ],
+ "投票限制": [
+  "public/js/help.js"
+ ],
+ "玩家收到卡上這一句，接著自動到下一張": [
+  "public/js/help.js"
+ ],
+ "玩家自己提名": [
+  "public/js/help.js"
+ ],
+ "午夜綠洲": [
+  "public/js/community.js"
+ ],
+ "系統幫你做的": [
+  "public/js/help.js"
+ ],
+ "系統已留好可選項": [
+  "public/js/help.js"
+ ],
+ "下一頁 ›": [
+  "public/js/intro.js"
+ ],
+ "先給座位指定角色，其餘隨機": [
+  "public/js/help.js"
+ ],
+ "陷阱": [
+  "public/js/help.js"
+ ],
+ "線下": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/topbar.js"
+ ],
+ "線下主持": [
+  "public/js/help.js"
+ ],
+ "小紅書": [
+  "public/js/author.js"
+ ],
+ "小心陷阱": [
+  "public/js/help.js"
+ ],
+ "寫點什麼再寄出": [
+  "public/js/about.js",
+  "server.js"
+ ],
+ "新手上手快": [
+  "public/js/intro.js"
+ ],
+ "信任": [
+  "public/js/community.js"
+ ],
+ "信息自動收集": [
+  "public/js/intro.js"
+ ],
+ "宣稱獵手開槍": [
+  "public/js/help.js"
+ ],
+ "選 MVP": [
+  "public/js/help.js"
+ ],
+ "選劇本": [
+  "public/js/help.js"
+ ],
+ "選填": [
+  "public/js/about.js"
+ ],
+ "選項是座位時": [
+  "public/js/help.js"
+ ],
+ "選擇一名玩家，使其": [
+  "public/js/glyph.js",
+  "public/js/intro.js"
+ ],
+ "血染鐘樓": [
+  "public/js/about.js",
+  "public/js/lobby.js",
+  "public/js/topbar.js"
+ ],
+ "血染鐘樓 · 線上魔典": [
+  "public/js/intro.js"
+ ],
+ "延長線": [
+  "public/js/community.js"
+ ],
+ "演示頁不能寄出": [
+  "public/js/about.js"
+ ],
+ "要你裁定時": [
+  "public/js/help.js"
+ ],
+ "夜晚": [
+  "public/js/help.js",
+  "public/js/lobby.js"
+ ],
+ "一二三": [
+  "public/js/intro.js"
+ ],
+ "一二三四五六七八九": [
+  "public/js/help.js"
+ ],
+ "一天": [
+  "public/js/help.js"
+ ],
+ "一天怎麼過": [
+  "public/js/help.js"
+ ],
+ "一張死亡票": [
+  "public/js/help.js"
+ ],
+ "依次醒來": [
+  "public/js/help.js"
+ ],
+ "壹貳參": [
+  "public/js/intro.js"
+ ],
+ "疑心之蛭": [
+  "public/js/community.js"
+ ],
+ "已複製 {0}：{1}": [
+  "public/js/about.js"
+ ],
+ "已寄出": [
+  "public/js/about.js"
+ ],
+ "以為是": [
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "以為自己是鎮民，能力無效": [
+  "public/js/help.js"
+ ],
+ "印": [
+  "public/js/about.js"
+ ],
+ "贏家戴陣營皇冠": [
+  "public/js/help.js"
+ ],
+ "贏了有什麼": [
+  "public/js/help.js"
+ ],
+ "遊戲規則": [
+  "public/js/help.js"
+ ],
+ "再": [
+  "public/js/help.js"
+ ],
+ "再入夜": [
+  "public/js/help.js"
+ ],
+ "再寫一封": [
+  "public/js/about.js"
+ ],
+ "贊成": [
+  "public/js/flow.js",
+  "public/js/help.js",
+  "public/js/town.js",
+  "public/js/trial.js"
+ ],
+ "贊同處決，舉手時所有人可見，在倒計時結束前可隨時取消": [
+  "public/js/help.js"
+ ],
+ "怎麼處決人": [
+  "public/js/help.js"
+ ],
+ "爪牙和惡魔": [
+  "public/js/help.js"
+ ],
+ "照清單逐個叫醒": [
+  "public/js/intro.js"
+ ],
+ "真": [
+  "public/js/help.js",
+  "public/js/infoform.js",
+  "public/js/town.js"
+ ],
+ "鎮民和外來者": [
+  "public/js/help.js"
+ ],
+ "之中有": [
+  "public/js/help.js",
+  "public/js/intro.js"
+ ],
+ "直到一方獲勝": [
+  "public/js/help.js"
+ ],
+ "直接點桌上的座位；固定的目標亮金圈": [
+  "public/js/help.js"
+ ],
+ "只讀，確認信息送到了": [
+  "public/js/help.js"
+ ],
+ "只列合規的信息，真相已鎖定": [
+  "public/js/help.js"
+ ],
+ "只剩 2 人存活": [
+  "public/js/help.js"
+ ],
+ "只剩 3 人且無人處決：善良獲勝": [
+  "public/js/help.js"
+ ],
+ "只有你和說書人看得到": [
+  "public/js/help.js"
+ ],
+ "至樂無雙": [
+  "public/js/community.js"
+ ],
+ "致作者：": [
+  "public/js/about.js"
+ ],
+ "製": [
+  "public/js/about.js"
+ ],
+ "中毒 / 酒鬼時": [
+  "public/js/help.js"
+ ],
+ "中毒 / 醉酒": [
+  "public/js/help.js"
+ ],
+ "中毒、保護、死亡，全部判好": [
+  "public/js/intro.js"
+ ],
+ "終局後 {0} 秒，點座位上的星星；平票一起當選": [
+  "public/js/help.js"
+ ],
+ "準備": [
+  "public/js/help.js",
+  "public/js/town.js"
+ ],
+ "桌上直接點，信息系統算好": [
+  "public/js/help.js"
+ ],
+ "紫羅蘭之亂": [
+  "public/js/community.js"
+ ],
+ "自動": [
+  "public/js/help.js",
+  "public/js/intro.js"
+ ],
+ "自動發角色": [
+  "public/js/intro.js"
+ ],
+ "自動結算能力": [
+  "public/js/intro.js"
+ ],
+ "自動推進流程": [
+  "public/js/intro.js"
+ ],
+ "自己記、自己判": [
+  "public/js/intro.js"
+ ],
+ "自由放任": [
+  "public/js/community.js"
+ ],
+ "自製角色": [
+  "public/js/help.js"
+ ],
+ "最多 1 人": [
+  "public/js/help.js"
+ ],
+ "最高票上台": [
+  "public/js/help.js"
+ ],
+ "座位菜單：他查過誰、得知了什麼": [
+  "public/js/help.js"
+ ],
+ "MVP 次數": [
+  "public/js/help.js",
+  "public/js/scores.js"
+ ]
+}

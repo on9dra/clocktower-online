@@ -1,0 +1,145 @@
+/* 線下局把設備轉給玩家看的整屏（pass.js）。底是不透明的夜色，魔典一點都透不出來。
+   每一頁一個版式：頂上一條（左邊「橫屏」、右邊「收起 / 收回」），中間一張紙牌——頂邊的小籤是給說書人的話，牌上只有給玩家看的大內容——按鈕在牌下面。
+   橫屏：整屏內容轉 90°（.pass 是尺寸容器，轉過去後寬高對調）；設備本來就是橫著的不用轉，按鈕也不出現。
+   牌上的內容按牌的大小算（.pass-body 是尺寸容器）：一個數字、一個字、幾個座位號、幾張角色牌，都盡量大 */
+.pass { position: fixed; inset: 0; z-index: 150; overflow: hidden; container: pass / size; overscroll-behavior: contain; touch-action: manipulation;
+  background: url(../img/stars.svg) top center / cover, linear-gradient(#141826 0%, #232a3f 60%, #2f3550 100%); }
+.pass-stage { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 100cqw; height: 100cqh; box-sizing: border-box; padding: 6px 14px 16px;
+  display: grid; grid-template-rows: auto minmax(0, 1fr); container: stage / size; }
+@container pass (orientation: portrait) {
+  .pass.turn .pass-stage { width: 100cqh; height: 100cqw; rotate: 90deg; padding: 4px 16px 12px; }
+}
+@container pass (orientation: landscape) { .pass-turn { visibility: hidden; } }
+
+/* 頂上一條：不是給玩家看的，小、淡，在夜色上 */
+.pass-top { display: flex; align-items: center; justify-content: space-between; min-height: 42px; }
+.pass-turn, .pass-x { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 8px; border: 0; background: none; cursor: pointer;
+  color: #9fa5b8; font: 600 14px var(--serif); letter-spacing: .15em; transition: color .15s ease; }
+.pass-turn:hover, .pass-x:hover { color: #ece5d3; }
+.pass-turn .ico { width: 22px; height: 22px; }
+.pass-end { display: grid; justify-items: end; }
+.pass-end > * { grid-area: 1 / 1; }
+.pass-end > .leaving { pointer-events: none; }
+
+/* 一頁：牌撐滿中間（內容按牌的大小縮放），按鈕一行在下面 */
+.pass-at { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); min-height: 0; }
+.pass-page { grid-area: 1 / 1; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; gap: 16px; min-height: 0; }
+.pass-page.leaving { pointer-events: none; }
+.pass-card, body.art .pass-card { position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: stretch; box-sizing: border-box; width: min(100%, 480px);
+  height: calc(100% - 28px); max-height: 660px; min-height: 0; align-self: center; margin: 28px 0 0; padding-block: 0; text-align: center; }
+/* 頂邊的小籤（和桌上卡片的標題籤同一個樣子，fx.css .ic-tag）：給說書人的話。長在版框外面，居中 */
+.pass-card > .pass-say { left: 50%; top: calc(-1 * var(--fw, 2px)); translate: -50% -100%; gap: 5px; padding: 5px 18px 3px; font-size: 14px; letter-spacing: .2em; color: var(--muted); }
+.pass-say .sb { font-size: 17px; letter-spacing: 0; color: var(--ink); }
+.pass-body { container: show / size; display: grid; place-items: center; align-content: center; gap: min(5cqh, 20px); min-height: 0; padding: 6px 0; }
+@container stage (orientation: landscape) { .pass-card, body.art .pass-card { width: min(100%, 760px); } } /* 電腦上、橫著：牌寬一點，三張角色牌排一排 */
+.pass-acts { display: grid; justify-items: center; gap: 10px; width: min(100%, 480px); }
+.pass-go { min-width: min(70%, 280px); min-height: 52px; font-size: 18px; }
+
+/* 「是我，翻開」「我是說書人」的二次確認：位置一直留著，點了才淡進來；上面的按鈕變淡、不能再點 */
+.pass-ask { display: grid; justify-items: center; gap: 8px; font: 600 15px var(--serif); visibility: hidden; opacity: 0; translate: 0 6px;
+  transition: opacity .2s ease, translate .2s ease, visibility 0s .2s; }
+.pass-ask > span { color: #ece5d3; } /* 問句在夜色上 */
+.pass-ask .row { gap: 10px; margin: 0; }
+.pass-ask .btn { min-width: 96px; min-height: 44px; }
+.pass-page.asking .pass-ask { visibility: visible; opacity: 1; translate: none; transition: opacity .2s ease, translate .2s ease; }
+.pass-page.asking .pass-go { opacity: .35; pointer-events: none; transition: opacity .2s ease; }
+
+/* 傳閱身份：交給誰（大座位號 + 名字）、他的角色牌和能力、交還說書人 */
+.pass-who { display: grid; justify-items: center; gap: min(4cqh, 18px); }
+.pass-who .sb { font-size: min(34cqw, 30cqh); }
+.pass-who b { font: 700 min(13cqw, 12cqh, 54px)/1.2 var(--serif); }
+.pass-tok .token { width: min(58cqw, 44cqh); height: min(58cqw, 44cqh); }
+.pass-tok .token .token-name { font-size: min(6cqw, 4.6cqh); }
+.pass-name { font: 700 min(10cqw, 8cqh, 40px)/1.2 var(--serif); color: var(--team); }
+.pass-name small { display: block; font: 600 14px var(--serif); color: var(--muted); letter-spacing: .2em; }
+.pass-ab { max-width: 26em; margin: 0; padding: 0 6px; font: 16px/1.6 var(--serif); }
+.pass-ico .ico { width: min(40cqw, 36cqh); height: min(40cqw, 36cqh); color: var(--brass); }
+
+/* 核心內容：一個大數字、大大的是 / 否 */
+.big-num { font: 900 min(calc(92cqw / (var(--d, 1) * .62 + .25)), 96cqh, 420px)/.92 var(--serif); font-variant-numeric: lining-nums; color: var(--ink); }
+.big-word { font: 900 min(calc(80cqw / var(--c, 1)), 74cqh, 380px)/1 var(--serif); color: var(--ink); white-space: nowrap; }
+/* 和角色牌疊在一起（洗腦師：瘋狂 + 他要證明的角色）：字讓出高度給牌 */
+.big-stack > .big-word { font-size: min(calc(80cqw / var(--c, 1)), 26cqh, 220px); }
+.big-word.evil { color: var(--evil); }
+.big-word.good { color: var(--good); }
+/* 座位號、角色牌：一排的大小按個數和牌的寬高算；和別的東西疊在一起時各讓一點高度 */
+.big-stack { display: grid; justify-items: center; align-content: center; gap: min(4cqh, 18px); }
+.big-seats { display: flex; justify-content: center; gap: min(5cqw, 20px); font-size: min(calc(76cqw / var(--n) - 10px), var(--sh, 40cqh)); }
+.big-seats .sb { font-size: .78em; border-width: max(2px, .03em); }
+.big-roles { --gap: min(4cqw, 16px); --per: var(--n); --rows: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap);
+  --tk: min(calc((100cqw - (var(--per) - 1) * var(--gap)) / var(--per)), calc(var(--th, 66cqh) / var(--rows))); }
+/* 豎著的牌上三四張角色牌：一排兩張（第三張在下面居中），比一排三張大得多 */
+@container show (max-aspect-ratio: 4 / 5) { .big-roles.many { --per: 2; --rows: 2; } }
+.big-tok { display: grid; justify-items: center; min-width: 0; }
+.big-tok .token { width: var(--tk); height: var(--tk); border-width: max(2px, calc(var(--tk) * .018)); cursor: default;
+  box-shadow: inset 0 0 0 calc(var(--tk) * .03) var(--card), inset 0 0 0 calc(var(--tk) * .04) var(--team); }
+.big-tok .token .token-name { font-size: max(14px, calc(var(--tk) * .15)); }
+.big-team { display: flex; align-items: center; justify-content: center; gap: min(4cqw, 16px); }
+.big-team > .tag { font-size: min(7cqw, 6cqh, 26px); }
+.big-team > .tag .ico { width: 1em; height: 1em; }
+.big-team .big-seats { --sh: 18cqh; font-size: min(calc(56cqw / var(--n) - 10px), 18cqh); }
+/* 疊在一起時：座位號一排、角色牌一排 */
+.big-stack > .big-seats { --sh: 26cqh; }
+.big-stack > .big-roles { --th: 42cqh; }
+.pass-body > :not(:only-child).big-roles { --th: 40cqh; }
+.pass-body > .big-stack:not(:only-child) > .big-seats { --sh: 14cqh; }
+.pass-body > .big-stack:not(:only-child) > .big-roles { --th: 20cqh; }
+.pass-body > .big-stack:not(:only-child) { grid-auto-flow: column; align-items: center; }
+/* 橫著的牌：座位號和角色牌左右擺，各佔一半寬，都能大一些 */
+@container show (min-aspect-ratio: 5 / 4) {
+  .big-stack { grid-auto-flow: column; align-items: center; column-gap: 6cqw; }
+  .big-stack > .big-seats { font-size: min(calc(42cqw / var(--n) - 10px), var(--sh, 40cqh)); }
+  .big-stack > .big-roles { --tk: min(calc((46cqw - (var(--n) - 1) * var(--gap)) / var(--n)), calc(var(--th, 80cqh) / var(--rows))); }
+  .pass-body > .big-stack:only-child > .big-seats { --sh: 40cqh; }
+  .pass-body > .big-stack:only-child > .big-roles { --th: 80cqh; }
+}
+/* 間諜：整本魔典，一格一個座位（座位號、角色牌，標記豎著疊在右邊），豎著兩列、橫著四列；下面一行偽裝。放不下就在牌裏滾 */
+.big-frm { box-sizing: border-box; width: 100%; max-height: 100cqh; padding: 0 2px; overflow: auto; scrollbar-width: thin; }
+.big-frm > .frm.big { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .6em .4em; font-size: min(5.6cqw, 3.6cqh, 26px); }
+.big-frm .grim { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5em .6em; width: 100%; font-size: inherit; }
+@container show (min-aspect-ratio: 1) { .big-frm .grim { grid-template-columns: repeat(4, minmax(0, 1fr)); } .big-frm > .frm.big { font-size: min(3cqw, 5.4cqh, 24px); } }
+.big-frm .grim-cell { flex-wrap: nowrap; align-items: flex-start; gap: .2em; min-width: 0; text-align: left; }
+.big-frm .grim-cell > :not(.grim-tags) { flex: none; }
+.big-frm .grim-tags { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.big-frm .grim-tag { max-width: 100%; box-sizing: border-box; font-size: max(11px, .55em); white-space: normal; overflow-wrap: anywhere; }
+
+/* 橫著（轉了屏或者設備本來就橫著）、又矮：按鈕挪到牌的右邊，牌上下用滿 */
+@container stage (orientation: landscape) and (max-height: 620px) {
+  .pass-top { position: absolute; left: 6px; right: 6px; top: 2px; z-index: 2; pointer-events: none; }
+  .pass-top > * { pointer-events: auto; }
+  .pass-stage > .pass-at { grid-row: 1 / -1; }
+  .pass-page { grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 22px; padding-top: 6px; }
+  .pass-card, body.art .pass-card { width: min(100%, 640px); justify-self: end; }
+  .pass-acts { width: auto; min-width: 150px; align-self: center; padding-top: 30px; }
+  .pass-go { min-width: 150px; }
+  .pass-who { grid-auto-flow: column; align-items: center; gap: 6cqw; }
+  .pass-who .sb { font-size: min(26cqw, 46cqh); }
+  /* 角色牌在左，名字和能力在右 */
+  .pass-body:has(> .pass-tok) { grid-template-columns: auto minmax(0, 1fr); justify-items: start; text-align: left; column-gap: 5cqw; padding-inline: 4cqw; }
+  .pass-body > .pass-tok { grid-row: 1 / span 2; }
+  .pass-tok .token { width: min(40cqw, 76cqh); height: min(40cqw, 76cqh); }
+  .pass-name { font-size: min(7cqw, 14cqh, 38px); }
+  .pass-ab { padding: 0; }
+}
+
+/* 桌上的卡：首夜互認（標題「請指示互認」，正文是誰是惡魔、誰是爪牙）；展示和下一個並排 */
+.infocard.mutual .mu-line { justify-content: center; gap: 6px 14px; font-size: 22px; }
+.mu-who { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.mu-who .tag { font-size: 15px; }
+.infocard .ic-send, .infocard .ic-foot > .row:has(> .btn + .btn) { flex-wrap: nowrap; }
+.infocard .ic-send > .btn, .infocard .ic-foot > .row:has(> .btn + .btn) > .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; }
+/* 手機橫屏（卡在圓桌右邊）：展示和下一個那一排排在式子後面，選項再多也貼著卡底看得見（同 hud.css 的 .btn.wide） */
+@media (min-width: 641px) and (max-height: 500px) and (orientation: landscape) {
+  .center > .st-card .infocard > .ic-foot > .row, .center > .st-card .infocard > .row.ic-send { order: 3; position: sticky; bottom: 0; z-index: 1; margin-top: 0; }
+}
+/* 這兩張卡沒有行動者那一行（右邊留給「收起」）：正文兩邊各讓出收起的寬度，居中不壓它 */
+@media (min-width: 641px) { .st-card .infocard.group .ic-top > .frm-line { padding-inline: 40px; } }
+/* 單設備洗衣婦這類（桌心擺角色牌的那張）：紙條一行放不下兩個按鈕，按鈕放到紙條下面一排 */
+@media (max-width: 640px) and (max-height: 720px) and (orientation: portrait) { .tb-foot:has(> .ic-send) { grid-template-columns: minmax(0, 1fr); } }
+.tb-foot > .ic-send { justify-content: center; margin: 0; }
+@media (max-width: 640px) {
+  .infocard.mutual .mu-line { font-size: 17px; gap: 4px 8px; }
+  .mu-who .tag { font-size: 13px; }
+  .spread .ic-foot .ic-send { display: flex; gap: 6px; margin: 0; }
+  .spread .ic-foot .ic-send > .btn { min-height: 46px; }
+}

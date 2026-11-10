@@ -1,4 +1,4 @@
-// 手動指定角色和偽裝（兩種模式）、手動局流程、跨劇本相剋。用法：node tests/manual.test.js
+// 手動指定角色和偽裝、跨劇本相剋。用法：node tests/manual.test.js（以前的手動局已經併進線下局，見 offline.test.js、hybrid.test.js）
 import assert from 'assert';
 import { createRoom } from '../lib/store.js';
 import { applyStOp, applyPlayerAction, joinPlayer } from '../lib/ops.js';
@@ -6,10 +6,9 @@ import { viewFor } from '../lib/view.js';
 import { ROLES } from '../public/js/roles.js';
 import { setup, S, ok, act, st, pl, runOnly } from './helpers.js';
 
-const room = (n = 7, mode) => {
+const room = (n = 7) => {
   const r = createRoom();
   for (let i = 0; i < n; i++) joinPlayer(r, 'p' + i, 'x' + i);
-  if (mode) ok(st(r, 'mode', { mode }));
   return r;
 };
 const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string', op + ' 應該被拒絕');
@@ -69,14 +68,12 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   ok(st(r, 'draft'));
   assert.ok(['minion', 'demon'].includes(ROLES[r.seats[6].role].team));
 }
-// 智能推進必須有惡魔，手動局不用
+// 必須有惡魔
 {
   const list = ['chef', 'monk', 'empath', 'virgin', 'slayer'];
-  const a = room(5), b = room(5, 'manual');
-  for (const r of [a, b]) r.seats.forEach((s, i) => ok(st(r, 'setRole', { seatId: s.id, roleId: list[i] })));
+  const a = room(5);
+  a.seats.forEach((s, i) => ok(st(a, 'setRole', { seatId: s.id, roleId: list[i] })));
   assert.strictEqual(st(a, 'next'), '場上至少要有一名惡魔');
-  ok(st(b, 'next'));
-  assert.ok(b.g.manual);
 }
 
 // ───── 惡魔偽裝 ─────
@@ -97,195 +94,7 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   ok(st(r, 'setRole', { seatId: r.seats[0].id, roleId: pick }));
   assert.ok(!r.g.bluffs.includes(pick));
   assert.strictEqual(r.g.bluffs.length, 3);
-  assert.ok(!r.bluffPins.includes(pick));
-  // 手動局：什麼都能指定，也不換
-  const m = room(7, 'manual');
-  ok(st(m, 'draft'));
-  const here = m.seats.find(x => x.role !== 'imp').role;
-  ok(st(m, 'setBluff', { i: 1, roleId: here }));
-  ok(st(m, 'setBluff', { i: 2, roleId: 'imp' }));
-  assert.deepStrictEqual(m.g.bluffs.slice(1), [here, 'imp']);
-  ok(st(m, 'setRole', { seatId: m.seats[1].id, roleId: 'imp' }));
-  assert.strictEqual(m.g.bluffs[2], 'imp', '手動局不換');
-  // 恢復隨機
-  ok(st(m, 'setBluff', { i: 2 }));
-  assert.notStrictEqual(m.bluffPins[2], 'imp');
   bad(room(), 'setBluff', { i: 0, roleId: 'chef' }); // 抽之前沒有偽裝
-}
-
-// ───── 手動局流程 ─────
-function manualGame(roles = ['imp', 'poisoner', 'chef', 'monk', 'virgin', 'slayer', 'butler']) {
-  const r = room(roles.length, 'manual');
-  r.seats.forEach((s, i) => ok(st(r, 'setRole', { seatId: s.id, roleId: roles[i] })));
-  ok(st(r, 'next'));
-  return r;
-}
-{
-  // 開局：沒有順序、沒有結算，整夜停在核對卡
-  const r = manualGame(), [imp, poisoner, chef, monk, virgin, slayer, butler] = r.seats;
-  assert.strictEqual(r.phase, 'night');
-  assert.strictEqual(r.g.step.status, 'review');
-  assert.deepStrictEqual(r.g.queue, []);
-  assert.strictEqual(r.g.redHerring, null);
-  const pv = viewFor(r, { pid: chef.pid }), sv = viewFor(r, { st: true });
-  assert.ok(pv.manual && sv.manual);
-  assert.strictEqual(pv.prog, null, '玩家看不到夜晚進度');
-  assert.strictEqual(pv.myRole, 'chef');
-  assert.ok(sv.st.hand.ref.some(x => x.r === 'chef' && x.seats.includes(chef.id)), '參考表有持有者');
-  assert.ok(!sv.st.hand.ref.some(x => x.r === 'monk'), '僧侶首夜不醒，不在首夜表裏');
-  const order = sv.st.hand.ref.map(x => x.r);
-  assert.ok(order.indexOf('poisoner') < order.indexOf('chef'), '官方順序');
-  ok(st(r, 'tick', { roleId: 'chef' }));
-  assert.ok(viewFor(r, { st: true }).st.hand.ref.find(x => x.r === 'chef').done);
-  ok(st(r, 'tick', { roleId: 'chef' }));
-
-  // 選人牌：只有他看得到，答案只回給說書人，沒有任何效果
-  ok(st(r, 'card', { seatId: poisoner.id, count: 1, text: '毒誰' }));
-  const p = viewFor(r, { pid: poisoner.pid }).prompt;
-  assert.ok(p.manual);
-  assert.strictEqual(p.prompt, '毒誰');
-  assert.strictEqual(p.count, 1);
-  assert.strictEqual(viewFor(r, { pid: chef.pid }).prompt, null);
-  assert.strictEqual(applyPlayerAction(r, chef.pid, { act: 'pick', ids: [imp.id] }), '現在不需要選擇');
-  assert.ok(applyPlayerAction(r, poisoner.pid, { act: 'pick', ids: [] }), '人數不對');
-  ok(applyPlayerAction(r, poisoner.pid, { act: 'pick', ids: [chef.id] }));
-  assert.strictEqual(viewFor(r, { pid: poisoner.pid }).prompt, null);
-  const c = viewFor(r, { st: true }).st.hand.cards[0];
-  assert.ok(c.done);
-  assert.deepStrictEqual(c.ids, [chef.id]);
-  assert.strictEqual(r.g.poisoned, null, '不結算');
-  assert.ok(r.chat.some(m => m.to === poisoner.id && m.k === 'act'), '玩家面板記一筆');
-  assert.ok(!r.chat.some(m => m.to === chef.id && m.k === 'act'));
-  // 帶角色、可不選的牌；說書人代選
-  ok(st(r, 'card', { seatId: monk.id, count: 1, role: true, optional: true }));
-  assert.deepStrictEqual(viewFor(r, { pid: monk.pid }).prompt.counts, [0, 1]);
-  assert.ok(st(r, 'cardPick', { seatId: monk.id, ids: [chef.id], role: 'nosuch' }));
-  ok(st(r, 'cardPick', { seatId: monk.id, ids: [], role: null }));
-  bad(r, 'card', { seatId: monk.id, count: 0 });
-  bad(r, 'card', { seatId: 'nosuch', count: 1 });
-  bad(r, 'card', { seatId: monk.id, count: 9 });
-  ok(st(r, 'card', { seatId: monk.id, count: 2 }));
-  ok(st(r, 'cardDrop', { seatId: monk.id }));
-  assert.strictEqual(viewFor(r, { pid: monk.pid }).prompt, null);
-
-  // 拼信息：玩家面板是式子，座位上標角色；不認識的項丟掉
-  ok(st(r, 'inform', { seatId: chef.id, terms: [{ s: imp.id }, { w: '或' }, { s: monk.id }, { w: '是' }, { r: 'imp' }, { n: 3 }, { x: 1 }, { s: 'nosuch' }] }));
-  const m = r.chat.findLast(x => x.to === chef.id);
-  assert.ok(m.info);
-  assert.strictEqual(m.f.length, 6);
-  assert.deepStrictEqual(m.marks.map(k => [k.seatId, k.r, k.q]), [[imp.id, 'imp', true], [monk.id, 'imp', true]]);
-  ok(st(r, 'inform', { seatId: chef.id, terms: [{ s: monk.id }, { r: 'monk' }] }));
-  assert.strictEqual(r.chat.findLast(x => x.to === chef.id).marks[0].q, false, '一個座位一個角色是確定的');
-  bad(r, 'inform', { seatId: chef.id, terms: [] });
-  bad(r, 'inform', { seatId: chef.id, terms: 'x' });
-
-  // 首夜互認：按了才發，發過不再發
-  assert.ok(!r.chat.some(x => x.to === imp.id && x.f?.some(t => t.tag)));
-  ok(st(r, 'evilInfo'));
-  assert.ok(r.chat.some(x => x.to === imp.id && x.f?.some(t => t.tag === 'bluff')));
-  assert.ok(r.chat.some(x => x.to === poisoner.id && x.f?.some(t => t.s === imp.id)));
-  assert.deepStrictEqual(viewFor(r, { pid: imp.pid }).bluffs, r.g.bluffs);
-  bad(r, 'evilInfo');
-
-  // 提醒標記：只有說書人看得到，點一下取下
-  ok(st(r, 'remind', { seatId: chef.id, text: '中毒', on: true }));
-  ok(st(r, 'remind', { seatId: chef.id, text: '中毒', on: true }));
-  assert.deepStrictEqual(viewFor(r, { st: true }).seats[2].tags, ['中毒']);
-  assert.strictEqual(viewFor(r, { pid: chef.pid }).seats[2].tags, undefined);
-  ok(st(r, 'remind', { seatId: chef.id, text: '中毒', on: false }));
-  assert.deepStrictEqual(viewFor(r, { st: true }).seats[2].tags, []);
-  assert.ok(viewFor(r, { st: true }).st.hand.reminders.some(x => x.r === 'poisoner'), '在場角色的標記');
-
-  // 玩家看到的角色
-  ok(st(r, 'setShown', { seatId: butler.id, roleId: 'mayor' }));
-  assert.strictEqual(viewFor(r, { pid: butler.pid }).myRole, 'mayor');
-  assert.strictEqual(viewFor(r, { st: true }).seats[6].role, 'butler');
-  assert.ok(r.chat.some(x => x.to === butler.id && x.text.includes('鎮長')), '私下通知');
-  bad(r, 'setShown', { seatId: butler.id, roleId: 'nosuch' });
-
-  // 夜裏點死人：天亮才公佈
-  ok(st(r, 'setDead', { seatId: monk.id, dead: true }));
-  assert.ok(!viewFor(r, { pid: chef.pid }).seats[3].dead);
-  ok(st(r, 'dawn'));
-  assert.strictEqual(r.phase, 'day', '手動局不判勝負，直接進白天');
-  assert.ok(viewFor(r, { pid: chef.pid }).seats[3].dead);
-  assert.ok(r.chat.some(x => x.e?.k === 'dawn' && x.e.deaths.includes(monk.id)));
-
-  // 白天：沒有角色規則。貞潔者不反噬，獵手開不了槍
-  assert.ok(applyPlayerAction(r, slayer.pid, { act: 'slay', targetId: imp.id }));
-  ok(applyPlayerAction(r, chef.pid, { act: 'nominate', targetId: virgin.id }));
-  assert.ok(!r.g.virginCheck);
-  for (const s of r.seats) applyPlayerAction(r, s.pid, { act: 'vote', up: true });
-  ok(st(r, 'closeVote'));
-  assert.ok(!chef.dead);
-  ok(st(r, 'next'));
-  assert.ok(virgin.dead, '處決的人默認死亡');
-  assert.strictEqual(r.phase, 'night');
-  assert.deepStrictEqual(r.g.cards, []);
-  bad(r, 'evilInfo'); // 第二夜沒有互認
-  ok(st(r, 'dawn'));
-  // 惡魔死了系統也不判
-  ok(st(r, 'execute', { seatId: imp.id }));
-  assert.ok(imp.dead);
-  assert.strictEqual(r.phase, 'day');
-  // 白天點死人當場公佈
-  ok(st(r, 'setDead', { seatId: butler.id, dead: true }));
-  assert.ok(r.chat.some(x => x.e?.k === 'slayhit' && x.e.seat === butler.id));
-  // 改陣營影響誰贏，積分照常
-  ok(st(r, 'setAlign', { seatId: chef.id, align: 'evil' }));
-  bad(r, 'setAlign', { seatId: chef.id, align: 'x' });
-  ok(st(r, 'win', { team: 'evil' }));
-  assert.strictEqual(r.phase, 'ended');
-  assert.ok(r.result.winners.includes(chef.pid));
-  assert.ok(r.result.winners.includes(imp.pid));
-  assert.ok(!r.result.winners.includes(monk.pid));
-  assert.ok(r.players[chef.pid].wins === 1);
-  assert.ok(r.mvp);
-  // 再來一局：模式留著，指定的清掉
-  ok(st(r, 'next'));
-  assert.strictEqual(r.phase, 'lobby');
-  assert.strictEqual(viewFor(r, { st: true }).mode, 'manual');
-  assert.ok(r.seats.every(s => !s.role && !s.pinned));
-}
-// 說書人替人提名：等於玩家自己提名，限制一樣
-{
-  const r = manualGame();
-  const [a, b, c] = r.seats;
-  bad(r, 'nominate', { fromId: a.id, toId: b.id }); // 夜裏不行
-  ok(st(r, 'dawn'));
-  bad(r, 'nominate', { fromId: a.id, toId: 'x' });
-  ok(st(r, 'nominate', { fromId: a.id, toId: b.id }));
-  assert.deepStrictEqual([r.nomination.nominatorId, r.nomination.nomineeId], [a.id, b.id]);
-  bad(r, 'nominate', { fromId: c.id, toId: a.id }); // 投票中
-  ok(st(r, 'cancelVote'));
-  ok(st(r, 'nominate', { fromId: a.id, toId: b.id }));
-  ok(st(r, 'closeVote'));
-  bad(r, 'nominate', { fromId: a.id, toId: c.id }); // 今天提名過
-  bad(r, 'nominate', { fromId: c.id, toId: b.id }); // 今天被提名過
-  ok(st(r, 'setDead', { seatId: c.id, dead: true }));
-  bad(r, 'nominate', { fromId: c.id, toId: a.id }); // 死人不能提名
-}
-// 智能推進局用不了手動局的操作；開局後不能換模式
-{
-  const r = room(7);
-  ok(st(r, 'next'));
-  bad(r, 'nominate', { fromId: r.seats[0].id, toId: r.seats[1].id });
-  bad(r, 'card', { seatId: r.seats[0].id, count: 1 });
-  bad(r, 'remind', { seatId: r.seats[0].id, text: 'x', on: true });
-  bad(r, 'setShown', { seatId: r.seats[0].id, roleId: 'imp' });
-  bad(r, 'mode', { mode: 'manual' });
-  bad(room(7), 'setShown', { seatId: 'x', roleId: 'imp' });
-}
-// 切回智能推進：只有酒鬼、瘋子留著假身份
-{
-  const r = room(7, 'manual');
-  ok(st(r, 'draft'));
-  const s = r.seats.find(x => x.role !== 'drunk' && x.role !== 'imp');
-  ok(st(r, 'setShown', { seatId: s.id, roleId: 'imp' }));
-  assert.strictEqual(s.fakeRole, 'imp');
-  assert.ok(s.pinned);
-  ok(st(r, 'mode', { mode: 'auto' }));
-  assert.strictEqual(s.fakeRole, null);
 }
 
 // ───── 跨劇本的相剋 ─────

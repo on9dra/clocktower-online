@@ -3,6 +3,7 @@
 // 版式（css/help.css）：雙線版框；講「在哪」的章畫主桌面示意圖，要點的地方用朱筆圈出、蓋紅色圓印編號，右欄按編號一行一步；
 // 補充說明撕成存根。書口貼索引籤，翻過去的章的籤在左邊
 import { h, modal, closeModal, roleToken } from './ui.js';
+import { getLang } from './lang.js';
 import { icon, seatBadge, mini, tag, w, formula } from './glyph.js';
 import { crownSvg } from './scores.js';
 import { ROLES, TEAMS } from './roles.js';
@@ -33,7 +34,8 @@ const svg = (cls, box, inner) => {
 };
 
 const NUM = '一二三四五六七八九';
-const num = n => (n < 10 ? NUM[n - 1] : (n >= 20 ? NUM[Math.floor(n / 10) - 1] : '') + '十' + (n % 10 ? NUM[n % 10 - 1] : ''));
+const EN = getLang() === 'en'; // 英文：頁碼、帖號用阿拉伯數字和字母
+const num = n => EN ? String(n) : (n < 10 ? NUM[n - 1] : (n >= 20 ? NUM[Math.floor(n / 10) - 1] : '') + '十' + (n % 10 ? NUM[n % 10 - 1] : ''));
 // 紅色圓印：步驟編號用阿拉伯數字（一二三在小字號下細得看不清）
 const seal = (n, cls = '') => h('span', { class: 'hp-n ' + cls }, String(n));
 
@@ -193,7 +195,7 @@ const AUTO_SEC = {
       h('span', { class: 'hp-stamp brass' }, '自動'))],
   b: () => [
     block('rule', h('h4', {}, '要你裁定時'),
-      h('div', { class: 'card infocard ruling' }, h('div', { class: 'rule-k' }, icon('timer'), '獵手開槍'),
+      h('div', { class: 'card infocard ruling hp-ruling' }, h('div', { class: 'ic-tag' }, icon('timer'), '獵手開槍'),
         h('div', { class: 'frm-line' }, sb(3), mini('slayer'), w('射'), sb(5), mini('imp')),
         h('div', { class: 'row' }, h('span', { class: 'btn sm' }, '命中'))),
       sm('卡在圓桌中央；結果唯一時只有一個按鈕')),
@@ -202,21 +204,21 @@ const AUTO_SEC = {
       memo(b('補發信息'), sm('博學者、藝術家等：座位菜單裏')))],
 };
 
-// 手動模式：系統不判規則，說書人點座位做事
-const MENU_HAND = ['叫醒', '給信息', '貼標記', '-', '更換角色', '玩家看到的角色', '改為邪惡', '標記死亡'];
+// 線下主持：規則照樣系統判，說書人當面叫人、替玩家點；單設備把設備轉給玩家看，多設備發到他手機上
+const MENU_HAND = ['替他提名', '宣稱獵手開槍', '給他看身份', '記錄', '貼標記', '-', '更換角色', '設為中毒', '標記死亡'];
 const HAND = {
-  key: 'hand', nav: '手動', title: '手動模式',
+  key: 'hand', nav: '線下', title: '線下主持',
   ico: 'tap',
   a: () => [h('div', { class: 'hp-menus' },
       h('div', { class: 'hp-menuat' }, mk(1, h('span', { class: 'hp-tap' }, tok('imp', 'md'), icon('tap', 'hp-finger')), 'tight'), popmenu('3號 · 小惡魔', MENU_HAND)))],
   b: () => [
     steps(
-      step(1, null, '點座位叫醒', '他手機上彈選人牌，結果只回給你'),
-      step(0, null, '給信息', '點座位、選角色，拼成一句'),
-      step(0, null, '貼標記', '只有你看得到')),
-    line(fake('善良獲勝', 'ghost'), '勝負你來判', '在圓桌中央，系統不判'),
-    stub(memo(b('「順序」標籤'), sm('今晚的順序，勾掉叫過的')),
-      memo(b('上傳的劇本'), sm('有系統不認識的角色時只能手動')))],
+      step(1, null, '叫醒他/她，點他指定的人', '桌上直接點，信息系統算好'),
+      step(0, null, '點頭搖頭，或整屏給他看', '單設備按「展示」，說完「已告知」'),
+      step(0, null, '舉手你來點', '點名字記一票，再點放下')),
+    line(fake('撤銷', 'ghost'), '點錯了就撤銷', '頂欄，一步步往回退'),
+    stub(memo(b('記錄'), sm('座位菜單：他查過誰、得知了什麼')),
+      memo(b('自製角色'), sm('輪到時一張標記卡，你自己處理')))],
 };
 
 // 座位菜單和頂欄「⋯」菜單：照遊戲裏的樣子畫，危險的項紅字
@@ -430,7 +432,7 @@ function prime(p) {
 export function showHelp(isSt) {
   inkFilters();
   const parts = isSt ? ['st', 'rules'] : ['rules'], who = parts[0];
-  const secs = parts.flatMap((k, b) => BOOKS[k][1].map((sec, i) => ({ part: BOOKS[k][0], k, sec, sig: '甲乙'[b] + num(i + 1) })));
+  const secs = parts.flatMap((k, b) => BOOKS[k][1].map((sec, i) => ({ part: BOOKS[k][0], k, sec, sig: (EN ? 'AB' : '甲乙')[b] + num(i + 1) })));
   const pages = secs.map(({ part, sec, sig }, i) => paper(part, sec, i + 1, sig, secs[i + 1]?.sec.nav));
   const ear = h('i', { class: 'bk-ear' });
   const spread = h('div', { class: 'bk-spread' }, ear);

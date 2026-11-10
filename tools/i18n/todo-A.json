@@ -1,0 +1,1006 @@
+{
+ "，不在場": [
+  "lib/night.js"
+ ],
+ "，但他{0}": [
+  "lib/day.js",
+  "lib/night.js"
+ ],
+ "，賭徒死亡": [
+  "lib/night.js"
+ ],
+ "；{0} 醉酒": [
+  "lib/night.js"
+ ],
+ "；占卜師紅鯡魚：{0}": [
+  "lib/setup.js"
+ ],
+ "：{0} 醉酒三天三夜": [
+  "lib/night.js"
+ ],
+ "。{0} 是瘋子": [
+  "lib/night.js"
+ ],
+ "（錯誤信息）": [
+  "lib/engine.js"
+ ],
+ "(登記)": [
+  "lib/engine.js"
+ ],
+ "（沒有選）": [
+  "lib/engine.js"
+ ],
+ "（死亡）": [
+  "lib/night.js"
+ ],
+ "(以為是{0})": [
+  "lib/setup.js"
+ ],
+ "（以為是{0}）": [
+  "lib/night.js",
+  "lib/setup.js"
+ ],
+ "（隱士/間諜登記）": [
+  "lib/engine.js"
+ ],
+ "{0} {1}，變成{2}": [
+  "lib/rules.js"
+ ],
+ "{0} {1}，沒有死亡": [
+  "lib/night.js"
+ ],
+ "{0} 被處決，但他{1}，沒有死亡": [
+  "lib/rules.js"
+ ],
+ "{0} 被處決了": [
+  "lib/rules.js"
+ ],
+ "{0} 從此醉酒": [
+  "lib/night.js"
+ ],
+ "{0} 代替鎮長死亡": [
+  "lib/night.js"
+ ],
+ "{0} 復活了。": [
+  "lib/engine.js"
+ ],
+ "{0} 和 {1}": [
+  "lib/night.js"
+ ],
+ "{0} 和 {1} 交換了角色": [
+  "lib/night.js"
+ ],
+ "{0} 接任小惡魔": [
+  "lib/night.js"
+ ],
+ "{0} 可以被當作{1}：算不算猜對？": [
+  "lib/night.js"
+ ],
+ "{0} 可以被當作另一陣營：算不算善良？": [
+  "lib/night.js"
+ ],
+ "{0} 沒有死亡。": [
+  "lib/rules.js"
+ ],
+ "{0} 是僵怖：看起來死了，其實還活著": [
+  "lib/rules.js"
+ ],
+ "{0} 是爪牙：死後保留能力": [
+  "lib/night.js"
+ ],
+ "{0} 死亡": [
+  "lib/night.js"
+ ],
+ "{0} 算善良？": [
+  "lib/night.js"
+ ],
+ "{0} 選中了莽夫 {1}：醉酒到下個黃昏，莽夫{2}": [
+  "lib/engine.js"
+ ],
+ "{0} 中毒": [
+  "lib/night.js"
+ ],
+ "{0} 醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "{0}，能力無效": [
+  "lib/night.js"
+ ],
+ "{0}，你現在是【{1}】：{2}": [
+  "lib/rules.js"
+ ],
+ "{0}，你現在是【{1}】。": [
+  "lib/rules.js"
+ ],
+ "{0}，聲明無效": [
+  "lib/night.js"
+ ],
+ "{0}：告知「{1}」{2}": [
+  "lib/engine.js"
+ ],
+ "{0}：沒有可以選的玩家，跳過": [
+  "lib/engine.js"
+ ],
+ "{0}：說書人跳過": [
+  "lib/engine.js"
+ ],
+ "{0}：已發送": [
+  "lib/engine.js"
+ ],
+ "{0}（{1}）{2}：能力無效": [
+  "lib/engine.js"
+ ],
+ "{0}（{1}）死亡：{2}": [
+  "lib/rules.js"
+ ],
+ "{0}（{1}）選了 {2}": [
+  "lib/engine.js"
+ ],
+ "{0}（祖母）的孫子被惡魔殺死，祖母也死亡": [
+  "lib/night.js"
+ ],
+ "{0}{1}：能力無效": [
+  "lib/night.js"
+ ],
+ "{0}查": [
+  "lib/engine.js"
+ ],
+ "{0}選": [
+  "lib/engine.js"
+ ],
+ "{0}只能以為自己是{1}": [
+  "lib/setup.js"
+ ],
+ "把 {0} 從{1}變成{2}": [
+  "lib/night.js"
+ ],
+ "保護了 {0}": [
+  "lib/night.js"
+ ],
+ "保護了 {0}（明天處決不死）": [
+  "lib/night.js"
+ ],
+ "被保護": [
+  "lib/rules.js",
+  "lib/util.js",
+  "public/js/log.js",
+  "public/js/manual.js"
+ ],
+ "被茶藝師保護": [
+  "lib/rules.js"
+ ],
+ "被處決": [
+  "lib/rules.js",
+  "public/js/flow.js",
+  "public/js/gamelog.js",
+  "public/js/log.js"
+ ],
+ "被刺客刺殺": [
+  "lib/night.js"
+ ],
+ "被和平主義者保護": [
+  "lib/rules.js"
+ ],
+ "被教父殺死": [
+  "lib/night.js"
+ ],
+ "被教授復活": [
+  "lib/night.js"
+ ],
+ "被獵手擊殺": [
+  "lib/day.js",
+  "lib/rules.js"
+ ],
+ "被魔鬼代言人保護": [
+  "lib/rules.js"
+ ],
+ "被僧侶保護": [
+  "lib/night.js"
+ ],
+ "被沙巴洛斯反芻（復活）": [
+  "lib/night.js"
+ ],
+ "被說書人復活": [
+  "lib/rules.js"
+ ],
+ "被月之子選中": [
+  "lib/night.js"
+ ],
+ "被貞潔者反噬": [
+  "lib/day.js",
+  "lib/rules.js"
+ ],
+ "必選的{0}有 {1} 個，超過了名額（{2} 個）": [
+  "lib/setup.js"
+ ],
+ "變成{0}": [
+  "lib/night.js"
+ ],
+ "變為{0}": [
+  "lib/engine.js"
+ ],
+ "不能和上一晚選同一名玩家": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "不能選擇其他惡魔，交換無效": [
+  "lib/night.js"
+ ],
+ "不能選擇自己": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "猜 {0} 是{1}": [
+  "lib/night.js"
+ ],
+ "猜 {0} 是{1}，猜錯了": [
+  "lib/night.js"
+ ],
+ "猜 {0} 是{1}，猜對了": [
+  "lib/night.js"
+ ],
+ "猜錯": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js"
+ ],
+ "猜對": [
+  "lib/night.js",
+  "public/js/infofmt.js"
+ ],
+ "查驗": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js"
+ ],
+ "場上沒有{0}玩家": [
+  "lib/night.js"
+ ],
+ "場上沒有其他{0}": [
+  "lib/night.js"
+ ],
+ "場上沒有其他善良玩家": [
+  "lib/night.js"
+ ],
+ "場上沒有外來者": [
+  "lib/night.js"
+ ],
+ "場上至少要有一名惡魔": [
+  "lib/engine.js"
+ ],
+ "刺殺了 {0}": [
+  "lib/night.js"
+ ],
+ "代替鎮長死亡": [
+  "lib/night.js",
+  "lib/rules.js"
+ ],
+ "但他是士兵": [
+  "lib/night.js"
+ ],
+ "第 {0} 夜降臨，所有人閉眼。": [
+  "lib/engine.js"
+ ],
+ "毒了 {0}": [
+  "lib/night.js"
+ ],
+ "賭徒猜錯": [
+  "lib/night.js"
+ ],
+ "額外一天": [
+  "lib/rules.js",
+  "lib/util.js"
+ ],
+ "惡魔": [
+  "lib/night.js",
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/infofmt.js",
+  "public/js/roles.js"
+ ],
+ "惡魔攻擊了鎮長：你可以讓另一名玩家代替他死亡": [
+  "lib/night.js"
+ ],
+ "惡魔沒有交換角色": [
+  "lib/night.js"
+ ],
+ "惡魔是 {0}。": [
+  "lib/night.js"
+ ],
+ "惡魔死亡": [
+  "lib/rules.js"
+ ],
+ "惡魔死亡，紅唇女郎接任": [
+  "lib/day.js",
+  "lib/rules.js"
+ ],
+ "惡魔死於處決，主謀 {0} 讓遊戲再進行一夜一天": [
+  "lib/rules.js"
+ ],
+ "惡魔偽裝：{0}": [
+  "lib/night.js",
+  "lib/setup.js"
+ ],
+ "惡魔信息": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "惡魔已死，但鏡像雙子都活著：善良陣營還不能獲勝": [
+  "lib/rules.js"
+ ],
+ "反芻": [
+  "lib/night.js"
+ ],
+ "反芻了 {0}": [
+  "lib/night.js"
+ ],
+ "反芻誰？": [
+  "lib/night.js"
+ ],
+ "方古跳到外來者身上": [
+  "lib/night.js"
+ ],
+ "方古選中了你：你變成了邪惡的方古": [
+  "lib/night.js"
+ ],
+ "瘋子 {0} 選擇了 {1}": [
+  "lib/engine.js"
+ ],
+ "瘋子看到的假信息：{0}": [
+  "lib/engine.js"
+ ],
+ "復活了 {0}": [
+  "lib/night.js"
+ ],
+ "改為 {0}（{1}）死亡": [
+  "lib/night.js"
+ ],
+ "告知": [
+  "lib/night.js",
+  "public/js/log.js"
+ ],
+ "攻擊 {0}，被僧侶保護": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但{1}，能力無效": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但他{1}": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但他是士兵": [
+  "lib/night.js"
+ ],
+ "攻擊 {0}，但他已經死亡": [
+  "lib/night.js"
+ ],
+ "攻擊鎮長 {0}": [
+  "lib/night.js"
+ ],
+ "管家的主人": [
+  "lib/night.js"
+ ],
+ "還沒輪到你": [
+  "lib/engine.js"
+ ],
+ "紅唇": [
+  "lib/rules.js"
+ ],
+ "紅鯡魚必須是善良玩家": [
+  "lib/setup.js"
+ ],
+ "或": [
+  "lib/engine.js",
+  "public/js/glyph.js",
+  "public/js/infofmt.js",
+  "public/js/infoform.js"
+ ],
+ "獲得": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js"
+ ],
+ "交換": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/glyph.js",
+  "public/js/log.js"
+ ],
+ "角色不存在": [
+  "lib/day.js",
+  "lib/ops.js",
+  "lib/setup.js"
+ ],
+ "角色分配：": [
+  "lib/setup.js"
+ ],
+ "今天有外來者死亡：選擇一名玩家殺死": [
+  "lib/night.js"
+ ],
+ "今晚不再有人死亡": [
+  "lib/night.js"
+ ],
+ "今晚誰死？": [
+  "lib/night.js"
+ ],
+ "可以選擇兩名玩家，得知他們是否同一陣營（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一個角色：如果在場，他醉酒三天三夜（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一個善良角色，獲得他的能力（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一名死亡的玩家：如果他是鎮民，他復活（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一名玩家：他死亡，無視任何保護（每局限一次）": [
+  "lib/night.js"
+ ],
+ "可以選擇一名玩家殺死（不選的話，下次可以殺三人）": [
+  "lib/night.js"
+ ],
+ "可用的{0}不夠（需要 {1} 個），請減少排除的角色": [
+  "lib/setup.js"
+ ],
+ "理髮師的能力讓你換了角色": [
+  "lib/night.js"
+ ],
+ "理髮師死了：你可以選擇兩名玩家（不能選其他惡魔）交換角色": [
+  "lib/night.js"
+ ],
+ "旅店老闆：選擇其中一人醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "麻臉巫婆把你變了": [
+  "lib/night.js"
+ ],
+ "麻臉巫婆創造了惡魔": [
+  "lib/night.js"
+ ],
+ "麻臉巫婆創造了惡魔：今晚的死亡由你決定": [
+  "lib/night.js"
+ ],
+ "沒有存活的玩家可以醉酒": [
+  "lib/night.js"
+ ],
+ "沒有待裁定的事項": [
+  "lib/day.js",
+  "lib/engine.js"
+ ],
+ "沒有待確認的信息": [
+  "lib/engine.js"
+ ],
+ "沒有待確認的行動": [
+  "lib/engine.js"
+ ],
+ "沒有反芻": [
+  "lib/night.js"
+ ],
+ "沒有可以跳過的步驟": [
+  "lib/engine.js"
+ ],
+ "沒有了": [
+  "lib/night.js"
+ ],
+ "沒有使用能力": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "沒有外來者": [
+  "lib/night.js"
+ ],
+ "沒有選人": [
+  "lib/night.js",
+  "public/js/hud.js"
+ ],
+ "沒有選人，下次可以殺三人": [
+  "lib/night.js"
+ ],
+ "沒有在假裝叫醒": [
+  "lib/engine.js"
+ ],
+ "魔典：": [
+  "lib/night.js"
+ ],
+ "能力正常時只能給合規信息": [
+  "lib/engine.js"
+ ],
+ "你的角色是【{0}】（{1}）：{2}": [
+  "lib/engine.js"
+ ],
+ "你的雙子是 {0}【{1}】": [
+  "lib/night.js"
+ ],
+ "你的爪牙：{0}。": [
+  "lib/night.js"
+ ],
+ "你的爪牙：{0}。三個不在場的善良角色（可用來偽裝）：{1}": [
+  "lib/night.js"
+ ],
+ "你的陣營變為{0}": [
+  "lib/engine.js"
+ ],
+ "你和 {0}【{1}】是鏡像雙子": [
+  "lib/night.js"
+ ],
+ "你今晚沒有選人：下一次可以選三人": [
+  "lib/night.js"
+ ],
+ "你沒有使用能力": [
+  "lib/engine.js"
+ ],
+ "你選擇了 {0}": [
+  "lib/engine.js"
+ ],
+ "你用舞蛇人的能力選中了惡魔，你們交換了角色和陣營": [
+  "lib/night.js"
+ ],
+ "你在夜裡死了。選擇一名玩家，得知他的角色": [
+  "lib/night.js"
+ ],
+ "弄臣免死": [
+  "lib/rules.js"
+ ],
+ "普卡（今晚沒有醒）：{0}": [
+  "lib/night.js"
+ ],
+ "其他爪牙：{0}": [
+  "lib/night.js"
+ ],
+ "請先抽取角色": [
+  "lib/setup.js"
+ ],
+ "請選擇 {0} 名玩家": [
+  "lib/engine.js"
+ ],
+ "請選擇一個角色": [
+  "lib/engine.js"
+ ],
+ "請選擇一個選項": [
+  "lib/engine.js"
+ ],
+ "驅魔人 {0} 選中了你：今晚你不會被喚醒": [
+  "lib/night.js"
+ ],
+ "全場醉酒": [
+  "lib/rules.js"
+ ],
+ "讓 {0} 瘋狂證明自己是{1}": [
+  "lib/night.js"
+ ],
+ "讓鎮長 {0} 死亡": [
+  "lib/night.js"
+ ],
+ "三個不在場的善良角色（可用來偽裝）：{0}": [
+  "lib/night.js"
+ ],
+ "沙巴洛斯可以讓上一晚選中的一名死者復活": [
+  "lib/night.js"
+ ],
+ "殺死了 {0}": [
+  "lib/night.js"
+ ],
+ "善良": [
+  "lib/engine.js",
+  "lib/manual.js",
+  "lib/night.js",
+  "lib/ops.js",
+  "lib/rules.js",
+  "lib/util.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "善良的鏡像雙子被處決": [
+  "lib/rules.js"
+ ],
+ "上次你沒有選人：今晚選擇三名玩家殺死": [
+  "lib/night.js"
+ ],
+ "聲明不成立，無人死亡": [
+  "lib/night.js"
+ ],
+ "是": [
+  "lib/night.js",
+  "public/js/glyph.js",
+  "public/js/help.js",
+  "public/js/infofmt.js",
+  "public/js/infoform.js",
+  "public/js/pass.js"
+ ],
+ "是弄臣（首次死亡不死）": [
+  "lib/rules.js"
+ ],
+ "是士兵": [
+  "lib/night.js"
+ ],
+ "是水手": [
+  "lib/rules.js"
+ ],
+ "雙子": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/log.js"
+ ],
+ "雙子是 {0}": [
+  "lib/night.js"
+ ],
+ "誰從此醉酒？": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "誰是孫子？": [
+  "lib/night.js"
+ ],
+ "誰中毒？": [
+  "lib/night.js"
+ ],
+ "誰醉酒？": [
+  "lib/night.js"
+ ],
+ "水手：選擇誰醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "水手不死": [
+  "lib/rules.js"
+ ],
+ "說書人把 {0} 從{1}改為{2}": [
+  "lib/setup.js"
+ ],
+ "說書人把占卜師的紅鯡魚改為 {0}": [
+  "lib/setup.js"
+ ],
+ "說書人裁定猜對": [
+  "lib/night.js"
+ ],
+ "說書人更正了你的角色：你是【{0}】（{1}）：{2}": [
+  "lib/setup.js"
+ ],
+ "算猜錯（賭徒死亡）": [
+  "lib/night.js"
+ ],
+ "算猜對": [
+  "lib/night.js"
+ ],
+ "算猜對？": [
+  "lib/night.js"
+ ],
+ "算善良（他死亡）": [
+  "lib/night.js"
+ ],
+ "算邪惡（無事）": [
+  "lib/night.js"
+ ],
+ "孫子被惡魔殺死": [
+  "lib/night.js"
+ ],
+ "天亮了。昨晚 {0} 死亡。": [
+  "lib/engine.js"
+ ],
+ "天亮了。昨晚是平安夜。": [
+  "lib/engine.js"
+ ],
+ "天亮前確認": [
+  "lib/engine.js",
+  "lib/night.js"
+ ],
+ "玩家不存在": [
+  "lib/engine.js",
+  "lib/score.js"
+ ],
+ "亡骨魔：{0} 中毒": [
+  "lib/night.js"
+ ],
+ "亡骨魔：選擇鄰近的一名鎮民中毒": [
+  "lib/night.js"
+ ],
+ "偽裝要是不在場的善良角色": [
+  "lib/setup.js"
+ ],
+ "偽裝只有三格": [
+  "lib/setup.js"
+ ],
+ "渦流在場，白天無人被處決": [
+  "lib/rules.js"
+ ],
+ "渦流在場：鎮民只能得到錯誤信息": [
+  "lib/engine.js"
+ ],
+ "無人": [
+  "lib/night.js"
+ ],
+ "無人死亡": [
+  "lib/night.js",
+  "public/js/flow.js",
+  "public/js/fx-ab.js"
+ ],
+ "無效": [
+  "lib/day.js",
+  "lib/night.js",
+  "public/js/flow.js",
+  "public/js/log.js",
+  "public/js/stepcard.js"
+ ],
+ "舞蛇人選中了你，你們交換了角色和陣營": [
+  "lib/night.js"
+ ],
+ "洗腦師選中了你：明天白天和夜晚，你要「瘋狂」地證明自己是【{0}】，否則可能被處決": [
+  "lib/night.js"
+ ],
+ "現在不需要選擇": [
+  "lib/day.js",
+  "lib/engine.js"
+ ],
+ "現在沒有要記的": [
+  "lib/engine.js"
+ ],
+ "想把 {0} 變成{1}，但這個角色已在場，無事發生": [
+  "lib/night.js"
+ ],
+ "想保護 {0}，{1}，能力無效": [
+  "lib/night.js"
+ ],
+ "想毒 {0}，{1}": [
+  "lib/night.js"
+ ],
+ "小惡魔把惡魔身份傳給了你": [
+  "lib/night.js"
+ ],
+ "小惡魔自殺傳位": [
+  "lib/night.js",
+  "lib/rules.js"
+ ],
+ "小惡魔自殺了：選擇一名存活的爪牙成為新的小惡魔": [
+  "lib/night.js"
+ ],
+ "邪惡": [
+  "lib/engine.js",
+  "lib/manual.js",
+  "lib/night.js",
+  "lib/ops.js",
+  "lib/rules.js",
+  "lib/util.js",
+  "public/js/gamelog.js",
+  "public/js/help.js",
+  "public/js/log.js"
+ ],
+ "心上人：{0}（{1}）從此醉酒": [
+  "lib/night.js"
+ ],
+ "心上人死了：選擇一名玩家從此醉酒": [
+  "lib/night.js"
+ ],
+ "蓄力": [
+  "lib/night.js",
+  "lib/util.js",
+  "public/js/fx-ab-dlc.js",
+  "public/js/fx-ab.js",
+  "public/js/log.js"
+ ],
+ "選了 {0}": [
+  "lib/night.js"
+ ],
+ "選了 {0}，不是惡魔": [
+  "lib/night.js"
+ ],
+ "選了 {0}，不是善良玩家": [
+  "lib/night.js"
+ ],
+ "選了 {0}，不是鎮民": [
+  "lib/night.js"
+ ],
+ "選了 {0}，但他{1}": [
+  "lib/night.js"
+ ],
+ "選了 {0}，算邪惡，無事": [
+  "lib/night.js"
+ ],
+ "選了 {0}，他死亡": [
+  "lib/night.js"
+ ],
+ "選了 {0}，他已經死亡": [
+  "lib/night.js"
+ ],
+ "選了{0}": [
+  "lib/night.js"
+ ],
+ "選了自己，自己醉酒": [
+  "lib/night.js"
+ ],
+ "選擇除你以外的兩名存活的玩家，得知他們今晚有幾人被喚醒": [
+  "lib/night.js"
+ ],
+ "選擇兩名玩家，得知其中是否有惡魔": [
+  "lib/night.js"
+ ],
+ "選擇兩名玩家：他們今晚不會死亡，但其中一人醉酒": [
+  "lib/night.js"
+ ],
+ "選擇兩名玩家殺死": [
+  "lib/night.js"
+ ],
+ "選擇你的主人（明天只有他投票時你才能投票）": [
+  "lib/night.js"
+ ],
+ "選擇一名存活的玩家：你或他之一會醉酒到下個黃昏": [
+  "lib/night.js"
+ ],
+ "選擇一名存活的玩家：如果他是惡魔，你們交換角色和陣營": [
+  "lib/night.js"
+ ],
+ "選擇一名存活的玩家（不能和上一晚相同）：如果他明天被處決，他不會死亡": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家：得知一個善良角色和一個邪惡角色，他是其中之一": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家（不能和上一晚相同）：如果是惡魔，他今晚不會被喚醒": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家保護（今晚惡魔對他無效）": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家並猜測他的角色：猜錯你會死亡": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家和一個角色：如果該角色不在場，他變成該角色": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家和一個善良角色：他明天要瘋狂地證明自己是這個角色": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家殺死": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家殺死（可以選自己）": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家下毒": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家下毒（上一個中毒的人會死亡）": [
+  "lib/night.js"
+ ],
+ "選擇一名玩家詛咒：明天他發起提名就會死亡": [
+  "lib/night.js"
+ ],
+ "選中": [
+  "lib/night.js"
+ ],
+ "選中惡魔 {0}，惡魔今晚不行動": [
+  "lib/night.js"
+ ],
+ "選中惡魔 {0}：交換角色和陣營，原惡魔中毒": [
+  "lib/night.js"
+ ],
+ "選中外來者 {0}：他變成方古，原方古死亡": [
+  "lib/night.js"
+ ],
+ "夜裏被惡魔殺死": [
+  "lib/night.js",
+  "lib/rules.js"
+ ],
+ "夜晚還沒結束": [
+  "lib/engine.js"
+ ],
+ "已告知場上沒有外來者": [
+  "lib/night.js"
+ ],
+ "已告知在場的外來者：{0}": [
+  "lib/night.js"
+ ],
+ "已經死亡": [
+  "lib/rules.js"
+ ],
+ "遊戲結束：{0}陣營獲勝（{1}）": [
+  "lib/rules.js"
+ ],
+ "遊戲開始，共 {0} 名玩家。請查看你的角色。": [
+  "lib/engine.js"
+ ],
+ "遊戲已經結束": [
+  "lib/setup.js"
+ ],
+ "遊戲中不能改": [
+  "lib/setup.js"
+ ],
+ "月之子沒有選人": [
+  "lib/night.js"
+ ],
+ "在場的外來者：{0}": [
+  "lib/night.js"
+ ],
+ "造謠成真": [
+  "lib/night.js"
+ ],
+ "造謠成真，誰死？": [
+  "lib/night.js"
+ ],
+ "造謠成真：{0} 死亡": [
+  "lib/night.js"
+ ],
+ "造謠者今天的聲明是真的嗎？是的話選一名玩家死亡": [
+  "lib/night.js"
+ ],
+ "爪牙死於處決：吟遊詩人讓其他所有人醉酒到明天黃昏": [
+  "lib/rules.js"
+ ],
+ "爪牙信息": [
+  "lib/night.js",
+  "public/js/stepcard.js"
+ ],
+ "哲學家獲得了新的能力": [
+  "lib/night.js"
+ ],
+ "這個角色不能選": [
+  "lib/engine.js",
+  "public/js/rolepick.js"
+ ],
+ "這個角色已經是偽裝了": [
+  "lib/setup.js"
+ ],
+ "這局沒有占卜師": [
+  "lib/setup.js"
+ ],
+ "這一步需要你裁定，不能跳過": [
+  "lib/engine.js"
+ ],
+ "陣營不變": [
+  "lib/engine.js",
+  "public/js/log.js"
+ ],
+ "鎮長 {0} 死亡": [
+  "lib/night.js"
+ ],
+ "鎮長的能力：無人死亡": [
+  "lib/night.js"
+ ],
+ "鎮長的能力轉移給 {0}，但他{1}，無人死亡": [
+  "lib/night.js"
+ ],
+ "只能選擇存活的玩家": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "只能選擇死亡的玩家": [
+  "lib/engine.js",
+  "public/js/town.js"
+ ],
+ "只剩兩名玩家存活": [
+  "lib/rules.js"
+ ],
+ "至少需要 5 名玩家": [
+  "lib/setup.js"
+ ],
+ "主謀的額外一天，{0}玩家被處決": [
+  "lib/rules.js"
+ ],
+ "主謀的額外一天無人被處決": [
+  "lib/rules.js"
+ ],
+ "主人是 {0}": [
+  "lib/night.js"
+ ],
+ "自殺，{0} 接任": [
+  "lib/night.js"
+ ],
+ "自殺，沒有存活的爪牙可以接任": [
+  "lib/night.js"
+ ],
+ "自殺傳位，等待說書人選擇接任的爪牙": [
+  "lib/night.js"
+ ],
+ "祖母：選擇她的孫子": [
+  "lib/night.js"
+ ],
+ "詛咒了 {0}": [
+  "lib/night.js"
+ ],
+ "最多 15 名玩家": [
+  "lib/setup.js"
+ ],
+ "醉三天": [
+  "lib/night.js",
+  "public/js/fx-ab-dlc.js"
+ ]
+}

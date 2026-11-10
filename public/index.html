@@ -32,6 +32,7 @@
     .b-title { --tw: min(420px, 66vw); position: absolute; top: 9vh; left: 50%; width: var(--tw); aspect-ratio: 1446 / 336; transform: translateX(-50%); background: #f4eedf; opacity: 0; transition: opacity .6s;
       -webkit-mask: url(img/art/title-sc-plain.webp) center / contain no-repeat; mask: url(img/art/title-sc-plain.webp) center / contain no-repeat; }
     html[data-lang="tc"] .b-title { aspect-ratio: 1461 / 337; -webkit-mask-image: url(img/art/title-tc-plain.webp); mask-image: url(img/art/title-tc-plain.webp); }
+    html[data-lang="en"] .b-title { --tw: min(480px, 76vw); aspect-ratio: 900 / 164; -webkit-mask-image: url(img/art/title-en-plain.webp); mask-image: url(img/art/title-en-plain.webp); }
     .named .b-title { opacity: 1; }
     .b-wait { position: absolute; left: 0; right: 0; top: 44vh; text-align: center; color: #f4eedf99; font: 14px serif; letter-spacing: .3em; opacity: 0; transition: opacity .4s; }
     .slow .b-wait { opacity: 1; }
@@ -100,9 +101,10 @@
     // 守門：瀏覽器太舊、文件沒下下來、app 起不來時，開屏不再一聲不響地停著——小鎮上說一句，給「重試」和「複製鏈接」（拿到別的瀏覽器打開）。
     // 只用最老的寫法（var、function）：太舊的瀏覽器解析不了後面的開屏和 app.js，這段也得跑起來。開屏調 expect / ready / done 告訴它走到哪了
     (function () {
-      var root = document.documentElement, el = document.getElementById('boot'), note = el.querySelector('.b-note'), copyBtn = note.querySelector('.b-copy'), t0 = Date.now(), tc = false;
-      try { tc = localStorage.getItem('botc.lang') === 'tc'; } catch (e) { /* 隱私模式 */ }
-      var say = tc ? { old: '瀏覽器版本太舊', load: '沒有載入完成', retry: '重試', copy: '複製鏈接', copied: '已複製', url: '鏈接' }
+      var root = document.documentElement, el = document.getElementById('boot'), note = el.querySelector('.b-note'), copyBtn = note.querySelector('.b-copy'), t0 = Date.now(), lang = 'sc';
+      try { lang = localStorage.getItem('botc.lang') || 'sc'; } catch (e) { /* 隱私模式 */ }
+      var say = lang === 'tc' ? { old: '瀏覽器版本太舊', load: '沒有載入完成', retry: '重試', copy: '複製鏈接', copied: '已複製', url: '鏈接' }
+        : lang === 'en' ? { old: 'Browser too old', load: 'Failed to load', retry: 'Retry', copy: 'Copy link', copied: 'Copied', url: 'Link' }
         : { old: '浏览器版本太旧', load: '没有载入完成', retry: '重试', copy: '复制链接', copied: '已复制', url: '链接' };
       note.querySelector('.b-retry').textContent = say.retry;
       copyBtn.textContent = say.copy;
@@ -181,7 +183,8 @@
       const lang = store.get('botc.lang') || 'sc';
       root.dataset.lang = lang;
       if (lang === 'tc') { el.querySelector('.b-wait').textContent = '連接中…'; el.querySelector('.b-go span').textContent = '點擊進入'; document.title = '血染鐘樓 · 線上魔典'; }
-      const CSS = ['style', 'board', 'fx', 'hud', 'party', 'help', 'intro', 'print', 'about', 'art', 'night', 'ambient'];
+      if (lang === 'en') { el.querySelector('.b-wait').textContent = 'Connecting…'; el.querySelector('.b-go span').textContent = 'Tap to enter'; document.title = 'Blood on the Clocktower · Online Grimoire'; }
+      const CSS = ['style', 'board', 'fx', 'hud', 'party', 'help', 'intro', 'print', 'about', 'art', 'night', 'ambient', 'math', 'rolepick', 'show'];
       // 服務器只有 2Mbps 上下，開屏只等第一屏用得到的：進大廳不用等桌面的圖；點邀請鏈接直接進房間才等
       const LOBBY = ['stamp-mask', '../press/card', '../press/paper'], GAME = ['table-day', 'table-night', 'seat-empty', 'plate', 'plate-evil', 'town-near-day', 'town-mid-day', 'town-far-day'];
       const inRoom = /[?&]room=/.test(location.search), MUST = inRoom ? [...LOBBY, ...GAME] : LOBBY;
@@ -213,7 +216,7 @@
       // 小鎮和字標到了之後，JS 一次全列出來並行拉，不用一層層解析 import：香港線路一個往返 270ms，七層就是兩秒。
       // 等它們到了再拉：不搶開屏第一眼那幾張圖的帶寬。名單由 tests/preload.test.js 對著 import 核對
       let pulled = false, first = 2;
-      const pullJs = () => { if (pulled || guard.blocked()) return; pulled = true; for (const n of 'app ui roompass roles community icons lang t2s town side log manual glyph gamelog fx ambient tactile sfx bgm fireworks score scores hud trial flow setup infoform infofmt stepcard invite topbar settings about author progress egg lobby intro press'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
+      const pullJs = () => { if (pulled || guard.blocked()) return; pulled = true; for (const n of 'app ui roompass roles community icons lang t2s town side log manual glyph gamelog fx ambient tactile sfx bgm fireworks score scores hud trial flow setup infoform infofmt stepcard invite topbar settings about author progress egg lobby intro press veil pass wake mathcard rolepick'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
       const firstArt = () => { if (!--first) pullJs(); };
       const start = () => { if (!art) { art = true; t0 = performance.now(); } };
       const end = () => {

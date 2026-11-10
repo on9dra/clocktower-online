@@ -1,11 +1,11 @@
 // 側欄：標籤頁（流程日誌、遊戲日誌、聊天、角色表）。流程操作在圓桌中央和審判牌上（flow.js）
-import { h, roleToken, seatLabel, modal, closeModal, prompt2 } from './ui.js';
+import { h, roleToken, seatLabel, prompt2 } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';
-import { renderOrder } from './manual.js';
 import { renderGameLog } from './gamelog.js';
 import { seatBadge, mini, tag, icon, ACTS } from './glyph.js';
 import { msgHeld } from './fx.js';
+import { rolePanel } from './rolepick.js';
 
 // 聊天狀態按視角分開（自己 / 說書人代入的某個玩家），代入時不會串到說書人自己的未讀。
 // seen：每個頻道讀到的最後一條；base：進入這個視角時的最後一條（之前的舊消息不算未讀）
@@ -57,6 +57,11 @@ export function infoMarksBySeat(s) {
     for (const k of m.marks || []) {
       if (held && k.t) continue; // 陣營標記會把頭像換成陣營牌，等放出來再畫
       const key = [k.seatId, k.r, k.q, k.demon, k.t, k.text].join('|');
+      // 是不是惡魔（占卜師、賢者）：同一個座位只留最新的一次，「可能是」和「不是」不同時掛著
+      if (k.demon !== undefined && out[k.seatId]?.some(x => x.demon !== undefined && x.demon !== k.demon)) {
+        out[k.seatId] = out[k.seatId].filter(x => x.demon === undefined);
+        for (const x of [...seen]) if (x.startsWith(k.seatId + '|') && x.split('|')[3] !== '') seen.delete(x);
+      }
       if (!seen.has(key)) { seen.add(key); (out[k.seatId] ||= []).push(held ? { ...k, held } : k); }
     }
   }
@@ -83,18 +88,17 @@ export const actMarkView = v => {
   return h('span', { class: 'pmark act ' + ACTS[src].tone + (held ? ' mk-held' : ''), 'data-act': src, title: '你今晚的行動' }, icon(ACTS[src].ico), ACTS[src].mark);
 };
 
+// 玩家自己猜某個座位是什麼角色（只存在本機）：和別處一樣的整屏角色單，已經猜的那個是選中的，再點一下就取消
 export function pickGuess(ctx, seatId) {
-  const roles = SCRIPTS[ctx.state.scriptId].roles;
+  const code = ctx.state.code, now = () => guesses(ctx)[seatId];
   const set = id => {
     const g = guesses(ctx);
-    if (id) g[seatId] = id; else delete g[seatId];
+    if (id && id !== g[seatId]) g[seatId] = id; else delete g[seatId];
     ctx.ls.set(key(ctx, 'guess'), JSON.stringify(g));
-    closeModal(); ctx.render();
+    ctx.render();
   };
-  modal(`${seatLabel(ctx.state, seatId)} 可能是…（僅自己可見）`, h('div', {},
-    h('div', { class: 'guess-grid' }, roles.map(id => h('div', { class: 'guess-pick', onclick: () => set(id) },
-      roleToken(id, { size: 'sm' }), ROLES[id].name))),
-    h('button', { class: 'btn ghost', onclick: () => set(null) }, '清除標記')), { wide: true });
+  rolePanel({ key: 'guess-' + seatId, tab: [seatBadge(ctx.state, seatId), icon('quill')], roles: SCRIPTS[ctx.state.scriptId].roles,
+    state: id => ({ on: id === now() }), pick: set, picked: now, alive: () => ctx.state?.code === code });
 }
 
 // 側欄只放記錄類內容；可以收成一條豎排標籤軌（桌面寬屏），收起狀態記在本機
@@ -123,7 +127,9 @@ export function chatUnread(s) {
 }
 
 // [鍵, 側欄標籤, 手機短標籤]
-const tabsOf = s => [...(s.st?.hand ? [['order', '順序', '順序']] : []), ...(s.isSt ? [['flow', '流程', '流程']] : []), ['log', s.st?.hand ? '日誌' : '遊戲日誌', '日誌'], ['chat', '聊天', '聊天'], ['sheet', '角色表', '角色']];
+// 單設備的線下局只有說書人一個人看：公共日誌、聊天沒人讀，不放
+const tabsOf = s => [...(s.isSt ? [['flow', '流程', '流程']] : []),
+  ...(s.oneDevice ? [] : [['log', '遊戲日誌', '日誌'], ['chat', '聊天', '聊天']]), ['sheet', '角色表', '角色']];
 // 紅點：數字一變就換一個節點，重新蓋章、慢慢閃
 const unreadBadge = n => n > 0 && h('i', { class: 'count', 'data-key': 'n' + n }, n > 99 ? '99+' : n);
 // 聊天標籤上的未讀：公共和私聊。玩家之間的私聊記錄只標在它自己的頁籤上，說書人不用回
@@ -172,7 +178,7 @@ export function renderSide(ctx) {
   const byCh = chatUnread(s);
   const label = (k, text) => [text, !(ui.tab === k && !hidden) && unreadBadge(tabUnread(k, byCh))];
   const go = k => { pickTab(s, k, ui.tab === k && !hidden); if (min) setCollapsed(ctx, false); else ctx.render(); tabIn('.tab-body'); };
-  const body = { order: renderOrder, flow: renderLog, log: renderPublic, chat: renderChat, sheet: renderSheet }[ui.tab](ctx, byCh);
+  const body = { flow: renderLog, log: renderPublic, chat: renderChat, sheet: renderSheet }[ui.tab](ctx, byCh);
   return h('aside', { class: 'side' + (ui.sheet ? ' open' : '') },
     h('div', { class: 'side-mask', onclick: () => closeSheet(ctx) }),
     h('nav', { class: 'side-rail' }, h('button', { class: 'rail-btn', title: '展開側欄', onclick: () => setCollapsed(ctx, false) }, '⇤'),
@@ -224,7 +230,7 @@ function composer(ctx, ch, btn, hint) {
   return h('div', { class: 'row composer', 'data-key': key },
     h('input', { 'data-keep': key, maxlength: 500, placeholder: hint, value: ui.drafts[ch] || '',
       oninput: e => { ui.drafts[ch] = e.target.value; }, onfocus: pinOnKeyboard,
-      onkeydown: e => { if (e.key === 'Enter' && !e.isComposing) send(); } }),
+      onkeydown: e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) send(); } }),
     h('button', { class: 'btn', onclick: send }, btn));
 }
 

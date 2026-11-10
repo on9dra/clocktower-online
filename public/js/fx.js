@@ -14,6 +14,7 @@ import { ROLES, TEAMS } from './roles.js';
 import { setBgm, duckBgm } from './bgm.js';
 import { burst, setBusy, setFireworks } from './fireworks.js';
 import { EGG } from './score.js';
+import { tr, getLang } from './lang.js';
 
 const recent = { died: new Map(), voted: new Map(), lock: new Map(), shot: new Map(), nom: 0, hud: 0, blkin: new Map(), blkret: new Map(),
   crown: 0, mvp: 0, egg: { at: 0, n: 0 } };
@@ -47,6 +48,9 @@ export function hudFx() {
 // 入夜演出還沒播完：說書人的操作卡、玩家的選人牌先不出，等「第 N 夜」收起再落到桌上
 let nightHold = 0;
 export const nightHeld = () => nightHold > 0;
+// 天亮演出還沒播完：桌子上方的訃告先不掛（演出裏已經蓋了「平安夜 / N 人死亡」），播完再從上面吊下來
+let dawnHold = 0;
+export const dawnHeld = () => dawnHold > 0;
 let winHold = 0, mvpHold = 0;
 export const winHeld = () => winHold > 0;
 export const mvpHeld = () => mvpHold > 0;
@@ -169,12 +173,15 @@ document.addEventListener('keydown', e => {
   if (['Escape', ' '].includes(e.key) && skipScene()) { e.preventDefault(); e.stopImmediatePropagation(); }
 });
 function enqueue(sc) { queue.push(sc); if (!running) runQueue(); }
+// 演出都播完了再做的事（線下手機：信息演出落到座位上之後，身份面板才浮出來，一次只看一件事）
+const idle = [];
+export const fxIdle = () => new Promise(r => (running || queue.length ? idle.push(r) : r()));
 async function runQueue() {
   running = true;
   while (queue.length) {
     const sc = queue.shift();
     // 說書人魔典上的一拍（lite）：排著的超過 3 段就不演了，免得一夜十幾個結算越積越多
-    cur = { skip: skipping || reduced() || document.hidden || (sc.lite && queue.length >= 3), waits: [], block: !!sc.block, skippable: !!sc.skippable };
+    cur = { skip: skipping || reduced() || document.hidden || (sc.lite && queue.length >= 3), waits: [], block: !!sc.block, skippable: !!sc.skippable, quiet: !!sc.quiet };
     const st = getStage();
     st.className = sc.block ? 'block' + (sc.skippable ? ' skippable' : '') : '';
     if (sc.skippable && !cur.skip) st.append(h('div', { class: 'skip-hint' }, icon('skip'), '跳過'));
@@ -192,6 +199,7 @@ async function runQueue() {
     st.style.background = '';
   }
   running = false; cur = null; skipping = false;
+  idle.splice(0).forEach(r => r());
   rerender();
   followBgm();
 }
@@ -210,7 +218,10 @@ const wait = ms => (cur.skip ? Promise.resolve() : new Promise(r => {
   cur.waits.push(() => { clearTimeout(t); r(); });
 }));
 const anim = (el, frames, opts) => (cur.skip || !el ? null : el.animate(frames, typeof opts === 'number' ? { duration: opts, fill: 'forwards', easing: 'ease-out' } : { fill: 'forwards', ...opts }));
-const sfx = (name, k) => !cur.skip && play(name, k);
+const sfx = (name, k) => !cur.skip && !cur.quiet && play(name, k);
+// 線下：說書人的設備擺在桌上、玩家的手機也在身邊，響一聲全桌都聽得見。
+// 只有全桌本來就知道的事出聲（入夜、天亮、提名、計票、處決、開槍、勝負……）；夜裏的結算、自己的行動、私下得知的信息只演不響。音樂照放
+const LOUD = new Set(['curtain', 'night', 'dawn', 'nominate', 'callvote', 'votes', 'virgin', 'execute', 'noexec', 'slay', 'win', 'mvp', 'saint', 'mayor', 'curse', 'revive', 'vortex']);
 
 // 座位牌在屏幕上的中心
 function seatAt(id) {
@@ -806,19 +817,21 @@ const SCENES = {
   // 贏了紙牌兩角炸開兩朵煙花；然後結算：勝利積分 +1、雞蛋 +10（輸了雞蛋 +1）一枚枚落下，雞蛋飛進頂欄的雞蛋數；
   // 最後是勝負原因和獲勝陣營的全員。播完贏家頭上落下皇冠、開始 MVP 投票（onState 裏的 winHold）
   win: (e, s) => {
-    const good = e.team === 'good', team = r => (TEAMS[ROLES[r]?.team]?.good ? 'good' : 'evil');
+    // 陣營看座位上實際的（莽夫、被舞蛇人換過的人和角色牌不一樣），沒改過才看角色牌
+    const good = e.team === 'good', team = r => (TEAMS[ROLES[r]?.team]?.good ? 'good' : 'evil'), side = x => x.align || team(x.role);
     const me = s.seats.find(x => x.mine);
-    const verdict = !s.isSt && me?.role ? (team(me.role) === e.team ? 'win' : 'lose') : null;
+    const verdict = !s.isSt && me?.role ? (side(me) === e.team ? 'win' : 'lose') : null;
     const gain = verdict ? (verdict === 'win' ? EGG.win : EGG.lose) : 0, land = pendingEggs(gain);
     const scene = { block: true, after: land, run: async () => {
       veil(good ? WASH.good : WASH.evil, 500);
-      followBgm();
-      const chars = [...(good ? '善良獲勝' : '邪惡獲勝')].map(ch => h('span', {}, ch));
+      setBgm(null); // 勝負落下時靜下來；播完了大廳那首淡回來，等下一局
+      const said = good ? '善良獲勝' : '邪惡獲勝'; // 中文一個字一下；英文一個詞一下（拆字會變成「G o o d」）
+      const chars = (getLang() === 'en' ? tr(said).split(' ') : [...said]).map(ch => h('span', {}, ch));
       const slot = verdict ? h('div', { class: 'pc-slot' }) : null;
       const reward = verdict ? h('div', { class: 'pc-reward' }, verdict === 'win' && gainChip('trophy', '+1'), gainChip('egg', `+${gain}`)) : null;
       const gains = reward ? [...reward.children] : [];
       const sub = s.winReason ? h('div', { class: 'pc-sub' }, s.winReason) : null;
-      const winners = s.seats.map((x, k) => [x, k]).filter(([x]) => x.role && team(x.role) === e.team);
+      const winners = s.seats.map((x, k) => [x, k]).filter(([x]) => x.role && side(x) === e.team);
       const row = winners.length ? h('div', { class: 'pc-winners' }, winners.map(([x, k], n) => h('div', { class: 'pc-mini', style: { '--i': n } },
         roleToken(x.role, { size: 'sm' }), h('small', {}, `${k + 1} ${x.name}`)))) : null;
       const card = paperCard([seal(good ? icon('sun') : roleIcon('imp'), good ? 'sun' : 'demon'), h('div', { class: 'pc-title ' + e.team }, chars), slot, reward, sub, row], 'cal win');
@@ -1006,7 +1019,7 @@ async function revealRole(roleId, kind) {
 
 // 回到準備階段（下一局前、放棄本局）：牌一張張翻過去，翻到側面時桌面換成準備階段，再翻回來，牌面就空了。不是一下子全換掉
 const resetScene = () => ({ block: true, run: async () => {
-  const tokens = () => [...document.querySelectorAll('.ring > .seat .seat-token > .token')];
+  const tokens = () => [...document.querySelectorAll('.ring > .seat')].sort((a, b) => a.dataset.i - b.dataset.i).map(x => x.querySelector('.seat-token > .token')).filter(Boolean); // 按座次一張張翻（DOM 裏不按座次排）
   const flip = (from, to, easing) => tokens().forEach((t, i) => anim(t, [{ transform: from }, { transform: to }], { duration: 180, delay: i * 24, easing, fill: 'both' }));
   const clear = () => tokens().forEach(t => t.getAnimations().forEach(a => a.cancel()));
   const ms = 180 + tokens().length * 24;
@@ -1023,7 +1036,7 @@ const resetScene = () => ({ block: true, run: async () => {
 const turnScene = s => ({ block: true, run: async () => {
   veil(WASH.ink, 220);
   const slot = h('div', { class: 'pc-slot' });
-  const card = paperCard([h('div', { class: 'sc-who' }, roleToken(s.myRole)), slot], 'cal turn');
+  const card = paperCard([h('div', { class: 'sc-who' }, s.veiled ? h('div', { class: 'token md back' }) : roleToken(s.myRole)), slot], 'cal turn'); // 遮住身份時落下的是背面
   cardPop(card);
   await wait(240);
   await slamStamp(slot, '輪到你', 'brass', { sound: 'turn' });
@@ -1043,7 +1056,7 @@ export function onState(s) {
   prev = s;
   lastState = s;
   // 白天被動能力觸發、等說書人裁定：響一聲（裁定卡在圓桌中央）
-  if (s.isSt && s.st?.ruling && p?.isSt && !p.st?.ruling) play('turn');
+  if (s.isSt && s.st?.ruling && p?.isSt && !p.st?.ruling && !(s.offline && s.phase === 'night')) play('turn'); // 線下夜裏的裁定一響，全桌就知道有人的能力觸發了
   const evs = s.fx || [], top = evs.length ? evs.at(-1).seq : 0;
   // 說書人代入視角、換回來：桌面內容整個換了，淡進來
   if (p && who !== id && !reduced()) requestAnimationFrame(() => document.querySelector('.town')?.animate({ opacity: [0, 1] }, 260));
@@ -1059,6 +1072,7 @@ export function onState(s) {
   for (const e of fresh) {
     const sc = SCENES[e.k]?.(e, s, p);
     if (!sc) continue;
+    if (s.offline && !LOUD.has(e.k)) sc.quiet = true;
     // 勝負：終局狀態一到，絞刑架還在落、勝負卡還沒蓋上來，圓桌中間已經寫著「善良獲勝」、全場身份也翻開了。
     // 整段演出期間桌面和側欄停在上一刻（同開新局拉幕的 frozen），勝負卡蓋住桌面的那一拍（sc.cover）再換成終局，淡進來；
     // 頁面在後台時演出直接跳到結尾，不會走到 cover，所以勝負這段播完也解凍一次
@@ -1081,6 +1095,7 @@ export function onState(s) {
     }
     if (e.k === 'curtain') { frozen ||= p; chain(sc, thaw); }
     if (e.k === 'night') { nightHold++; chain(sc, () => { nightHold--; rerender(); }); }
+    if (e.k === 'dawn') { dawnHold++; chain(sc, () => { dawnHold--; rerender(); }); }
     if (e.k === 'night' || e.k === 'dawn') { skyHold++; chain(sc, () => { skyHold--; if (!skyHold) sky(lastState.phase); }); }
     if (e.k === 'win') {
       winHold++;
@@ -1127,7 +1142,7 @@ const PARTS = [
 ], MAT = { opacity: 0, scale: .72, rotate: '-24deg' }, K = .6;
 
 function dealRoom(game, back = false) {
-  const ring = game.querySelector('.ring'), box = ring.getBoundingClientRect(), seats = [...ring.querySelectorAll(':scope > .seat')];
+  const ring = game.querySelector('.ring'), box = ring.getBoundingClientRect(), seats = [...ring.querySelectorAll(':scope > .seat')].sort((a, b) => a.dataset.i - b.dataset.i); // 按座次發
   const step = Math.min(46, 460 / (seats.length || 1)), T = Math.max(460 + seats.length * step + 420, 1160);
   const go = (el, from, delay, ms, pseudoElement) => el.animate([{ ...from, offset: 0 }], { duration: back ? ms * K : ms, delay: back ? (T - delay - ms) * K : delay, pseudoElement,
     easing: 'cubic-bezier(.2, .8, .3, 1)', fill: back ? 'forwards' : 'backwards', direction: back ? 'reverse' : 'normal' });
@@ -1214,7 +1229,7 @@ export function resetFx() {
   prev = who = null; seen = 0; frozen = null; blkOverride = undefined; execId = null;
   lastState = { phase: 'lobby' };
   setFireworks(null);
-  setBgm(null);
+  setBgm('lobby'); // 對局的音樂淡回大廳那首，從上次放到的地方接著放
   body.classList.remove('my-turn');
 }
 

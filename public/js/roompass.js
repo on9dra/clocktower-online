@@ -32,7 +32,7 @@ export function openPass(ctx, from) {
   const save = v => ctx.st('pass', { pass: v }).then(r => r.ok && closeModal());
   const yes = h('button', { class: 'btn', disabled: pass ? null : true, onclick: () => save(input.value) }, '確定');
   input.addEventListener('input', () => { yes.disabled = input.value.length < 4; });
-  input.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) yes.click(); };
+  input.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) yes.click(); };
   modal('房間密碼', h('div', { class: 'pass-form' }, codeBox(input),
     h('div', { class: 'row' }, pass && h('button', { class: 'btn ghost', onclick: () => save('') }, '取消密碼'), yes)),
   { cls: 'pass-modal', from, away: () => document.querySelector('.topbar .lock') });

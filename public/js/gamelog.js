@@ -27,7 +27,7 @@ function entry(s, e) {
     case 'virgin': return [2, [icon('bolt'), who(s, e.seat), mini('virgin'), w('反噬', 'bad'), who(s, e.from), w('處決', 'bad')]];
     case 'execute': return [2, [icon('noose'), who(s, e.seat), w('被處決', 'bad')]];
     case 'noexec': return [0, [w('今天無人被處決')]];
-    case 'win': return ['win', [h('b', {}, e.team === 'good' ? '善良' : '邪惡', '獲勝'), h('small', {}, e.reason)], e.team];
+    case 'win': return ['win', [h('b', {}, e.team === 'good' ? '善良獲勝' : '邪惡獲勝'), h('small', {}, e.reason)], e.team];
     case 'mvp': return e.seats?.length ? [1, [icon('star', 'gl-mvp'), w('MVP', 'brass'), e.seats.map(id => who(s, id)), w(`${e.n} 票`)]] : [0, [w('沒有人得到 MVP 票')]];
     default: return null;
   }

@@ -1,7 +1,7 @@
 // 大廳：字標 + 一句話，一條加入房間的表單，說書人建房，底下是小鎮，最近去過的房間是插在屋頂上的旗子。app.js 和演示頁共用
-import { h, toast } from './ui.js';
+import { h, toast, menu } from './ui.js';
 import { icon } from './glyph.js';
-import { getLang, setLang } from './lang.js';
+import { getLang, LANGS, langItems } from './lang.js';
 import { skyLife, townLife } from './ambient.js';
 
 // 最近的房間記在本機（最多 5 個）：{ code, inst }
@@ -16,8 +16,8 @@ export function forgetRoom(ls, code) {
   ls.set(KEY, JSON.stringify(recentRooms(ls).filter(x => x.code !== code)));
 }
 
-export const langButton = cls => h('button', { class: cls, title: '切換繁體 / 簡體',
-  onclick: () => { setLang(getLang() === 'sc' ? 'tc' : 'sc'); location.reload(); } }, getLang() === 'sc' ? '繁體' : '简体');
+export const langButton = cls => h('button', { class: cls, onclick: e => menu(e.currentTarget, null, langItems()) },
+  document.createTextNode(LANGS[getLang()]));
 
 // 房間現在走到哪：準備 / 夜 / 白天 / 已結束
 const PHASE = { lobby: [null, '準備中'], night: ['moon', '夜晚'], dawn: ['sun', '白天'], day: ['sun', '白天'], ended: ['trophy', '已結束'] };
@@ -60,8 +60,8 @@ export function renderLobby({ code = '', name = '', recent = [], onJoin, onCreat
     onJoin(codeIn.value.trim(), nameIn.value.trim());
   };
   // 房間號裏回車：暱稱已填就直接加入，沒填就跳到暱稱
-  codeIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) (nameIn.value.trim() ? join() : nameIn.focus()); };
-  nameIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) join(); };
+  codeIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) (nameIn.value.trim() ? join() : nameIn.focus()); };
+  nameIn.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) join(); };
   return h('div', { class: 'lobby' },
     skyLife('night'),
     h('header', { class: 'lobby-head' },

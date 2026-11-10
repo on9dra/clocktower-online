@@ -63,6 +63,37 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
   border: 2px solid currentColor; border-radius: 3px; box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px currentColor; mix-blend-mode: multiply; }
 .ghost-vote { position: absolute; left: 50%; top: calc(var(--tk) * -.1); z-index: 2; width: clamp(16px, calc(var(--tk) * .42), 28px); aspect-ratio: 1; transform: translateX(-50%) rotate(-10deg); color: var(--brass); pointer-events: none; }
 .ghost-vote .ico { width: 100%; height: 100%; }
+/* 座位狀態（town.js statusView）：常見狀態不寫字籤，畫在頭像上——一層影響整個頭像的效果 + 一枚沿頭像邊掛的小圖章。
+   中毒：綠墨從底下滲上來，冒兩個泡；醉酒：頭像晃，左上一塊酒漬；被保護：一圈藍墨雙環；處決不死：銅色雙環；
+   詛咒：紅墨從邊上壓進來；瘋狂：一段紫線繞著轉；蓄力：紅環一鬆一緊；假死、能力已用：頭像褪掉一層 */
+.st-fx { position: absolute; inset: 0; z-index: 1; border-radius: 50%; pointer-events: none; animation: quiet-in .5s ease; }
+.st-fx.poison { background: radial-gradient(circle at 50% 95%, #3d8b3dd9, #3d8b3d70 38%, transparent 66%); mix-blend-mode: multiply; }
+.st-fx.poison::before, .st-fx.poison::after { content: ''; position: absolute; left: 38%; bottom: 14%; width: 13%; aspect-ratio: 1; border-radius: 50%;
+  border: 1.5px solid #3d8b3d; background: #3d8b3d33; animation: st-bubble 2.8s ease-in infinite; }
+.st-fx.poison::after { left: 58%; width: 9%; animation-delay: 1.3s; }
+.st-fx.drunk { background: radial-gradient(circle at 30% 22%, #b8742a99, #b8742a40 34%, transparent 60%); mix-blend-mode: multiply; } /* 一塊酒漬（虛線圈留給可選的座位） */
+.seat-token.is-drunk > .token { animation: st-sway 3.4s ease-in-out infinite; }
+.st-fx.protect, .st-fx.safe { --c: var(--good); inset: -6px; box-shadow: 0 0 0 2px var(--c), 0 0 0 4.5px var(--card), 0 0 0 6px color-mix(in srgb, var(--c) 55%, transparent); }
+.st-fx.safe { --c: var(--brass); }
+.st-fx.curse { background: radial-gradient(circle, transparent 48%, #8a1c1c80 88%); mix-blend-mode: multiply; }
+.st-fx.mad { inset: -5px; border: 2px solid transparent; border-top-color: #6b3f8a; border-right-color: #6b3f8a66; animation: quiet-in .5s ease, st-spin 5s linear infinite; }
+.st-fx.charge { inset: -4px; box-shadow: 0 0 0 2px var(--evil); animation: quiet-in .5s ease, st-pulse 1.8s ease-in-out infinite; }
+.st-fx.used, .st-fx.undead { background: color-mix(in srgb, var(--card) 55%, transparent); }
+/* 小圖章：紙圓片 + 墨色圖標，按 --a 的角度掛在頭像邊上；蓋上去時像章一樣砸下來。說書人自己貼的可以點掉 */
+.st-ico { --c: var(--ink); position: absolute; z-index: 3; left: calc(50% + cos(var(--a)) * 50%); top: calc(50% + sin(var(--a)) * 50%); translate: -50% -50%;
+  display: grid; place-items: center; width: clamp(15px, calc(var(--tk) * .34), 24px); aspect-ratio: 1; border-radius: 50%; color: var(--c);
+  background: var(--card); box-shadow: 0 0 0 1.5px var(--c), 0 1px 2px #0004; pointer-events: none; animation: st-stamp .32s cubic-bezier(.4, 0, .6, 1); }
+.st-ico .ico { width: 64%; height: 64%; }
+.st-ico .token { width: 86%; height: 86%; }
+.st-ico.pick { pointer-events: auto; cursor: pointer; }
+.st-ico.poison { --c: #3d8b3d; } .st-ico.drunk { --c: #9a5b1e; } .st-ico.protect { --c: var(--good); } .st-ico.safe { --c: var(--brass); }
+.st-ico.curse, .st-ico.charge { --c: var(--evil); } .st-ico.mad { --c: #6b3f8a; } .st-ico.used, .st-ico.undead { --c: var(--muted); }
+@keyframes st-stamp { from { scale: 1.9; opacity: 0; } 60% { scale: .92; opacity: 1; } }
+@keyframes st-spin { to { rotate: 1turn; } }
+@keyframes st-sway { 0%, 100% { rotate: -3deg; } 50% { rotate: 3deg; } }
+@keyframes st-pulse { 50% { scale: 1.06; opacity: .55; } }
+@keyframes st-bubble { from { translate: 0 0; opacity: 0; } 25% { opacity: 1; } to { translate: 0 -170%; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .st-fx, .st-fx::before, .st-fx::after, .seat-token.is-drunk > .token, .st-ico { animation: none; } }
 .hand { position: absolute; right: -14px; top: -6px; background: var(--brass); color: #fff; font-size: 11px; padding: 1px 5px; border-radius: 2px; }
 .guess { opacity: .45; }
 .plate { position: relative; z-index: 1; box-sizing: border-box; height: var(--ph); margin-top: var(--pm); display: flex; gap: 3px; align-items: center; max-width: 100%;
@@ -70,6 +101,11 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
 .plate b { font-family: var(--serif); }
 .plate .pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .plate .off { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); flex: none; }
+/* 單設備準備階段：點名牌就地寫名字（town.js editName）。輸入框長在名牌裏，名牌跟著變寬，寫完收回去 */
+.plate.nameable { cursor: text; }
+.plate .pl-in { width: 5.5em; min-width: 0; height: 100%; margin: 0; padding: 0 2px; border: 0; border-bottom: 1px dashed var(--ink); border-radius: 0;
+  background: transparent; color: inherit; font: inherit; outline: none; animation: quiet-in .2s ease; }
+.token.blank.named .tk-q { width: 34%; height: 34%; opacity: .35; }
 .fake { font-size: 11px; color: #d8cfb9; margin-top: 2px; }
 .phase-day .fake, .phase-lobby .fake, .phase-ended .fake { color: var(--muted); }
 .tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
@@ -369,9 +405,6 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .check input { width: auto; margin-top: 3px; }
 .sheet-team { font-family: var(--serif); font-weight: 700; margin: 10px 0 6px; }
 .sheet-row { display: flex; gap: 10px; margin-bottom: 8px; content-visibility: auto; contain-intrinsic-size: auto 64px; } /* 換劇本時屏幕外的行不排版 */
-.guess-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; margin-bottom: 10px; }
-.guess-pick { display: flex; align-items: center; gap: 6px; min-width: 0; cursor: pointer; padding: 4px; border-radius: 4px; font-size: 13px; white-space: nowrap; }
-.guess-pick:hover { background: var(--hover); }
 
 /* 手機頂欄的側欄標籤、抽屜的遮罩和 ✕ 只在窄屏出現 */
 .m-tabs, .sheet-x, .side-mask { display: none; }
@@ -380,7 +413,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 
 /* 手機：一屏放下、不滾動。頂欄 / 桌面 / 進度條三行，桌面按剩下的高寬取正方形；側欄變成頂欄標籤打開的底部抽屜 */
 @media (max-width: 860px) {
-  .game, .game.side-min { height: 100%; height: 100dvh; overflow: hidden; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "top" "board" "prog"; }
+  .game, .game.side-min { height: 100%; height: 100dvh; height: 100svh; overflow: hidden; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "top" "board" "prog"; }
   .topbar { gap: 5px; padding: 5px 8px; }
   .topbar .brand, .topbar .who, .room i, .topbar .long, .topbar .help, .topbar .sound, .topbar .script-name { display: none; }
   .topbar .more { flex: none; }
@@ -398,7 +431,7 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   .ring { --rw: min(96cqw, 100cqh - 10px); }
   .seat .token .token-name { font-size: clamp(8px, calc(var(--tk) * .17), 11px); padding: 0 2px; }
   .ring.crowded .token .token-name, .ring.crowded .fake-name { display: none; }
-  .tags, .fake { display: none; }
+  .fake { display: none; }
   .phase-title { font-size: clamp(16px, 5.5cqmin, 24px); letter-spacing: 2px; }
   .phase-sub { font-size: 12px; }
 
@@ -471,8 +504,6 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
   font: 900 13px/1.5 var(--serif); letter-spacing: .06em; white-space: nowrap; rotate: -2deg; opacity: 0; scale: 1.5; pointer-events: none; transition: opacity .16s ease, scale .2s cubic-bezier(.5, 0, .7, 1); }
 .setup-warn.on { opacity: 1; scale: 1; }
 .setup-modal .modal-body { overflow-x: hidden; } /* 待命的印章放大著、格子按下去會傾斜，都會探出一點，不能變成左右滾動 */
-.guess-pick.on { background: var(--hover); outline: 1.5px solid var(--ink); }
-.guess-pick small { margin-left: auto; }
 .lang-lobby { justify-self: center; }
 
 @media (max-width: 860px) {
@@ -604,6 +635,9 @@ body[data-phase="night"] .phase-sub, body[data-phase="dawn"] .phase-sub { color:
 .tr-clock .sb.mine { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (max-width: 860px) {
   .trial { width: calc(100% - 12px); max-height: calc(100% - 12px); gap: 8px; padding: 10px; border-radius: 10px; }
+  /* 計票時輪到的那枚放大 1.3 倍：行尾那枚撐出橫向滾動條，壓住最後一排。留出放大的空間，不橫向滾 */
+  .trial { overflow-x: hidden; }
+  .tr-clock { padding: 4px 6px; }
   .tr-who .token { width: 60px; height: 60px; }
   .tr-who .token.blank { font-size: 22px; }
   .tr-who .token .token-name { font-size: 9px; }
@@ -832,8 +866,14 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
   .blk { transform: translate(-50%, -54%) scale(.62); }
   .blk-ret .token { width: 56px; height: 56px; }
 }
+/* 豎屏手機：絞刑架下面放不下按鈕（會壓住下方的座位），掛到圓桌下面那片空白，和夜裏卡片的按鈕同一個位置 */
+@media (max-width: 640px) and (orientation: portrait) {
+  .center.has-blk { top: calc(50% + var(--rw) / 2 + 12px); }
+  /* 圓桌下面要放得下「提名 / 開槍」和「處決 N 號，入夜」兩排（約 140px）：圓桌往上挪，還不夠就縮一點，按鈕不鑽進底下的進度條 */
+  .is-st .ring:has(> .center.has-blk) { --rw: min(96cqw, 100cqh - 160px); translate: 0 min(0px, (100cqh - var(--rw)) / 2 - 140px); }
+}
 /* 橫屏手機寬度超過 860 也一樣擠：和豎屏手機一樣不畫說書人的小標籤、牌上的字 */
-@media (max-height: 520px) { .tags, .fake, .ring.crowded .token .token-name { display: none; } }
+@media (max-height: 520px) { .fake, .ring.crowded .token .token-name { display: none; } }
 @media (max-width: 860px) { .dead-stamp { font-size: 11px; padding: 0 2px 1px 5px; border-width: 1.5px; } }
 
 /* 審判牌上的投票按鈕（欄頂） */
@@ -847,7 +887,30 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .cx .frm-line { justify-content: center; font-size: 16px; }
 .cx > .row { justify-content: center; }
 /* 抽完才有內容的一塊：高度定死（名字長時偽裝佔兩行也放得下），內容出來時上面的按鈕不動。空著的時候不擋底下的座位 */
-.lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 123px; pointer-events: none; }
+.lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 66px; pointer-events: none; }
+/* 開始遊戲在圓桌正中間（底部會被手機瀏覽器的地址欄擋住）：一直在，開不了時淡一點，點了說原因 */
+.start-row { display: flex; justify-content: center; margin-top: 2px; }
+.btn.start { display: inline-flex; align-items: center; gap: 6px; }
+.btn.start .ico { width: 14px; height: 14px; }
+.btn.start.blocked { opacity: .55; }
+.start-why { margin: 0 0 14px; padding-left: 1.2em; display: grid; gap: 6px; line-height: 1.45; }
+.start-why.bad li::marker { color: var(--evil); }
+.start-why.warn li::marker { color: var(--brass); }
+.row.end { justify-content: flex-end; }
+/* 一主一次的一排（傳閱身份 / 跳過）：次要的靠左佔三成，正事佔七成 */
+.row.r73 { display: flex; flex-wrap: nowrap; gap: 8px; width: 100%; }
+.row.r73 > .btn { flex: 7; justify-content: center; }
+.row.r73 > .btn.ghost { flex: 3; order: -1; }
+/* 單設備空桌：圓桌中間點人數，一下坐滿；下面一行 − N 人 + 微調 */
+.count-pick { display: grid; justify-items: center; gap: 6px; }
+.cp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.cp-grid .btn { min-width: 40px; min-height: 36px; padding: 0; font: 700 16px var(--serif); }
+.add-seats { display: inline-flex; align-items: center; gap: 2px; flex: none; }
+.lp-act .row > .add-seats { flex-basis: 100%; justify-content: center; } /* 寬屏圓桌中間：人數單獨一行，按鈕在下面；手機上擠在同一排（下面） */
+@media (max-width: 640px) and (orientation: portrait) { .lp-act .row > .add-seats { flex-basis: auto; } }
+.add-seats .btn.sq { width: 34px; padding: 6px 0; font-size: 18px; line-height: 1; }
+.add-seats .sc-n { min-width: 2.9em; text-align: center; white-space: nowrap; }
+.add-seats .sc-n b { margin-right: 2px; font: 700 18px var(--serif); }
 .lobby-after > * { pointer-events: auto; }
 .lobby-after > * { animation: l-rise .3s ease backwards; }
 .lobby-after > .row { margin-top: 0; animation-delay: .08s; }
@@ -871,7 +934,7 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 /* 手機豎屏：人數和桌面一樣留在圓桌內圈（圈寬一點），按鈕放下方那片空白（.center 的 50% 就是圓桌圓心），不壓座位，單手也夠得著。
    抽完才有的偽裝和確認開局也在下方，所以圓桌一開始就讓出這一整塊：--dn 是下方要的高度，--up 讓開頂上的劇本卡。屏幕夠高時圓桌不動不縮 */
 @media (max-width: 640px) and (orientation: portrait) {
-  .town.picking { --up: 70px; --dn: 147px; }
+  .town.picking { --up: 70px; --dn: 100px; }
   .town.picking .ring { --rw: min(92cqw, 100cqh - var(--up) - var(--dn)); --lp: calc(50% + var(--rw) / 2 + 18px); --tk: clamp(34px, min(15.5cqmin, var(--rw) * .169), 62px); translate: 0 min(0px, (100cqh - var(--rw)) / 2 - var(--dn)); }
   .town.picking .ring.crowded { --tk: clamp(30px, min(12.5cqmin, var(--rw) * .136), 50px); }
   .town.picking .center { width: calc(var(--rw) * .6); }
@@ -886,7 +949,7 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
   .lobby-after .frm-line { flex-wrap: nowrap; gap: 3px; font-size: 13px; white-space: nowrap; } /* 名字長時也一行，不然會把確認開局擠出屏幕 */
 }
 @media (max-width: 640px) and (max-height: 700px) and (orientation: portrait) {
-  .town.picking { --dn: 135px; }
+  .town.picking { --dn: 92px; }
   .lp-act { gap: 4px; }
   .lobby-after { gap: 3px; }
   .lp-act .btn.big { padding: 6px 18px; }
@@ -972,18 +1035,50 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .center > .cx { margin-inline: auto; }
 /* 牌壓著座位時永遠是座位在上面：看得見、點得到（牌一般不會碰到，town.js fitTableCard 按座位留出來的地方排牌） */
 .ring:has(> .center > :is(.turn-pane, .st-card)) .seat { z-index: 4; }
+.town.picking .ring > .seat { z-index: 4; } /* 準備階段：座位朝圓心的小籤（紅鯡魚）不被「開始遊戲」蓋住 */
 /* 放不下：「第 N 夜」讓給牌，在牌底下淡掉；牌收起來時再淡回來 */
 .phase-title { transition: opacity .25s ease; }
 .center.tight .phase-title { position: absolute; inset: 0 0 auto; opacity: 0; pointer-events: none; }
 .center.tight .phase-sub { display: none; }
-/* 說書人的手機：白天中間放不下「第 N 天」、或者中間是絞刑架時，日子寫到圓桌外面——豎屏在圓桌上方的空白，橫屏在圓桌右邊。和標題一起淡進淡出 */
-.phase-alt { display: none; }
-@media (max-width: 860px) and (orientation: portrait), (max-height: 520px) and (orientation: landscape) {
-  .ring > .phase-alt { display: block; position: absolute; left: 50%; bottom: calc(100% + 10px); translate: -50% 0; font: 700 clamp(16px, 5.5cqmin, 24px) var(--serif);
-    letter-spacing: 2px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
-  .ring:has(> .center:is(.tight, .has-blk)) > .phase-alt { opacity: 1; }
+/* 「第 N 夜 / 天」亮過之後待的地方：桌面左上角一行小字（town.js titleSpot，從中間飛過來） */
+.town > .phase-tag { position: absolute; left: 14px; top: 10px; z-index: 3; font: 700 15px/1.2 var(--serif); letter-spacing: 3px; white-space: nowrap; pointer-events: none;
+  padding-bottom: 3px; border-bottom: 1.5px solid currentColor; transform-origin: center; animation: quiet-in .3s ease; transition: color 1.4s ease; }
+body[data-phase="night"] .town > .phase-tag, body[data-phase="dawn"] .town > .phase-tag { color: #ece5d3; }
+@media (max-width: 640px) {
+  .town > .phase-tag { left: 10px; top: 8px; font-size: 13px; letter-spacing: 2px; }
+  /* 玩家左上角是收起的身份牌（遮住時是背面牌 + 眼睛）：「第 N 夜」挪到它右邊 */
+  body:has(.hud.min) .town > .phase-tag { left: 62px; }
+  body:has(.hud.min.veil) .town > .phase-tag { left: 86px; } /* 眼睛按鈕右邊；再往右會碰到正中的訃告 */
+  /* 手機上卡片把選項擺在圓桌上方那一條時（數字、角色牌、數學家的兩組），左上角讓給它們：標題淡掉，選完再回來 */
+  .town:has(.st-card .spread > .ic-body, .st-card .on-table .tb-roles) > .phase-tag { opacity: 0; }
 }
-@media (max-height: 520px) and (orientation: landscape) { .ring > .phase-alt { left: calc(100% + 18px); bottom: auto; top: 50%; translate: 0 -50%; } }
+.town > .phase-tag { transition: color 1.4s ease, opacity .3s ease; }
+/* 訃告（town.js obituary）：天亮後掛在桌子正上方，兩根繩吊著從上面晃下來，晃幾下停住；入夜時淡掉。
+   有人死是黑色雙框的「訃告」，紙頂停著一隻烏鴉（隔一會兒歪一下頭）；平安夜是銅框的「告示」 */
+/* --x：水平位置。手機上正上方居中（壓到座位時 town.js placeObit 用 --oy 提一點）；電腦上、手機上放不下時 .aside 在左上角「第 N 天」下面 */
+.town > .obit { --x: -50%; position: absolute; left: 50%; top: calc(44px + var(--oy, 0px)); z-index: 3; translate: var(--x) 0; transform-origin: 50% -14px; pointer-events: none;
+  animation: ob-hang 1.25s cubic-bezier(.3, .7, .4, 1) .35s both; transition: opacity .3s ease; }
+.town > .obit.aside { --x: 0px; left: 14px; top: 58px; }
+.town > .obit.unplaced { animation-play-state: paused; } /* 位置量好之前停在動畫第一幀（看不見），量好了才掛下來 */
+.ob-str { position: absolute; top: -14px; width: 1.5px; height: 16px; background: #5a4a33; }
+.ob-str.l { left: 24%; rotate: -12deg; } .ob-str.r { right: 24%; rotate: 12deg; }
+.ob-paper { position: relative; padding: 5px 14px 6px; color: #1d1a16; background: var(--card) var(--paper-tex, none) 0 0 / 320px; text-align: center; }
+.obit.mourn .ob-paper { border: 3px solid #1d1a16; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3.5px #1d1a16, 0 4px 10px #0005; }
+.obit.calm .ob-paper { border: 2px solid var(--brass); box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--brass), 0 4px 10px #0004; }
+.ob-h { display: block; font: 900 17px/1.25 var(--serif); letter-spacing: .7em; text-indent: .7em; }
+.obit.calm .ob-h { color: var(--brass); }
+.ob-line { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 3px; white-space: nowrap; }
+.ob-line .w { font-size: 13px; } .ob-line .sb { font-size: 15px; }
+.ob-crow { position: absolute; right: 2px; top: -21px; width: 30px; height: 24px; fill: #1d1a16; color: #1d1a16; }
+.ob-crow .ob-head { transform-box: fill-box; transform-origin: 30% 70%; animation: ob-tilt 6s ease-in-out 2.2s infinite; }
+@keyframes ob-hang { from { translate: var(--x) calc(-100% - 40px); rotate: 0deg; opacity: 0; } 12% { opacity: 1; } 55% { translate: var(--x) 0; rotate: 6deg; }
+  72% { rotate: -3.5deg; } 87% { rotate: 1.5deg; } to { translate: var(--x) 0; rotate: 0deg; } }
+@keyframes ob-tilt { 0%, 78%, 100% { rotate: 0deg; } 83% { rotate: -22deg; } 90% { rotate: 8deg; } }
+@media (max-width: 640px) {
+  .town > .obit { top: calc(40px + var(--oy, 0px)); } .ob-h { font-size: 15px; } .ob-line .w { font-size: 12px; } .ob-line .sb { font-size: 13px; }
+  .town:has(.st-card .spread > .ic-body, .st-card .on-table .tb-roles, .trial) > .obit { opacity: 0; } /* 圓桌上方那一條給卡片的選項 / 審判牌時讓開 */
+}
+@media (prefers-reduced-motion: reduce) { .town > .obit, .ob-crow .ob-head { animation: none; } }
 /* 沒有牌時中間的按鈕不撐寬：空白的地方別佔著（town.js 按實際大小排），準備階段按鈕排得開，抽完不變寬 */
 .center:has(> .cx:not(.lobby-pane, .turn-pane, .fold-stub)) { width: max-content; max-width: 46%; }
 /* 橫版：圓心左右比上下寬。角色牌和要說的話一行，選中的人和按鈕一行 */
@@ -1058,3 +1153,46 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .aim-row > span:not([class]) { font: 700 15px var(--serif); }
 .aim-rule .btn .ico { width: 16px; height: 16px; margin-right: 4px; vertical-align: -3px; }
 @media (max-width: 860px) { .aim-btn { width: 24px; height: 24px; left: -7px; top: -7px; } }
+/* 手動局說書人的夜晚串（progress.js handBar）：點牌勾掉；陣營牌（爪牙 / 惡魔信息）鋪滿牌位 */
+.pg-it.tap { cursor: pointer; }
+.pg-it.tap:hover { filter: brightness(1.06); }
+.pg-it > .tt { width: 100%; height: 100%; box-sizing: border-box; }
+.pg-row.tap { cursor: pointer; }
+.pg-row.tap:hover { background: var(--hover); }
+.sb.dead { text-decoration: line-through; opacity: .5; }
+/* 空座位：圈裏寫名字（號碼在名牌上）。字號跟著頭像大小，長名字兩行截斷 */
+.token.blank.named { color: var(--ink); }
+.token.blank.named .tk-name { max-width: 84%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  font: 700 calc(var(--tk, 64px) * .22)/1.15 var(--serif); text-align: center; word-break: break-all; }
+body.art .token.blank.named { color: #2a2622; }
+/* 準備階段拖座位：原位淡下去，影子跟著手指，放得下的座位描金圈 */
+.phase-lobby.is-st .ring > .seat { touch-action: none; transition: left .35s cubic-bezier(.2, .8, .3, 1), top .35s cubic-bezier(.2, .8, .3, 1); }
+.ring > .seat.dragging { opacity: .35; }
+.ring > .seat.drop .token { outline: 3px solid var(--brass); outline-offset: 4px; }
+.drag-ghost { position: fixed; z-index: 140; translate: -50% -50%; scale: 1.12; pointer-events: none; filter: drop-shadow(0 10px 16px #0007); }
+
+/* iPhone Safari：底部地址欄會浮在頁面上。手機上按工具欄全展開時的高度排（100svh，上面），準備階段底下再讓出 Home 條，
+   「確認開局」不會壓在地址欄下面 */
+@media (max-width: 860px) {
+  .game.phase-lobby .board { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* 說書人的標記：電腦上寫全，手機上一個字的小圓章（頭像小，寫全會疊到鄰座），點開座位菜單的「記錄」看細節 */
+.tag .t-s { display: none; font-style: normal; }
+.tag .t-l { font-style: normal; }
+@media (max-width: 860px), (max-height: 520px) {
+  .seat-more .tags { gap: 2px; max-width: calc(var(--tk) * 1.2); }
+  .seat-more .tag { display: grid; place-items: center; height: 17px; padding: 0 3px; border-radius: 3px; font: 700 10.5px/1 var(--serif); white-space: nowrap; }
+  .seat-more .tag .t-s { display: inline-flex; align-items: center; gap: 1px; }
+  .seat-more .tag .tag-ico { width: 13px; height: 13px; border-width: 1px; box-shadow: none; }
+  .seat-more .tag .t-l { display: none; }
+}
+/* 手機上一個座位最多擺三枚標記，多的收成「+n」（點座位菜單的「記錄」看全部），不堆到鄰座和桌心的卡上 */
+@media (max-width: 860px), (max-height: 520px) {
+  .seat-more .tags.many .tag:nth-child(n+4) { display: none; }
+  .seat-more .tags.many::after { content: attr(data-more); display: grid; place-items: center; height: 17px; padding: 0 3px; border: 1px dashed var(--line-strong); border-radius: 3px; background: var(--card); color: var(--muted); font: 700 10.5px/1 var(--sans); }
+}
+/* 紅鯡魚（flow.js herringRow）：偽裝下面一行，占卜師上場才有；點了在桌上點人，這一格空著閃 */
+.herring-row { gap: 6px; }
+.bluff-pick.herring { min-width: 44px; border-color: var(--line-strong); }
+.bluff-pick.herring.on { border-color: var(--brass); background: var(--hover); }

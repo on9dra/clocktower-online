@@ -1117,7 +1117,7 @@ export function dlcFx(T) {
 
   // 吟遊詩人：豎琴一撥，音符飄過每個座位，各落一滴酒
   const stMinstrel = scene(async e => {
-    const seats = [...document.querySelectorAll('.seat[data-key]')].map(x => x.dataset.key).filter(id => id !== e.seat), a = at(e.seat);
+    const seats = [...document.querySelectorAll('.seat[data-key]')].sort((a, b) => a.dataset.i - b.dataset.i).map(x => x.dataset.key).filter(id => id !== e.seat), a = at(e.seat);
     const hp = put(sticker('harp', 'brass'), a.x, a.y - k(0.75), k(0.9));
     beat(hp, 'hum'); ring(a.x, a.y, 'brass', k(1.2), 1.5, 380);
     await wait(240);

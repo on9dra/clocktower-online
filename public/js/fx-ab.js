@@ -899,7 +899,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
   // 廚師：廚師的頭像從自己的牌裏探出來，沿桌挨個嗅過每一對鄰座（每處都一樣，不洩露哪一對）；回到桌心深吸一口，
   // 有幾對邪惡就有幾對紅色的氣味從四面八方（不是從座位）鑽進鼻子，一對一聲；沒有就搖搖頭。數字章蓋在下面
   const chef = scene(async (e, me) => {
-    const n = e.n | 0, tone = n ? 'evil' : 'good', all = [...document.querySelectorAll('.seat[data-key]')].map(x => x.dataset.key);
+    const n = e.n | 0, tone = n ? 'evil' : 'good', all = [...document.querySelectorAll('.seat[data-key]')].sort((a, b) => a.dataset.i - b.dataset.i).map(x => x.dataset.key);
     wash(SELF_WASH); lift(me);
     await wait(320);
     const m = at(me), head = put(roleToken('chef'), m.x, m.y, tk * 0.7);
@@ -1139,7 +1139,7 @@ export function abilityFx({ wait, anim, sfx, getStage, seatAt, release, skipping
 
   // 間諜：望遠鏡沿桌轉一圈，經過的每個座位頭上按網點顯影出他的真角色；轉回桌心，魔典合上，蓋「過目」；看到的牌各自落到座位旁邊
   const spy = scene(async (e, me) => {
-    const roles = Object.fromEntries(e.grim || []), all = [...document.querySelectorAll('.seat[data-key]')].map(x => x.dataset.key);
+    const roles = Object.fromEntries(e.grim || []), all = [...document.querySelectorAll('.seat[data-key]')].sort((a, b) => a.dataset.i - b.dataset.i).map(x => x.dataset.key);
     wash(SELF_WASH); lift(me);
     await wait(320);
     const gl = await emerge('spyglass', 'evil', me, { size: tk, snd: 'swish' });

@@ -182,3 +182,5 @@
   .it-seat > .pm { font-size: 14px; }
   .it-notes { gap: 8px; }
 }
+/* 矮的手機（360×740 這種）內容會頂到底邊的印刷小字：小字是裝飾，讓掉 */
+@media (max-width: 640px) and (max-height: 760px) { .it-imprint { display: none; } }

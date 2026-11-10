@@ -25,6 +25,8 @@
   --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "STSong", "SimSun", serif;
   --sans: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", system-ui, sans-serif;
 }
+/* 英文：中文排版的寬字距放到英文上太鬆，統一收回 */
+:root[data-lang="en"] body * { letter-spacing: normal !important; }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 /* 對局界面一屏放下：彈出的浮窗、氣泡越界也不出滾動條（滾動條一出一收整頁會跳） */
@@ -65,6 +67,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .btn.red { --wall: color-mix(in srgb, var(--evil) 62%, #000); background: var(--evil); border-color: var(--evil); color: #fff; }
 .btn.ghost { border-color: var(--line-strong); font-weight: 400; }
 .btn.disabled { opacity: .35; pointer-events: none; }
+.btn.disabled.why { pointer-events: auto; cursor: help; } /* 灰著但點了說原因（flow.js BW） */
 .btn.sm { padding: 3px 10px; font-size: 13px; }
 .btn.wide { width: 100%; margin-top: 10px; padding: 10px; font-size: 15px; }
 
@@ -164,7 +167,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); font-family: var(--serif); font-weight: 700; }
 .modal-body { padding: 12px 14px; overflow: auto; }
 .icon-btn { background: none; border: 0; font-size: 16px; color: var(--muted); }
-.popmenu { position: fixed; z-index: 60; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 4px; min-width: 160px; display: flex; flex-direction: column; }
+.popmenu { position: fixed; z-index: 60; background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 4px; min-width: 160px; display: flex; flex-direction: column;
+  overflow-y: auto; overscroll-behavior: contain; } /* 高度由 menu() 按屏幕高定：放不下時菜單裏滾 */
+.popmenu > * { flex-shrink: 0; }
 .popmenu-title { padding: 5px 10px; font-family: var(--serif); font-weight: 700; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
 .popmenu button { background: none; border: 0; text-align: left; padding: 7px 10px; border-radius: 4px; }
 .popmenu button:hover { background: var(--hover); }
@@ -212,6 +217,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 }
 .token-icon { width: 52%; height: 52%; }
 .token .token-name { font-family: var(--serif); font-weight: 700; font-size: 14px; line-height: 1.1; padding: 0 6px; }
+.token .token-name.long { zoom: .8; white-space: nowrap; } /* 字號被各處的規則改過，這裏按比例縮 */
 .token.sm { width: 48px; height: 48px; border-width: 1.5px; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--team); }
 .token.sm .token-icon { width: 62%; height: 62%; }
 .token.sm .token-name { display: none; }

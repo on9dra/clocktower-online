@@ -11,11 +11,12 @@ const qr = url => h('img', { class: 'inv-qr', src: 'qr.svg?u=' + encodeURICompon
 // 分享房間：建好房間時自動彈一次，之後點頂欄的房間號再打開；關掉時收進房間號
 export function openInvite(ctx) {
   const s = ctx.state, key = s.isSt && ctx.ls.get('botc.st.' + s.code);
-  modal('分享房間', h('div', { class: 'invite' },
+  const off = s.oneDevice; // 線下局沒有玩家要進來，只留房間號和說書人換設備的鏈接
+  modal(off ? '房間' : '分享房間', h('div', { class: 'invite' },
     h('div', { class: 'inv-code' }, s.code.split('').map(c => h('b', {}, c))),
     s.pass && h('div', { class: 'inv-pass', title: '房間密碼' }, icon('lock'), s.pass),
-    qr(inviteUrl(s)),
-    h('button', { class: 'btn', onclick: () => copy(inviteUrl(s), '邀請鏈接已複製') }, icon('send'), '複製邀請鏈接'),
+    !off && qr(inviteUrl(s)),
+    !off && h('button', { class: 'btn', onclick: () => copy(inviteUrl(s), '邀請鏈接已複製') }, icon('send'), '複製邀請鏈接'),
     // 說書人自己換設備繼續主持用；帶著密鑰，不能發給玩家
     key && h('div', { class: 'inv-host' }, icon('key'), h('span', { class: 'grow' }, '換設備主持'),
       h('button', { class: 'btn sm', onclick: () => copy(hostUrl(s, key), '說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家') }, '複製'))),

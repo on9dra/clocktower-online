@@ -68,8 +68,15 @@ body.art .egg-splat svg { visibility: hidden; }
 body.art .lobby .title { --tw: min(420px, 66vw); width: var(--tw); aspect-ratio: 1461 / 337; background: #f4eedf; color: transparent; overflow: hidden;
   -webkit-mask: url(../img/art/title-tc-plain.webp) center / contain no-repeat; mask: url(../img/art/title-tc-plain.webp) center / contain no-repeat; }
 html[data-lang="sc"] body.art .lobby .title { aspect-ratio: 1446 / 336; -webkit-mask-image: url(../img/art/title-sc-plain.webp); mask-image: url(../img/art/title-sc-plain.webp); }
+/* 英文字標兩行（art-src/title-en.py），比中文扁，寬一點才和中文一樣醒目 */
+html[data-lang="en"] body.art .lobby .title { --tw: min(480px, 76vw); aspect-ratio: 900 / 164; -webkit-mask-image: url(../img/art/title-en-plain.webp); mask-image: url(../img/art/title-en-plain.webp); }
 body.art .lobby-seal { -webkit-mask: url(../img/art/stamp-mask.webp) center / cover luminance; mask: url(../img/art/stamp-mask.webp) center / cover luminance; }
 body.art .lobby-seal { left: calc(50% + min(210px, 33vw) + 12px); }
+/* 英文印章橫排兩行，蓋在字標右上角的空位（BLOOD ON THE 比 CLOCKTOWER 短） */
+html[data-lang="en"] body.art .lobby-seal { writing-mode: horizontal-tb; width: 5.6em; text-align: center; padding: 3px 4px; font-size: 12px; line-height: 1.1;
+  left: calc(50% + min(240px, 38vw) * .7 + 4px); top: -18px; transform: rotate(8deg); }
+/* 手機上右上角是「介紹 關於 語言」那排按鈕，印章改蓋在左上角 */
+@media (max-width: 860px) { html[data-lang="en"] body.art .lobby-seal { left: calc(50% - min(240px, 38vw) - 26px); top: -26px; transform: rotate(-8deg); font-size: 11px; } }
 body.art .lobby-town { background: url(../img/art/town-near-night.webp) bottom center / cover no-repeat, url(../img/art/town-mid-night.webp) bottom center / cover no-repeat,
   url(../img/art/town-far-night.webp) bottom center / cover no-repeat; }
 

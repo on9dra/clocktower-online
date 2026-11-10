@@ -160,11 +160,12 @@ export const formulaSeats = terms => (terms || []).flatMap(t => (t.s ? [t.s] : t
 // 夜晚行動的圖標（選人提示、演出共用）
 // 夜晚要選人的角色：圖標、語義色（poison 毒綠 / good 藍 / evil 紅 / brass 金）、
 // 自己視角裏目標座位上的標記、選人時的一句話（單數項是關鍵詞，用語義色加「」）
+// verb：說書人卡上「叫醒他/她指定一人［投毒］」的動作詞；不寫就用 mark（大多數角色落下的標記就是動作本身）
 export const ACTS = {
-  poisoner: { ico: 'drop', tone: 'poison', mark: '中毒', say: ['選擇一名玩家，使其', '中毒'] },
+  poisoner: { ico: 'drop', tone: 'poison', mark: '中毒', verb: '投毒', say: ['選擇一名玩家，使其', '中毒'] },
   monk: { ico: 'shield', tone: 'good', mark: '保護', say: ['選擇一名其他玩家，使其今晚', '受保護'] },
   imp: { ico: 'pitchfork', tone: 'evil', mark: '攻擊', say: ['選擇一名玩家，使其', '死亡'] },
-  butler: { ico: 'key', tone: 'brass', mark: '主人', say: ['選擇一名其他玩家作為你的', '主人'] },
+  butler: { ico: 'key', tone: 'brass', mark: '主人', verb: '認主', say: ['選擇一名其他玩家作為你的', '主人'] },
   fortuneteller: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇兩名玩家，查驗其中有沒有', '惡魔'] },
   ravenkeeper: { ico: 'eye', tone: 'good', mark: '查驗', say: ['你在今晚死去。選擇一名玩家，得知他的', '角色'] }, // 只有夜裏死了才醒，牌上要說，不然他不知道自己為什麼醒
   // 黯月初升
@@ -172,14 +173,14 @@ export const ACTS = {
   chambermaid: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇兩名其他存活的玩家，得知今晚幾人', '醒來'] },
   exorcist: { ico: 'shield', tone: 'good', mark: '驅魔', say: ['選擇一名玩家，如果是惡魔，他今晚', '不能行動'] },
   innkeeper: { ico: 'shield', tone: 'good', mark: '入住', say: ['選擇兩名玩家，他們今晚', '不會死亡'] },
-  gambler: { ico: 'eye', tone: 'brass', mark: '押', say: ['選擇一名玩家並', '猜他的角色', '，猜錯你會死'] },
+  gambler: { ico: 'eye', tone: 'brass', mark: '押', verb: '猜', say: ['選擇一名玩家並', '猜他的角色', '，猜錯你會死'] },
   courtier: { ico: 'drop', tone: 'poison', mark: '醉酒', say: ['選擇一個角色，使其', '醉酒三天'] },
   professor: { ico: 'shield', tone: 'good', mark: '試藥', say: ['選擇一名死亡的玩家，如果是鎮民，他', '復活'] },
   devilsadvocate: { ico: 'shield', tone: 'evil', mark: '辯護', say: ['選擇一名存活的玩家，明天他', '處決不死'] },
   assassin: { ico: 'dagger', tone: 'evil', mark: '刺殺', say: ['選擇一名玩家，無視保護使其', '死亡'] },
   godfather: { ico: 'pitchfork', tone: 'evil', mark: '攻擊', say: ['選擇一名玩家，使其', '死亡'] },
   zombuul: { ico: 'pitchfork', tone: 'evil', mark: '攻擊', say: ['選擇一名玩家，使其', '死亡'] },
-  pukka: { ico: 'drop', tone: 'poison', mark: '中毒', say: ['選擇一名玩家，使其', '中毒', '，他明晚死亡'] },
+  pukka: { ico: 'drop', tone: 'poison', mark: '中毒', verb: '投毒', say: ['選擇一名玩家，使其', '中毒', '，他明晚死亡'] },
   shabaloth: { ico: 'pitchfork', tone: 'evil', mark: '攻擊', say: ['選擇兩名玩家，使其', '死亡'] },
   // 珀：可以不選人（下次殺三人），蓄力過要選三人
   po: { ico: 'pitchfork', tone: 'evil', mark: '攻擊', say: p => (p.count === 3 ? ['上次沒有選人：選擇三名玩家，使其', '死亡'] : ['選擇一名玩家使其', '死亡', '；不選的話，下次殺三人']) },
@@ -187,7 +188,7 @@ export const ACTS = {
   dreamer: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名玩家，得知他可能的', '角色'] },
   snakecharmer: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇一名存活的玩家，如果是惡魔就', '交換身份'] },
   seamstress: { ico: 'eye', tone: 'good', mark: '查驗', say: ['選擇兩名玩家，得知是否', '同一陣營'] },
-  philosopher: { ico: 'become', tone: 'brass', mark: '', say: ['選擇一個善良角色，', '獲得他的能力'] },
+  philosopher: { ico: 'become', tone: 'brass', mark: '', verb: '變成', say: ['選擇一個善良角色，', '獲得他的能力'] },
   witch: { ico: 'bolt', tone: 'evil', mark: '詛咒', say: ['選擇一名玩家，明天他提名就', '死亡'] },
   cerenovus: { ico: 'mask', tone: 'evil', mark: '瘋狂', say: ['選擇一名玩家和一個角色，使其', '瘋狂'] },
   pithag: { ico: 'become', tone: 'evil', mark: '變身', say: ['選擇一名玩家和一個角色，使其', '變成該角色'] },

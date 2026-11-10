@@ -61,7 +61,7 @@ const parse = e => parseScript(e, 'abc');
   assert.strictEqual(typeof parse(Array.from({ length: 200 }, (_, i) => ({ id: 'r' + i, name: 'r' + i, team: 'townsfolk', ability: '' }))), 'string', '角色太多');
 }
 
-// 上傳：換劇本、鎖模式、自製角色進角色表；刪房間時摘掉
+// 上傳：換劇本、自製角色進角色表（混合推進，不再鎖成手動）；刪房間時摘掉
 {
   const r = createRoom();
   for (let i = 0; i < 7; i++) joinPlayer(r, 'p' + i, 'x' + i);
@@ -73,15 +73,10 @@ const parse = e => parseScript(e, 'abc');
   assert.strictEqual(r.scriptId, 'custom');
   const hb = r.script.roles.at(-1);
   assert.strictEqual(ROLES[hb].name, '張三');
-  const v = viewFor(r, { st: true });
-  assert.strictEqual(v.mode, 'manual');
-  assert.ok(v.st.modeLocked);
-  assert.ok(applyStOp(r, { op: 'mode', mode: 'auto' }), '有不認識的角色時不能選智能推進');
+  assert.strictEqual(applyStOp(r, { op: 'venue', venue: 'online' }), undefined, '有不認識的角色也能線上');
   // 可以切回內置劇本，再切回來
   assert.strictEqual(applyStOp(r, { op: 'script', scriptId: 'bmr' }), undefined);
-  assert.strictEqual(viewFor(r, { st: true }).mode, 'auto');
   assert.strictEqual(applyStOp(r, { op: 'script', scriptId: 'custom' }), undefined);
-  assert.strictEqual(viewFor(r, { st: true }).mode, 'manual');
   // 瀏覽器收到的那一份足夠登記角色
   const p = scriptPayload(r.script);
   assert.strictEqual(p.defs[hb].ability, '能力');
@@ -99,10 +94,8 @@ const parse = e => parseScript(e, 'abc');
   const r = createRoom();
   for (let i = 0; i < 7; i++) joinPlayer(r, 'p' + i, 'x' + i);
   applyStOp(r, { op: 'upload', entries: SCRIPTS.tb.roles });
-  assert.strictEqual(viewFor(r, { st: true }).mode, 'auto');
   assert.strictEqual(applyStOp(r, { op: 'next' }), undefined);
   assert.strictEqual(r.phase, 'night');
-  assert.ok(!r.g.manual);
 }
 // 社區劇本：每個角色都認得，auto 標記和解析結果一致，標準劇本 5 到 15 人都抽得出、開得了局
 for (const c of COMMUNITY) {
@@ -116,7 +109,6 @@ for (const c of COMMUNITY) {
     const r = createRoom();
     for (let p = 0; p < n; p++) joinPlayer(r, 'p' + p, 'x' + p);
     applyStOp(r, { op: 'upload', entries: [{ id: '_meta', name: c.name, author: c.author }, ...c.roles] });
-    assert.strictEqual(viewFor(r, { st: true }).mode, c.auto ? 'auto' : 'manual', c.name);
     assert.strictEqual(applyStOp(r, { op: 'next' }), undefined, `${c.name} ${n} 人`);
     assert.strictEqual(r.phase, 'night');
     remove(r.code);

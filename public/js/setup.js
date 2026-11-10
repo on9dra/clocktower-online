@@ -1,8 +1,9 @@
 // 說書人開局配置：角色「必選 / 排除」；給某個座位更換角色（預覽時和遊戲中都可以）
 import { h, modal, closeModal, roleToken, seatLabel, leaveDom } from './ui.js';
 import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup } from './roles.js';
-import { icon } from './glyph.js';
+import { icon, seatBadge, tag, w } from './glyph.js';
 import { tr } from './lang.js';
+import { rolePanel, syncRolePanel, closeRolePanel } from './rolepick.js';
 
 const RULE_TEXT = { lock: '必選', ban: '排除' };
 const nextRule = r => (r === 'lock' ? 'ban' : r === 'ban' ? null : 'lock');
@@ -63,20 +64,16 @@ export function openSetup(ctx) {
       h('button', { class: 'btn', onclick: closeModal }, '完成'))), { wide: true, cls: 'setup-modal' });
 }
 
-const roleGrid = (ids, onPick) => h('div', { class: 'guess-grid' }, ids.map(id =>
-  h('div', { class: 'guess-pick', onclick: () => onPick(id) }, roleToken(id, { size: 'sm' }), ROLES[id].name)));
 // 按陣營分好：鎮民在前，上傳劇本裏的旅行者、傳奇角色排在後面
 const teamsOf = ids => Object.keys(TEAMS).map(t => [t, ids.filter(id => ROLES[id].team === t)]).filter(([, list]) => list.length);
+const stOk = ctx => !!ctx.state?.isSt && !ctx.state.peek;
 
-// 開著的偽裝彈窗：服務器補了新的隨機格子時跟著換（syncSetup）
-let bluffSheet = null;
-
-// 指定惡魔偽裝：彈窗開著連選，選完跳到下一格，再點一次恢復隨機。
-// 智能推進只能選不在場的善良角色，在場的置灰標出來；手動局都能選，只標出來
+// 指定惡魔偽裝：整屏的劇本單（rolepick.js），頂上三格，開著連選，選完跳到下一格，再點一次恢復隨機。
+// 只能選不在場的善良角色，在場的置灰標出來（點了說為什麼）；服務器補了新的隨機格子時三格跟著換（onPaint）
 export function pickBluff(ctx, at) {
-  const s = ctx.state, manual = s.mode === 'manual', used = new Set(s.seats.flatMap(x => [x.role, x.fakeRole]));
-  const pins = [0, 1, 2].map(i => s.st.bluffPins?.[i] || null), shown = [], tiles = {};
-  const ids = SCRIPTS[s.scriptId].roles.filter(id => manual || (['townsfolk', 'outsider'].includes(ROLES[id].team) && id !== 'drunk'));
+  const s = ctx.state, used = () => new Set(ctx.state.seats.flatMap(x => [x.role, x.fakeRole]));
+  const pins = [0, 1, 2].map(i => s.st.bluffPins?.[i] || null), shown = [];
+  const ids = SCRIPTS[s.scriptId].roles.filter(id => ['townsfolk', 'outsider'].includes(ROLES[id].team) && id !== 'drunk');
   const row = h('div', { class: 'bp-slots' });
   const slots = [0, 1, 2].map(i => h('button', { class: 'bp-slot', onclick: () => { at = i; paint(); } }, h('i', { class: 'pin-mark' }, icon('quill'))));
   // 只動變了的東西：換掉那一格的牌，其餘加減 class
@@ -90,6 +87,7 @@ export function pickBluff(ctx, at) {
       b.append(h('span', { class: 'bp-role' }, roleToken(id, { size: 'sm' }), h('b', {}, ROLES[id]?.name || '')));
     }
   });
+  // 連選：面板不收，選中的那張蓋「選」字印（這一格原來指定的那張讓出來），再點一次那張恢復隨機
   const toggle = id => {
     const was = pins.indexOf(id);
     if (was >= 0) {
@@ -101,37 +99,33 @@ export function pickBluff(ctx, at) {
       ctx.st('setBluff', { i: at, roleId: id });
       at = [1, 2, 3].map(k => (at + k) % 3).find(i => !pins[i]) ?? (at + 1) % 3;
     }
-    tiles[id].classList.toggle('on', was < 0);
-    paint();
-  };
-  const tile = id => {
-    const off = !manual && used.has(id);
-    return (tiles[id] = h('div', { class: 'guess-pick' + (pins.includes(id) ? ' on' : '') + (off ? ' off' : ''), onclick: off ? null : () => toggle(id) },
-      roleToken(id, { size: 'sm' }), ROLES[id].name, used.has(id) && h('small', { class: 'muted' }, '在場')));
+    panel.paint();
+    return 'stay';
   };
   row.append(...slots);
-  const box = modal('惡魔偽裝', h('div', {}, row,
-    teamsOf(ids).map(([t, list]) => [h('div', { class: 'sheet-team', style: { color: TEAMS[t].color } }, TEAMS[t].name), h('div', { class: 'guess-grid' }, list.map(tile))]),
-    h('div', { class: 'row', style: { justifyContent: 'flex-end' } }, h('button', { class: 'btn', onclick: closeModal }, '完成'))), { wide: true, cls: 'bluff-modal' });
-  paint();
-  row.classList.add('live'); // 開彈窗時三張牌不演，之後選的才蓋章
-  bluffSheet = () => {
-    if (!box.isConnected || box.parentNode.classList.contains('leaving')) return void (bluffSheet = null);
-    if (!ctx.state.st?.draft) { bluffSheet = null; return closeModal(); } // 有人進出，抽好的作廢
-    paint();
-  };
+  // 有人進出（座位變了）抽好的就作廢：面板跟著收走
+  const panel = rolePanel({ key: 'bluff', tab: tag('bluff'), top: row, roles: ids, done: '完成', pick: toggle,
+    state: id => ({ on: pins.includes(id), off: used().has(id), why: '在場的角色不能當偽裝' }),
+    onPaint: () => paint(), alive: () => stOk(ctx) && ctx.state.phase === 'lobby' && !!ctx.state.st?.draft });
+  row.classList.add('live'); // 開的時候三張牌不演，之後選的才蓋章
 }
 
 // 懸停座位頭像：旁邊出一張角色表，直接選（只有鼠標有懸停，觸屏還走座位菜單）。
 // 掛在 body 上不跟著桌面重繪；換座位時同一張紙挪過去，只改標記，不重播
 export const canHover = () => matchMedia('(hover: hover)').matches;
-const pick = { el: null, seatId: null, anchor: null, title: null, body: null, sub: null, tiles: {}, timer: 0 };
+const pick = { el: null, seatId: null, anchor: null, title: null, body: null, sub: null, foot: null, acts: null, tiles: {}, timer: 0 };
 export const pickingSeat = () => pick.seatId;
 
 // 進頭像：停一下才開，鼠標路過不彈；紙已經開著時跟得快一點
-export function hoverSeat(ctx, seatId, anchor) {
+export function hoverSeat(ctx, seatId, anchor, acts) {
   clearTimeout(pick.timer);
-  pick.timer = setTimeout(() => showPick(ctx, seatId, anchor), pick.el ? 70 : 150);
+  pick.timer = setTimeout(() => showPick(ctx, seatId, anchor, acts), pick.el ? 70 : 150);
+}
+// 點座位（準備階段）：不等懸停的那一下，馬上開；已經開著這個座位的就不動
+export function openPick(ctx, seatId, anchor, acts) {
+  clearTimeout(pick.timer);
+  if (pick.el && pick.seatId === seatId) return;
+  showPick(ctx, seatId, anchor, acts);
 }
 // 離開頭像或紙：留一點時間走過中間的縫
 export function leaveSeat() {
@@ -146,7 +140,8 @@ export function closePick() {
   pick.el = pick.seatId = pick.anchor = null;
 }
 
-function showPick(ctx, seatId, anchor) {
+// acts：紙底下的小按鈕（線上 / 多設備的真人座位：換設備、移出房間）。名字座位沒有：改名點名牌，加減人數在左下角
+function showPick(ctx, seatId, anchor, acts) {
   if (document.querySelector('.popmenu:not(.leaving)') || !anchor.isConnected) return;
   if (!pick.el) buildPick(ctx);
   pick.anchor?.closest('.seat')?.classList.remove('aimed');
@@ -156,15 +151,28 @@ function showPick(ctx, seatId, anchor) {
   pick.sub.hidden = true;
   pick.body.hidden = false;
   pick.el.style.height = '';
+  pick.foot.replaceChildren(...(acts || []).map(a => h('button', { class: 'sp-act' + (a.danger ? ' danger' : ''), onclick: () => { closePick(); a.onclick(); } }, a.label)));
+  pick.foot.hidden = !acts?.length;
   paintPick(ctx);
   if (!pick.el.isConnected) document.body.append(pick.el);
   placePick();
 }
 
+// 紙底下一條能力：指著哪個角色就印哪個的能力全文，沒指著時是這個座位現在的角色。字換的時候淡一下，不跳
+function showAb(id) {
+  if (!pick.ab || pick.abId === id) return;
+  pick.abId = id;
+  const r = id && ROLES[id];
+  pick.ab.replaceChildren(...(r ? [h('b', { style: { color: TEAMS[r.team]?.color } }, r.name), h('span', {}, r.ability)] : []));
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) pick.ab.animate([{ opacity: .25 }, { opacity: 1 }], { duration: 140, easing: 'ease-out' });
+}
+const seatRole = ctx => ctx.state.seats.find(x => x.id === pick.seatId)?.role || null;
+
 function buildPick(ctx) {
   const s = ctx.state, roles = SCRIPTS[s.scriptId].roles;
   pick.tiles = {};
-  const tile = (id, onPick) => h('button', { class: 'sp-role', onclick: () => onPick(id) }, roleToken(id, { size: 'sm' }), h('span', {}, ROLES[id].name), h('i', {}, '在場'));
+  pick.abId = undefined;
+  const tile = (id, onPick) => h('button', { class: 'sp-role', onclick: () => onPick(id), onmouseenter: () => showAb(id) }, roleToken(id, { size: 'sm' }), h('span', {}, ROLES[id].name), h('i', {}, '在場'));
   const set = (roleId, fakeRole) => { const seatId = pick.seatId; closePick(); ctx.st('setRole', { seatId, roleId, fakeRole }); };
   // 酒鬼、瘋子：同一張紙上接著選他以為自己是誰
   const choose = id => {
@@ -183,10 +191,13 @@ function buildPick(ctx) {
     pick.sub.hidden = false;
   };
   pick.title = h('div', { class: 'sp-title' });
-  pick.body = h('div', { class: 'sp-body' }, teamsOf(roles).map(([t, list]) => h('div', { class: 'sp-team', style: { '--team': TEAMS[t].color } },
+  const back = () => showAb(seatRole(ctx)); // 指針離開角色格：換回這個座位現在的角色
+  pick.body = h('div', { class: 'sp-body', onmouseleave: back }, teamsOf(roles).map(([t, list]) => h('div', { class: 'sp-team', style: { '--team': TEAMS[t].color } },
     h('b', {}, TEAMS[t].name), h('div', { class: 'sp-grid' }, list.map(id => (pick.tiles[id] = tile(id, choose)))))));
-  pick.sub = h('div', { class: 'sp-body sp-sub', hidden: true });
-  pick.el = h('div', { class: 'seat-pick', onmouseenter: () => clearTimeout(pick.timer), onmouseleave: leaveSeat }, pick.title, pick.body, pick.sub);
+  pick.sub = h('div', { class: 'sp-body sp-sub', hidden: true, onmouseleave: back });
+  pick.ab = h('div', { class: 'sp-ab' });
+  pick.foot = h('div', { class: 'sp-foot', hidden: true });
+  pick.el = h('div', { class: 'seat-pick', onmouseenter: () => clearTimeout(pick.timer), onmouseleave: leaveSeat }, pick.title, pick.body, pick.sub, pick.ab, pick.foot);
 }
 
 function paintPick(ctx) {
@@ -197,6 +208,7 @@ function paintPick(ctx) {
     b.classList.toggle('on', id === seat.role);
     b.classList.toggle('in', used.has(id));
   }
+  if (!pick.el?.matches(':hover')) showAb(seat.role || null); // 換座位、角色變了：底下換成他現在的角色（指針正停在某個角色上時不搶）
 }
 
 // 往桌子外側放，放不下就放裏側；尾巴指著頭像
@@ -212,9 +224,9 @@ function placePick() {
   el.style.setProperty('--ay', Math.max(14, Math.min(ht - 14, r.top + r.height / 2 - y)) + 'px');
 }
 
-// 每次重繪之後：開著的角色表和偽裝彈窗跟上最新狀態
+// 每次重繪之後：開著的角色表、整屏的選角色（偽裝、夜晚行動……）跟上最新狀態，這一步過了就收走
 export function syncSetup(ctx) {
-  bluffSheet?.();
+  syncRolePanel();
   if (!pick.el) return;
   const s = ctx.state;
   if (!s.isSt || s.peek || s.phase !== 'lobby' || !pick.anchor.isConnected || !s.seats.some(x => x.id === pick.seatId)) return closePick();
@@ -222,29 +234,27 @@ export function syncSetup(ctx) {
   if (pick.sub.hidden) placePick();
 }
 
-// 手動局：玩家看到的角色，可以和魔典上的不一樣
-export function pickShown(ctx, seat) {
-  const s = ctx.state, set = roleId => { closeModal(); ctx.st('setShown', { seatId: seat.id, roleId }); };
-  modal(`${seatLabel(s, seat.id)} 看到的角色`, h('div', {}, roleGrid(SCRIPTS[s.scriptId].roles, set),
-    seat.fakeRole && h('button', { class: 'btn ghost', onclick: () => set(null) }, '和魔典一樣')), { wide: true });
-}
-
-// 選一個新角色；選酒鬼 / 瘋子時再選他以為自己是哪個鎮民 / 惡魔
-export function pickRole(ctx, seat) {
-  const s = ctx.state, roles = SCRIPTS[s.scriptId].roles;
-  const used = new Set(s.seats.map(x => x.role));
-  const grid = (ids, onPick, mark) => h('div', { class: 'guess-grid' }, ids.map(id =>
-    h('div', { class: 'guess-pick' + (id === seat.role ? ' on' : ''), onclick: () => onPick(id) },
-      roleToken(id, { size: 'sm' }), ROLES[id].name, mark && used.has(id) && h('small', { class: 'muted' }, '在場'))));
-  const set = (roleId, fakeRole) => { closeModal(); ctx.st('setRole', { seatId: seat.id, roleId, fakeRole }); };
-  const body = h('div', {});
-  const choose = id => {
-    if (!FAKE[id]) return set(id);
-    body.replaceChildren(h('p', { style: { marginTop: 0 } }, `${ROLES[id].name}以為自己是哪個${TEAMS[FAKE[id]].name}？`),
-      grid(roles.filter(r => ROLES[r].team === FAKE[id]), f => set(id, f), true));
-  };
-  body.append(h('div', {},
-    s.phase !== 'lobby' && h('p', { class: 'warn small', style: { marginTop: 0 } }, '遊戲中更換角色會私下通知該玩家；今晚已經排好的喚醒順序不變。'),
-    grid(roles, choose, true)));
-  modal(`${seatLabel(s, seat.id)} 的角色`, body, { wide: true });
+// 指定角色（準備階段，觸屏）、更換角色（遊戲中）：整屏的劇本單（rolepick.js），現在的角色蓋著「選」，別的座位上有的標「在場」。
+// 選酒鬼 / 瘋子時同一張紙翻到下一頁，再選他以為自己是哪個鎮民 / 惡魔。準備階段點他已經指定的那張：恢復隨機（和懸停的角色表一樣）
+export function pickRole(ctx, seat, acts) {
+  const s = ctx.state, roles = SCRIPTS[s.scriptId].roles, id0 = seat.id, lobby = s.phase === 'lobby';
+  const now = () => ctx.state.seats.find(x => x.id === id0);
+  const used = () => new Set(ctx.state.seats.filter(x => x.id !== id0).map(x => x.role));
+  const set = (roleId, fakeRole) => ctx.st('setRole', { seatId: id0, roleId, fakeRole });
+  const panel = rolePanel({
+    key: 'role-' + id0, roles,
+    tab: [seatBadge(s, id0), w(lobby ? '角色' : '更換角色')],
+    // 遊戲中換：今晚已經排好的喚醒順序不變；線上 / 多設備時他的手機會收到通知
+    lead: !lobby ? [icon('moon', 'rp-ico'), w('今晚順序不變', 'muted'), !s.oneDevice && [icon('letter', 'rp-ico'), w('私下通知他', 'muted')]]
+      : acts?.length > 0 && acts.map(a => h('button', { class: 'btn sm ghost' + (a.danger ? ' danger' : ''), onclick: () => { closeRolePanel(); a.onclick(); } }, a.label)),
+    state: id => ({ on: now()?.role === id, in: used().has(id) }), picked: () => now()?.role,
+    pick: id => {
+      const x = now();
+      if (lobby && x?.pinned && id === x.role) return void ctx.st('unpin', { seatId: id0 });
+      if (!FAKE[id]) return void set(id);
+      return panel.sub(`${ROLES[id].name}以為自己是哪個${TEAMS[FAKE[id]].name}？`, roles.filter(r => ROLES[r].team === FAKE[id]),
+        f => ({ in: used().has(f) }), f => set(id, f));
+    },
+    alive: () => stOk(ctx) && !!now() && (lobby ? ctx.state.phase === 'lobby' : !['lobby', 'ended'].includes(ctx.state.phase)),
+  });
 }

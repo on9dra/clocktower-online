@@ -78,6 +78,8 @@ body.art .modal.help { border: 0; border-image: none; background: none; }
   font: 700 12px/1 var(--serif); letter-spacing: .2em; pointer-events: auto; transition: right .25s, left .25s, filter .2s;
   clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%); }
 .bk-tab > span { writing-mode: vertical-rl; }
+/* 英文書籤：字小一號，兩個詞的分兩列（In / person），長單詞（Execution）也放得下 */
+:root[data-lang="en"] .bk-tab > span { font-size: 9.5px; line-height: 1.05; max-height: 100%; }
 .bk-tab.st { --c: #8c352b; --t: #f4eadb; }
 .bk-tab:hover { filter: brightness(1.08); }
 .bk-tab.on { right: -32px; box-shadow: inset 4px 0 0 #0000001f; }
@@ -546,3 +548,6 @@ body.art .hp-stamp { -webkit-mask: url(../img/art/stamp-mask.webp) center / cove
 body.art .hp-splat { background: url(../img/art/egg-splat-1.webp) center / contain no-repeat; }
 body.art .hp-splat * { visibility: hidden; }
 
+
+/* 裁定卡的標題籤（fx.css .ic-tag）掛在示意卡的頂邊上 */
+.hp-ruling { position: relative; margin-top: 18px; }

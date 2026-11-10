@@ -1,0 +1,837 @@
+{
+ "，死亡": [
+  "lib/day.js"
+ ],
+ "· 線下": [
+  "public/js/topbar.js"
+ ],
+ "{0} 被擊中，但他{1}": [
+  "lib/day.js"
+ ],
+ "{0} 被女巫詛咒後發起提名": [
+  "lib/day.js"
+ ],
+ "{0} 猜 {1} 是【{2}】": [
+  "lib/day.js"
+ ],
+ "{0} 倒下了！": [
+  "lib/day.js"
+ ],
+ "{0} 得到 {1} 票": [
+  "lib/day.js"
+ ],
+ "{0} 得到 {1} 票（至少需要 {2} 票）": [
+  "lib/day.js"
+ ],
+ "{0} 換設備": [
+  "public/js/invite.js"
+ ],
+ "{0} 沒有選人。": [
+  "lib/day.js"
+ ],
+ "{0} 人：鎮民 {1}、外來者 {2}、爪牙 {3}、惡魔 {4}": [
+  "public/js/setup.js"
+ ],
+ "{0} 是{1}，他選擇了 {2}。": [
+  "lib/day.js"
+ ],
+ "{0} 是貞潔者！提名者立即被處決。": [
+  "lib/day.js"
+ ],
+ "{0} 私聊了 {1}": [
+  "public/js/side.js"
+ ],
+ "{0} 死亡。": [
+  "lib/day.js"
+ ],
+ "{0} 提名 {1}": [
+  "lib/day.js"
+ ],
+ "{0} 提名了 {1}。提名者陳述、被提名者辯護後，說書人開始計票。": [
+  "lib/day.js"
+ ],
+ "{0} 向 {1} 開槍": [
+  "lib/day.js"
+ ],
+ "{0} 宣稱自己是獵手，向 {1} 開槍……": [
+  "lib/day.js"
+ ],
+ "{0}（{1}{2}）被提名：說書人裁定{3}": [
+  "lib/day.js"
+ ],
+ "{0}（{1}{2}）被提名：無事": [
+  "lib/day.js"
+ ],
+ "{0}號 空座位": [
+  "public/js/ui.js"
+ ],
+ "{0}號{1}": [
+  "lib/util.js"
+ ],
+ "{0}以為自己是哪個{1}？": [
+  "public/js/setup.js"
+ ],
+ "按規則這次只有一種結果": [
+  "lib/day.js"
+ ],
+ "保存房間失敗": [
+  "lib/store.js"
+ ],
+ "被女巫詛咒": [
+  "lib/day.js"
+ ],
+ "本局 MVP：{0}（{1} 票）": [
+  "lib/score.js"
+ ],
+ "本局沒有人得到 MVP 票。": [
+  "lib/score.js"
+ ],
+ "必選超額 {0}": [
+  "public/js/setup.js"
+ ],
+ "標記為空": [
+  "lib/manual.js"
+ ],
+ "補發信息給 {0}：「{1}」": [
+  "lib/ops.js"
+ ],
+ "不能扔自己": [
+  "lib/score.js"
+ ],
+ "操作太頻繁，請稍後再試": [
+  "server.js"
+ ],
+ "撤銷：{0}": [
+  "public/js/topbar.js"
+ ],
+ "抽取": [
+  "public/js/topbar.js"
+ ],
+ "傳奇角色": [
+  "public/js/roles.js"
+ ],
+ "創建房間": [
+  "public/js/lobby.js"
+ ],
+ "打開": [
+  "public/js/settings.js"
+ ],
+ "打開聲音": [
+  "public/js/topbar.js"
+ ],
+ "呆瓜選中了邪惡玩家": [
+  "lib/day.js"
+ ],
+ "代入視角中只能查看": [
+  "public/js/app.js"
+ ],
+ "當前沒有投票": [
+  "lib/day.js"
+ ],
+ "第 {0} 天。自由討論後，存活玩家可以點擊他人座位發起提名。": [
+  "lib/day.js"
+ ],
+ "點角色切換：隨機（默認）→ 必選 → 排除。": [
+  "public/js/setup.js"
+ ],
+ "對 {0} 說": [
+  "public/js/side.js"
+ ],
+ "對說書人說": [
+  "public/js/side.js"
+ ],
+ "對所有人說": [
+  "public/js/side.js"
+ ],
+ "發給所有人的公告": [
+  "public/js/side.js"
+ ],
+ "繁體": [
+  "public/js/lang.js",
+  "public/js/lobby.js"
+ ],
+ "反饋 · 關於": [
+  "public/js/topbar.js"
+ ],
+ "返回說書人視角": [
+  "public/js/app.js"
+ ],
+ "房間": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "房間不存在": [
+  "server.js"
+ ],
+ "房間存檔讀取失敗，已備份到 {0}": [
+  "lib/store.js"
+ ],
+ "房間號": [
+  "public/js/lobby.js"
+ ],
+ "房間密碼": [
+  "public/js/invite.js",
+  "public/js/roompass.js",
+  "public/js/topbar.js"
+ ],
+ "房間密碼不對": [
+  "lib/ops.js",
+  "public/js/app.js"
+ ],
+ "房間已解散": [
+  "public/js/app.js"
+ ],
+ "房間已滿，請稍後再試": [
+  "server.js"
+ ],
+ "放棄本局": [
+  "public/js/topbar.js"
+ ],
+ "放棄本局？所有角色和進度會清空，玩家留在座位上。": [
+  "public/js/topbar.js"
+ ],
+ "放棄本局…": [
+  "public/js/topbar.js"
+ ],
+ "非惡魔": [
+  "public/js/side.js"
+ ],
+ "分享房間": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "瘋狂：{0}": [
+  "lib/util.js"
+ ],
+ "服務器出錯：": [
+  "server.js"
+ ],
+ "複製": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "複製說書人鏈接（換設備主持用）": [
+  "public/js/topbar.js"
+ ],
+ "複製邀請鏈接": [
+  "public/js/invite.js"
+ ],
+ "改陣營": [
+  "public/js/topbar.js"
+ ],
+ "給 {0} 加備註": [
+  "public/js/side.js"
+ ],
+ "更多": [
+  "public/js/topbar.js"
+ ],
+ "勾選順序": [
+  "public/js/topbar.js"
+ ],
+ "關於": [
+  "public/js/lobby.js"
+ ],
+ "觀戰": [
+  "public/js/topbar.js"
+ ],
+ "還沒開局": [
+  "lib/ops.js"
+ ],
+ "還有人沒做完死後的選擇": [
+  "lib/day.js"
+ ],
+ "換不了": [
+  "lib/ops.js"
+ ],
+ "換角色": [
+  "public/js/topbar.js"
+ ],
+ "換設備主持": [
+  "public/js/invite.js"
+ ],
+ "恢復隨機": [
+  "public/js/topbar.js"
+ ],
+ "回到 {0} 號房間": [
+  "public/js/lobby.js"
+ ],
+ "回到準備階段，可以開始新的一局。": [
+  "lib/ops.js"
+ ],
+ "積分榜，雞蛋 {0} 枚": [
+  "public/js/topbar.js"
+ ],
+ "記下選擇": [
+  "public/js/topbar.js"
+ ],
+ "寄出失敗，請稍後再試": [
+  "server.js"
+ ],
+ "寄得太頻繁，請過一會兒再寄": [
+  "server.js"
+ ],
+ "加入房間": [
+  "public/js/lobby.js"
+ ],
+ "加座位": [
+  "public/js/topbar.js"
+ ],
+ "假死": [
+  "lib/util.js"
+ ],
+ "简体": [
+  "public/js/lang.js",
+  "public/js/lobby.js"
+ ],
+ "簡略": [
+  "public/js/rolepick.js"
+ ],
+ "建房太頻繁，請稍後再試": [
+  "server.js"
+ ],
+ "角色表": [
+  "public/js/side.js"
+ ],
+ "角色太多了（最多 {0} 個）": [
+  "lib/script.js"
+ ],
+ "結算投票": [
+  "public/js/topbar.js"
+ ],
+ "解散": [
+  "public/js/topbar.js"
+ ],
+ "解散房間？所有人退回大廳，房間和聊天記錄都會刪掉。": [
+  "public/js/topbar.js"
+ ],
+ "解散房間…": [
+  "public/js/topbar.js"
+ ],
+ "今天沒有人被處決。": [
+  "lib/day.js"
+ ],
+ "今天已經處決過了": [
+  "lib/ops.js"
+ ],
+ "今晚順序不變": [
+  "public/js/setup.js"
+ ],
+ "僅剩三人且無人被處決，鎮長獲勝": [
+  "lib/day.js"
+ ],
+ "靜音": [
+  "public/js/settings.js"
+ ],
+ "劇本不存在": [
+  "lib/ops.js"
+ ],
+ "離開": [
+  "public/js/topbar.js"
+ ],
+ "離開房間？之後可以用同一個鏈接回來。": [
+  "public/js/topbar.js"
+ ],
+ "連接中": [
+  "public/js/app.js"
+ ],
+ "鏈接已失效，請找說書人重新發": [
+  "lib/ops.js"
+ ],
+ "聊天": [
+  "public/js/side.js"
+ ],
+ "流程": [
+  "public/js/side.js"
+ ],
+ "路人": [
+  "server.js"
+ ],
+ "旅行者": [
+  "public/js/roles.js"
+ ],
+ "沒有待裁定的貞潔者": [
+  "lib/day.js"
+ ],
+ "沒有進行中的投票": [
+  "lib/day.js"
+ ],
+ "沒有可以撤銷的": [
+  "public/js/topbar.js"
+ ],
+ "沒有可以撤銷的操作": [
+  "lib/ops.js"
+ ],
+ "密碼是 4 位數字": [
+  "lib/ops.js"
+ ],
+ "模式不存在": [
+  "lib/ops.js"
+ ],
+ "目標不存在": [
+  "lib/ops.js",
+  "lib/score.js"
+ ],
+ "目前將被處決的是 {0}。": [
+  "lib/day.js"
+ ],
+ "目前平票，無人將被處決。": [
+  "lib/day.js"
+ ],
+ "目前無人將被處決。": [
+  "lib/day.js"
+ ],
+ "男爵隨機時只在 7 人及以上出現。": [
+  "public/js/setup.js"
+ ],
+ "你": [
+  "lib/ops.js"
+ ],
+ "你不能猜": [
+  "lib/day.js"
+ ],
+ "你不在這局遊戲中": [
+  "lib/ops.js"
+ ],
+ "你的死亡票已經用過了": [
+  "lib/day.js"
+ ],
+ "你今天已經開過槍了": [
+  "lib/day.js"
+ ],
+ "你今天已經提名過了": [
+  "lib/day.js"
+ ],
+ "你今晚的行動": [
+  "public/js/side.js"
+ ],
+ "你是管家：主人舉手時你才能舉手": [
+  "lib/day.js"
+ ],
+ "你死了：公開選擇一名存活的玩家，他是善良的話，今晚死亡": [
+  "lib/view.js"
+ ],
+ "你死了：公開選擇一名存活的玩家，他是邪惡的話，你的陣營落敗": [
+  "lib/view.js"
+ ],
+ "你已被說書人移出房間": [
+  "public/js/app.js"
+ ],
+ "你已被說書人移出這個房間": [
+  "lib/ops.js"
+ ],
+ "你在這個房間已經有座位了": [
+  "lib/ops.js"
+ ],
+ "暱稱": [
+  "public/js/lobby.js"
+ ],
+ "挪座位": [
+  "public/js/topbar.js"
+ ],
+ "判定勝負": [
+  "public/js/topbar.js"
+ ],
+ "奇遇角色": [
+  "public/js/roles.js"
+ ],
+ "切换到简体": [
+  "public/js/topbar.js"
+ ],
+ "切換到繁體": [
+  "public/js/topbar.js"
+ ],
+ "切換繁體 / 簡體": [
+  "public/js/lobby.js"
+ ],
+ "請確認": [
+  "public/js/ui.js"
+ ],
+ "請稍候，說書人正在處理": [
+  "lib/ops.js"
+ ],
+ "請輸入 4 位房間號": [
+  "public/js/lobby.js"
+ ],
+ "請輸入房間密碼": [
+  "lib/ops.js",
+  "public/js/app.js"
+ ],
+ "請輸入名字": [
+  "lib/ops.js"
+ ],
+ "請輸入暱稱": [
+  "public/js/lobby.js"
+ ],
+ "請先裁定能力是否生效": [
+  "lib/ops.js"
+ ],
+ "請先裁定貞潔者是否反噬": [
+  "lib/day.js",
+  "lib/ops.js"
+ ],
+ "請先處理裁定": [
+  "lib/ops.js"
+ ],
+ "請選擇獲勝陣營": [
+  "lib/ops.js"
+ ],
+ "請選擇一名存活的其他玩家": [
+  "lib/day.js"
+ ],
+ "請選擇陣營": [
+  "lib/manual.js"
+ ],
+ "取消抽取": [
+  "public/js/topbar.js"
+ ],
+ "取消密碼": [
+  "public/js/roompass.js"
+ ],
+ "全部恢復隨機": [
+  "public/js/setup.js"
+ ],
+ "全部靜音": [
+  "public/js/topbar.js"
+ ],
+ "缺少玩家標識": [
+  "server.js"
+ ],
+ "讓移出的人回來（{0}）": [
+  "public/js/topbar.js"
+ ],
+ "日誌": [
+  "public/js/side.js"
+ ],
+ "上一步": [
+  "public/js/topbar.js"
+ ],
+ "設置": [
+  "public/js/settings.js",
+  "public/js/topbar.js"
+ ],
+ "什麼也沒有發生。": [
+  "lib/day.js"
+ ],
+ "收件人不存在": [
+  "lib/ops.js"
+ ],
+ "收起側欄": [
+  "public/js/side.js"
+ ],
+ "說書人把 {0} 改為{1}": [
+  "lib/manual.js"
+ ],
+ "說書人把 {0} 設為中毒": [
+  "lib/ops.js"
+ ],
+ "說書人放棄了本局，回到準備階段。": [
+  "lib/ops.js"
+ ],
+ "說書人解除了中毒": [
+  "lib/ops.js"
+ ],
+ "說書人離線": [
+  "public/js/topbar.js"
+ ],
+ "說書人鏈接已複製：換設備時打開它即可繼續主持，不要發給玩家": [
+  "public/js/invite.js",
+  "public/js/topbar.js"
+ ],
+ "說書人密鑰錯誤": [
+  "public/js/app.js",
+  "server.js"
+ ],
+ "說書人判定{0}陣營獲勝": [
+  "lib/ops.js"
+ ],
+ "說書人取消了本次提名，雙方今天可以重新提名 / 被提名。": [
+  "lib/day.js"
+ ],
+ "說書人手動標記": [
+  "lib/ops.js"
+ ],
+ "說書人提出立即計票：從 {0} 開始順時針輪流選擇，到點沒有表態的算棄權。": [
+  "lib/day.js"
+ ],
+ "說書人選擇了劇本：{0}": [
+  "lib/ops.js"
+ ],
+ "說書人直接處決了 {0}": [
+  "lib/ops.js"
+ ],
+ "私聊記錄": [
+  "public/js/side.js"
+ ],
+ "私下通知他": [
+  "public/js/setup.js"
+ ],
+ "死亡 / 復活": [
+  "public/js/topbar.js"
+ ],
+ "死亡玩家不能開槍": [
+  "lib/day.js"
+ ],
+ "死亡玩家不能提名": [
+  "lib/day.js"
+ ],
+ "他今天已經被提名過了": [
+  "lib/day.js"
+ ],
+ "統計寫盤出錯": [
+  "lib/stats.js"
+ ],
+ "推進": [
+  "public/js/topbar.js"
+ ],
+ "推送狀態出錯": [
+  "server.js"
+ ],
+ "完成": [
+  "public/js/setup.js"
+ ],
+ "玩家{0}": [
+  "lib/ops.js"
+ ],
+ "玩家看到的角色": [
+  "public/js/topbar.js"
+ ],
+ "網絡不通，請稍後再試": [
+  "public/js/app.js"
+ ],
+ "未捕獲的錯誤": [
+  "server.js"
+ ],
+ "未處理的 Promise 拒絕": [
+  "server.js"
+ ],
+ "未加入房間": [
+  "server.js"
+ ],
+ "未知操作": [
+  "lib/ops.js"
+ ],
+ "我是玩家": [
+  "public/js/lobby.js"
+ ],
+ "無權限": [
+  "server.js"
+ ],
+ "無事": [
+  "lib/day.js"
+ ],
+ "系統": [
+  "lib/util.js"
+ ],
+ "現在 {0} 人，至少需要 5 人才能開局。": [
+  "public/js/setup.js"
+ ],
+ "現在不是白天": [
+  "lib/day.js"
+ ],
+ "現在沒有可以撤銷的": [
+  "public/js/topbar.js"
+ ],
+ "線上魔典": [
+  "public/js/lobby.js"
+ ],
+ "線下 · 單設備": [
+  "public/js/topbar.js"
+ ],
+ "線下局當面舉手，說書人會記下": [
+  "lib/ops.js"
+ ],
+ "線下局當面提名，說書人會替你點": [
+  "lib/ops.js"
+ ],
+ "線下局由說書人替你點": [
+  "lib/ops.js"
+ ],
+ "詳細": [
+  "public/js/rolepick.js"
+ ],
+ "消息為空": [
+  "lib/ops.js"
+ ],
+ "信息": [
+  "public/js/topbar.js"
+ ],
+ "信息為空": [
+  "lib/ops.js"
+ ],
+ "血染鐘樓魔典已啓動: http://localhost:{0}": [
+  "server.js"
+ ],
+ "煙花": [
+  "public/js/settings.js"
+ ],
+ "煙花聲": [
+  "public/js/settings.js"
+ ],
+ "邀請鏈接已複製": [
+  "public/js/invite.js"
+ ],
+ "夜晚會隨玩家行動自動推進": [
+  "lib/ops.js"
+ ],
+ "移除座位": [
+  "public/js/topbar.js"
+ ],
+ "已撤銷：{0}": [
+  "public/js/topbar.js"
+ ],
+ "已複製，發給 {0}": [
+  "public/js/invite.js"
+ ],
+ "已恢復 {0} 個房間": [
+  "lib/store.js"
+ ],
+ "已結束": [
+  "public/js/lobby.js"
+ ],
+ "已經數過你了，不能再改": [
+  "lib/day.js"
+ ],
+ "已經在計票了": [
+  "lib/day.js"
+ ],
+ "已離開房間": [
+  "public/js/app.js"
+ ],
+ "音樂音量": [
+  "public/js/settings.js"
+ ],
+ "音效音量": [
+  "public/js/settings.js"
+ ],
+ "遊戲還沒開始": [
+  "lib/ops.js"
+ ],
+ "遊戲日誌": [
+  "public/js/side.js"
+ ],
+ "遊戲已經開始": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能改配置": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能換": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能換劇本": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能換座": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能加減座位": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能加座位": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能離開座位": [
+  "lib/ops.js"
+ ],
+ "遊戲中不能移除玩家": [
+  "lib/ops.js"
+ ],
+ "有惡魔？": [
+  "public/js/side.js"
+ ],
+ "在場": [
+  "public/js/rolepick.js",
+  "public/js/setup.js"
+ ],
+ "在場的角色不能當偽裝": [
+  "public/js/setup.js"
+ ],
+ "展開側欄": [
+  "public/js/side.js"
+ ],
+ "占卜師的紅鯡魚：{0}": [
+  "lib/util.js"
+ ],
+ "這本劇本裏沒有能發給玩家的角色": [
+  "lib/script.js"
+ ],
+ "這個鏈接的那一局已經結束了": [
+  "server.js"
+ ],
+ "這個座位已在別的設備上打開": [
+  "public/js/app.js"
+ ],
+ "正在投票中": [
+  "lib/day.js"
+ ],
+ "正在以 {0} 的視角查看（只讀）": [
+  "public/js/app.js"
+ ],
+ "正在重連，請稍候": [
+  "public/js/app.js"
+ ],
+ "直接判定善良陣營獲勝，結束本局？": [
+  "public/js/topbar.js"
+ ],
+ "直接判定邪惡陣營獲勝，結束本局？": [
+  "public/js/topbar.js"
+ ],
+ "只能改線下座位的名字": [
+  "lib/ops.js"
+ ],
+ "只能觀戰": [
+  "lib/ops.js"
+ ],
+ "只能在白天處決": [
+  "lib/ops.js"
+ ],
+ "只能在白天開槍": [
+  "lib/day.js"
+ ],
+ "只能在白天提名": [
+  "lib/day.js"
+ ],
+ "只能在第一個白天猜": [
+  "lib/day.js"
+ ],
+ "只有單設備的線下局可以直接加座位": [
+  "lib/ops.js"
+ ],
+ "只有線下局可以撤銷": [
+  "lib/ops.js"
+ ],
+ "只有線下局可以這樣操作": [
+  "lib/ops.js"
+ ],
+ "重連中": [
+  "public/js/app.js"
+ ],
+ "準備中": [
+  "public/js/lobby.js"
+ ],
+ "自定義": [
+  "lib/stats.js"
+ ],
+ "自製劇本": [
+  "lib/script.js"
+ ],
+ "最多 12 個字，只有你看得到": [
+  "public/js/side.js"
+ ],
+ "最多 15 人，還能加 {0} 人": [
+  "lib/ops.js"
+ ],
+ "最多猜五次": [
+  "lib/day.js"
+ ],
+ "座位不存在": [
+  "lib/manual.js",
+  "lib/ops.js"
+ ],
+ "座位上已經有人了": [
+  "lib/ops.js"
+ ],
+ "MVP 投票已結束": [
+  "lib/score.js"
+ ]
+}
