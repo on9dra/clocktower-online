@@ -69,8 +69,8 @@ app.get('/admin', (req, res) => {
   if (!allow('miss:' + ip, LIMIT.miss, 0)) return res.status(404).end();
   if (!adminOk(req)) { allow('miss:' + ip, LIMIT.miss); return res.status(404).end(); }
   const socks = [...io.sockets.sockets.values()], now = Date.now();
-  const rooms = store.all().map(r => ({ r, ...stats.presence(r, socks), idle: now - (r.updatedAt || r.createdAt) }))
-    .sort((a, b) => (b.st + b.on + b.watch > 0) - (a.st + a.on + a.watch > 0) || a.idle - b.idle);
+  const rooms = store.all().map(r => { const p = stats.presence(r, socks); return { r, ...p, away: stats.away(r, p), mode: stats.mode(r), idle: now - (r.updatedAt || r.createdAt) }; })
+    .sort((a, b) => (b.st + b.on + b.watch + b.away > 0) - (a.st + a.on + a.watch + a.away > 0) || a.idle - b.idle);
   res.set('Cache-Control', 'no-store').set('X-Robots-Tag', 'noindex').type('html').send(adminPage({
     rooms, lobby: socks.filter(s => !s.data.code).length, samples: stats.read('samples', 30), visits: stats.read('visits', 30), games: stats.read('games', 30), running: stats.running() }));
 });

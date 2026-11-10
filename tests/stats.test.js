@@ -57,5 +57,31 @@ await wait(200);
 const visits = stats.read('visits', 1);
 assert.strictEqual(visits.length, 2, JSON.stringify(visits));
 assert.ok(visits.every(v => /^[0-9a-f]{8}$/.test(v.v)) && !JSON.stringify(visits).includes('1.2.3.4'), 'IP 只留摘要');
+
+// 模式：線上 / 線下多設備 / 線下單設備分開記；單設備座位認不出是誰，不進 who；桌邊沒連上的線下玩家記進樣本的 off
+const e = setup(['chef', 'imp', 'poisoner', 'monk', 'soldier']);
+Object.assign(e.settings, { chosen: true, venue: 'offline', devices: 'one' });
+e.seats.forEach(s => s.local = true);
+e.updatedAt = Date.now();
+assert.strictEqual(stats.mode(e), 'one');
+assert.strictEqual(stats.away(e, stats.presence(e, [])), 5);
+assert.strictEqual(stats.away({ ...e, updatedAt: Date.now() - 3600e3 }, stats.presence(e, [])), 0, '散了的線下局不算');
+stats.observe(e);
+assert.strictEqual(stats.running()[0].mode, 'one');
+stats.sample([e], [], () => e);
+endGame(e, 'evil', '測試');
+stats.observe(e);
+e.settings.devices = 'many';
+assert.strictEqual(stats.mode(e), 'multi');
+e.settings.venue = 'online';
+assert.strictEqual(stats.mode(e), 'on');
+// 舊記錄只有 manual：讀出來換成 mode
+fs.appendFileSync(path.join(dir, 'stats', `games-${new Date().toISOString().slice(0, 7)}.jsonl`), JSON.stringify({ t: Date.now(), n: 9, manual: true }) + '\n' + JSON.stringify({ t: Date.now(), n: 10, manual: false }) + '\n');
+await wait(200);
+const g2s = stats.read('games', 1), one = g2s.find(g => g.n === 5 && g.winner === 'evil');
+assert.deepStrictEqual([one.mode, one.who], ['one', []]);
+assert.deepStrictEqual([g2s.find(g => g.n === 9).mode, g2s.find(g => g.n === 10).mode], ['off', 'on']);
+assert.ok(g2s.every(g => !('manual' in g)));
+assert.strictEqual(stats.read('samples', 1).at(-1).off, 5);
 fs.rmSync(dir, { recursive: true, force: true });
 console.log('stats tests ok');
