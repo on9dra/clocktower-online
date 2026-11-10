@@ -2017,6 +2017,9 @@
  "旅行者": [
   "public/js/roles.js"
  ],
+ "輪到": [
+  "public/js/herald.js"
+ ],
  "輪到你": [
   "public/js/fx.js",
   "public/js/trial.js"
@@ -2537,6 +2540,7 @@
  ],
  "確認": [
   "public/js/flow.js",
+  "public/js/herald.js",
   "public/js/intro.js",
   "public/js/stepcard.js"
  ],
@@ -3449,6 +3453,9 @@
  "行動": [
   "public/js/fx-ab.js",
   "public/js/log.js"
+ ],
+ "行動了": [
+  "public/js/herald.js"
  ],
  "醒來": [
   "public/js/glyph.js"

@@ -9,6 +9,7 @@ import { nightHeld } from './fx.js';
 import { openInvite } from './invite.js';
 import { rolePanel, closeRolePanel } from './rolepick.js';
 import { tr, getLang, trHas } from './lang.js';
+import { heraldHeld } from './herald.js';
 
 // 角色那句話（glyph.js 的 say）：單數段是普通字，雙數段是關鍵詞（加粗）。中文用「」括起來直接接上；
 // 英文整句查（en-fix.json 裏以「段|段」為鍵，關鍵詞用 *…* 標出）：關鍵詞和標籤共用一個詞（「死亡」→ Dead）時，逐段翻語法不通。
@@ -447,8 +448,9 @@ export function syncPrompt(ctx) {
 export function syncStPick(ctx) {
   const s = ctx.state, step = s.st?.step;
   if (!s.isSt || s.peek || !s.offline) return;
-  // 桌子中間先擺著別的卡（第 1 夜的傳閱身份、紅唇女郎接任的提示）時還沒輪到這一步：不進選人，否則座位按這一步的規則變灰
-  const ahead = needPass(ctx) || !!s.st?.notice;
+  // 桌子中間先擺著別的卡（第 1 夜的傳閱身份、紅唇女郎接任的提示）、「輪到誰」的整屏牌還沒收起（herald.js）時還沒輪到這一步：
+  // 不進選人，否則座位按這一步的規則變灰
+  const ahead = needPass(ctx) || !!s.st?.notice || heraldHeld();
   if (s.phase === 'night' && step?.status === 'choose' && !ahead) {
     if (!sel.on || sel.on.key !== step.id) sel.on = { ...selFrom(step.id, step.choose, step.seatId), auto: true };
   } else if (sel.on?.auto) sel.on = null;

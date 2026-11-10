@@ -167,6 +167,7 @@ const raw = (r, role, ids, roleId) => applyPlayerAction(r, S(r, role).pid, { act
   r.g.step = null;
   run(r);
   assert.strictEqual(r.g.step.seatId, S(r, 'lunatic').id);
+  assert.strictEqual(r.g.step.turn, true, '瘋子以為自己是珀：輪到他自己（線下彈「輪到 ① 珀 行動了」，卡上蓋「瘋子」章）');
   assert.strictEqual(raw(r, 'lunatic', []), undefined);
   ok(st(r, 'decide', { choice: 'fail' })); ack(r);
   assert.strictEqual(r.g.step.choose.count, 1, '真珀不蓄力');

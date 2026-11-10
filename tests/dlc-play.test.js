@@ -79,9 +79,12 @@ function dayVote(r, from, to, voters) {
   dayVote(r, w, S(r, 'saint'), []);
   const b = toStep(r, 'barber');
   assert.strictEqual(b.seatId, S(r, 'nodashii').id, '惡魔替理髮師選');
+  assert.strictEqual(b.turn, false, '理髮師的能力臨時叫醒惡魔：不算惡魔自己的回合，不彈「輪到誰」');
   pick(r, [w.id, S(r, 'chef').id]);
   assert.strictEqual(w.role, 'chef');
-  assert.strictEqual(toStep(r, 'towncrier').form.truth.yes, true, '提名時他是爪牙');
+  const tc = toStep(r, 'towncrier');
+  assert.strictEqual(tc.form.truth.yes, true, '提名時他是爪牙');
+  assert.strictEqual(tc.turn, true, '城鎮公告員自己的回合');
 }
 
 // 理髮師：亡骨魔把自己換給別人，爪牙鄰居的毒跟著亡骨魔這個角色走（和舞蛇人換到亡骨魔一樣），不會因為原座位沒了角色就解開

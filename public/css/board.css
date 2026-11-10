@@ -121,6 +121,27 @@ body[data-phase="night"] .ring::before, body[data-phase="dawn"] .ring::before { 
     + var(--up) * (var(--tk) + var(--pm) + var(--ph) + 2px));
   translate: calc(-50% - 50% * var(--ux)) calc((1 - var(--up)) * (-50% - 50% * var(--uy))); display: flex; flex-direction: column; align-items: center; gap: 2px; width: max-content; }
 .seat-more:empty { display: none; }
+/* 線下說書人：輪到誰行動，他頭頂一個慢慢跳的箭頭（town.js turnArrow，herald.js turnSeat）。紙色描邊墊底、墨線、銅色，夜空上也看得清。
+   從上面落下來（turn-drop），之後一直慢慢上下跳（turn-bob）。下半圈靠近正下方的座位，標記朝圓心掛在頭頂上：輪到他時整串往上讓出箭頭的位置（--lift） */
+.seat { --aw: clamp(16px, calc(var(--tk) * .42), 26px); --lift: clamp(0, (var(--uy, 0) - .65) * 1000, 1); }
+.turn-arrow { position: absolute; z-index: 4; left: calc(50% - var(--aw) / 2); bottom: calc(100% + 3px); width: var(--aw); height: calc(var(--aw) * 1.25); pointer-events: none;
+  animation: turn-drop .5s cubic-bezier(.3, 1.5, .5, 1) both, turn-bob 1.1s ease-in-out .5s infinite alternate; }
+.turn-arrow svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.turn-arrow path { fill: #d6b462; stroke: #2a2622; stroke-width: 1.6px; stroke-linejoin: round; }
+.turn-arrow path.e { fill: none; stroke: #efe6d2; stroke-width: 4.6px; }
+@keyframes turn-drop { from { translate: 0 calc(var(--aw) * -1); opacity: 0; } }
+@keyframes turn-bob { to { translate: 0 calc(var(--aw) * -.28); } }
+/* 頭頂放不下：挪到頭像外側，橫著指向他（town.js turnArrow），跳的方向跟著橫過來 */
+.turn-arrow:is(.ta-l, .ta-r) { bottom: auto; top: calc(var(--tk) / 2 - var(--aw) * .625); }
+.turn-arrow.ta-l { left: calc(50% - var(--tk) / 2 - 4px - var(--aw) * 1.125); rotate: -90deg; animation-name: turn-drop-l, turn-bob-l; }
+.turn-arrow.ta-r { left: calc(50% + var(--tk) / 2 + 4px + var(--aw) * .125); rotate: 90deg; animation-name: turn-drop-r, turn-bob-r; }
+@keyframes turn-drop-l { from { translate: calc(var(--aw) * -1) 0; opacity: 0; } }
+@keyframes turn-bob-l { to { translate: calc(var(--aw) * -.28) 0; } }
+@keyframes turn-drop-r { from { translate: var(--aw) 0; opacity: 0; } }
+@keyframes turn-bob-r { to { translate: calc(var(--aw) * .28) 0; } }
+.seat-more { transition: margin-top .3s ease; }
+.seat.turn .seat-more { margin-top: calc(var(--lift) * (var(--aw) * -1.55 - 6px)); } /* 箭頭高 1.25 個寬，跳起來再高 .28 */
+@media (prefers-reduced-motion: reduce) { .turn-arrow { animation: none; } }
 .seat-more :is(.tags, .pmarks) { margin-top: 0; max-width: max(80px, calc(var(--tk) * 1.6)); }
 .tag { font-size: 11px; background: var(--card); border: 1px solid var(--line-strong); border-radius: 2px; padding: 0 4px; }
 .tag.bad { border-color: var(--evil); color: var(--evil); }

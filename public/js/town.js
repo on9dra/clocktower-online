@@ -16,6 +16,7 @@ import { seatLogView } from './log.js';
 import { showBluffs } from './pass.js';
 import { openSeatLink } from './invite.js';
 import { tr, getLang } from './lang.js';
+import { heraldHeld, turnSeat } from './herald.js';
 
 // 當前的選人狀態：{ count, notSelfId, ids, key }
 export const sel = { on: null };
@@ -110,6 +111,7 @@ export function renderTown(ctx) {
   // 別的座位不挪、不重播動畫。要按座次的地方用 data-i
   const domOrder = [...s.seats].sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
   const markStep = s.isSt && s.phase === 'night' && s.st?.step?.status === 'mark' ? s.st.step : null;
+  const turnAt = turnSeat(ctx); // 線下說書人：輪到誰行動，他頭頂掛箭頭（herald.js）
   const ownPick = markStep && ROLES[markStep.roleId] ? ROLES[markStep.roleId].name + '選' : null;
   domOrder.forEach(seat => {
     const i = s.seats.indexOf(seat);
@@ -124,6 +126,7 @@ export function renderTown(ctx) {
       else if (pk.can.has(seat.id)) cls.push('selectable');
     } else if (aimed.has(seat.id) || pickingSeat() === seat.id) cls.push('aimed');
     if (seat.mine) cls.push('mine');
+    if (turnAt === seat.id) cls.push('turn');
     if (nom && nom.nomineeId === seat.id) cls.push('nominee');
     if (nom && nom.nominatorId === seat.id) cls.push('nominator');
     if (liveBlock(s) === seat.id) cls.push('onblock');
@@ -198,7 +201,8 @@ export function renderTown(ctx) {
       !s.isSt && (acts[seat.id] || []).map(actMarkView),
       team[seat.id] && g[seat.id] && h('span', { class: 'pm q', title: '你的猜測' }, mini(g[seat.id])),
       (auto[seat.id] || []).filter(k => !k.t).map(markView),
-      (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t))))));
+      (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t)))),
+    turnAt === seat.id && turnArrow(seat.id)));
   });
 
   // 說書人的操作卡和玩家輪到自己時的牌一樣，放在圓桌中央「第 N 夜 / 天」下面；貞潔者小窗貼桌面左上角，不擋計票；
@@ -216,7 +220,7 @@ export function renderTown(ctx) {
   // 台上有人、或正在演處決：中間讓給頭像，不寫「第 N 天」；說書人的按鈕挪到絞刑架下面（有操作卡時卡片照常蓋在中間）
   const hang = (blk || execActive()) && !mid;
   // 「第 N 夜 / 天」換階段時在中間亮一下，之後飛到左上角（spot：mid 中間 / corner 角上 / null 不寫）
-  const spot = titleSpot(ctx, s, mid);
+  const spot = titleSpot(ctx, s, mid || (s.isSt && heraldHeld())); // 「輪到誰」的整屏牌扣著這一步時，桌心空著也不把標題請回來
   ring.append(h('div', { class: 'center' + (nom ? ' has-nom' : '') + (hang ? ' has-blk' : '') },
     !blk && spot === 'mid' && h('div', { class: 'phase-title' }, title),
     // 玩家的那句（閉上眼、討論時間）是說給他的，標題走了也留著；說書人的那句只陪標題亮一下
@@ -340,6 +344,35 @@ function stand(s) {
     all.length > STAND_NAMES && h('span', { class: 'stand-more', 'data-key': 'more' }, '⋯'));
 }
 
+// 線下說書人：輪到誰行動，他頭頂一個慢慢跳的箭頭（紙邊、墨線、銅色；board.css .turn-arrow）。
+// 換人時舊的沉下去淡掉（data-exit），新的從上面落下來再接著跳
+// 頭頂放不下（橫著的手機上最上面那個座位頭頂就是頂欄；手機豎屏洗衣婦那種卡把選項排在圓桌上方）：箭頭挪到頭像外側橫著指過去（.ta-l / .ta-r）。
+// 畫好以後量（arrowFit），擋住了就在同一幀重畫一次（還沒畫到屏幕上，看不到挪的那一下）；挪過去之後這一輪就一直在旁邊，不來回跳
+const ARROW = '<path class="e" d="M8 2.5h8v12h5.5L12 27.5 2.5 14.5H8z"/><path d="M8 2.5h8v12h5.5L12 27.5 2.5 14.5H8z"/>';
+const arrowAt = { id: null, side: '' }; // side：'' 頭頂，'l' / 'r' 頭像左 / 右邊（朝圓桌外的那一邊）
+function turnArrow(id) {
+  if (arrowAt.id !== id) Object.assign(arrowAt, { id, side: '' });
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 30');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.innerHTML = ARROW;
+  return h('i', { class: 'turn-arrow' + (arrowAt.side ? ' ta-' + arrowAt.side : ''), 'data-key': 'turn-arrow', 'data-exit': true }, svg);
+}
+const hits = (a, b) => a.width > 0 && a.left < b.r && a.right > b.l && a.top < b.b && a.bottom > b.t;
+// 返回 true：箭頭要挪到旁邊，app.js 馬上再畫一次
+export function arrowFit() {
+  const a = document.querySelector('.ring > .seat > .turn-arrow:not(.leaving)'), seat = a?.parentElement;
+  if (!a || arrowAt.id !== seat.dataset.key || arrowAt.side) return false;
+  // 按頭像算箭頭的位置（箭頭自己正在落下來、在跳，量它本身不準），往上多留跳起來的那一截
+  const t = seat.querySelector(':scope > .seat-token').getBoundingClientRect(), aw = a.offsetWidth, ah = a.offsetHeight;
+  const box = { l: t.left + t.width / 2 - aw / 2, r: t.left + t.width / 2 + aw / 2, t: t.top - 3 - ah - aw * .28, b: t.top - 3 };
+  const top = document.querySelector('.board')?.getBoundingClientRect().top ?? 0;
+  const blocked = box.t < top || [...document.querySelectorAll('.st-card :is(.ic-body, .tb-roles, .ic-foot, .tb-foot), .town > .phase-tag')].some(el => hits(el.getBoundingClientRect(), box));
+  if (!blocked) return false;
+  arrowAt.side = parseFloat(seat.style.getPropertyValue('--ux')) > 0 ? 'r' : 'l';
+  return true;
+}
+
 // 說書人：當前夜晚步驟的操作卡（走完是天亮前核對）/ 白天的裁定卡。貞潔者小窗（side）不擋投票，有別的裁定時讓位
 function stBubble(ctx) {
   const s = ctx.state;
@@ -348,7 +381,7 @@ function stBubble(ctx) {
   // 白天接任的惡魔（紅唇女郎）：處決之後直接入夜，提示壓在今晚第一步前面，點了「知道了」再往下
   const notice = s.isSt && !s.peek && !s.st?.ruling && s.st?.notice;
   if (notice) return { id: `notice-${notice.seatId}-${notice.f[1]?.r}`, seatId: notice.seatId, card: () => noticeCard(ctx, notice) };
-  const step = s.isSt && !s.peek && s.phase === 'night' && !nightHeld() && s.st.step;
+  const step = s.isSt && !s.peek && s.phase === 'night' && !nightHeld() && !heraldHeld() && s.st.step; // 「輪到誰」的整屏牌收起後才出
   const ruling = s.isSt && !s.peek && s.phase === 'day' && (s.st.ruling || s.st.virginCheck);
   const side = !!ruling && !s.st.ruling;
   const word = s.isSt && !s.peek && s.phase === 'day' && !ruling && s.st.lastWord; // 月之子、呆瓜、心上人死後的選擇

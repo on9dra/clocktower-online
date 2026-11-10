@@ -176,6 +176,8 @@ function enqueue(sc) { queue.push(sc); if (!running) runQueue(); }
 // 演出都播完了再做的事（線下手機：信息演出落到座位上之後，身份面板才浮出來，一次只看一件事）
 const idle = [];
 export const fxIdle = () => new Promise(r => (running || queue.length ? idle.push(r) : r()));
+// 正在播擋操作的演出（或者排著）：線下說書人「輪到誰」的整屏牌等它播完再上（herald.js）
+export const sceneBusy = () => (running && !!cur?.block) || queue.some(sc => sc.block);
 async function runQueue() {
   running = true;
   while (queue.length) {

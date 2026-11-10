@@ -4,7 +4,7 @@ import { renderTown } from './town.js';
 import { renderSide, sideCollapsed, closeSheet, resetSide } from './side.js';
 import { syncPrompt, syncStPick } from './flow.js';
 import { progressBar } from './progress.js';
-import { sel, stopSelect, fitTableCard } from './town.js';
+import { sel, stopSelect, fitTableCard, arrowFit } from './town.js';
 import { syncSetup, closePick } from './setup.js';
 import { closeRolePanel } from './rolepick.js';
 import { topbar } from './topbar.js';
@@ -18,6 +18,7 @@ import { renderLobby, recentList, recentRooms, rememberRoom, forgetRoom } from '
 import { openInvite } from './invite.js';
 import { showIntro, introSeen } from './intro.js';
 import { openAbout } from './about.js';
+import { heraldSync, resetHerald } from './herald.js';
 import { askPass } from './roompass.js';
 import { countPop } from './trial.js';
 import { chime, locked, wake, loadSfx } from './sfx.js';
@@ -199,7 +200,7 @@ function lobby(code = params.get('room') || '') {
   // 離開房間（解散、被移出、自己離開、進不去）：掛在 body 上、不跟著桌面走的東西也收掉——選角色的紙（收著的索引籤也算）、
   // 懸停的角色表、單設備的整屏卡、彈窗、菜單，屏幕常亮放開。不收的話它們留在大廳上面，開著的還壓暗、擋住整個大廳
   if (room) {
-    resetFx(); resetSide(); chat = []; sel.on = null; closeAct(ctx);
+    resetFx(); resetSide(); resetHerald(); chat = []; sel.on = null; closeAct(ctx);
     closeMenu(); closeModal(); closeRolePanel(); closePick(); closePass(); keepAwake(false);
   }
   const create = () => {
@@ -254,6 +255,7 @@ function render() {
   const app = document.getElementById('app');
   const atBottom = {};
   app.querySelectorAll('[data-scroll]').forEach(el => { atBottom[el.dataset.scroll] = el.scrollHeight - el.scrollTop - el.clientHeight < 30; });
+  heraldSync(ctx); // 線下說書人：輪到新的一個人時先扣住這一步，整屏提示收起後桌上才出卡和選人（herald.js）
   if (!s.isSt) syncPrompt(ctx); else syncStPick(ctx); // 先建立選人狀態，桌面要用到
   const side = renderSide(ctx);
   const town = renderTown(ctx);
@@ -265,6 +267,7 @@ function render() {
   const cur = app.querySelector(':scope > .game:not(.gone)');
   if (cur) morph(cur, tree); else dealt = intoRoom(app, tree);
   fitTableCard();
+  if (arrowFit()) return render(); // 輪到誰的箭頭頭頂放不下：挪到頭像旁邊，趁還沒畫到屏幕上重畫一次
   syncSetup(ctx);
   // 聊天、日誌：原本停在底部的保持在底部，新打開的貼底列表直接滾到底
   app.querySelectorAll('[data-scroll]').forEach(el => {

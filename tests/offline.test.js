@@ -44,6 +44,7 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   const step = () => r.g.step;
   // 互認：卡上只寫誰是惡魔、誰是爪牙
   assert.deepStrictEqual([step().roleId, step().status], ['minioninfo', 'ack']);
+  assert(!step().turn, '爪牙信息不是誰自己的回合：不彈「輪到誰」');
   assert.deepStrictEqual(step().lines.map(l => [l.seatId, l.demon, l.minions]), [[r.seats[1].id, r.seats[0].id, [r.seats[1].id]]]);
   ok(st(r, 'ack'));
   // 偽裝：單獨一步，整屏給惡魔看
@@ -54,7 +55,9 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   ok(st(r, 'ack'));
   // 投毒者：說書人代點，點完直接到下一位
   assert.deepStrictEqual([step().roleId, step().status], ['poisoner', 'choose']);
+  assert.strictEqual(step().turn, true, '輪到投毒者自己的回合（herald.js 彈「輪到 ② 投毒者 行動了」）');
   ok(st(r, 'pick', { ids: [r.seats[2].id] }));
+  assert.strictEqual(step().turn, true, '主廚的信息步驟也是他自己的回合');
   assert.notStrictEqual(step().roleId, 'poisoner', '代點完不用再確認');
   for (let k = 0; r.phase === 'night' && k < 30; k++) {
     const s = step();

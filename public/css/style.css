@@ -33,7 +33,7 @@ html, body { margin: 0; height: 100%; }
 body:has(.game) { overflow: hidden; }
 body { background: #141826; color: var(--ink); font: 14px/1.55 var(--sans); }
 #app { height: 100%; }
-button { font: inherit; color: inherit; cursor: pointer; }
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; } /* 觸屏點按時瀏覽器自帶的藍 / 灰色框不要：按鈕自己有按下去的反饋（tactile.js） */
 input, select, textarea {
   font: inherit; color: var(--ink); background: var(--card); width: 100%; min-width: 0;
   border: 1px solid var(--line-strong); border-radius: 4px; padding: 7px 9px;
