@@ -55,8 +55,24 @@ export function communityScripts(ctx) {
     if (c.name === cur) return;
     await ctx.st('upload', { entries: [{ id: '_meta', name: c.name, author: c.author, small: c.small }, ...c.roles] });
   } }, h('b', {}, c.name), c.small && h('i', {}, '5-6人'), h('span', {}, `${c.en} · ${c.author}`));
-  const part = (auto, title) => h('div', {}, h('h4', {}, title), COMMUNITY.filter(c => !!c.auto === auto).map(row));
-  modal('社區劇本', h('div', { class: 'comm-list' }, part(true, '全自動'), part(false, '部分角色自己處理')), { wide: true });
+  // 兩頁：全自動 / 有角色要說書人自己處理。頁籤只換頁，不重畫；先翻到現在用的那個劇本所在的頁
+  const pages = [[true, '全自動'], [false, '部分角色說書人處理']].map(([auto, title]) => {
+    const list = COMMUNITY.filter(c => !!c.auto === auto);
+    return { title, n: list.length, has: list.some(c => c.name === cur), body: h('div', { class: 'comm-list' }, list.map(row)) };
+  });
+  let at = Math.max(0, pages.findIndex(p => p.has));
+  const tabs = pages.map((p, i) => h('button', { class: 'comm-tab' + (i === at ? ' on' : ''), onclick: () => go(i) }, p.title, h('i', {}, String(p.n))));
+  const view = h('div', { class: 'comm-view' }, pages[at].body);
+  function go(i) {
+    if (i === at) return;
+    const dir = i > at ? 1 : -1;
+    tabs[at].classList.remove('on'); tabs[i].classList.add('on');
+    at = i;
+    view.replaceChildren(pages[i].body);
+    view.scrollTop = 0;
+    pages[i].body.animate([{ transform: `translateX(${dir * 40}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2, .8, .3, 1)' });
+  }
+  modal('社區劇本', h('div', { class: 'comm' }, h('nav', { class: 'comm-tabs' }, tabs), view), { wide: true, cls: 'comm-modal' });
 }
 
 // ───── 白天替玩家做事：圓桌中央一張小卡 ─────

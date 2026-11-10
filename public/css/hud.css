@@ -922,13 +922,25 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .tag.pick:hover { text-decoration: line-through; }
 
 /* 社區劇本：賬本式的一行一本，選中的反白 */
-.comm-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
-@media (max-width: 640px) { .comm-list { grid-template-columns: 1fr; gap: 14px; } }
-.comm-list h4 { margin: 0 0 4px; font: 900 13px var(--serif); letter-spacing: .2em; color: var(--muted); }
+/* 社區劇本：兩頁（全自動 / 部分角色說書人處理），頁籤在上；劇本多，寬屏三欄，往下滾 */
+.modal.comm-modal { width: min(940px, 100%); height: min(620px, 86svh); } /* 定高：換頁時頁籤不挪位置 */
+.comm-modal .modal-body { display: flex; flex-direction: column; min-height: 0; padding-top: 4px; }
+.comm { display: flex; flex-direction: column; min-height: 0; }
+.comm-tabs { display: flex; gap: 18px; flex: none; margin-bottom: 6px; border-bottom: 1.5px solid var(--ink); }
+.comm-tab { position: relative; padding: 8px 2px 7px; border: 0; background: none; color: var(--muted); font: 700 15px var(--serif); letter-spacing: .08em; cursor: pointer; }
+.comm-tab i { margin-left: 6px; font: 600 12px var(--serif); font-style: normal; opacity: .8; }
+.comm-tab:hover { color: var(--ink); }
+.comm-tab.on { color: var(--ink); }
+.comm-tab::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1.5px; height: 3px; background: var(--ink); transform: scaleX(0); transition: transform .22s cubic-bezier(.2, .8, .3, 1); }
+.comm-tab.on::after { transform: none; }
+.comm-view { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
+.comm-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 18px; align-content: start; }
+@media (max-width: 860px) { .comm-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) { .comm-list { grid-template-columns: 1fr; } .comm-tabs { gap: 12px; } .comm-tab { font-size: 14px; letter-spacing: 0; } }
 .comm-row { display: grid; width: 100%; grid-template-columns: 1fr auto; gap: 1px 8px; padding: 7px 6px; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; text-align: left; cursor: pointer; }
 .comm-row b { font: 700 17px var(--serif); }
 .comm-row i { align-self: center; font: 600 12px var(--serif); color: var(--muted); }
-.comm-row span { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+.comm-row span { grid-column: 1 / -1; overflow: hidden; font-size: 12px; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
 .comm-row:hover { background: var(--hover); }
 .comm-row.on { background: var(--ink); color: var(--card); }
 .comm-row.on span, .comm-row.on i { color: inherit; opacity: .75; }
