@@ -66,6 +66,8 @@ e.updatedAt = Date.now();
 assert.strictEqual(stats.mode(e), 'one');
 assert.strictEqual(stats.away(e, stats.presence(e, [])), 5);
 assert.strictEqual(stats.away({ ...e, updatedAt: Date.now() - 3600e3 }, stats.presence(e, [])), 0, '散了的線下局不算');
+assert.strictEqual(stats.away({ ...e, updatedAt: Date.now() - 20 * 6e4 }, { st: 1, on: 0, watch: 0 }), 5, '30 分鐘內還算在玩');
+assert.strictEqual(stats.away({ ...e, updatedAt: Date.now() - 31 * 6e4 }, { st: 1, on: 0, watch: 0 }), 0, '說書人頁面開着但半小時沒操作，不算');
 stats.observe(e);
 assert.strictEqual(stats.running()[0].mode, 'one');
 stats.sample([e], [], () => e);
