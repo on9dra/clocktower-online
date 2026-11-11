@@ -33,9 +33,9 @@ stats.sample([], [], () => undefined);
 
 // 棄局：大家走了 3 小時後房間才被清掉，時長只算到最後一次操作（開局後 20 分鐘）
 const d = setup(['chef', 'imp', 'poisoner', 'monk', 'soldier', 'saint', 'virgin', 'empath']);
-d.g.statAt = Date.now() - 200 * 6e4; d.updatedAt = Date.now() - 180 * 6e4;
+d.g.statAt = Date.now() - 200 * 6e4; d.updatedAt = Date.now(); d.actedAt = Date.now() - 180 * 6e4;
 stats.observe(d);
-assert.strictEqual(stats.running()[0].last, d.updatedAt);
+assert.strictEqual(stats.running()[0].last, d.actedAt, '重連刷新的 updatedAt 不算最後操作');
 stats.sample([], [], () => undefined);
 await wait(200);
 
@@ -62,12 +62,13 @@ assert.ok(visits.every(v => /^[0-9a-f]{8}$/.test(v.v)) && !JSON.stringify(visits
 const e = setup(['chef', 'imp', 'poisoner', 'monk', 'soldier']);
 Object.assign(e.settings, { chosen: true, venue: 'offline', devices: 'one' });
 e.seats.forEach(s => s.local = true);
-e.updatedAt = Date.now();
+e.updatedAt = e.actedAt = Date.now();
 assert.strictEqual(stats.mode(e), 'one');
 assert.strictEqual(stats.away(e, stats.presence(e, [])), 5);
-assert.strictEqual(stats.away({ ...e, updatedAt: Date.now() - 3600e3 }, stats.presence(e, [])), 0, '散了的線下局不算');
-assert.strictEqual(stats.away({ ...e, updatedAt: Date.now() - 20 * 6e4 }, { st: 1, on: 0, watch: 0 }), 5, '30 分鐘內還算在玩');
-assert.strictEqual(stats.away({ ...e, updatedAt: Date.now() - 31 * 6e4 }, { st: 1, on: 0, watch: 0 }), 0, '說書人頁面開着但半小時沒操作，不算');
+assert.strictEqual(stats.away({ ...e, actedAt: Date.now() - 3600e3 }, stats.presence(e, [])), 0, '散了的線下局不算');
+assert.strictEqual(stats.away({ ...e, actedAt: Date.now() - 20 * 6e4 }, { st: 1, on: 0, watch: 0 }), 5, '30 分鐘內還算在玩');
+assert.strictEqual(stats.away({ ...e, actedAt: Date.now() - 31 * 6e4 }, { st: 1, on: 0, watch: 0 }), 0, '說書人頁面開着但半小時沒操作，不算');
+assert.strictEqual(stats.away({ ...e, actedAt: Date.now() - 31 * 6e4, updatedAt: Date.now() }, { st: 1, on: 0, watch: 0 }), 0, '說書人重連不算操作');
 stats.observe(e);
 assert.strictEqual(stats.running()[0].mode, 'one');
 stats.sample([e], [], () => e);

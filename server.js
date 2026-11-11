@@ -258,7 +258,9 @@ io.on('connection', socket => {
     const room = store.get(socket.data.code);
     if (!room || !socket.data.st) return reply(cb, '無權限');
     if (op.op === 'close') return close(room, cb);
-    done(room, cb, applyStOp(room, op));
+    const r = applyStOp(room, op);
+    if (typeof r !== 'string') store.acted(room);
+    done(room, cb, r);
   }));
 
   // 解散房間：其他人退回大廳，存檔刪掉
@@ -293,6 +295,7 @@ io.on('connection', socket => {
     if (!room || !pid) return reply(cb, '未加入房間');
     if (act.act === 'chat' && !allow(`chat:${room.code}:${pid}`, LIMIT.chat)) return reply(cb, SLOW);
     const err = applyPlayerAction(room, pid, act);
+    if (!err) store.acted(room);
     if (act.act === 'leave' && !err) { if (socket.data.st) socket.data.as = null; else socket.data = {}; } // 自己離座：不用再通知他「座位沒了」；調試中的說書人回到說書人視角
     done(room, cb, err);
   }));
