@@ -4,13 +4,14 @@ import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup, outsiderShift } 
 import { sel, stopSelect } from './town.js';
 import { openSetup, pickBluff } from './setup.js';
 import { uploadScript, communityScripts, startAct, mayNominate, needPass } from './manual.js';
-import { seatBadge, mini, icon, actIcon, tag, named, w, ACTS } from './glyph.js';
+import { seatBadge, mini, icon, actIcon, tag, named, w, ACTS, wakeMark } from './glyph.js';
 import { nightHeld } from './fx.js';
 import { openInvite } from './invite.js';
 import { rolePanel, closeRolePanel } from './rolepick.js';
 import { tr, getLang, trHas } from './lang.js';
 import { heraldHeld } from './herald.js';
 import { preDraft } from './infoform.js';
+import { showPages, bigCore } from './pass.js';
 
 // 角色那句話（glyph.js 的 say）：單數段是普通字，雙數段是關鍵詞（加粗）。中文用「」括起來直接接上；
 // 英文整句查（en-fix.json 裏以「段|段」為鍵，關鍵詞用 *…* 標出）：關鍵詞和標籤共用一個詞（「死亡」→ Dead）時，逐段翻語法不通。
@@ -422,41 +423,95 @@ function lobbyPane(ctx) {
         herringRow(ctx))));
 }
 
-// 開局前預選首夜的信息（洗衣婦、圖書管理員、調查員要告知誰，祖母的孫子是誰）：紅鯡魚那一排後面一格一個角色——角色小牌 + 預選了誰（沒選是虛線空圈）。
-// 點兩名玩家之一的：桌心換成首夜那張卡（上方必選的、正中結論，infoform.js preCard），點完「完成」；祖母的孫子像紅鯡魚一樣直接點桌上的人。
-// 首夜那一步按這個預填，到時候還能改（lib/night.js）
-let preEdit = null; // { inst, seatId }：正在預選的那一格
+// 開局前預選首夜要告訴誰什麼：紅鯡魚那一排一個通用的「預選」鍵——點了，桌上能預選的人亮起來，點誰就給誰預選：
+// 洗衣婦、圖書管理員、調查員（以為自己是的酒鬼 / 提線木偶也算）是首夜那張卡（上方必選的、正中結論，infoform.js preCard）；
+// 祖母像紅鯡魚一樣直接點桌上的孫子；系統不認識的角色（自製、沒收錄的）是一張通用的卡：點桌上的人、挑角色，就是首夜要給他看的。
+// 已經預選了的排在鍵後面（角色小牌 + 選了誰），點一下再改。首夜那一步按這個預填 / 展示，到時候還能改（lib/night.js、stepcard.js preShow）
+let preEdit = null; // { inst, seatId }：正在預選的那一格；seatId 為 null 是剛按了「預選」，等點桌上的人
+let preFree = null; // 自製角色那張卡上正在改的 { seats, roles }
 export function preEditing(ctx) {
   const s = ctx.state;
-  if (!preEdit || preEdit.inst !== s.inst || !s.isSt || s.peek || s.phase !== 'lobby') return null;
-  return s.st.preForms?.find(f => f.seatId === preEdit.seatId) || null;
+  if (!preEdit?.seatId || preEdit.inst !== s.inst || !s.isSt || s.peek) return null;
+  if (s.phase === 'lobby') return s.st.preForms?.find(f => f.seatId === preEdit.seatId) || null;
+  // 首夜自製角色標記卡上的「改」
+  const seat = s.phase === 'night' && s.seats.find(x => x.id === preEdit.seatId);
+  return seat && preFree ? { seatId: seat.id, roleId: seat.fakeRole || seat.role, kind: 'free' } : null;
 }
+const preChoosing = s => preEdit?.inst === s.inst && !preEdit.seatId && s.isSt && !s.peek && s.phase === 'lobby';
 export function preDone(ctx, f, fields) {
-  preEdit = null;
+  preEdit = null; preFree = null;
   ctx.st('setPre', { seatId: f.seatId, fields });
   ctx.render();
 }
-// 祖母：桌上能當孫子的善良玩家亮起來，點誰就是誰
-export function prePickSeat(ctx) {
-  const s = ctx.state, f = preEditing(ctx);
-  if (f?.kind !== 'grandchild') return null;
-  return { can: new Set(f.options), on: new Set([s.st.pre?.[f.seatId]?.pick].filter(Boolean)), fixed: new Set(), why: () => '孫子要是善良玩家',
-    pick: id => preDone(ctx, f, { pick: id }) };
+// 打開某個座位的預選（準備階段，或首夜自製角色標記卡上的「改」）
+export function preOpen(ctx, seatId) {
+  const s = ctx.state, v = s.st.pre?.[seatId];
+  const f = s.phase === 'lobby' ? s.st.preForms?.find(x => x.seatId === seatId) : { seatId, kind: 'free' };
+  if (!f) return;
+  if (f.kind === 'two') preDraft(f, v);
+  preFree = f.kind === 'free' ? { seats: [...(v?.seats || [])], roles: [...(v?.roles || [])] } : null;
+  preEdit = { inst: s.inst, seatId };
+  herringPick = null;
+  ctx.render();
 }
+// 桌上點人：剛按了「預選」——能預選的人亮著，點誰開誰的；祖母——能當孫子的善良玩家亮著；自製角色——誰都能點，點了加進 / 拿出要給他看的人
+export function prePickSeat(ctx) {
+  const s = ctx.state;
+  if (preChoosing(s)) {
+    return { can: new Set((s.st.preForms || []).map(f => f.seatId)), on: new Set(), fixed: new Set(), why: () => '這個角色的信息系統會算，不用預選',
+      pick: id => preOpen(ctx, id) };
+  }
+  const f = preEditing(ctx);
+  if (f?.kind === 'grandchild') {
+    return { can: new Set(f.options), on: new Set([s.st.pre?.[f.seatId]?.pick].filter(Boolean)), fixed: new Set(), why: () => '孫子要是善良玩家',
+      pick: id => preDone(ctx, f, { pick: id }) };
+  }
+  if (f?.kind === 'free') {
+    const d = preFree;
+    return { can: new Set(s.seats.map(x => x.id)), on: new Set(d.seats), fixed: new Set(),
+      pick: id => { d.seats = d.seats.includes(id) ? d.seats.filter(x => x !== id) : [...d.seats, id].slice(-8); ctx.render(); } };
+  }
+  return null;
+}
+// 自製角色的預選卡：上方引導 + 要給他看的角色（點一下拿掉，「角色」那一格開整本劇本連選）；正中是結論（座位號 + 角色牌）；下方清除 / 完成
+export function freePreCard(ctx, f) {
+  const s = ctx.state, d = preFree, ord = id => s.seats.findIndex(x => x.id === id);
+  const toggle = id => { d.roles = d.roles.includes(id) ? d.roles.filter(x => x !== id) : [...d.roles, id].slice(-6); ctx.render(); };
+  const open = () => rolePanel({ key: 'pre-free-' + f.seatId, tab: [mini(f.roleId), seatBadge(s, f.seatId)], roles: SCRIPTS[s.scriptId]?.roles || [], owned: true,
+    state: id => ({ on: d.roles.includes(id) }), pick: id => { toggle(id); return 'stay'; }, done: '完成', alive: () => preFree === d });
+  const seats = [...d.seats].sort((a, b) => ord(a) - ord(b));
+  return h('div', { class: 'card focus infocard spread pre-free' },
+    h('div', { class: 'ic-body' }, h('div', { class: 'ic-tag say' }, '首夜要給他看的人和角色'),
+      h('div', { class: 'opt-row' }, d.roles.map(id => h('button', { class: 'opt-tile on', 'data-key': id, onclick: () => toggle(id) }, named(id))),
+        h('button', { class: 'role-slot', onclick: open }, h('span', { class: 'sb empty' }), w('角色', 'muted')))),
+    h('div', { class: 'ic-top' }, wakeMark(s, [f.seatId], mini(f.roleId)),
+      h('div', { class: 'frm big pf-what' }, seats.length || d.roles.length ? [seats.map(id => seatBadge(s, id)), d.roles.map(id => mini(id))] : h('span', { class: 'sb empty' }))),
+    h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, B('清除', () => preDone(ctx, f, null), 'ghost'),
+      B('完成', () => preDone(ctx, f, seats.length || d.roles.length ? { seats, roles: d.roles } : null)))));
+}
+// 首夜自製角色的標記卡（stepcard.js markCard）正中：開局前預選的「要給他看的」——座位號 + 角色牌；
+// 「展示」整屏給他看（只給卡上的這個人），「改」換成預選卡改完再回來
+export function preShow(ctx, step) {
+  const s = ctx.state, v = s.night === 1 && s.st.pre?.[step.seatId];
+  if (!v?.seats && !v?.roles) return null;
+  const ord = id => s.seats.findIndex(x => x.id === id), seats = [...(v.seats || [])].sort((a, b) => ord(a) - ord(b)), roles = v.roles || [];
+  return h('div', { class: 'mk-pre', 'data-key': 'pre' }, h('span', { class: 'frm big' }, seats.map(id => seatBadge(s, id)), roles.map(id => mini(id))),
+    h('div', { class: 'row' }, B([icon('eye'), '展示'], () => showPages(s, [{ to: step.seatId, body: bigCore(s, { seats, roles }) }]), 'sm'),
+      B('改', () => preOpen(ctx, step.seatId), 'sm ghost')));
+}
+// 紅鯡魚那一排：「預選」鍵 + 已經預選了的
 function preItems(ctx) {
-  const s = ctx.state, empty = () => h('span', { class: 'sb empty' });
-  return (s.st.preForms || []).map(f => {
-    const v = s.st.pre?.[f.seatId], on = preEdit?.inst === s.inst && preEdit.seatId === f.seatId;
-    const ids = [v?.a, v?.b].filter(Boolean).sort((x, y) => s.seats.findIndex(q => q.id === x) - s.seats.findIndex(q => q.id === y));
-    const face = f.kind === 'grandchild' ? (v?.pick ? seatBadge(s, v.pick) : empty()) : v?.none ? w('無', 'ink') : ids.length ? ids.map(id => seatBadge(s, id)) : empty();
-    const open = () => {
-      if (on) { preEdit = null; return ctx.render(); }
-      if (f.kind === 'two') preDraft(f, v);
-      preEdit = { inst: s.inst, seatId: f.seatId };
-      ctx.render();
-    };
-    return h('button', { class: 'bluff-pick pre' + (on ? ' on' : '') + (v ? '' : ' empty'), 'data-key': 'pre-' + f.seatId, title: '預選首夜告知的信息', onclick: open }, mini(f.roleId), face);
+  const s = ctx.state, forms = s.st.preForms || [];
+  if (!forms.length) return [];
+  const on = preChoosing(s);
+  const done = forms.filter(f => s.st.pre?.[f.seatId]).map(f => {
+    const v = s.st.pre[f.seatId], ord = id => s.seats.findIndex(q => q.id === id);
+    const ids = (v.seats || [v.a, v.b, v.pick]).filter(Boolean).sort((x, y) => ord(x) - ord(y));
+    return h('button', { class: 'bluff-pick pre', 'data-key': 'pre-' + f.seatId, title: '改', onclick: () => preOpen(ctx, f.seatId) },
+      mini(f.roleId), v.none ? w('無', 'ink') : ids.map(id => seatBadge(s, id)), (v.roles || []).map(id => mini(id, 'pre-r')));
   });
+  return [h('button', { class: 'bluff-pick pre-btn' + (on ? ' on' : ''), 'data-key': 'pre-btn', onclick: () => { preEdit = on ? null : { inst: s.inst, seatId: null }; herringPick = null; ctx.render(); } },
+    icon('quill'), on ? w('點桌上的人', 'muted') : w('預選', 'ink')), done];
 }
 
 // 紅鯡魚：場上有占卜師（含以為自己是占卜師的酒鬼）才長出這一格，和偽裝一樣是單獨的設置，不藏在座位菜單裏。

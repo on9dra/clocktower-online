@@ -167,7 +167,7 @@
   .is-line { font-size: 18px; gap: 4px 6px; }
   .is-line .tag { font-size: 14px; }
   /* 手機上中間那一小張：角標掛在它左下角外面（頂上是引導籤） */
-  .spread > .ic-top > .ic-who { left: auto; right: calc(100% - 14px); top: auto; bottom: -12px; font-size: 13px; }
+  .spread > .ic-top > .ic-who { left: auto; right: calc(100% - 4px); top: auto; bottom: -12px; font-size: 13px; }
   .spread.group > .ic-top { padding: 6px 12px 8px; gap: 4px; }
   .spread .ic-foot .ic-send { display: flex; gap: 6px; margin: 0; }
   .spread .ic-foot .ic-send > .btn { min-height: 46px; }
@@ -205,3 +205,51 @@
   .hd-ab { align-self: stretch; max-width: none; padding-top: 6px; font-size: 15px; line-height: 1.5; text-align: left; }
   .hd-go { min-height: 44px; }
 }
+
+/* 鎖定（infoform.js lockFly、town.js lockMark）：洗衣婦這類選定了「真的那一個」。紙底墨線、印章，不發光：
+   一枚鎖從上方的選項飛過來 → 四角墨線收攏框住頭像，頭像被按一下 → 右上角的鎖章砸下來，鎖梁「咔」地扣上 */
+.lock-fly { position: fixed; left: 0; top: 0; z-index: 300; width: 34px; height: 34px; pointer-events: none; }
+.lock-fly > svg { width: 62%; height: 62%; }
+.padlock { display: block; width: 100%; height: 100%; overflow: visible; }
+.padlock .lk-shackle { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; transform-box: fill-box; }
+.padlock .lk-body { fill: currentColor; }
+.padlock .lk-hole { fill: var(--card); }
+.lock-on { position: absolute; left: 50%; top: 50%; z-index: 4; width: 136%; aspect-ratio: 1; translate: -50% -50%; pointer-events: none; }
+.lock-on > svg { display: block; width: 100%; height: 100%; overflow: visible;
+  animation: lk-clamp .3s cubic-bezier(.3,0,.45,1.45) var(--lk-d, 0ms) both; }
+.lock-on path { fill: none; stroke-linecap: square; vector-effect: non-scaling-stroke; }
+.lock-on .lk-p { stroke: var(--card); stroke-width: 7px; }
+.lock-on .lk-i { stroke: var(--good); stroke-width: 3px; }
+@keyframes lk-clamp { from { transform: scale(1.8) rotate(45deg); opacity: 0; } 55% { opacity: 1; } to { transform: none; opacity: 1; } }
+.lk-seal { position: absolute; right: 0; top: 0; display: block; width: clamp(18px, 30%, 28px); aspect-ratio: 1; box-sizing: border-box; padding: 4px; /* 內邊距不能寫百分比：那是按整個鎖框的寬算的，鎖圖會被擠成 0 */
+  translate: 40% -40%; border-radius: 50%; color: var(--good); background: var(--card); border: 1.5px solid currentColor;
+  box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px currentColor; rotate: -8deg;
+  animation: lk-slam .24s cubic-bezier(.5,0,.7,1) calc(var(--lk-d, 0ms) + 220ms) both; }
+@keyframes lk-slam { from { transform: scale(2.6) rotate(-20deg); opacity: 0; } 70% { transform: scale(.9); opacity: 1; } to { transform: none; opacity: 1; } }
+.lk-seal .lk-shackle { animation: lk-click .14s ease-in calc(var(--lk-d, 0ms) + 470ms) both; }
+@keyframes lk-click { from { transform: translateY(-30%); } to { transform: none; } }
+.seat.selected.locked .token { animation: lk-press .32s ease-out calc(var(--lk-d, 0ms) + 120ms) both; }
+@keyframes lk-press { 35% { transform: scale(.88); } to { transform: none; } }
+/* 上方選中的那一格：左上角也扣一把小鎖，和桌上鎖住的座位是一對 */
+.lk-tag { position: absolute; left: -8px; top: -8px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; box-sizing: border-box; padding: 3px;
+  border-radius: 50%; color: var(--good); background: var(--card); border: 1.5px solid currentColor; rotate: -8deg; pointer-events: none;
+  animation: lk-slam .22s cubic-bezier(.5,0,.7,1) both; }
+@media (prefers-reduced-motion: reduce) { .lock-on > svg, .lk-seal, .lk-seal .lk-shackle, .seat.selected.locked .token, .lk-tag { animation: none; } }
+
+/* 準備階段的「預選」鍵（flow.js preItems）：紅鯡魚後面；按下去等點桌上的人。已經預選了的排在它後面 */
+.bluff-pick.pre-btn { display: inline-flex; align-items: center; gap: 3px; min-height: 30px; padding-inline: 6px; border: 1.5px solid var(--line-strong); }
+.bluff-pick.pre-btn .ico { width: 14px; height: 14px; }
+.bluff-pick.pre-btn.on { border-color: var(--brass); background: var(--hover); }
+.bluff-pick.pre .pre-r.token { width: 18px; height: 18px; }
+.herring-row:has(.pre-btn) { flex-wrap: wrap; row-gap: 2px; }
+@media (max-width: 640px) and (orientation: portrait) {
+  .town.picking:has(.herring-row .pre-btn) { --dn: 124px; }
+  .herring-row:has(.pre-btn) { flex-wrap: nowrap; gap: 3px; }
+  .herring-row:has(.pre-btn) > .w { display: none; } /* 擠：紅鯡魚只留占卜師小牌 + 座位 */
+}
+@media (max-width: 640px) and (max-height: 700px) and (orientation: portrait) { .town.picking:has(.herring-row .pre-btn) { --dn: 116px; } }
+/* 自製角色的預選卡：正中是要給他看的座位號 + 角色牌；首夜標記卡上同一行，下面「展示」「改」 */
+.pf-what { justify-content: center; gap: 4px; }
+.mk-pre { display: grid; justify-items: center; gap: 4px; }
+.mk-pre > .frm { justify-content: center; gap: 4px; }
+.mk-pre > .row { margin: 0; gap: 6px; flex-wrap: nowrap; }

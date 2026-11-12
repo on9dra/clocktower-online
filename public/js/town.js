@@ -7,9 +7,9 @@ import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './sc
 import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge, trueMark, ACTS } from './glyph.js';
 import { hudLinked } from './hud.js';
 import { trialPanel, trialStub } from './trial.js';
-import { seatPicking, preCard, prePicking } from './infoform.js';
+import { seatPicking, preCard, prePicking, padlock } from './infoform.js';
 import { stepCard, decidePicking, markPicking, lastWordCard, noticeCard, ackPart } from './stepcard.js';
-import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat } from './flow.js';
+import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat, freePreCard } from './flow.js';
 import { pickRole, canHover, hoverSeat, openPick, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { actBubble, actPicking, startAct, openReminders, needPass, passCard, rolePicker, showButton } from './manual.js';
 import { markMeaning } from './stside.js';
@@ -91,7 +91,7 @@ export function renderTown(ctx) {
   const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), picks = s.words || [], num = id => s.seats.findIndex(x => x.id === id) + 1;
   const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--s': Math.sin(Math.PI / Math.max(n, 2)).toFixed(4), ...(s.isSt ? fitStyle() : {}) } }); // --s：按相鄰座位的距離定大小（board.css）
   const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s), aimed = stepTargets(s);
-  const preCardOn = preEditing(ctx)?.kind === 'two'; // 準備階段正在預選首夜信息：桌心是首夜那張卡，座位點了是選人
+  const preCardOn = ['two', 'free'].includes(preEditing(ctx)?.kind); // 正在預選首夜信息：桌心是預選的卡，座位點了是選人
   const hoverPick = s.isSt && !s.peek && s.phase === 'lobby' && canHover() && !preCardOn; // 準備階段：懸停頭像就能選角色（setup.js）
   // 準備階段說書人桌上的牌：帶 key，換了角色是一張新牌，蓋下來（hud.css）
   const dealt = id => { const t = roleToken(id); if (s.phase === 'lobby') t.setAttribute('data-key', id); return t; };
@@ -115,6 +115,7 @@ export function renderTown(ctx) {
   const markStep = s.isSt && s.phase === 'night' && s.st?.step?.status === 'mark' ? s.st.step : null;
   const turnAt = turnSeat(ctx); // 線下說書人：輪到誰行動，他頭頂掛箭頭（herald.js）
   const stamp = selStamp(s);
+  const lockReady = !heraldHeld() && !nightHeld() && !needPass(ctx) && !s.st?.notice;
   const ownPick = markStep && ROLES[markStep.roleId] ? ROLES[markStep.roleId].name + '選' : null;
   const addable = s.isSt && !s.peek && s.phase !== 'lobby' && s.phase !== 'ended';
   domOrder.forEach(seat => {
@@ -131,6 +132,10 @@ export function renderTown(ctx) {
     } else if (aimed.has(seat.id) || pickingSeat() === seat.id) cls.push('aimed');
     if (seat.mine) cls.push('mine');
     if (turnAt === seat.id) cls.push('turn');
+    // 洗衣婦這類選定了「真的那一個」：框住、上鎖。前面還擺著別的（入夜的「第 N 夜」、傳閱身份、紅唇女郎的告知、「輪到誰」的整屏牌）時先不鎖，
+    // 免得鎖的動畫在它們後面演完；和頭頂的箭頭同一個時候出來
+    const locked = pk?.lock === seat.id && lockReady;
+    if (locked) cls.push('locked');
     if (nom && nom.nomineeId === seat.id) cls.push('nominee');
     if (nom && nom.nominatorId === seat.id) cls.push('nominator');
     if (liveBlock(s) === seat.id) cls.push('onblock');
@@ -168,12 +173,13 @@ export function renderTown(ctx) {
       // 準備階段說書人可以拖座位：拖到另一個座位上就交換
       onpointerdown: s.isSt && !s.peek && s.phase === 'lobby' && !preCardOn ? e => dragSeat(ctx, seat, e) : null,
     },
-    h('div', { class: 'seat-token' + status.map(x => ' is-' + x.k).join(''), onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget, seatActs(ctx, seat)) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
+    h('div', { class: 'seat-token' + status.map(x => ' is-' + x.k).join(''), style: locked ? { '--lk-d': pk.lockDelay(seat.id) + 'ms' } : null, onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget, seatActs(ctx, seat)) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
       s.isSt && seat.fakeRole && fakeBadge(ctx, seat),
       s.phase === 'lobby' && seat.pinned && h('i', { class: 'pin-mark', title: '指定' }, icon('quill')),
       // 說書人給信息：當前角色真正的持有者藍勾，能被當作這個角色的橙勾（只畫勾，不寫「真」「登」）
-      pk?.marks?.[seat.id] && trueMark(pk.marks[seat.id] === 1),
+      pk?.marks?.[seat.id] && !locked && trueMark(pk.marks[seat.id] === 1),
+      locked && lockMark(),
       stamp && sel.on.ids.includes(seat.id) && h('span', { class: 'sel-stamp ' + (stamp.tone || ''), 'data-key': 'sel-stamp', 'data-exit': true }, stamp.word),
       dead && h('span', { class: 'dead-stamp' }, DEATH[seat.deathBy] || '死亡'),
       dead && !seat.voteUsed && h('span', { class: 'ghost-vote', title: '還有一張死亡票' }, icon('ticket')),
@@ -438,6 +444,7 @@ function stBubble(ctx) {
   // 準備階段預選首夜信息（洗衣婦、圖書管理員、調查員）：桌心換成首夜那張卡，「完成」回到準備
   const pre = preEditing(ctx);
   if (pre?.kind === 'two') return { id: 'pre-' + pre.seatId, seatId: pre.seatId, roleId: pre.roleId, noFold: true, card: () => preCard(ctx, pre, fields => preDone(ctx, pre, fields)) };
+  if (pre?.kind === 'free') return { id: 'pre-' + pre.seatId, seatId: pre.seatId, roleId: pre.roleId, noFold: true, card: () => freePreCard(ctx, pre) };
   // 白天接任的惡魔（紅唇女郎）：處決之後直接入夜，提示壓在今晚第一步前面，點了「知道了」再往下
   const notice = s.isSt && !s.peek && !s.st?.ruling && s.st?.notice;
   if (notice) return { id: `notice-${notice.seatId}-${notice.f[1]?.r}`, seatId: notice.seatId, card: () => noticeCard(ctx, notice) };
@@ -636,6 +643,16 @@ function stepTargets(s) {
   return new Set([...(step.picks || []), step.form?.extra?.targetId, step.decide?.targetId].filter(Boolean));
 }
 
+// 鎖定：四角墨線框住頭像，右上角扣一把鎖（infoform.js lockFly 先把鎖從上方的選項飛過來，落地時框才收攏；show.css .lock-on）。
+// 換了人：舊的框往外散開淡掉（data-exit grow）
+const LOCK_PATH = 'M2 12V2h10M28 2h10v10M38 28v10H28M12 38H2V28';
+function lockMark() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 40 40');
+  svg.innerHTML = `<path class="lk-p" d="${LOCK_PATH}"/><path class="lk-i" d="${LOCK_PATH}"/>`;
+  return h('i', { class: 'lock-on', 'data-key': 'lock-on', 'data-exit': 'grow' }, svg, h('span', { class: 'lk-seal' }, padlock()));
+}
+
 // 用能力選人時，選中的頭像上蓋這個動作的章（投毒、保護、攻擊……），一眼看出點中了誰、會怎樣。
 // 說書人代點、玩家自己選都有；遮著身份的玩家不蓋（章會說出他的角色）
 function selStamp(s) {
@@ -709,6 +726,8 @@ function pickingNow(ctx) {
     if (pre?.kind === 'two') { const pk = prePicking(ctx, pre); return pk && { ...pk, why: id => (id === pre.seatId ? '不能選他自己' : null) }; }
     return prePickSeat(ctx) || herringPicking(ctx);
   }
+  const preNight = s.phase === 'night' && prePickSeat(ctx); // 首夜自製角色的標記卡上點了「改」：點桌上的人
+  if (preNight) return preNight;
   if (!step || sel.on) return null;
   return step.status === 'confirm' ? seatPicking(ctx, step) : step.status === 'decide' ? decidePicking(ctx, step) : step.status === 'mark' ? markPicking(ctx, step) : null;
 }

@@ -266,5 +266,11 @@
  "他今晚死亡。": "They die tonight.",
  "他要「瘋狂」地證明自己是某個角色，否則可能被處決。": "They must be \"mad\" that they are a certain character, or they might be executed.",
  "未知的狀態": "Unknown status",
- "占卜師一定有一個紅鯡魚：在另一名善良玩家身上貼上，就換過去": "The Fortune Teller always has a red herring: put it on another good player to move it"
+ "占卜師一定有一個紅鯡魚：在另一名善良玩家身上貼上，就換過去": "The Fortune Teller always has a red herring: put it on another good player to move it",
+ "首夜要給他看的人和角色": "Who and what to show them on night 1",
+ "預選": "Preset",
+ "點桌上的人": "Tap a seat",
+ "改": "Edit",
+ "這個角色的信息系統會算，不用預選": "The app works this one out, no preset needed",
+ "太多了": "Too many"
 }

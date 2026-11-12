@@ -10,6 +10,47 @@ import { tr, getLang } from './lang.js';
 import { ROLES, TEAMS, CORE } from './roles.js';
 import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
 import { formula, seatBadge, mini, named, evilNum, icon, w, trueMark, actorMark } from './glyph.js';
+
+// 鎖定特效（洗衣婦這類，能力正常時）：選定了「真的那一個」——點上方的選項或桌上他的座位——一枚鎖從選項飛到他的頭像上，
+// 落下時四角墨線收攏框住頭像、右上角扣上鎖（town.js lockMark、show.css .lock-on）。換人時舊的框散開，新的再鎖一次
+const FLY_MS = 320;
+let lockAt = { seat: null, t: 0 };
+// 剛點的那個人：框和鎖等飛過去的那枚落地再出；別的時候（卡剛打開就有預選的人）直接鎖上
+export const lockDelay = id => (lockAt.seat === id && Date.now() - lockAt.t < FLY_MS + 400 ? FLY_MS - 20 : 0);
+export const padlock = () => {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  el.setAttribute('viewBox', '0 0 24 24');
+  el.setAttribute('class', 'padlock');
+  el.innerHTML = '<path class="lk-shackle" d="M8 11V7.5a4 4 0 0 1 8 0V11"/><rect class="lk-body" x="5" y="10.5" width="14" height="10.5" rx="1.6"/><circle class="lk-hole" cx="12" cy="15.6" r="1.5"/>';
+  return el;
+};
+// 換了「真的那一個」：先記下（這一輪重繪裏他座位上的框就按飛行時間推遲收攏），畫完再起飛
+function relock(ctx, d, change) {
+  const was = d.a;
+  change();
+  const id = d.a && d.a !== was && !d.none ? d.a : null;
+  if (id) lockAt = { seat: id, t: Date.now() };
+  ctx.render();
+  if (id) lockFly(id);
+}
+function lockFly(id) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  requestAnimationFrame(() => {
+    const from = document.querySelector('.st-card .tb-who.on'), to = document.querySelector(`.ring > .seat[data-key="${id}"] > .seat-token`);
+    if (!from || !to) return;
+    const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+    const ax = a.left + a.width / 2, ay = a.top + a.height / 2, bx = b.left + b.width / 2, by = b.top + b.height / 2;
+    const lift = -Math.min(70, Math.abs(bx - ax) * 0.3 + 28); // 往上拋一點再落下，不是直線滑過去
+    const at = (x, y, k, r) => `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${k}) rotate(${r}deg)`;
+    const el = h('div', { class: 'fx-chip good lock-fly' }, padlock());
+    document.body.append(el);
+    el.animate([{ transform: at(ax, ay, 0.5, -30), opacity: 0 },
+      { transform: at(ax + (bx - ax) * 0.45, ay + (by - ay) * 0.45 + lift, 1.15, -10), opacity: 1, offset: 0.45 },
+      { transform: at(bx, by, 0.85, 0), opacity: 1, offset: 0.9 },
+      { transform: at(bx, by, 0.5, 0), opacity: 0 }], { duration: FLY_MS, easing: 'cubic-bezier(.45,0,.75,1)', fill: 'forwards' });
+    setTimeout(() => el.remove(), FLY_MS + 60);
+  });
+}
 import { goonLine } from './log.js';
 import { B, BW, stepOp, stepLock } from './flow.js';
 import { mathGroups } from './mathcard.js';
@@ -84,8 +125,9 @@ export function seatPicking(ctx, step) {
     // 座位上的勾：能力正常時標出所有能當真的那一個的人（藍勾持有者、橙勾能登記成的），和上方的選項一一對應；
     // 中毒 / 酒鬼時只標真的持有上方選中那個角色的人
     const mark = id => (form.free ? (d.role ? fit(form, id, d.role) : 0) : form.roleOf?.[id] ? 2 : form.mayBe?.[id]?.length ? 1 : 0);
-    return { can: new Set(ids), on: new Set(picked(d)), fixed: new Set(), pick: id => { toggleSeat(form, d, id); ctx.render(); },
-      marks: Object.fromEntries(ids.map(id => [id, mark(id)]).filter(x => x[1])) };
+    const pick = id => (form.free ? (toggleSeat(form, d, id), ctx.render()) : relock(ctx, d, () => toggleSeat(form, d, id)));
+    return { can: new Set(ids), on: new Set(picked(d)), fixed: new Set(), pick, marks: Object.fromEntries(ids.map(id => [id, mark(id)]).filter(x => x[1])),
+      lock: !form.free && !d.none && d.a ? d.a : null, lockDelay };
   }
   if (form.free) {
     return { can: new Set(others(s, step)), on: new Set([d.a, d.b].filter(Boolean)), fixed: new Set(),
@@ -97,8 +139,9 @@ export function seatPicking(ctx, step) {
 
 const Tm = () => trueMark();
 // 可點的選項；level：2 真實（角上藍勾）、1 登記（橙色圈）
-function opt(content, { on, level = 0, onclick, cls = '' }) {
-  return h('button', { class: `opt-tile ${cls}` + (on ? ' on' : '') + (level === 1 ? ' alt' : ''), onclick }, content, level === 2 && Tm());
+function opt(content, { on, level = 0, onclick, cls = '', lock = false }) {
+  return h('button', { class: `opt-tile ${cls}` + (on ? ' on' : '') + (level === 1 ? ' alt' : ''), onclick }, content, level === 2 && Tm(),
+    lock && h('i', { class: 'lk-tag', 'data-key': 'lk' }, padlock()));
 }
 const row = (...kids) => h('div', { class: 'opt-row' }, kids);
 const seatRow = kids => h('div', { class: 'opt-row seat-row' }, kids); // 手機上不顯示：座位直接點桌上的頭像（seatPicking）
@@ -260,8 +303,9 @@ function tableForm(ctx, step, d, foot) {
     const list = truths(s, form).filter(x => !x.none), many = list.length > 4;
     opts = list.map(x => {
       const on = !d.none && d.a === x.seat, r = x.role || (on ? d.role : null);
+      // 選中的那一格左上角也扣一把鎖：和桌上鎖住的座位是一對
       return opt([seatBadge(s, x.seat), x.via && mini(x.via, 'via'), r ? (many ? mini(r) : named(r)) : h('span', { class: 'tt q' }, '?')],
-        { on, level: x.via ? 1 : 2, cls: 'tb-who', onclick: pick(() => pickHolder(form, d, x.seat)) });
+        { on, level: x.via ? 1 : 2, cls: 'tb-who', lock: on, onclick: () => relock(ctx, d, () => pickHolder(form, d, x.seat)) });
     });
     // 隱士 / 間諜：選中後挑他被當作哪個角色
     const cur = list.find(x => !d.none && d.a === x.seat);

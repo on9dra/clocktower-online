@@ -1067,6 +1067,9 @@
  "點頭搖頭，或整屏給他看": [
   "public/js/help.js"
  ],
+ "點桌上的人": [
+  "public/js/flow.js"
+ ],
  "點桌上的善良玩家": [
   "public/js/flow.js"
  ],
@@ -1342,6 +1345,9 @@
  ],
  "複製邀請鏈接": [
   "public/js/invite.js"
+ ],
+ "改": [
+  "public/js/flow.js"
  ],
  "改名": [
   "public/js/flow.js",
@@ -2658,6 +2664,7 @@
   "public/js/debug.js"
  ],
  "清除": [
+  "public/js/flow.js",
   "public/js/infoform.js"
  ],
  "清除我的備註": [
@@ -3103,6 +3110,9 @@
  "手動擺牌": [
   "public/js/intro.js"
  ],
+ "首夜要給他看的人和角色": [
+  "public/js/flow.js"
+ ],
  "受保護": [
   "public/js/glyph.js"
  ],
@@ -3406,6 +3416,9 @@
  "他做的": [
   "public/js/log.js"
  ],
+ "太多了": [
+  "lib/setup.js"
+ ],
  "討論、提名": [
   "public/js/help.js"
  ],
@@ -3546,6 +3559,7 @@
   "server.js"
  ],
  "完成": [
+  "public/js/flow.js",
   "public/js/infoform.js",
   "public/js/setup.js"
  ],
@@ -4426,7 +4440,7 @@
  "與": [
   "public/js/infofmt.js"
  ],
- "預選首夜告知的信息": [
+ "預選": [
   "public/js/flow.js"
  ],
  "原創角色": [
@@ -4516,6 +4530,7 @@
   "public/js/hud.js"
  ],
  "展示": [
+  "public/js/flow.js",
   "public/js/infoform.js",
   "public/js/manual.js",
   "public/js/stepcard.js"
@@ -4594,6 +4609,9 @@
  "這個角色不能選「沒有」": [
   "lib/setup.js",
   "public/js/infofmt.js"
+ ],
+ "這個角色的信息系統會算，不用預選": [
+  "public/js/flow.js"
  ],
  "這個角色已經是偽裝了": [
   "lib/setup.js"
@@ -4982,7 +5000,8 @@
  ],
  "座位不存在": [
   "lib/manual.js",
-  "lib/ops.js"
+  "lib/ops.js",
+  "lib/setup.js"
  ],
  "座位菜單：他查過誰、得知了什麼": [
   "public/js/help.js"

@@ -97,7 +97,8 @@ function exit(n, { l, t, w, h: ht, was }) {
   for (const c of n.querySelectorAll('[class]')) c.style.animation = 'none'; // 裏面的牌也一樣，放回去時不重播入場
   n.classList.add('leaving');
   // 圓桌中間的牌收起 / 展開時（flow.js setFold）：牌縮進小紙條，小紙條撐開成牌
-  const to = n.getAttribute('data-exit') !== 'fold' ? { translate: '0 12px' } : { scale: n.classList.contains('fold-stub') ? 1.4 : .25 };
+  // grow：往外散開淡掉（座位上的鎖定框換人時）
+  const how = n.getAttribute('data-exit'), to = how === 'grow' ? { scale: 1.5 } : how !== 'fold' ? { translate: '0 12px' } : { scale: n.classList.contains('fold-stub') ? 1.4 : .25 };
   n.animate([{ opacity: 1 }, { opacity: 0, ...to }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
   setTimeout(() => n.remove(), 200);
   return true;

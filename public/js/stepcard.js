@@ -2,7 +2,7 @@
 import { h, ask, toast, prompt2, seatLabel } from './ui.js';
 import { tr, getLang } from './lang.js';
 import { sel, startSelect, seatMenu } from './town.js';
-import { selectBar, selFrom, B, BW, PRETEND, stepOp, stepLock, cardTag } from './flow.js';
+import { selectBar, selFrom, B, BW, PRETEND, stepOp, stepLock, cardTag, preShow } from './flow.js';
 import { showPages, bigRoles, bigNum, bigCore, bigWord, bigIs, bigBluffs, bluffSay } from './pass.js';
 import { ROLES } from './roles.js';
 import { infoForm } from './infoform.js';
@@ -177,7 +177,7 @@ function markCard(ctx, step) {
   // 手機上拆開（hud.css .spread）：圓桌中間只有一小張——誰、選了誰、會怎樣；提示詞是給說書人的引導，放圓桌上方；按鈕在下方。
   // 電腦上是一張卡：誰、提示詞、選了誰、按鈕（提示詞靠 order 排回第二行）
   return h('div', { class: 'card focus infocard spread mark' },
-    h('div', { class: 'ic-top' }, actorMark(s, step), why && w(why, 'evil'),
+    h('div', { class: 'ic-top' }, actorMark(s, step), why && w(why, 'evil'), preShow(ctx, step), // 開局前預選的要給他看的（flow.js）
       // 一行讀下來：選了 ⑤ ［中毒］
       step.ask && h('div', { class: 'mk-line' }, h('div', { class: 'opt-row mk-picks' }, pickRow), step.cons?.length > 0 && markCons(ctx, step))),
     // 要達成什麼：能力換成說書人的說法（「告知他一名善良玩家」），不念劇本作者寫的一串手勢（「喚醒他並指向……」）。長的只露幾行，點一下展開

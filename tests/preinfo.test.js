@@ -5,6 +5,7 @@ import { applyStOp } from '../lib/ops.js';
 import { ok, st } from './helpers.js';
 import { autoPicks } from '../lib/engine.js';
 import { preForms } from '../lib/setup.js';
+import { ROLES } from '../public/js/roles.js';
 
 const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string', op + ' 應該被拒絕');
 function lobby(roles, script = 'tb') {
@@ -75,4 +76,30 @@ function upTo(r, roleId) {
   ok(st(r, 'decide', { choice: r.seats[4].id })); // 換成別人
   assert.strictEqual(r.g.grandchild[gm.id], r.seats[4].id);
   console.log('預選祖母的孫子 ✔');
+}
+
+// 系統不認識的角色（自製、沒收錄的官方角色）：通用的預選——要給他看的人和角色；首夜標記卡上照著展示，首夜還能改。系統自己算的（廚師）沒有預選
+{
+  const r = createRoom();
+  r.settings.pretend = false;
+  ok(st(r, 'venue', { venue: 'offline', devices: 'one' }));
+  ok(st(r, 'seatCount', { n: 7 }));
+  const up = applyStOp(r, { op: 'upload', entries: [{ id: '_meta', name: '混', firstNight: ['minioninfo', 'demoninfo', 'poisoner', 'hb', 'chef'] },
+    'imp', 'poisoner', 'washerwoman', 'chef', 'empath', 'monk', 'saint',
+    { id: 'hb', name: '點燈人', team: 'townsfolk', ability: '首夜得知兩名玩家和一個角色', firstNight: 30 }] });
+  assert.strictEqual(typeof up, 'object', up);
+  const hb = r.script.roles.find(id => ROLES[id]?.name === '點燈人');
+  ['imp', 'poisoner', 'chef', 'empath', 'monk', 'saint', hb].forEach((x, i) => ok(st(r, 'setRole', { seatId: r.seats[i].id, roleId: x })));
+  const kinds = Object.fromEntries(preForms(r).map(f => [f.roleId, f.kind]));
+  assert.deepStrictEqual(kinds, { [hb]: 'free' }, '只有自製角色能預選，廚師這種系統算的沒有');
+  const me = r.seats[6], [a, b] = [r.seats[2].id, r.seats[4].id];
+  bad(r, 'setPre', { seatId: r.seats[2].id, fields: { seats: [a] } });
+  bad(r, 'setPre', { seatId: me.id, fields: { seats: [a], roles: ['nope'] } });
+  ok(st(r, 'setPre', { seatId: me.id, fields: { seats: [a, b], roles: ['washerwoman'] } }));
+  const step = upTo(r, hb);
+  assert.strictEqual(step.status, 'mark');
+  assert.deepStrictEqual(r.g.pre[me.id], { seats: [a, b], roles: ['washerwoman'] });
+  ok(st(r, 'setPre', { seatId: me.id, fields: { seats: [a], roles: ['chef'] } })); // 首夜還能改
+  assert.deepStrictEqual(r.g.pre[me.id], { seats: [a], roles: ['chef'] });
+  console.log('通用預選（自製角色） ✔');
 }
