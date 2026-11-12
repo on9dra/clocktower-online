@@ -3,6 +3,7 @@
 import { h, menu } from './ui.js';
 import { icon, mini } from './glyph.js';
 import { ROLES } from './roles.js';
+import { unseenOf } from './hud.js';
 
 const KEY = 'botc.debug';
 export const debugWanted = ls => ls.get(KEY) === '1';
@@ -18,18 +19,32 @@ const who = (s, id) => {
   const i = s.seats.findIndex(x => x.id === id);
   return i < 0 ? [icon('quill', 'dbg-ico'), h('span', { class: 'dbg-name' }, '說書人')] : [h('b', { class: 'sb' }, i + 1), h('span', { class: 'dbg-name' }, s.seats[i].name)];
 };
+// 說書人那邊在等人處理（玩家的請求、裁定，夜裏輪到說書人點），又沒有機器人代班：代入座位時頂欄上亮一個點，提醒換回去
+const stWaits = d => !!d.as && !d.auto && (d.st > 0 || d.stNight);
 export function debugWho(ctx) {
-  const s = ctx.state;
-  return h('button', { class: 'btn sm ghost dbg-who', title: '切換身份', onclick: e => debugMenu(ctx, e.currentTarget) },
-    h('i', { class: 'dbg-tag' }, '調試'), who(s, s.debug.as));
+  const s = ctx.state, d = s.debug;
+  // data-key 跟著身份：換了身份，按鈕當作新的登場一次（hud.css dbg-swap），一眼看到「現在是誰」換了
+  return h('button', { class: 'btn sm ghost dbg-who', 'data-key': 'dbg-' + (d.as || 'st'), title: '切換身份', onclick: e => debugMenu(ctx, e.currentTarget) },
+    h('i', { class: 'dbg-tag' }, '調試'), who(s, d.as), stWaits(d) && h('i', { class: 'dbg-ping', 'data-key': 'ping' }));
 }
 
 // 菜單：說書人、每個座位（角色，夜裏輪到誰），準備階段加減機器人，最後是代為主持的開關
 function debugMenu(ctx, anchor) {
   const s = ctx.state, d = s.debug, n = s.seats.length, lobby = s.phase === 'lobby';
   const bots = d.seats.filter(x => x.bot).length, add = lobby && !s.oneDevice && n < d.max;
-  const row = (id, extra) => h('span', { class: 'dbg-row' + ((d.as || null) === id ? ' cur' : '') }, who(s, id), extra,
-    d.turn && d.turn === id && h('i', { class: 'dbg-turn' }, icon('moon')));
+  // 死了的座位：骷髏、淡一點（代入的玩家夜裏還看不到今晚的死者，這裏是真實的）
+  const dead = id => !!id && !!d.seats.find(y => y.id === id)?.dead;
+  // 每個座位的狀態：死了、夜裏輪到他、舉手（亮的舉著，淡的還能舉）、幾條私密信息沒看過；說書人那行：等著處理的請求、裁定
+  const info = id => d.seats.find(y => y.id === id);
+  const row = (id, extra) => {
+    const x = id && info(id), n = x ? unseenOf(ctx, s, id, x.info) : d.st, hand = x?.hand;
+    return h('span', { class: 'dbg-row' + ((d.as || null) === id ? ' cur' : '') + (dead(id) ? ' dead' : '') }, who(s, id), extra,
+      h('span', { class: 'dbg-marks' },
+        dead(id) && h('i', { class: 'dbg-turn dbg-dead' }, icon('skull')),
+        ((d.turn && d.turn === id) || (!id && d.stNight)) && h('i', { class: 'dbg-turn' }, icon('moon')),
+        hand && h('i', { class: 'dbg-turn dbg-hand ' + hand }, icon('hand')),
+        n > 0 && h('i', { class: 'dbg-new' }, n)));
+  };
   const role = x => {
     const r = d.seats.find(y => y.id === x.id);
     return r?.role && h('span', { class: 'dbg-role' }, mini(r.role), r.fake && mini(r.fake, 'fake'), h('small', {}, ROLES[r.role]?.name));

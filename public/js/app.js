@@ -2,14 +2,15 @@
 import { h, toast, closeModal, morph, closeMenu, leaveDom } from './ui.js';
 import { renderTown } from './town.js';
 import { renderSide, sideCollapsed, closeSheet, resetSide } from './side.js';
-import { syncPrompt, syncStPick } from './flow.js';
+import { syncPrompt, syncStPick, unfold } from './flow.js';
 import { progressBar } from './progress.js';
 import { sel, stopSelect, fitTableCard, arrowFit } from './town.js';
 import { syncSetup, closePick } from './setup.js';
 import { closeRolePanel } from './rolepick.js';
 import { topbar, fitTopbar } from './topbar.js';
 import { onState, ensureScene, setRender, heldView, intoRoom, backToLobby, resetFx } from './fx.js';
-import { renderHud, renderBluffs, onInfo } from './hud.js';
+import { renderHud, renderBluffs, onInfo, resetHud } from './hud.js';
+import { closeMore } from './seatmarks.js';
 import { installScript } from './roles.js';
 import { trimChat } from './infofmt.js';
 import { closeAct } from './manual.js';
@@ -72,11 +73,11 @@ export const ctx = {
     return send('pl:act', { act, ...args });
   },
   peek: seatId => send('st:peek', { seatId }),
-  // 調試房間（測試服）：說書人換成某個座位的身份，null 換回說書人。手上沒做完的選擇、菜單、彈窗都是原來那個身份的，收掉
+  // 調試房間（測試服）：說書人換成某個座位的身份，null 換回說書人。點下去就收掉手上的東西，不等服務器回話（新狀態到了還會再收一次）
   dbgAs: seatId => {
     const d = ctx.state?.debug;
     if (!d || (d.as || null) === (seatId || null)) return Promise.resolve({ ok: !!d });
-    closeMenu(); closeModal(); closeRolePanel(); closePick(); closePass(); closeAct(ctx); sel.on = null;
+    dropHands();
     return send('dbg:as', { seatId: seatId || null }).then(r => {
       if (r.ok && session) { if (seatId) LS.set(asKey(session.code), seatId); else LS.del(asKey(session.code)); }
       return r;
@@ -301,9 +302,24 @@ function leave() {
   lobby();
 }
 
+// 換了身份（調試房間換座位、說書人代入視角 / 換回、觀眾入座）：手上沒做完的選擇、開著的菜單、彈窗、選角色的紙、整屏展示、
+// 代為操作的卡、座位標記的解釋卡、面板裏懸停 / 固定的信息行、收起的牌都是上一個身份的，收掉。
+// 遮住身份的「亮著 / 按著」（veil.js noteArrival）、演出隊列（fx.js onState）各自按同一個身份作廢
+const identOf = s => `${s.code}|${s.isSt ? 'st' : s.myId || ''}|${s.peek?.seatId || ''}`;
+let ident = null, phaseWas = null;
+function dropHands() {
+  closeMenu(); closeModal(); closeRolePanel(); closePick(); closePass(); closeAct(ctx); closeMore(ctx); resetHud(); unfold(); sel.on = null;
+}
+
 let stLog = [], heard = false; // heard：音效開始下了沒有
 sock.on('state', s => {
   if (s.custom) installScript(s.custom); // 上傳的劇本：先把角色登記好，後面畫什麼都查得到
+  const id = identOf(s);
+  if (ident && ident !== id && ident.startsWith(s.code + '|')) dropHands();
+  ident = id;
+  // 換了階段（入夜、天亮、結束）：開著的座位菜單裏還是上一個階段能做的事（提名、開槍），收掉
+  if (phaseWas && phaseWas !== s.phase) closeMenu();
+  phaseWas = s.phase;
   chat = trimChat(s.chatReset ? s.chat : chat.concat(s.chat));
   s.chat = chat;
   if (s.st) { stLog = s.st.logFrom ? stLog.concat(s.st.log) : s.st.log; s.st.log = stLog; } // 流程日誌也是增量的

@@ -231,7 +231,7 @@ const PAGE = `(() => {
     const r = rect(el); if (!r) continue;
     const p = probe(el, r), l = label(el);
     if (items.some(o => o.label === l && Math.abs(o.x - p.x) < 4 && Math.abs(o.y - p.y) < 4)) continue;
-    items.push({ label: l, ...p, layer: layer(el), w: Math.round(r.width), h: Math.round(r.height), grey: el.disabled || /\\bdisabled\\b|\\boff\\b/.test(cn(el)), on: /\\bon\\b|\\bselected\\b|\\bactive\\b/.test(cn(el)), input: el.matches('input, textarea') ? (el.value || '') : undefined });
+    items.push({ label: l, ...p, layer: layer(el), w: Math.round(r.width), h: Math.round(r.height), grey: el.disabled || /(^|\\s)(disabled|off)(\\s|$)/.test(cn(el)), on: /\\bon\\b|\\bselected\\b|\\bactive\\b/.test(cn(el)), input: el.matches('input, textarea') ? (el.value || '') : undefined });
   }
   const seats = [...document.querySelectorAll('.ring > .seat')].sort((a, b) => a.dataset.i - b.dataset.i).map(el => {
     const tk = el.querySelector('.seat-token') || el, r = rect(tk);
@@ -369,6 +369,36 @@ const CMD = {
     return `✓ 點了 ${n} 號座位 @${s.x},${s.y}\n` + await look(d);
   },
   async hover(dev, x, y) { const d = need(dev); await mouse(d, 'mouseMoved', +x, +y); await sleep(500); return look(d); },
+  // 按住不放（「按住看」這類長按）：press <設備> <按鈕文字>|<x> <y> [touch]，按下後先命中測試；按著的時候可以 look / shot，再 release 鬆手。
+  // release <設備> [x y]：在別處鬆手（手指滑走）；touch 用觸摸事件（手機上真實的按法）
+  async press(dev, a, b, c) {
+    const d = need(dev), touch = [b, c].includes('touch'), v = await ev(d, PAGE);
+    let x = +a, y = +b;
+    if (!(Number.isFinite(x) && Number.isFinite(y))) {
+      const t = v.items.find(i => i.label === a) || v.items.find(i => i.label.includes(a));
+      if (!t) return `✗ 屏幕上找不到「${a}」\n` + fmt(d, v);
+      if (t.state !== 'ok') return `✗「${a}」按不到：${t.state === 'off' ? '在屏幕外' : '被 ' + t.by + ' 擋住'} @${t.x},${t.y}\n` + fmt(d, v);
+      ({ x, y } = t);
+    }
+    if (touch) { await d.S('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 }); await d.S('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] }); }
+    else { await mouse(d, 'mouseMoved', x, y); await sleep(60); await mouse(d, 'mousePressed', x, y); }
+    d.down = { x, y, touch };
+    await sleep(500);
+    return `✓ 按住 @${x},${y}${touch ? '（觸摸）' : ''}，release ${dev} 鬆手\n` + await look(d);
+  },
+  async release(dev, x, y) {
+    const d = need(dev), at = d.down || { x: 0, y: 0 }, px = x != null ? +x : at.x, py = y != null ? +y : at.y;
+    if (at.touch) {
+      if (x != null) await d.S('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: px, y: py }] });
+      await d.S('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    } else {
+      if (x != null) await d.S('Input.dispatchMouseEvent', { type: 'mouseMoved', x: px, y: py, button: 'left', buttons: 1, pointerType: 'mouse' });
+      await mouse(d, 'mouseReleased', px, py);
+    }
+    d.down = null;
+    await sleep(500);
+    return `✓ 鬆手 @${px},${py}\n` + await look(d);
+  },
   async type(dev, ...text) { const d = need(dev); await d.S('Input.insertText', { text: text.join(' ') }); await sleep(200); return '✓ 輸入了：' + text.join(' '); },
   async key(dev, k) {
     const d = need(dev), code = { Enter: 13, Escape: 27, Backspace: 8, Tab: 9 }[k];

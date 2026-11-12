@@ -4,6 +4,7 @@ import { ROLES, TEAMS, CORE, SCRIPTS, teamCounts, changesSetup, outsiderShift } 
 import { sel, stopSelect } from './town.js';
 import { openSetup, pickBluff } from './setup.js';
 import { uploadScript, communityScripts, startAct, mayNominate, needPass } from './manual.js';
+import { hasGun } from './asks.js';
 import { seatBadge, mini, icon, actIcon, tag, named, w, ACTS, wakeMark } from './glyph.js';
 import { nightHeld } from './fx.js';
 import { openInvite } from './invite.js';
@@ -123,6 +124,7 @@ const confirmPick = (onDone, cls = '', ctx = cx) => { const b = pickBtns(onDone,
 // 圓桌中間的牌可以收成一張小紙條，把桌面讓出來。只管這一步：下一步（或這一步換了狀態）的牌照常攤開
 let foldedKey = null;
 export const isFolded = key => foldedKey === key;
+export const unfold = () => { foldedKey = null; }; // 換了身份：上一個人收起的牌（審判牌、選人牌）在這個人這裏照常攤開（app.js）
 function setFold(ctx, key) {
   document.querySelector('.center > :is(.turn-pane, .st-card, .fold-stub), .town > .trial')?.setAttribute('data-exit', 'fold');
   foldedKey = key;
@@ -184,7 +186,7 @@ export function stCenter(ctx) {
 function dayActs(ctx) {
   const s = ctx.state, can = !s.dayOver && s.seats.some(x => mayNominate(s, x));
   // 開槍：誰都可以宣稱自己是獵手，所以不看場上有沒有；但劇本裏根本沒有獵手（黯月初升……）就沒人會這麼說，按鈕不放
-  const gun = SCRIPTS[s.scriptId]?.roles.includes('slayer') || s.seats.some(x => x.role === 'slayer' || x.fakeRole === 'slayer');
+  const gun = hasGun(s); // 玩家手機上「宣稱獵手：向他開槍」放不放也是這一條（asks.js）
   return h('div', { class: 'row r73 day-acts' },
     BW('提名', () => startAct(ctx, 'nom'), 'big', can ? null : s.dayOver ? '今天已經處決過，不能再提名' : '活著的人今天都提名過了'),
     gun && B([icon('aim'), '開槍'], () => startAct(ctx, 'slay'), 'big'));
@@ -211,7 +213,8 @@ export function trialButtons(ctx) {
   if (!s.isSt || s.peek || s.st.ruling) return null;
   return h('div', { class: 'row tr-acts' },
     B('取消提名', () => ask('取消這次提名？雙方今天可以重新提名 / 被提名。', () => ctx.st('cancelVote'), '取消提名'), 'ghost'),
-    B(ck ? '立即結算' : s.nomination.hand ? '結算' : '按當前舉手結算', () => ctx.st('closeVote'), s.nomination.hand ? 'big' : ''),
+    // 線下多設備：帶上這塊屏幕最後看到的玩家改手時刻，剛有人在手機上改了手、這邊還沒刷新到，服務器先不結算（day.js handLate）
+    B(ck ? '立即結算' : s.nomination.hand ? '結算' : '按當前舉手結算', () => ctx.st('closeVote', { seen: Math.max(0, ...Object.values(ctx.state.nomination?.own || {})) }), s.nomination.hand ? 'big' : ''),
     !s.nomination.hand && endDayButton(ctx),
     !ck && !s.nomination.hand && B('立即計票', () => ctx.st('startCount'), 'big')); // 線下局當面數手，不用輪流倒數
 }
@@ -277,9 +280,11 @@ function endDayButton(ctx, small = false) {
         // 渦流：白天沒人被處決，邪惡直接獲勝（中毒的渦流不算，服務端裁定；這裏只提醒）
         : s.seats.some(x => x.role === 'vortox' && !x.dead) ? '渦流在場：今天沒有人被處決，邪惡陣營會直接獲勝。確定結束白天？'
           : '今天沒有人被處決。確定結束白天、直接入夜？'];
+  // 線下多設備：還有玩家在手機上提出、沒處理的請求（asks.js），入夜就作廢了：照樣能結束，先提醒一句
+  const pend = s.st?.asks?.list.filter(a => a.kind !== 'word').length || 0, warn = pend ? `還有 ${pend} 條玩家的請求沒處理，入夜後作廢。\n` : '';
   // 線下有撤銷，按鈕上已經寫明處決誰：直接做，不再問一遍同樣的話
-  const sure = s.offline && block && !s.dayOver && !nom;
-  return B(label, () => (sure ? ctx.st('next') : ask(msg, () => ctx.st('next'), label)), nom ? 'ghost' : small ? '' : 'big'); // 線下白天的正事是提名、開槍，入夜退一級
+  const sure = s.offline && block && !s.dayOver && !nom && !pend;
+  return B(label, () => (sure ? ctx.st('next') : ask(warn + msg, () => ctx.st('next'), label)), nom ? 'ghost' : small ? '' : 'big'); // 線下白天的正事是提名、開槍，入夜退一級
 }
 
 // 劇本卡的選中態不等服務器：點了就亮（到香港來回要 0.3 秒），被拒絕就退回。left 是還沒回覆的操作數：連點時中間幾步的狀態不把高亮拉回去
@@ -573,8 +578,9 @@ export function playerCenter(ctx) {
 // 輪到自己行動：圓桌中央一張紙牌——大角色牌 + 行動圖標，一句話說清楚選誰、會怎樣（關鍵詞用語義色），下面是選中的座位和確認
 function turnPane(ctx) {
   // 這一步的角色（理髮師死後惡魔替他選人時是理髮師）
-  const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = !s.prompt.manual && ACTS[rid]; // 手動局的牌是說書人寫的，不用角色自己的說法
-  const say = (typeof a?.say === 'function' ? a.say(s.prompt) : a?.say) || [s.prompt.prompt || `選擇 ${s.prompt.count} 名玩家`];
+  // 手動局的牌是說書人寫的，不用角色自己的說法。遮住身份時也不用：「使其中毒」、毒藥的綠色就說出了角色（旁邊的人看得到這張牌），只寫選幾個人
+  const s = ctx.state, rid = s.prompt.roleId || s.myRole, a = !s.prompt.manual && !s.veiled && ACTS[rid];
+  const say = (typeof a?.say === 'function' ? a.say(s.prompt) : a?.say) || [(!s.veiled && s.prompt.prompt) || `選擇 ${s.prompt.count} 名玩家`];
   // wake：系統不認識的角色、不用選人（只得知信息）——只告訴他輪到了，沒有可按的，等說書人把信息發過來
   const wake = !!s.prompt.wake;
   const key = 'turn-' + s.prompt.stepId, send = cls => !wake && confirmPick((ids, role) => ctx.act('pick', { ids, role }), cls);

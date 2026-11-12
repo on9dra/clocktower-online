@@ -1065,7 +1065,7 @@ export function onState(s) {
   // 背景（天空、小鎮、側欄和頂欄的底色）不動，只淡裏面的東西
   if (p && who !== id && !reduced()) requestAnimationFrame(() => document.querySelectorAll(['> .board', '> .side > *', '> .topbar > :not(.brand, .room)'].map(x => '.game:not(.gone) ' + x).join())
     .forEach(el => el.animate({ opacity: [0, 1] }, 260)));
-  if (!p || who !== id) { who = id; seen = Math.max(seen, top); followBgm(); if (!skyHold) firstSky(s.phase); return; }
+  if (!p || who !== id) { if (p) dropScenes(); who = id; seen = Math.max(seen, top); followBgm(); if (!skyHold) firstSky(s.phase); return; }
   const now = Date.now();
   const wasDead = new Set(p.seats.filter(x => x.dead).map(x => x.id));
   const newlyDead = new Set(s.seats.filter(x => x.dead && !wasDead.has(x.id)).map(x => x.id));
@@ -1221,18 +1221,30 @@ export function backToLobby(app, page, show) {
   Promise.all([dealRoom(game, true), pause(dark ? 500 : 1500)]).then(swap);
 }
 
+// 舞台上正在演的那一幀留一份影子淡掉，不一下子沒了
+function ghostStage() {
+  const st = document.getElementById('stage');
+  if (!st?.childElementCount || calm()) return;
+  const ghost = st.cloneNode(true);
+  ghost.removeAttribute('id');
+  ghost.className = 'stage-ghost';
+  body.append(ghost);
+  ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
+  setTimeout(() => ghost.remove(), 240);
+}
+// 換了身份（調試房間換座位、說書人代入視角 / 換回）：排著的、正在播的演出都是上一個身份的——翻開的角色牌會飛進現在這個人的面板，
+// 得知的答案會落到他的座位上。快進跑完（掛著的計數照樣對上），正在演的淡掉
+function dropScenes() {
+  ghostStage();
+  if (running) skipAll();
+  faceWas = null;
+}
+
 // 離開房間不刷新頁面：這一局記著的東西都清掉。排著的演出快進跑完（它們掛著的計數要對上），正在演的淡掉
 export function resetFx() {
-  const st = document.getElementById('stage');
-  if (st?.childElementCount && !calm()) {
-    const ghost = st.cloneNode(true);
-    ghost.removeAttribute('id');
-    ghost.className = 'stage-ghost';
-    body.append(ghost);
-    ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
-    setTimeout(() => ghost.remove(), 240);
-  }
+  ghostStage();
   if (running) skipAll();
+  faceWas = null;
   prev = who = null; seen = 0; frozen = null; blkOverride = undefined; execId = null;
   lastState = { phase: 'lobby' };
   setFireworks(null);

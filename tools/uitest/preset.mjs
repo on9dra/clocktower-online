@@ -189,6 +189,8 @@ const step = g().step, nameOf = id => ROLES[id]?.name || id || '';
 const actor = room.phase === 'night' && step?.seatId ? room.seats.findIndex(s => s.id === step.seatId) + 1 : null;
 const url = `/?room=${room.code}&r=${room.inst}`;
 const devices = { st: { url, ls: { [`botc.st.${room.code}`]: room.stKey, ...(mode === 'one' && opt.pass !== '0' && room.gameId && { [`botc.passed.${room.code}.${room.gameId}`]: '1' }) } } };
+// debug=1：說書人這台勾著「調試模式」（rig 要帶環境變量起：BOTC_DEBUG=1 node tools/uitest/rig.mjs …，服務器才認）；as=3：一打開就代入 3 號
+if (opt.debug === '1' || opt.as) Object.assign(devices.st.ls, { 'botc.debug': '1' }, opt.as && { [`botc.dbg.as.${room.code}`]: seatN(opt.as).id });
 if (mode !== 'one') room.seats.forEach((s, i) => { devices['p' + (i + 1)] = { url, ls: { 'botc.pid': s.pid, 'botc.name': s.name } }; });
 console.log(JSON.stringify({
   code: room.code, inst: room.inst, stKey: room.stKey, gameId: room.gameId || null, mode, script: room.scriptId,

@@ -129,7 +129,7 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   console.log('單設備首夜有瘋子：分開叫醒、瘋子看到的和惡魔一樣 ✔');
 }
 
-// 瘋子的假爪牙按座位順序列（亂序一眼看得出是假的）；多設備 / 線上一樣直接發到手機上，不停
+// 瘋子的假爪牙按座位順序列（亂序一眼看得出是假的）；多設備也發到手機上，並停一張「叫醒瘋子，讓他看手機」（tests/wakephone.test.js）
 {
   for (let k = 0; k < 20; k++) {
     const r = createRoom();
@@ -139,13 +139,14 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
     const roles = ['zombuul', 'godfather', 'devilsadvocate', 'lunatic', 'sailor', 'chambermaid', 'innkeeper', 'gambler', 'gossip', 'exorcist'];
     r.seats.forEach((s, i) => ok(st(r, 'setRole', { seatId: s.id, roleId: roles[i] })));
     ok(st(r, 'next'));
+    for (let n = 0; r.g.step?.roleId !== 'lunainfo' && n < 3; n++) ok(st(r, 'ack'));
     const luna = r.seats[3], f = r.chat.find(m => m.to === luna.id && m.src === 'demoninfo').f;
     const seats = f.filter(t => t.s).map(t => r.seats.findIndex(x => x.id === t.s));
     assert.strictEqual(seats.length, 2);
     assert.deepStrictEqual(seats, [...seats].sort((a, b) => a - b), '假爪牙按座位順序');
-    assert.notStrictEqual(r.g.step?.roleId, 'lunainfo', '多設備不停在瘋子信息');
+    assert.deepStrictEqual([r.g.step?.roleId, r.g.step?.status], ['lunainfo', 'ack'], '多設備也停：叫醒瘋子看手機');
   }
-  console.log('瘋子的假爪牙按座位順序，多設備不停 ✔');
+  console.log('瘋子的假爪牙按座位順序，多設備停一張叫醒卡 ✔');
 }
 
 // 單設備：占卜師這類查驗，點完人停在結果卡上（整屏提示該告訴他什麼），說書人點「下一個」才結束；日誌記下結果，桌上不掛「誰查過」
@@ -218,8 +219,12 @@ const bad = (r, op, args) => assert.strictEqual(typeof st(r, op, args), 'string'
   ok(st(r, 'next'));
   const poisoner = r.seats[1];
   assert.ok(viewFor(r, { pid: 'p1' }).myRole === 'poisoner', '手機上看得到自己的角色');
-  // 爪牙 / 惡魔信息發到手機上，和線上一樣不停下來：第一步就是投毒者
-  assert.deepStrictEqual([r.g.step.roleId, r.g.step.status], ['poisoner', 'choose'], '多設備首夜互認不停');
+  // 爪牙 / 惡魔信息發到手機上，說書人各停一張叫醒他們看手機的卡，然後是投毒者
+  assert.deepStrictEqual([r.g.step.roleId, r.g.step.status], ['minioninfo', 'ack'], '多設備：叫醒爪牙看手機');
+  ok(st(r, 'ack'));
+  assert.deepStrictEqual([r.g.step.roleId, r.g.step.status], ['demoninfo', 'ack'], '多設備：叫醒惡魔看手機');
+  ok(st(r, 'ack'));
+  assert.deepStrictEqual([r.g.step.roleId, r.g.step.status], ['poisoner', 'choose']);
   assert.ok(r.chat.some(m => m.to === poisoner.id && m.src === 'minioninfo'), '爪牙信息發到爪牙手機');
   assert.ok(r.chat.some(m => m.to === r.seats[0].id && m.src === 'demoninfo'), '惡魔信息（含偽裝）發到惡魔手機');
   assert.strictEqual(r.g.step.seatId, poisoner.id);

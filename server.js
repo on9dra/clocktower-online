@@ -20,6 +20,7 @@ import { guard } from './lib/util.js';
 import * as stats from './lib/stats.js';
 import { adminPage } from './lib/admin.js';
 import { DEBUG, isBot, renameBots, debugInfo, setPresence, botTick } from './lib/debug.js';
+import { sweepAsks } from './lib/asks.js';
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -155,6 +156,7 @@ function broadcast(room) {
   room.watchers = [...new Map(list.filter(s => s.data.watch).map(s => [s.data.pid, { pid: s.data.pid, name: s.data.name }])).values()];
   for (const seat of room.seats) seat.online = !!seat.local || online.has(seat.pid) || isBot(seat) || drive.includes(seat.id); // 線下座位沒有手機，一直算在場
   guard(stats.observe)(room); // 統計出錯不能耽誤推送
+  guard(sweepAsks)(room); // 計時器推進了局面（貞潔者反噬、代班說書人裁定……）：不再成立的玩家請求作廢（lib/asks.js）
   // 一個連接的狀態出錯不能拖累同房間的其他人，更不能帶走整個進程
   for (const s of list) {
     try { emitState(s, room); } catch (e) { console.error('推送狀態出錯', room.code, e); }

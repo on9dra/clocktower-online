@@ -344,7 +344,7 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .hud-me { grid-row: 1 / 3; background: none; border: 0; padding: 0; cursor: pointer; align-self: start; }
 .hud .hud-me .token { width: 86px; height: 86px; }
 .hud-name { font: 700 26px/1.2 var(--serif); color: var(--team); }
-.hud-team { font: 400 13px var(--sans); margin-left: 8px; color: var(--muted); }
+.hud-team { display: inline-block; font: 400 13px var(--sans); margin-left: 8px; color: var(--muted); } /* 陣營整個換行，不在「爪 / 牙」中間折開 */
 .hud-ab { font-size: 15px; line-height: 1.5; }
 .hud.min { position: absolute; left: 0; top: 0; width: auto; display: block; padding: 5px; border-radius: 50%; }
 /* 收起：右上角一個小字按鈕（點角色牌也行） */
@@ -352,6 +352,7 @@ span.ic-why .ico { width: 78%; height: 78%; }
   color: var(--muted); font: 600 12px/1.5 var(--sans); }
 .hud-x:hover { color: var(--ink); border-color: var(--ink); }
 .hud-name { padding-right: 92px; }
+:root .hud.hold .hud-name { padding-right: 0; } /* 按住看時右上角沒有「遮住 / 收起」，不用讓位 */
 /* 「遮住」和「收起」並排在右上角 */
 .hud-tools { position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; }
 .hud-tools .hud-x { position: relative; right: auto; top: auto; }
@@ -373,9 +374,14 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
   background: var(--card); border: 1px solid var(--line-strong); color: var(--muted); }
 .veil-off:hover { color: var(--ink); border-color: var(--ink); }
 .veil-off svg { width: 14px; height: 14px; }
-.veil-new { position: absolute; right: 2px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--evil); box-shadow: 0 0 0 2px var(--card);
-  animation: veil-dot .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+/* 沒看過的私密信息：紅點裏寫條數，彈出來以後慢慢呼吸（周圍一團柔光亮起又暗下，不是一圈圈的波紋）——手機扣在桌上，拿起來第一眼看到 */
+.veil-new { position: absolute; right: -2px; top: -2px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 9px; background: var(--evil); box-shadow: 0 0 0 2px var(--card);
+  color: #fff; font: 700 11px/18px var(--sans); font-style: normal; letter-spacing: 0; text-align: center;
+  animation: veil-dot .5s cubic-bezier(.2, 1.4, .4, 1) both, veil-breathe 2.4s ease-in-out .5s infinite; }
 @keyframes veil-dot { from { transform: scale(0); } }
+@keyframes veil-breathe { 0%, 100% { box-shadow: 0 0 0 2px var(--card), 0 0 2px 1px color-mix(in srgb, var(--evil) 20%, transparent); }
+  50% { box-shadow: 0 0 0 2px var(--card), 0 0 12px 5px color-mix(in srgb, var(--evil) 75%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .veil-new { animation: none; } }
 /* 開局 / 接任翻牌時面板先空著：虛線圈等牌落進來，牌落定後名字、能力、信息淡入 */
 .hud { transition: border-color .4s; }
 .hud.held { border-color: var(--line-strong); }
@@ -442,7 +448,7 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
   .hud.min { position: absolute; left: 4px; top: 4px; width: auto; max-height: none; margin: 0; padding: 4px; }
   .hud:is(.min, .pick) { position: absolute; left: 4px; top: 4px; width: auto; max-height: none; margin: 0; padding: 4px; }
   .hud:is(.min, .pick) .hud-me .token { width: 44px; height: 44px; }
-  .hud.peek { right: 0; }
+  .hud.peek { right: 0; max-height: calc(100% - 12px); } /* 按住看時浮在桌面上：只在按著的那一會兒，整個高度都給信息列表 */
   .hud.min.veil .hud-me .token { width: 52px; height: 52px; } /* 要按住的東西，手機上大一點 */
   .veil-off { bottom: 20px; }
   .pm { font-size: 16px; }
@@ -1084,6 +1090,35 @@ button.hv:active { transform: scale(.94); }
 @keyframes hv-up { from { transform: translateY(8px) scale(.4); opacity: 0; } }
 .hv.dead:not(.on) { border-style: dashed; }
 .hv.spent { opacity: .35; text-decoration: line-through; }
+.hv.mine { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hand-trial .tr-tally { display: inline-flex; align-items: baseline; gap: 4px; }
+.tr-need { font: 800 22px var(--serif); color: var(--muted); }
+.tr-mid.enough .tr-need { color: var(--evil); }
+.fs-n.enough { color: var(--evil); }
+/* 線下多設備：玩家自己的舉手 / 放下（trial.js myHand）——選票上那種雙線章，亮著的那枚是現在的樣子 */
+.hand-me { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding-top: 10px; border-top: 1.5px dashed var(--line); }
+.hand-me .vt-btn { flex-direction: column; gap: 3px; min-height: 66px; padding: 6px; font-size: 26px; letter-spacing: .1em; transition: transform .1s, background .12s, color .12s, opacity .2s; }
+.hand-me .vt-btn:hover { transform: none; }
+.hand-me .vt-btn:active { transform: scale(.96); }
+.hm-main { display: inline-flex; align-items: center; gap: 6px; }
+.hand-me .vt-btn .ico { width: 26px; height: 26px; }
+.hm-down { transform: rotate(180deg); }
+.hand-me .vt-btn small.hm-sub { position: static; display: inline-flex; align-items: center; gap: 4px; font: 700 12px/1.2 var(--sans); letter-spacing: 0; }
+.hand-me .hm-sub .ico { width: 15px; height: 15px; }
+.hand-me .hm-sub .sb { font-size: 13px; }
+.hand-me .vt-btn.on .hm-sub .sb { border-color: currentColor; color: inherit; background: none; }
+/* 最後是說書人替他點的：章頂上探出一張小籤 */
+.hm-st { position: absolute; right: 8px; top: -10px; padding: 0 5px; background: var(--card); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 2px;
+  font: 700 11px/1.5 var(--sans); font-style: normal; letter-spacing: 0; white-space: nowrap; animation: slip-in .25s ease-out; }
+.hand-me .vt-btn.hm-off { opacity: .4; }
+/* 「放下」是默認的樣子：亮著時淡淡一層，不和「舉手」搶眼 */
+.hand-me .vt-btn.gray.on { background: color-mix(in srgb, var(--muted) 18%, var(--card)); color: var(--ink); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px var(--muted); border-color: var(--muted); }
+.hand-me .vt-btn.on .ico:not(.hm-down) { animation: hv-up .3s cubic-bezier(.2, 1.4, .4, 1) both; }
+/* 收起時桌心紙條上的兩枚小章 */
+.hand-me.sm { display: flex; gap: 6px; padding: 0; border: 0; }
+.hand-me.sm .vt-btn { min-height: 36px; padding: 2px 12px; font-size: 16px; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px currentColor; border-width: 2px; }
+.hand-me.sm .vt-btn.on { box-shadow: inset 0 0 0 2px var(--c), inset 0 0 0 3px var(--card); }
+.hand-me.sm .vt-btn .ico { width: 17px; height: 17px; }
 /* 線下局撤銷（頂欄）：圖標 + 「撤銷」+ 要撤的那一步；手機上只留圖標 */
 .topbar .undo { display: inline-flex; align-items: center; gap: 4px; }
 .topbar .undo .ico { width: 15px; height: 15px; transform: scaleX(-1); }
@@ -1144,6 +1179,31 @@ button.hv:active { transform: scale(.94); }
   .hv { height: 30px; padding: 0 6px; font-size: 12.5px; max-width: 100px; }
   .hv b { font-size: 13px; }
   .hv-ico { width: 13px; height: 13px; }
+  .tr-need { font-size: 17px; }
+  .hand-me { gap: 8px; padding-top: 6px; }
+  .hand-me .vt-btn { min-height: 54px; font-size: 22px; }
+  .hand-me .vt-btn .ico { width: 22px; height: 22px; }
+  /* 十人以上：玩家的名單只是看的，只留座位號（名字在提示裏），牌不高過屏幕 */
+  .hand-trial.crowded span.hv { min-width: 40px; justify-content: center; }
+  .hand-trial.crowded span.hv > span { display: none; }
+}
+/* 矮橫屏的玩家（線下多設備）：左邊誰提名誰和票數，右邊大家的手，最下面自己的兩枚章，章一直整個露著 */
+@media (max-height: 520px) and (orientation: landscape) {
+  .trial.hand-trial:has(> .hand-me) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); grid-template-areas: "head hv" "mid hv" "me me"; align-items: center; gap: 4px 14px; padding: 6px 10px; }
+  .hand-trial:has(> .hand-me) > .tr-head { grid-area: head; }
+  .hand-trial:has(> .hand-me) > .tr-mid { grid-area: mid; }
+  .hand-trial:has(> .hand-me) > .hv-row { grid-area: hv; align-self: stretch; align-content: center; padding-top: 24px; } /* 頂上讓出右上角的「收起」 */
+  .hand-trial > .hand-me { grid-area: me; padding-top: 6px; }
+  .hand-trial > .hand-me .vt-btn { min-height: 44px; font-size: 20px; }
+  /* 說書人同一個排法：左邊誰提名誰和票數，右邊大家的名字（點名字代舉），最下面取消、結算。不沿用線上那套「左右兩欄 + 計時」 */
+  .is-st .trial.hand-trial { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); grid-template-areas: "head hv" "mid hv" "acts acts"; grid-template-rows: auto auto auto;
+    height: fit-content; max-height: calc(100% - 12px); overflow-y: auto; align-content: center; gap: 4px 14px; }
+  .is-st .hand-trial > .tr-mid { grid-area: mid; }
+  .is-st .hand-trial > .hv-row { grid-area: hv; align-self: stretch; align-content: center; padding-top: 24px; }
+}
+/* 手機豎屏：審判牌右上角的「收起」不壓被提名者的紅圈，頭一排往左讓出它的寬度（說書人那邊 board.css 已經讓了） */
+@media (max-width: 860px) and (orientation: portrait) {
+  .trial:has(> .fold-x) > .tr-head { padding-right: 40px; }
 }
 /* 英文角色名比中文長：手機上左上角那枚小牌（54 / 44px）名字按牌的大小縮，不衝出圓圈 */
 @media (max-width: 860px) {
@@ -1169,6 +1229,22 @@ button.hv:active { transform: scale(.94); }
 .dbg-role small { min-width: 4.5em; color: var(--muted); font-size: 12px; }
 .dbg-turn { display: inline-grid; color: var(--brass); }
 .dbg-turn .ico { width: 15px; height: 15px; }
+.dbg-row.dead > :not(.dbg-marks) { opacity: .5; }
+/* 每行右邊的狀態：骷髏、月亮（輪到他 / 說書人）、舉手（亮的舉著，淡的還能舉）、紅色數字（沒看的私密信息 / 說書人等著處理的） */
+.dbg-marks { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 58px; margin-left: auto; }
+.dbg-hand.can { color: var(--muted); opacity: .55; }
+.dbg-new { min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border-radius: 8px; background: var(--evil); color: #fff; font: 700 10px/16px var(--sans); font-style: normal; text-align: center; }
+/* 換了身份：頂欄的身份按鈕重新蓋一下（新的身份從上往下按下來），一眼看出「現在是誰」換了 */
+.topbar .dbg-who { position: relative; animation: dbg-swap .32s cubic-bezier(.3, 1.4, .5, 1); }
+.topbar .dbg-who > :not(.dbg-tag) { animation: dbg-name .32s ease-out; }
+@keyframes dbg-swap { from { transform: translateY(-6px) scale(1.08); border-color: var(--evil); } }
+@keyframes dbg-name { from { opacity: 0; } }
+/* 代入座位時說書人那邊有人在等（請求、裁定、夜裏輪到說書人點）：按鈕角上一個紅點慢慢呼吸 */
+.dbg-ping { position: absolute; right: -4px; top: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--evil); box-shadow: 0 0 0 2px var(--bg, #1b1f2e);
+  animation: veil-dot .4s cubic-bezier(.2, 1.4, .4, 1) both, dbg-ping 2s ease-in-out .4s infinite; }
+@keyframes dbg-ping { 50% { box-shadow: 0 0 0 2px var(--bg, #1b1f2e), 0 0 8px 3px color-mix(in srgb, var(--evil) 70%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .topbar .dbg-who, .topbar .dbg-who > *, .dbg-ping { animation: none; } }
+.dbg-turn.dbg-dead { color: var(--muted); }
 .popmenu button:has(> .dbg-row.cur) { background: var(--hover); box-shadow: inset 3px 0 0 var(--brass); font-weight: 700; }
 
 /* 系統不認識的角色死了也停一步：一行寫他已死亡、沒有能力就跳過 */

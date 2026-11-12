@@ -1,12 +1,12 @@
 // 側欄：標籤頁（流程日誌、遊戲日誌、聊天、角色表）。流程操作在圓桌中央和審判牌上（flow.js）
-import { h, roleToken, seatLabel, prompt2 } from './ui.js';
+import { h, roleToken, seatLabel } from './ui.js';
 import { getLang } from './lang.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { renderLog } from './log.js';
 import { renderGameLog } from './gamelog.js';
 import { seatBadge, mini, tag, icon, roleIcon, demonMark, ACTS } from './glyph.js';
 import { msgHeld } from './fx.js';
-import { rolePanel } from './rolepick.js';
+import { notebook } from './pmarks.js';
 
 // 聊天狀態按視角分開（自己 / 說書人代入的某個玩家），代入時不會串到說書人自己的未讀。
 // seen：每個頻道讀到的最後一條；base：進入這個視角時的最後一條（之前的舊消息不算未讀）
@@ -17,7 +17,7 @@ const views = {};
 let ui = newView();
 // 離開房間不刷新頁面：換一個房間，已讀、草稿都從頭算
 export function resetSide() { Object.keys(views).forEach(k => delete views[k]); ui = newView(); }
-const viewKey = s => (s.peek ? 'peek:' + s.peek.seatId : s.isSt ? 'st' : 'me');
+const viewKey = s => (s.peek ? 'peek:' + s.peek.seatId : s.isSt ? 'st' : 'me:' + (s.myId || '')); // 按座位分：調試換座位時草稿、頻道、已讀不串
 const wide = () => window.matchMedia('(min-width: 861px)').matches;
 // 換標籤、換頻道：新的內容淡進來
 const tabIn = sel => { if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelector(sel)?.animate({ opacity: [0, 1] }, 180); };
@@ -29,23 +29,7 @@ export function openChat(ctx, ch) {
 }
 const lastSeqOf = s => s.chat.at(-1)?.seq || 0;
 
-// 玩家自己的猜測和備註只存在本機，按房間 + 局區分（新的一局自動清空）
-const key = (ctx, kind) => `botc.${kind}.${ctx.state.code}.${ctx.state.gameId}`;
-const readJson = (ctx, kind) => { try { return JSON.parse(ctx.ls.get(key(ctx, kind)) || '{}'); } catch { return {}; } };
-// 角色猜測：{ seatId: roleId }
-export const guesses = ctx => readJson(ctx, 'guess');
-// 座位備註：{ seatId: [文字] }
-export const notes = ctx => readJson(ctx, 'note');
-function saveNotes(ctx, n) { ctx.ls.set(key(ctx, 'note'), JSON.stringify(n)); ctx.render(); }
-export function addNote(ctx, seatId) {
-  prompt2(`給 ${seatLabel(ctx.state, seatId)} 加備註`, '', text => {
-    if (!text) return;
-    const n = notes(ctx);
-    (n[seatId] ||= []).push(text);
-    saveNotes(ctx, n);
-  }, { max: 12, placeholder: '最多 12 個字，只有你看得到' });
-}
-export function clearNotes(ctx, seatId) { const n = notes(ctx); delete n[seatId]; saveNotes(ctx, n); }
+// 玩家自己記的（自稱、猜測、陣營、備註）在 pmarks.js：只存在本機，按房間 + 局 + 座位區分
 // 說書人給我的信息裏帶的座位標記：{ seatId: [{ r, q, demon, t, text }] }（同樣的只留一個）
 // 技能演出還沒播完的那條：標記先畫出來但看不見（held），演出量著它的位置把答案送過去，落定時正好接上
 // 間諜每晚看一次魔典：只標最後一次看到的，之前的標記（含更早的信息）作廢
@@ -89,19 +73,6 @@ export const actMarkView = v => {
   // 只畫行動的圖標（毒滴、盾、草叉……），不寫「中毒」「保護」：英文寫出來比頭像還寬
   return h('span', { class: 'pmark act ' + ACTS[src].tone + (held ? ' mk-held' : ''), 'data-act': src, title: '你今晚的行動' }, icon(ACTS[src].ico));
 };
-
-// 玩家自己猜某個座位是什麼角色（只存在本機）：和別處一樣的整屏角色單，已經猜的那個是選中的，再點一下就取消
-export function pickGuess(ctx, seatId) {
-  const code = ctx.state.code, now = () => guesses(ctx)[seatId];
-  const set = id => {
-    const g = guesses(ctx);
-    if (id && id !== g[seatId]) g[seatId] = id; else delete g[seatId];
-    ctx.ls.set(key(ctx, 'guess'), JSON.stringify(g));
-    ctx.render();
-  };
-  rolePanel({ key: 'guess-' + seatId, tab: [seatBadge(ctx.state, seatId), icon('quill')], roles: SCRIPTS[ctx.state.scriptId].roles,
-    state: id => ({ on: id === now() }), pick: set, picked: now, alive: () => ctx.state?.code === code });
-}
 
 // 側欄只放記錄類內容；可以收成一條豎排標籤軌（桌面寬屏），收起狀態記在本機
 export const sideCollapsed = ctx => ctx.ls.get('botc.side') === 'min';
@@ -270,7 +241,7 @@ function renderChat(ctx, byCh) {
       ch !== 'whisper' && !s.peek && (s.isSt || s.myId) && composer(ctx, ch, '發送', chanHint(s, ch))));
 }
 
-// 座位上的標記：說書人給的信息裏帶的（角色 / 是否惡魔 / 陣營），自己的角色猜測和備註
+// 座位上的標記：說書人給的信息裏帶的（角色 / 是否惡魔 / 陣營），自己記的自稱、猜測、陣營、備註
 // held：演出還沒播完，先佔位不顯示（技能演出按它的位置落點）
 const heldCls = k => (k.held ? ' mk-held' : '');
 export const markView = k => (k.r ? h('span', { class: 'pm' + (k.q ? ' q' : '') + heldCls(k), 'data-r': k.r }, mini(k.r))
@@ -283,10 +254,7 @@ export const markView = k => (k.r ? h('span', { class: 'pm' + (k.q ? ' q' : '') 
 function seatMarks(ctx, id) {
   const s = ctx.state;
   if (s.isSt) return [];
-  const own = !s.peek, g = own && guesses(ctx)[id]; // 代入視角不帶說書人本機的猜測和備註
-  return [g && h('span', { class: 'pm q', title: '你的猜測' }, mini(g)),
-    ...(infoMarksBySeat(s)[id] || []).map(markView),
-    ...(own && notes(ctx)[id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t))].filter(Boolean);
+  return [...(infoMarksBySeat(s)[id] || []).map(markView), ...(notebook(ctx)?.brief(id) || [])]; // 代入視角沒有筆記本（那是說書人自己的，不是這位玩家的）
 }
 
 function renderSheet(ctx) {

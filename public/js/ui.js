@@ -14,7 +14,7 @@ export function h(tag, attrs = {}, ...kids) {
     else if (k === 'class') el.className = v;
     else if (k === 'style' && typeof v === 'object') {
       for (const [p, x] of Object.entries(v)) if (p.startsWith('--')) el.style.setProperty(p, x); else el.style[p] = x;
-    } else el.setAttribute(k, v === true ? '' : k === 'placeholder' || k === 'title' ? tr(String(v)) : v);
+    } else el.setAttribute(k, v === true ? '' : k === 'placeholder' || k === 'title' || k === 'aria-label' ? tr(String(v)) : v);
   }
   for (const kid of kids.flat(Infinity)) {
     if (kid == null || kid === false) continue;

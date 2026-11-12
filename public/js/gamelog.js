@@ -1,7 +1,7 @@
 // 遊戲日誌：公開發生的事，按輕重排版。階段是分割線；死亡 / 處決是重的一行；提名、得票是普通一行；
 // 計票、取消、無事發生是淡的小字；終局是一塊橫幅。說書人的公告是一張便條。數據見 lib/util.js announce 的 e
 import { h } from './ui.js';
-import { seatBadge, mini, icon, w } from './glyph.js';
+import { seatBadge, mini, icon, w, named } from './glyph.js';
 
 // 座位號 + 名字（日誌是給人讀的，光有號碼不好認）
 const who = (s, id) => h('span', { class: 'gl-who' }, seatBadge(s, id), h('span', { class: 'gl-name' }, s.seats.find(x => x.id === id)?.name || ''));
@@ -26,7 +26,11 @@ function entry(s, e) {
     case 'slaymiss': return [0, [w('無事發生')]];
     case 'virgin': return [2, [icon('bolt'), who(s, e.seat), mini('virgin'), w('反噬', 'bad'), who(s, e.from), w('處決', 'bad')]];
     case 'execute': return [2, [icon('noose'), who(s, e.seat), w('被處決', 'bad')]];
+    case 'survive': return [2, [who(s, e.seat), w('沒有死亡', 'good')]];
     case 'noexec': return [0, [w('今天無人被處決')]];
+    // 雜耍藝人公開猜、月之子 / 呆瓜死後公開選人：誰（帶他公開的角色）猜 / 選了誰
+    case 'juggle': return [1, [who(s, e.seat), mini('juggler'), w('猜'), who(s, e.to), w('是'), named(e.role)]];
+    case 'word': return [1, [who(s, e.seat), mini(e.role), e.to ? [w('選了'), who(s, e.to)] : w('沒有選人', 'muted')]];
     case 'win': return ['win', [h('b', {}, e.team === 'good' ? '善良獲勝' : '邪惡獲勝'), h('small', {}, e.reason)], e.team];
     case 'mvp': return e.seats?.length ? [1, [icon('star', 'gl-mvp'), w('MVP', 'brass'), e.seats.map(id => who(s, id)), w(`${e.n} 票`)]] : [0, [w('沒有人得到 MVP 票')]];
     default: return null;

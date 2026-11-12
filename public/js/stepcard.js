@@ -55,15 +55,19 @@ export function stepCard(ctx) {
 // 死後的選擇：月之子、呆瓜自己公開選（等他，或者代選），心上人由說書人選誰醉酒。放在桌面左上角，不擋白天
 export function lastWordCard(ctx, word) {
   const s = ctx.state, key = 'word-' + word.seatId, lead = [mini(word.role), seatBadge(s, word.seatId, 'lg')];
-  const send = ids => ctx.st('word', { seatId: word.seatId, targetId: ids[0] || null });
+  // 線下多設備：他在自己手機上選了（交給說書人的請求，asks.js）。卡上寫出他選的人，多一個「確認」；「選人」照舊能改，改了也算處理了他的請求
+  const req = !word.st && s.st?.asks?.list.find(a => a.kind === 'word' && a.from === word.seatId);
+  const send = ids => ctx.st('word', { seatId: word.seatId, targetId: ids[0] || null, ask: ids[0] ? req?.id : undefined }); // 不選：他的請求作廢
   if (sel.on?.key === key) return selectBar(ctx, lead, send, true);
-  const pick = () => startSelect(ctx, selFrom(key, { count: 1, alive: true, notSelf: true }, word.seatId));
+  const pick = () => startSelect(ctx, { ...selFrom(key, { count: 1, alive: true, notSelf: true }, word.seatId), ids: req ? [req.to] : [] });
   // 線下沒有手機可等：寫明叫他做什麼（月之子、呆瓜當眾指一個人），說書人照他指的在桌上點
   const off = s.offline && !word.st;
   return h('div', { class: 'card infocard ruling corner' },
-    h('div', { class: 'frm-line' }, lead, word.st ? w('誰從此醉酒？', 'ink') : off ? w('請他公開選一人', 'ink') : h('span', { class: 'waiting' }, h('i'), h('i'), h('i'))),
+    h('div', { class: 'frm-line' }, lead, word.st ? w('誰從此醉酒？', 'ink') : req ? [w('選', 'ink'), h('span', { class: 'wd-pick', 'data-key': 'wd-' + req.id }, seatBadge(s, req.to, 'lg'))]
+      : off ? w('請他公開選一人', 'ink') : h('span', { class: 'waiting' }, h('i'), h('i'), h('i'))),
     h('div', { class: 'row' }, B(word.st || off ? '選人' : '代選', pick, 'sm'),
-      !word.st && B('不選', () => ask('就當他沒有選人？', () => send([]), '不選'), 'ghost sm')));
+      !word.st && B('不選', () => ask('就當他沒有選人？', () => send([]), '不選'), 'ghost sm'),
+      req && B('確認', () => send([req.to]), 'sm')));
 }
 
 // 線下代點時卡上寫給說書人看的話：叫醒他，讓他指定幾個人（和一個角色）做什麼——「叫醒他/她指定一人［投毒］」。
@@ -77,7 +81,9 @@ export const stSay = (s, c, roleId) => {
     h('div', { class: 'ic-say' }, w(`叫醒他/她指定${what}`, 'ink'), verb && h('b', { class: 'act-v ' + (a.tone || '') }, verb), c.counts?.includes(0) && w('（可以不指定）', 'muted'))];
 };
 
-// 單設備首夜（只有單設備停在這幾步，多設備的信息直接發到手機上），按官方順序各自單獨叫醒：
+// 線下首夜（線上的信息直接發到手機上，不停），按官方順序各自單獨叫醒。
+// 多設備：信息已經在他們手機上，卡上不給展示，只叫說書人把人叫醒看手機（「叫醒爪牙，讓他們看手機」），正文照樣寫他們會看到什麼給說書人對照；
+// 瘋子也是「讓他看手機」，說書人的話三張卡一個樣，只有說書人看得到的「假信息」章不同。以下是單設備：
 // 爪牙信息 = 只叫醒爪牙，指給他們看誰是惡魔（惡魔不睜眼：一起睜眼的話，瘋子會發現自己沒被叫起來）。
 // 瘋子信息 = 桌上先提醒說書人「下面是假信息」，點了展示才整屏給瘋子看，和真惡魔那一頁一模一樣（假爪牙 + 假偽裝）。
 // 惡魔信息 = 給惡魔看爪牙和偽裝，之後瘋子、提線木偶各多一頁。
@@ -101,29 +107,29 @@ const bluffRow = ids => h('div', { class: 'frm-line ic-line' }, tag('bluff'), id
 // 他看的爪牙、偽裝；有瘋子、提線木偶各再一行
 const toldRow = (s, l) => [l.minions?.length > 0 && isLine(s, l.minions, 'minion'), l.bluffs?.length > 0 && bluffRow(l.bluffs)];
 function groupCard(ctx, step) {
-  const s = ctx.state, next = () => stepOp(ctx, 'ack'), eye = fn => B([icon('eye'), '展示'], fn);
-  const foot = show => h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, show && eye(show), B('下一個', next, stepLock())));
+  const s = ctx.state, one = s.oneDevice, next = () => stepOp(ctx, 'ack'), eye = fn => B([icon('eye'), '展示'], fn);
+  const foot = show => h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, one && show && eye(show), B('下一個', next, stepLock())));
   if (step.roleId === 'minioninfo') {
     const demon = step.lines.find(l => l.demon)?.demon, minions = step.lines.map(l => l.seatId);
     // 爪牙們一起看一頁：誰是惡魔（別的爪牙睜著眼，彼此看得到）
     const show = () => showPages(s, [{ to: minions[0], say: ['給', minions.map(id => seatBadge(s, id)), '看'],
       body: demon ? bigIs(s, [demon], 'demon') : bigWord('沒有惡魔') }]);
     return h('div', { class: 'card focus infocard spread group' },
-      h('div', { class: 'ic-top' }, sayTag('叫醒爪牙，指出惡魔'), wakeMark(s, minions), demon ? isLine(s, [demon], 'demon') : w('場上沒有惡魔', 'muted')),
+      h('div', { class: 'ic-top' }, sayTag(one ? '叫醒爪牙，指出惡魔' : minions.length > 1 ? '叫醒爪牙，讓他們看手機' : '叫醒爪牙，讓他看手機'), wakeMark(s, minions), demon ? isLine(s, [demon], 'demon') : w('場上沒有惡魔', 'muted')),
       foot(show));
   }
   const pages = groupPages(s, step), show = pages.length > 0 && (() => showPages(s, groupPages(s, step)));
   if (step.roleId === 'lunainfo') {
     const l = step.lines[0];
     return h('div', { class: 'card focus infocard spread group luna' },
-      h('div', { class: 'ic-top' }, sayTag('叫醒瘋子，當他是惡魔展示'), wakeMark(s, [l.seatId], mini('lunatic')),
+      h('div', { class: 'ic-top' }, sayTag(one ? '叫醒瘋子，當他是惡魔展示' : '叫醒瘋子，讓他看手機'), wakeMark(s, [l.seatId], mini('lunatic')),
         h('span', { class: 'ink-stamp luna-fake' }, '假信息'), toldRow(s, l)),
       foot(show));
   }
   // 惡魔：卡上是他要知道的（爪牙是誰、三張偽裝、瘋子 / 提線木偶是誰），叫醒的惡魔在角標上
   const many = step.lines.length > 1;
   return h('div', { class: 'card focus infocard spread group' },
-    h('div', { class: 'ic-top' }, sayTag(step.lines.some(l => l.minions?.length) ? '叫醒惡魔，展示爪牙和偽裝' : '叫醒惡魔，展示偽裝'),
+    h('div', { class: 'ic-top' }, sayTag(!one ? '叫醒惡魔，讓他看手機' : step.lines.some(l => l.minions?.length) ? '叫醒惡魔，展示爪牙和偽裝' : '叫醒惡魔，展示偽裝'),
       wakeMark(s, step.lines.map(l => l.seatId)),
       step.lines.map(l => [many && h('div', { class: 'frm-line ic-line' }, tag('demon'), seatBadge(s, l.seatId)), toldRow(s, l),
         knows(l).map(([id, r]) => h('div', { class: 'frm-line ic-line' }, seatBadge(s, id), w('是', 'muted'), named(r)))])),
@@ -208,6 +214,11 @@ const TELL = { become: '自己變成了', mad: '自己被洗腦為', exorcist: '
 const tellLine = (s, id, kind, obj, awake = false) => h('div', { class: 'ic-say tell' },
   awake ? [w('告知', 'ink'), seatBadge(s, id), w('：' + (TELL[kind] || '').replace(/^自己/, '他'), 'ink')]
     : [w('叫醒', 'ink'), seatBadge(s, id), w('，' + (kind ? '讓他得知' + TELL[kind] : '告訴他'), 'ink')], obj);
+// 多設備：信息已經發到他手機上，說書人只要叫醒他看手機（剛替他點完、還睜著眼的就直接讓他看）。
+// 他會看到什麼另起一行給說書人對照（「他變成了 小惡魔」），不用念給他聽
+const phoneLine = (s, id, awake) => h('div', { class: 'ic-say tell' },
+  awake ? [w('讓', 'ink'), seatBadge(s, id), w('看手機', 'ink')] : [w('叫醒', 'ink'), seatBadge(s, id), w('，讓他看手機', 'ink')]);
+const phoneFact = (kind, obj) => h('div', { class: 'frm-line ic-line' }, kind && w((TELL[kind] || '').replace(/^自己/, '他'), 'muted'), obj);
 // 服務端 step.told 的一條是哪一種：換了角色（麻臉巫婆、理髮師、方古、傳位）、被洗腦、被驅魔、鏡像雙子、莽夫換陣營
 const toldKind = t => (t.k === 'role' || t.f?.[0]?.op === 'become' ? 'become' : { cerenovus: 'mad', exorcist: 'exorcist', eviltwin: 'twin', goon: 'align' }[t.src] || null);
 function toldObj(s, t) {
@@ -220,7 +231,8 @@ function toldObj(s, t) {
     default: return h('span', { class: 'frm' }, formula(s, f.filter(x => !x.op)));
   }
 }
-// 單設備：這一步要私下告訴的人，一人一份 { to, lines 卡上照著念的話, pages 整屏給他看的頁 }。
+// 線下：這一步要私下告訴的人，一人一份 { to, lines 卡上照著念的話, pages 整屏給他看的頁（多設備沒有：手機上有了） }。
+// 多設備也一人一張：一起叫醒的話兩個人睜眼看到彼此（理髮師換了誰）。
 // 舞蛇人換到惡魔：兩人各自的新角色（先告知還睜著眼的舞蛇人，再叫醒原惡魔）；教父首夜：在場的外來者（沒有就是 0）；鏡像雙子：兩人各看對方是誰；
 // 服務端 step.told（麻臉巫婆變了他的角色、小惡魔傳位、洗腦師讓他瘋狂、驅魔人選中了惡魔……）每人一份。
 // 同一個人有幾件事（莽夫被麻臉巫婆選中：陣營變了，角色也變了）合在他那一份裏，一次叫醒說完、展示一件一頁；
@@ -247,6 +259,7 @@ function tells(s, step) {
   // 第一句叫醒他（行動者還睜著眼就是「告知」），後面幾句他已經醒著
   return out.map(({ to, facts }) => {
     const l = facts.map((x, k) => [x, k]).sort(([a, i], [b, j]) => (FACT[a.kind] ?? 1) - (FACT[b.kind] ?? 1) || i - j).map(([x]) => x);
+    if (!s.oneDevice) return { to, lines: [phoneLine(s, to, awake(to)), ...l.map(x => phoneFact(x.kind, x.obj))], pages: [] };
     return { to, lines: l.map((x, k) => tellLine(s, to, x.kind, x.obj, k > 0 || awake(to))), pages: l.map(x => ({ to, body: x.body })) };
   });
 }
@@ -264,7 +277,7 @@ function nextPart(ctx, step) {
 function ackCard(ctx, step) {
   if (step.lines) return groupCard(ctx, step);
   const s = ctx.state, { note, e, f } = step.result || {}, picks = step.picks || [];
-  const parts = s.oneDevice ? tells(s, step) : [], ids = new Set(parts.map(p => p.to));
+  const parts = s.offline ? tells(s, step) : [], ids = new Set(parts.map(p => p.to));
   const i = Math.min(ackPart(step), parts.length - 1), last = i >= parts.length - 1;
   // 結果式子：沒有要說的話時它就是卡的內容；有的話只在它還說了別的事時留著（小惡魔自殺傳位、麻臉巫婆造惡魔後誰死）
   const keep = !parts.length || (e?.k === 'act' && !e.swap && !['eviltwin', 'godfather'].includes(step.roleId) && (e.to || []).some(id => !ids.has(id)));
@@ -275,7 +288,7 @@ function ackCard(ctx, step) {
   const show = () => { const p = tells(ctx.state, step)[i]; p && showPages(ctx.state, p.pages); };
   return h('div', { class: 'card focus infocard spread' },
     h('div', { class: 'ic-top' }, actorMark(s, step), what && h('div', { class: 'frm big' + (parts.length ? ' sub' : '') }, what), goonLine(s, step), parts[i]?.lines),
-    h('div', { class: 'ic-foot' }, parts.length ? h('div', { class: 'row' }, B([icon('eye'), '展示'], show), last ? B('下一個', next, stepLock()) : B('下一個', () => nextPart(ctx, step)))
+    h('div', { class: 'ic-foot' }, parts.length ? h('div', { class: 'row' }, s.oneDevice && B([icon('eye'), '展示'], show), last ? B('下一個', next, stepLock()) : B('下一個', () => nextPart(ctx, step)))
       : B('確認', next, 'wide' + stepLock())));
 }
 

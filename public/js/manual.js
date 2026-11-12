@@ -203,29 +203,52 @@ export function communityScripts(ctx) {
 // ───── 白天替玩家做事：圓桌中央一張小卡 ─────
 // kind：nom 提名 / slay 宣稱獵手開槍 / juggle 雜耍藝人猜；from 是做事的人，to 是點到的人，guesses 是雜耍藝人猜的 [{ id, role }]
 // 提名、開槍從圓桌中央的兩個按鈕開始（flow.js stCenter）：先點做事的人，再點對象（可以是他自己），點齊了按卡上的「確認」才結算（提名進審判、開槍進裁定）
+// ask：從玩家在手機上提出的請求打開的（asks.js 那一疊，服務端 lib/asks.js）：發起人定死，對象 / 猜測已經填好、可以改，多一個「駁回」
 let act = null;
 export const mayNominate = (s, seat) => s.phase === 'day' && !s.nomination && !s.dayOver && !seat.dead && !s.nominators.includes(seat.id);
 const free = s => s.phase === 'day' && !s.nomination && !s.st?.ruling;
+const asked = s => !act.ask || !!s.st?.asks?.list.some(x => x.id === act.ask); // 請求還在（沒撤回、沒改、沒作廢）
 const live = s => {
-  if (!act) return false;
+  if (!act || !asked(s)) return false;
   const from = act.from && s.seats.find(x => x.id === act.from);
   if (!act.from) return free(s) && !(act.kind === 'nom' && s.dayOver);
   return !!from && (act.kind === 'nom' ? mayNominate(s, from) : free(s) && !from.dead);
 };
 export function startAct(ctx, kind, seat = null) { act = { kind, from: seat?.id || null, to: null, guesses: [] }; ctx.render(); }
 export function closeAct(ctx) { if (!act) return false; act = null; ctx.render(); return true; }
-// 按了確認才發：提名 → 審判牌，開槍 → 裁定卡。服務器說不行（他今天提名過了……）就退回第二步，提示原因
+// 點開一條玩家請求：桌心就是這張卡，誰對誰已經填好。再點同一條是收起（稍後再處理）
+export function openAsk(ctx, a) {
+  if (act?.ask === a.id) return closeAct(ctx);
+  act = { kind: a.kind, from: a.from, to: a.to || null, guesses: (a.guesses || []).map(g => ({ id: g.id, role: g.role })), ask: a.id };
+  ctx.render();
+}
+export const openAskId = () => act?.ask || null;
+// 開著的請求卡沒了：他撤回了、改了、或者局面變了作廢——說一聲為什麼收起（說書人自己受理 / 駁回的不用說）
+function askGone(s, a) {
+  const d = s.st?.asks?.done.find(x => x.id === a.ask), n = s.seats.findIndex(x => x.id === a.from) + 1;
+  const msg = !d ? `${n} 號改了請求` : d.res === 'drop' ? `${n} 號撤回了請求` : d.res === 'void' ? `請求作廢：${d.why}` : null;
+  if (msg) toast(msg);
+}
+// 按了確認才發：提名 → 審判牌，開槍 → 裁定卡。服務器說不行（他今天提名過了……）就退回第二步，提示原因（玩家的請求：對象留著）
 function fire(ctx) {
   if (act.busy) return; // 連點兩下確認：只發一次
   act.busy = true;
-  const mine = act, { kind, from, to, guesses } = act, done = r => { if (act !== mine) return; act.busy = false; if (r.ok) closeAct(ctx); else if (kind !== 'juggle') { act.to = null; ctx.render(); } };
-  if (kind === 'nom') ctx.st('nominate', { fromId: from, toId: to }).then(done);
-  if (kind === 'slay') ctx.st('slayFor', { fromId: from, toId: to }).then(done);
-  if (kind === 'juggle') ctx.st('juggleFor', { seatId: from, guesses: guesses.map(g => ({ id: g.id, role: g.role })) }).then(done);
+  const mine = act, { kind, from, to, guesses, ask } = act, done = r => { if (act !== mine) return; act.busy = false; if (r.ok) closeAct(ctx); else if (kind !== 'juggle' && !ask) { act.to = null; ctx.render(); } };
+  if (kind === 'nom') ctx.st('nominate', { fromId: from, toId: to, ask }).then(done);
+  if (kind === 'slay') ctx.st('slayFor', { fromId: from, toId: to, ask }).then(done);
+  if (kind === 'juggle') ctx.st('juggleFor', { seatId: from, guesses: guesses.map(g => ({ id: g.id, role: g.role })), ask }).then(done);
+}
+// 駁回玩家的請求：他手機上那條蓋「駁回」
+function reject(ctx) {
+  if (act.busy) return;
+  act.busy = true;
+  const mine = act;
+  ctx.st('askNo', { ask: act.ask }).then(r => { if (act !== mine) return; act.busy = false; if (r.ok) closeAct(ctx); });
 }
 // 給 town.js：卡開著時點桌上的座位
 export const actPicking = ctx => {
   const s = ctx.state;
+  follow(s);
   if (!live(s)) return null;
   // 第一步：誰提名 / 誰開槍（提名過的、死了的點不了）
   if (!act.from) {
@@ -251,9 +274,21 @@ export const actPicking = ctx => {
     pick: id => { act.to = act.to === id ? null : id; ctx.render(); } };
 };
 // 給 town.js：圓桌中央現在要放的代行卡，沒有就返回 null
+// 開著的那條請求被他自己改了（換了對象、雜耍藝人多猜 / 少猜一個）：卡不收，換成新的那條，說一聲。
+// 桌上的座位（actPicking）和桌心的卡（actBubble）誰先畫都先調這個
+function follow(s) {
+  if (!act?.ask || asked(s) || s.st?.asks?.done.some(d => d.id === act.ask)) return;
+  const n = s.st?.asks?.list.find(x => x.from === act.from && x.kind === act.kind);
+  if (!n) return;
+  toast(`${s.seats.findIndex(x => x.id === n.from) + 1} 號改了請求`);
+  act = { kind: n.kind, from: n.from, to: n.to || null, guesses: (n.guesses || []).map(g => ({ id: g.id, role: g.role })), ask: n.id };
+}
 export function actBubble(ctx) {
-  if (act && !live(ctx.state)) act = null; // 白天結束了、有人搶先提名了：這張卡作廢
-  return act && { id: 'act-' + act.kind, seatId: act.from, card: () => actCard(ctx) };
+  const s = ctx.state;
+  follow(s);
+  if (act && !live(s)) { if (act.ask && !asked(s)) askGone(s, act); act = null; } // 白天結束了、有人搶先提名了、玩家撤回了請求：這張卡作廢
+  // 同一個人的同一類請求是同一張卡（他改了請求，卡留在原處換內容，不收起再落一張）
+  return act && { id: 'act-' + act.kind + (act.ask ? '-ask-' + act.from : ''), seatId: act.from, card: () => actCard(ctx) };
 }
 const VERB = { nom: ['提名', 'bad'], slay: ['開槍', 'bad'], juggle: ['猜', 'ink'] };
 // 卡頂的索引籤：這一步點誰（給說書人看的）
@@ -261,21 +296,24 @@ const ASK = { nom: ['選擇提名的人', '選擇被提名的人'], slay: ['選�
 const CONFIRM = { nom: '確認提名', slay: '確認開槍' };
 const WANT = { nom: ['先在桌上點提名的人', '再點被提名的人'], slay: ['先在桌上點開槍的人', '再點他射向的人'] };
 function actCard(ctx) {
-  const s = ctx.state, { kind, from, to, guesses } = act, [verb, tone] = VERB[kind];
-  // 點好的人可以點掉重選：點做事的人回到第一步，點對象只收回對象
+  const s = ctx.state, { kind, from, to, guesses, ask } = act, [verb, tone] = VERB[kind];
+  // 點好的人可以點掉重選：點做事的人回到第一步，點對象只收回對象。玩家的請求：發起人定死（他自己提的），只能改對象
   const slot = (id, undo) => (id ? h('button', { class: 'act-slot', onclick: () => { undo(); ctx.render(); } }, seatBadge(s, id, 'lg')) : h('span', { class: 'sb empty lg' }));
-  const tagText = kind === 'juggle' ? null : ASK[kind][from ? 1 : 0];
+  // 玩家的請求：索引籤寫「玩家的請求」（說書人知道這張卡是從哪來的），點別的座位照樣是改對象
+  const tagText = ask ? '玩家的請求' : kind === 'juggle' ? null : ASK[kind][from ? 1 : 0];
   // 雜耍藝人猜的另起一塊、可以折行（最多五個，一行放不下）
   const list = kind === 'juggle' && guesses.length > 0 && h('div', { class: 'jg-list' }, guesses.map(g => h('span', { class: 'jg' }, seatBadge(s, g.id), mini(g.role))));
   const head = kind === 'juggle' ? [mini('juggler'), seatBadge(s, from, 'lg'), w(verb, tone), !guesses.length && h('i', { class: 'op-sep' })]
-    : [kind === 'slay' && mini('slayer'), slot(from, () => { act.from = act.to = null; }), w(verb, tone), slot(to, () => { act.to = null; })];
+    : [kind === 'slay' && mini('slayer'), ask ? seatBadge(s, from, 'lg') : slot(from, () => { act.from = act.to = null; }), w(verb, tone), slot(to, () => { act.to = null; })];
+  const ok = kind === 'juggle' ? BW(guesses.length ? `${verb} ${guesses.length} 個` : verb, () => guesses.length && fire(ctx), '', guesses.length ? null : '先在桌上點他猜的人')
+    : BW(CONFIRM[kind], () => from && to && fire(ctx), '', !from ? WANT[kind][0] : !to ? WANT[kind][1] : null);
   // 手機上拆開（hud.css .spread）：誰對誰在圓桌中間，按鈕在下方
-  return h('div', { class: 'card focus infocard spread' },
+  return h('div', { class: 'card focus infocard spread' + (ask ? ' ask-card' : ''), 'data-ask': ask || null },
     h('div', { class: 'ic-top' }, tagText && h('div', { class: 'ic-tag say', 'data-key': tagText }, tagText), h('div', { class: 'ic-head' }, head), list),
-    // 結算只在按下這個鍵時發生（點齊人不算）：鍵一開始就在，人沒點齊時變暗，點了說還差什麼
-    h('div', { class: 'ic-foot' }, h('div', { class: 'row r73' }, B('取消', () => closeAct(ctx), 'ghost'),
-      kind === 'juggle' ? BW(guesses.length ? `${verb} ${guesses.length} 個` : verb, () => guesses.length && fire(ctx), '', guesses.length ? null : '先在桌上點他猜的人')
-        : BW(CONFIRM[kind], () => from && to && fire(ctx), '', !from ? WANT[kind][0] : !to ? WANT[kind][1] : null))));
+    // 結算只在按下這個鍵時發生（點齊人不算）：鍵一開始就在，人沒點齊時變暗，點了說還差什麼。
+    // 玩家的請求：稍後（收起這張卡，請求還排著）、駁回、確認
+    h('div', { class: 'ic-foot' }, ask ? h('div', { class: 'row ak3' }, B('稍後', () => closeAct(ctx), 'ghost'), B('駁回', () => reject(ctx), 'ghost'), ok)
+      : h('div', { class: 'row r73' }, B('取消', () => closeAct(ctx), 'ghost'), ok)));
 }
 
 // 從劇本的角色裏挑一個（雜耍藝人公開猜、展示身份）：整屏的劇本單（rolepick.js），點一個就收走。

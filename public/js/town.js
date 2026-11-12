@@ -1,7 +1,8 @@
 // 桌面：座位圍成一圈。支持“選人模式”（夜晚行動 / 說書人代選）
 import { h, menu, roleToken, toast, seatLabel, ask, prompt2, modal, closeModal } from './ui.js';
 import { ROLES, TEAMS, SCRIPTS } from './roles.js';
-import { openChat, chatUnread, pickGuess, guesses, notes, addNote, clearNotes, infoMarksBySeat, markView, actMarksBySeat, actMarkView } from './side.js';
+import { openChat, chatUnread, infoMarksBySeat, markView, actMarksBySeat, actMarkView } from './side.js';
+import { notebook, openMarks } from './pmarks.js';
 import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs, nightHeld, dawnHeld, heldFace } from './fx.js';
 import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './scores.js';
 import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge, trueMark, ACTS } from './glyph.js';
@@ -9,7 +10,7 @@ import { hudLinked } from './hud.js';
 import { trialPanel, trialStub } from './trial.js';
 import { seatPicking, preCard, prePicking } from './infoform.js';
 import { stepCard, decidePicking, markPicking, lastWordCard, noticeCard, ackPart } from './stepcard.js';
-import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat, freePreCard, preTag } from './flow.js';
+import { clockState, blockLines, needVotes, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat, freePreCard, preTag } from './flow.js';
 import { pickRole, canHover, hoverSeat, openPick, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { actBubble, actPicking, startAct, openReminders, needPass, passCard, rolePicker, showButton } from './manual.js';
 import { markMeaning } from './stside.js';
@@ -18,6 +19,7 @@ import { openSeatLink } from './invite.js';
 import { tr, getLang } from './lang.js';
 import { heraldHeld, turnSeat } from './herald.js';
 import { decorateSeat, placeMarks, more, openMore, closeMore, overflowOf } from './seatmarks.js';
+import { askItems, askDock, placeAsks } from './asks.js';
 
 // 當前的選人狀態：{ count, notSelfId, ids, key }
 export const sel = { on: null };
@@ -34,12 +36,17 @@ export function startSelect(ctx, opts) { sel.on = { ids: [], ...opts }; ctx.rend
 const seatsWanted = on => Math.max(...(on.counts || [on.count])) > 0;
 export function stopSelect(ctx) { sel.on = null; ctx.render(); }
 
+// 玩家自己死了沒有：'night' 昨晚死的（天亮時那一句跟他說）、true 早就死了。死了的人桌心那句換成他還能做什麼（一張死亡票）
+const myDeath = s => { const me = !s.isSt && !s.peek && s.seats.find(x => x.mine); return me?.dead ? ((s.lastNight || []).includes(me.id) ? 'night' : true) : false; };
+// 白天桌心（沒在提名、台上沒人）：幾個人活著、幾票才能上處決台——說書人桌上寫著，玩家手機上也寫
+const dayNeed = s => !s.isSt && s.phase === 'day' && !s.nomination && !s.dayOver && h('div', { class: 'day-need' },
+  h('span', {}, `${s.seats.filter(x => !x.dead).length} 人存活`), h('span', {}, `上處決台要 ${needVotes(s)} 票`));
 // 圓桌中間的小字：說書人在桌邊說話的口吻（玩家和說書人各一句；觀戰的人沒有座位，不叫他閉眼、提名）
 const PHASE = s => ({
   lobby: ['準備', s.isSt ? null : '等說書人開局'],
   night: [`第 ${s.night} 夜`, !s.isSt ? (s.myId ? '閉上眼，輪到你時我會叫你' : '大家都閉上了眼') : s.st?.step?.status === 'review' ? '天快亮了，核對一下今晚' : '按順序叫醒他們'],
-  dawn: ['天亮了', s.isSt ? '準備好就開始白天' : '睜開眼，聽聽昨晚發生了什麼'],
-  day: [`第 ${s.day} 天`, s.dayOver ? '今天已經處決過人了' : '討論時間'],
+  dawn: ['天亮了', s.isSt ? '準備好就開始白天' : myDeath(s) === 'night' ? '睜開眼，你在昨晚死去了' : '睜開眼，聽聽昨晚發生了什麼'],
+  day: [`第 ${s.day} 天`, s.dayOver ? '今天已經處決過人了' : myDeath(s) ? [h('b', { class: 'ps-dead' }, '你已死亡'), h('span', {}, s.seats.find(x => x.mine).voteUsed ? '不能再投票' : '還能投一票')] : '討論時間'],
   ended: [s.winner === 'good' ? '善良獲勝' : '邪惡獲勝', s.winReason],
 }[s.phase]);
 
@@ -82,10 +89,10 @@ export function renderTown(ctx) {
   const n = s.seats.length;
   const nom = s.nomination, ck = clockState(ctx);
   clockFx(s, ck);
-  // 猜測和備註存在本機：說書人代入時不畫（那是說書人自己的，不是這位玩家的）；遮住身份時也不畫（猜誰是隊友就露了自己的陣營）
-  const own = s.isSt || s.peek || s.veiled;
-  const g = own ? {} : guesses(ctx);
-  const auto = s.isSt ? {} : infoMarksBySeat(s), mine = own ? {} : notes(ctx), acts = actMarksBySeat(s), aim = canAim(s);
+  // 玩家自己記的（自稱、猜測、陣營、備註）只存在本機（pmarks.js）。說書人、代入視角沒有（那是說書人自己的，不是這位玩家的）；
+  // 遮住身份時照樣畫：那是他自己寫的，遮住只管系統發給他的私密信息（角色、得知的信息、隊友的陣營牌）
+  const book = notebook(ctx, seat => !tapsSeat(ctx, seat));
+  const auto = s.isSt ? {} : infoMarksBySeat(s), acts = actMarksBySeat(s), aim = canAim(s);
   // 爪牙 / 惡魔信息裏得知的邪惡隊友：頭像直接換成陣營牌（座位下面就不再重複標）
   const team = Object.fromEntries(Object.entries(auto).flatMap(([id, ks]) => ks.filter(k => k.t).slice(0, 1).map(k => [id, k.t])));
   const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), picks = s.words || [], num = id => s.seats.findIndex(x => x.id === id) + 1;
@@ -145,13 +152,15 @@ export function renderTown(ctx) {
       cls.push(sel.on.notSelfId === seat.id || sel.on.last?.includes(seat.id) || (sel.on.alive && seat.dead) || (sel.on.dead && !seat.dead) ? 'unselectable' : 'selectable');
       if (sel.on.ids.includes(seat.id)) cls.push('selected');
     }
+    // 玩家自己記的：頭像圈裏空著時，他自稱的角色畫進圈裏（虛線圈、半透明），猜的、備註掛在旁邊（pmarks.js）
+    const away = seatAway(s, seat.id), pm = book?.seat(seat, !away && !seat.role && !(seat.mine && (s.myRole || s.veiled)) && !team[seat.id]);
     // 坐上處決台的人：座位上只留一個虛線空位，頭像在圓桌中間
-    const token = seatAway(s, seat.id) ? h('div', { class: 'token md blank away' }, i + 1)
+    const token = away ? h('div', { class: 'token md blank away' }, i + 1)
       : seat.role ? dealt(seat.role)
         : seat.mine && s.myRole ? roleToken(heldFace() || s.myRole)
           : seat.mine && s.veiled ? h('div', { class: 'token md back' })
           : team[seat.id] ? teamToken(team[seat.id])
-            : g[seat.id] ? h('div', { class: 'guess' }, roleToken(g[seat.id]))
+            : pm?.face ? pm.face
               // 空座位：圈裏寫名字，號碼在下面的名牌上。單設備還沒起名字的空座位畫一支筆（點名牌寫名字）
               : h('div', { class: 'token md blank named' }, seat.name ? h('span', { class: 'tk-name' }, seat.name) : seat.local && icon('quill', 'tk-q'));
     const died = dead && fxFor('died', seat.id, 1400), voted = fxFor('lock', seat.id, 400) || fxFor('voted', seat.id, 600);
@@ -196,9 +205,11 @@ export function renderTown(ctx) {
       (nominated || nominee) && h('div', { class: 'daytags' },
         nominated && h('span', { title: '今天已經提名過' }, '已提'), nominee && h('span', { title: '今天已經被提名過' }, '被提')),
       statusView(ctx, seat, status),
-      // 說書人：頭像右下角一枚小「+」，點了直接貼標記（同類魔典的做法），不用先開座位菜單
-      addable && h('button', { class: 'seat-add', 'data-key': 'add', title: '貼標記', 'aria-label': `給 ${seatLabel(s, seat.id)} 貼標記`,
-        onclick: e => { e.stopPropagation(); closePick(); openReminders(ctx, seat); } }, icon('plus'))),
+      pm?.ring, // 玩家標的陣營：頭像外面筆圈的一圈
+      // 頭像右下角一枚小「+」，點了直接貼標記（同類魔典的做法），不用先開座位菜單。說書人貼的是真的狀態；玩家記的是自己的筆記，只存在本機。
+      // 玩家正在桌上選人（夜裏的行動）時收起來，點座位就是選人
+      (addable || (book && !(sel.on && seatsWanted(sel.on)))) && h('button', { class: 'seat-add', 'data-key': 'add', title: '貼標記', 'aria-label': `給 ${seatLabel(s, seat.id)} 貼標記`,
+        onclick: e => { e.stopPropagation(); if (!s.isSt) return openMarks(ctx, seat.id, e.currentTarget); closePick(); openReminders(ctx, seat); } }, icon('plus'))),
     // 單設備準備階段：點名牌就地改名字，回車跳到下一位（nameInput）
     h('div', { class: 'plate' + (canName(s, seat) ? ' nameable' : ''), onclick: canName(s, seat) ? e => { e.stopPropagation(); editName(ctx, seat.id); } : null },
       h('b', {}, i + 1), naming === seat.id && canName(s, seat) ? nameInput(ctx, seat) : token.classList.contains('named') ? null : h('span', { class: 'pname' }, seat.name),
@@ -208,16 +219,15 @@ export function renderTown(ctx) {
       pre, // 準備階段預選好的首夜信息：掛在這個人自己的座位上（flow.js preTag）
       // 寫全名一行就佔半個桌心，三枚疊起來把中間的操作卡擠沒了：只畫角色小牌和角上的符號（tagView）
       shown.map(t => tagView(ctx, seat, t)), moreChip(ctx, seat)),
-    (missed.some(x => x.from === seat.id) || picks.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
+    (missed.some(x => x.from === seat.id) || picks.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || pm?.lane.length > 0))) && h('div', { class: 'pmarks' },
       // 開槍沒打中、死後公開選人：圖標 + 對方的座位號，不寫字（全句在 title 裏）
       missed.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot' + (fxFor('shot', seat.id, 600) ? ' fx-shot' : ''), title: `射${num(x.to)}號失敗` },
         icon('aim'), h('b', {}, num(x.to)))),
       picks.filter(x => x.from === seat.id).map(x => h('span', { class: 'pmark shot word' + (wordFresh(x) ? ' fx-shot' : ''), style: { animationDelay: wordFresh(x) || null }, title: `${ROLES[x.role]?.name || ''}死後公開選人` },
         icon(x.role === 'moonchild' ? 'moon' : 'aim'), h('b', {}, num(x.to)))),
       !s.isSt && (acts[seat.id] || []).map(actMarkView),
-      team[seat.id] && g[seat.id] && h('span', { class: 'pm q', title: '你的猜測' }, mini(g[seat.id])),
       (auto[seat.id] || []).filter(k => !k.t).map(markView),
-      (mine[seat.id] || []).map(t => h('span', { class: 'pmark note', title: '你的備註' }, t)), moreChip(ctx, seat))),
+      pm?.lane, moreChip(ctx, seat))), // 自己記的排在系統信息後面：放不下時先收進「+N」
     turnAt === seat.id && turnArrow(seat.id));
     decorateSeat(seatEl, seat.id); // 狀態圖章、假身份副牌、標記的位置（seatmarks.js，畫完後 fitTableCard 裏排）
     ring.append(seatEl);
@@ -247,6 +257,7 @@ export function renderTown(ctx) {
     !blk && !mid && sub && (spot === 'mid' || !s.isSt) && h('div', { class: 'phase-sub' }, sub),
     !s.isSt && (pop('st', '說書人') || pub('st', '公告')),
     s.phase === 'day' && !nom && !blk && s.tie && h('div', { class: 'center-block' }, blockLines(s)[0]),
+    !blk && !mid && dayNeed(s),
     mid ? cardEl(ctx, b, true) : s.isSt ? stCenter(ctx) : (!blk || s.prompt) && playerCenter(ctx),
     showNom && trialStub(ctx),
     s.phase === 'ended' && mvpPane(ctx),
@@ -261,7 +272,7 @@ export function renderTown(ctx) {
   }
   if (showNom) ring.append(nomLine(s, nom));
   const picking = s.isSt && !s.peek && s.phase === 'lobby' && !preCardOn;
-  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), deck(ctx), picking && scriptPick(ctx),
+  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), deck(ctx), askDock(ctx), picking && scriptPick(ctx),
     spot === 'corner' && h('div', { class: 'phase-tag', 'data-key': 'phase-tag', 'data-exit': true }, title), obituary(s), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(ctx, b)), b && b.side && cardEl(ctx, b));
 }
 
@@ -299,7 +310,7 @@ function placeObit() {
   const tokens = [...ring.querySelectorAll(':scope > .seat > .seat-token')].map(rect).filter(seen).map(r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }));
   const parts = [...ring.querySelectorAll(':scope > .seat > :is(.plate, .seat-more:not(.mk-on)), :scope > .seat .mk.at, :scope > .seat .crown, :scope > .center > *')].map(rect).filter(seen);
   // 「第 N 天」、觀眾席，還有橫屏時浮在小鎮左上角的角色牌（.board 裏和 .town 並排的那幾個）：紙不能掛到它們底下，繩子可以從角色牌底下垂出來
-  const around = [...town.querySelectorAll(':scope > :not(.ring, .obit)'), ...[...town.parentElement.children].filter(el => el !== town)].map(rect).filter(seen);
+  const around = [...town.querySelectorAll(':scope > :not(.ring, .obit, .ask-dock)'), ...[...town.parentElement.children].filter(el => el !== town)].map(rect).filter(seen); // 玩家請求的紙條（asks.js）讓著訃告，不互相推
   const mourn = ob.classList.contains('mourn'), wide = town.offsetWidth > 640, pad = wide ? 14 : 10;
   const tagB = tag ? tag.bottom - t.top : 26;
   const lap = (r, L, T, R, B) => Math.max(0, Math.min(r.right, R) - Math.max(r.left, L)) * Math.max(0, Math.min(r.bottom, B) - Math.max(r.top, T));
@@ -358,7 +369,7 @@ function placeDeck() {
   const t = town.getBoundingClientRect(), rect = el => el.getBoundingClientRect(), seen = r => r.width && r.height;
   const tokens = [...ring.querySelectorAll(':scope > .seat > .seat-token')].map(rect).filter(seen).map(r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }));
   const parts = [...ring.querySelectorAll(':scope > .seat > :is(.plate, .seat-more), :scope > .seat .mk.at, :scope > .center :is(.card, .ic-top, .ic-body, .ic-foot, .btn, .row)')].map(rect).filter(seen);
-  const around = [...town.querySelectorAll(':scope > :not(.ring, .show-deck)'), ...[...town.parentElement.children].filter(el => el !== town)].map(rect).filter(seen);
+  const around = [...town.querySelectorAll(':scope > :not(.ring, .show-deck, .ask-dock)'), ...[...town.parentElement.children].filter(el => el !== town)].map(rect).filter(seen); // 請求疊（asks.js）讓著牌堆
   const pad = town.offsetWidth > 640 ? 12 : 6;
   const lap = (r, L, T, R, B) => Math.max(0, Math.min(r.right, R) - Math.max(r.left, L)) * Math.max(0, Math.min(r.bottom, B) - Math.max(r.top, T));
   const tries = [];
@@ -497,6 +508,7 @@ export function fitTableCard() {
   placeMarks(ringNow);
   placeObit();
   requestAnimationFrame(placeDeck); // 桌心的牌縮放、挪位（下面這一段）做完再量
+  requestAnimationFrame(placeAsks); // 線下多設備的玩家請求（asks.js）：牌堆擺好以後，找離桌心最近的空處
   const turn = document.querySelector('.center > .turn-pane:not(.leaving)'), st = document.querySelector('.st-card:not(.corner):not(.leaving)');
   const middle = document.querySelector('.center:not(.has-blk)'); // 沒有牌：準備、天亮、白天的按鈕，連標題一起算
   const el = turn || st || middle, card = turn || st?.firstElementChild || middle;
@@ -795,10 +807,12 @@ function tagView(ctx, seat, t) {
 // 給過的信息（舊版本掛在桌上的「洗衣婦:士兵」「圖書管理員:錯誤」、單設備查驗的「占卜師查」）：已經發生過的事，不再影響裁定，
 // 不上桌（日誌和座位的「記錄」裏有）。現在系統不再掛，舊存檔裏的也不畫
 const told = t => { let m = t.match(/^(.+?)[:：](.+)$/); if (m && roleNamed(m[1])) return true; m = t.match(/^(.+)查$/); return !!(m && roleNamed(m[1])); };
-// 放不下的收成最後一格「+N」（seatmarks.js 算 N、決定收哪幾枚）。說書人懸停 / 點一下攤開成一張紙條，看收起來的是哪幾枚
-const moreChip = (ctx, seat) => h('span', { class: 'tag more-chip', 'data-key': 'more', ...(ctx.state.isSt && {
+// 放不下的收成最後一格「+N」（seatmarks.js 算 N、決定收哪幾枚）。說書人懸停 / 點一下攤開成一張紙條，看收起來的是哪幾枚；
+// 玩家點一下打開這個座位的標記紙（收起來的是自己記的那幾枚，紙上全寫著）
+const moreChip = (ctx, seat) => h('span', { class: 'tag more-chip', 'data-key': 'more', ...(ctx.state.isSt ? {
   onclick: e => { e.stopPropagation(); openMore(ctx, seat.id, true); },
-  onmouseenter: canHover() ? () => openMore(ctx, seat.id) : null, onmouseleave: canHover() ? () => closeMore(ctx, true) : null }) });
+  onmouseenter: canHover() ? () => openMore(ctx, seat.id) : null, onmouseleave: canHover() ? () => closeMore(ctx, true) : null }
+  : !ctx.state.peek && { onclick: e => { if (tapsSeat(ctx, seat)) return; e.stopPropagation(); openMarks(ctx, seat.id); } }) });
 function morePop(ctx, seat) {
   const list = overflowOf(seat.id);
   if (!list.length) return null;
@@ -1050,16 +1064,16 @@ function onSeat(ctx, seat, anchor) {
     me && !seat.mine && { label: [icon('egg', 'menu-ico'), '扔雞蛋', h('b', { class: 'menu-n' + (eggs ? '' : ' none') }, eggs)],
       onclick: () => (eggs ? ctx.act('egg', { targetId: seat.id }) : toast('雞蛋用完了')) },
     canNominate && !s.offline && { label: nomText, onclick: () => ctx.act('nominate', { targetId: seat.id }) }, // 線下當面說，說書人替他提名
-    day && s.dayOver && { label: [h('s', {}, nomText), h('small', {}, '今日已執行處決')], off: true },
+    // 線下多設備：提名、開槍、雜耍藝人猜都是交給說書人的請求（asks.js），死了、處決過也照樣列出寫原因；線上局是空的
+    ...askItems(ctx, seat),
+    day && s.dayOver && !s.asks && { label: [h('s', {}, nomText), h('small', {}, '今日已執行處決')], off: true },
     // 每人每天只能提名一次、被提名一次：照樣列出來，寫明為什麼現在不行
     nomWhy && { label: [h('s', {}, nomText), h('small', {}, nomWhy)], off: true },
     day && !s.offline && { label: seat.mine ? '宣稱獵手：向自己開槍' : '宣稱獵手：向他開槍', onclick: () => (s.myRole === 'slayer' ? aimAsk(ctx, seat)
       : ask(seat.mine ? '公開宣稱自己是獵手，向自己開槍？' : `公開宣稱自己是獵手，向 ${title} 開槍？`, () => ctx.act('slay', { targetId: seat.id }), '開槍')) },
-    day && s.juggleLeft > 0 && { label: seat.mine ? `公開猜自己的角色（還有 ${s.juggleLeft} 次）` : `公開猜他的角色（還有 ${s.juggleLeft} 次）`, onclick: () => pickJuggle(ctx, seat, title) },
+    day && !s.asks && s.juggleLeft > 0 && { label: seat.mine ? `公開猜自己的角色（還有 ${s.juggleLeft} 次）` : `公開猜他的角色（還有 ${s.juggleLeft} 次）`, onclick: () => pickJuggle(ctx, seat, title) },
     me && s.phase !== 'lobby' && !seat.mine && { label: '私聊', onclick: () => openChat(ctx, seat.id) },
-    !s.peek && s.phase !== 'lobby' && !seat.mine && { label: '標記角色猜測', onclick: () => pickGuess(ctx, seat.id) },
-    !s.peek && s.phase !== 'lobby' && { label: '加備註', onclick: () => addNote(ctx, seat.id) },
-    !s.peek && notes(ctx)[seat.id] && { label: '清除我的備註', onclick: () => clearNotes(ctx, seat.id) },
+    // 自稱、猜測、陣營、備註：頭像右下角的「+」（pmarks.js），菜單裏不再放
   ]);
 }
 

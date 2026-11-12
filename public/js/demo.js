@@ -42,7 +42,7 @@ function fresh() {
   };
   who = { me: ME };
   done = new Set();
-  for (const k of ['guess', 'note']) LS.set(`botc.${k}.DEMO.demo`, '{}');
+  for (const id of [ME, 'watch']) LS.set(`botc.pm.DEMO.demo.${id}`, '{"seats":{}}'); // 玩家自己記的（pmarks.js）每次重來都是空的
   sys('遊戲開始，共 7 名玩家。請查看你的角色。', { k: 'start', n: 7 });
   sys('第 1 夜降臨，所有人閉眼。', { k: 'night', n: 1 });
   say('st', ME, '2號阿強 和 6號大偉 之中有一位是【廚師】', { info: true, night: 1, src: 'washerwoman',

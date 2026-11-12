@@ -12,8 +12,9 @@ export const overflowOf = id => over.get(id) || [];
 
 // 渲染時：給座位裏要排位的東西加上 key 和上次的位置
 export function decorateSeat(seatEl, seatId) {
-  const more = seatEl.querySelector(':scope > .seat-more'), list = items(seatEl);
+  const more = seatEl.querySelector(':scope > .seat-more'), list = items(seatEl), add = seatEl.querySelector(':scope > .seat-token > .seat-add');
   if (more && seatEl.querySelector(':scope > .seat-more :is(.tags, .pmarks)')) more.classList.add('mk-on'); // 準備階段只有積分那一行：照舊掛在下面
+  if (add) bakeAdd(add, addAt.get(seatId));
   let n = 0;
   for (const el of list) {
     if (!el.hasAttribute('data-key')) el.setAttribute('data-key', 'mk-' + (el.title || el.textContent || '') + '-' + n++);
@@ -48,28 +49,34 @@ export function placeMarks(ring) {
 function placeSeat(seat, n, rw) {
   const id = seat.getAttribute('data-key'), tok = seat.querySelector(':scope > .seat-token');
   const list = items(seat).filter(el => getComputedStyle(el).display !== 'none' || el.classList.contains('mk-off'));
-  if (!tok || !list.length) return;
+  const add = tok?.querySelector(':scope > .seat-add');
+  if (!tok || (!list.length && !add)) return;
   const tk = tok.offsetWidth, r = tk / 2, i = +seat.getAttribute('data-i');
   const th = (i / n) * Math.PI * 2 - Math.PI / 2, half = n > 2 ? Math.PI / n : Math.PI;
   const sx = seat.offsetLeft - seat.offsetWidth / 2, sy = seat.offsetTop - seat.offsetHeight / 2;
   const T = { x: sx + tok.offsetLeft + r, y: sy + tok.offsetTop + r }, O = rw / 2;
   const tb = tok.getBoundingClientRect();
   const box = (el, x0 = sx, y0 = sy) => ({ x: x0 + el.offsetLeft + el.offsetWidth / 2 - T.x, y: y0 + el.offsetTop + el.offsetHeight / 2 - T.y, w: el.offsetWidth, h: el.offsetHeight });
-  // 擋路的：名牌、頭頂的死亡票、已提 / 被提、投票手、真假勾、皇冠、MVP、聊天氣泡、輪到誰的箭頭、說書人貼標記的「+」
+  // 擋路的：名牌、頭頂的死亡票、已提 / 被提、投票手、真假勾、皇冠、MVP、聊天氣泡、輪到誰的箭頭、貼標記的「+」
   const walls = [];
   const plate = seat.querySelector(':scope > .plate');
-  if (plate?.offsetWidth) walls.push(box(plate));
-  for (const el of tok.querySelectorAll(':scope > :is(.ghost-vote, .daytags, .vmark, .tm, .pin-mark, .crown, .mvp-tag, .mvp-btn, .aim-btn, .seat-add)')) {
+  if (plate?.offsetWidth) walls.push({ ...box(plate), own: true });
+  for (const el of tok.querySelectorAll(':scope > :is(.ghost-vote, .daytags, .vmark, .tm, .pin-mark, .crown, .mvp-tag, .mvp-btn, .aim-btn)')) {
     const b = el.getBoundingClientRect();
     if (b.width) walls.push({ x: b.left + b.width / 2 - tb.left - r, y: b.top + b.height / 2 - tb.top - r, w: b.width, h: b.height });
   }
   const arrow = seat.querySelector(':scope > .turn-arrow');
   if (arrow?.offsetWidth) walls.push(box(arrow));
   // 兩邊鄰座的名牌比頭像寬，斜著的座位會伸進這一塊扇形：也算擋路的
+  const toks = [];
   for (const k of [i - 1, i + 1]) {
     const nb = seat.parentElement.querySelector(`:scope > .seat[data-i="${(k + n) % n}"]`), p = nb !== seat && nb?.querySelector(':scope > .plate');
     if (p?.offsetWidth) walls.push(box(p, nb.offsetLeft - nb.offsetWidth / 2, nb.offsetTop - nb.offsetHeight / 2));
+    const nt = nb !== seat && nb?.querySelector(':scope > .seat-token');
+    if (nt?.offsetWidth) toks.push({ ...box(nt, nb.offsetLeft - nb.offsetWidth / 2, nb.offsetTop - nb.offsetHeight / 2), r: nt.offsetWidth / 2 });
   }
+  if (add) walls.push(placeAdd(id, add, r, walls, toks, (x, y, w) => T.x + x - w / 2 >= 0 && T.x + x + w / 2 <= rw && T.y + y - w / 2 >= 0 && T.y + y + w / 2 <= rw));
+  if (!list.length) return;
   // 這次的輸入沒變（頭像大小、位置、擋路的、要排的東西和大小）：沿用上次排好的
   for (const el of list) el.classList.remove('mk-off');
   const sizes = list.map(el => ({ el, key: el.getAttribute('data-key'), rim: RIM(el), w: el.offsetWidth, h: el.offsetHeight, round: RIM(el) || el.matches('.by-role, .more-chip, .pmark.act, .pm') }));
@@ -149,6 +156,30 @@ function placeSeat(seat, n, rw) {
   over.set(id, hidden.map(x => ({ key: x.key, text: x.key.startsWith('tg-') ? x.key.slice(3) : x.el.title })));
   for (const x of sizes) if (!out.has(x.key)) out.set(x.key, { off: true });
   apply(id, sizes, out);
+}
+
+// 貼標記的「+」：默認在頭像右下角（同類魔典的位置，CSS 裏的那個）。人多、屏小時那裏會壓到自己或鄰座的名牌（座位號、名字），
+// 就順著頭像的圈往上、再往下找第一個空的地方（.at，--ax / --ay 相對頭像中心）。位置記在 addAt 裏，重繪時 decorateSeat 先帶上，不跳回角上再挪過來
+const addAt = new Map(); // 座位 → { x, y }；在默認的右下角就沒有
+const ADD_ANG = [45, 30, 15, 0, -15, -30, -45, 60, -60, 75, -75, 90, -90];
+function placeAdd(id, add, r, walls, toks, inRing) {
+  const w = add.offsetWidth, d = r * .96 + 4 - w / 2, rho = Math.min(Math.hypot(d, d), r + 2);
+  // 蹭到自己名牌的邊框（2px 以內）不算壓：鬆的圓桌上右下角本來就挨著名牌的右端。鄰座的名牌一點都不碰
+  const free = c => inRing(c.x, c.y, w) && !walls.some(b => { const g = b.own ? -2 : 1; return Math.abs(c.x - b.x) < (w + b.w) / 2 + g && Math.abs(c.y - b.y) < (w + b.h) / 2 + g; })
+    && !toks.some(t => Math.hypot(c.x - t.x, c.y - t.y) < t.r + w / 2 - 1);
+  let c = { x: d, y: d };
+  if (!free(c)) for (const a of ADD_ANG.slice(1)) {
+    const ph = (a * Math.PI) / 180, t = { x: rho * Math.cos(ph), y: rho * Math.sin(ph) };
+    if (free(t)) { c = t; break; }
+  }
+  const moved = c.x !== d || c.y !== d;
+  if (moved) addAt.set(id, { x: +c.x.toFixed(1), y: +c.y.toFixed(1) }); else addAt.delete(id);
+  bakeAdd(add, addAt.get(id));
+  return { x: c.x, y: c.y, w, h: w };
+}
+function bakeAdd(add, p) {
+  add.classList.toggle('at', !!p);
+  if (p) { add.style.setProperty('--ax', p.x + 'px'); add.style.setProperty('--ay', p.y + 'px'); }
 }
 
 function apply(id, sizes, out) {

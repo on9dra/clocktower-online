@@ -134,6 +134,29 @@ function started(roles) {
   assert.strictEqual(r.history.length, 1);
 }
 
+// 換身份菜單要的狀態：每個座位的私密信息序號、線下舉手（舉著 / 還能舉）、說書人那邊等著處理的
+{
+  const r = debugRoom();
+  ok(st(r, 'venue', { venue: 'offline', devices: 'many' }));
+  ok(st(r, 'addBots', { n: 7 }));
+  ok(st(r, 'next'));
+  const d0 = debugInfo(r, null);
+  assert.ok(d0.seats.every(s => s.info.length >= 1), '開局發的角色算一條');
+  assert.strictEqual(d0.stNight, true, '線下局夜裏都等說書人點');
+  Object.assign(r.g, { queue: [], step: null });
+  r.phase = 'dawn';
+  ok(st(r, 'next'));
+  const [a, b] = r.seats;
+  ok(nominate(r, a, b));
+  assert.ok(r.nomination.hand, '線下多設備是當面舉手');
+  r.nomination.votes[a.id] = 'yes';
+  const d = debugInfo(r, a.id);
+  assert.strictEqual(d.seats[0].hand, 'up');
+  assert.strictEqual(d.seats[1].hand, 'can');
+  assert.strictEqual(d.st, 0);
+  assert.strictEqual(d.stNight, false);
+}
+
 // ———— 起真服務器：先不開 BOTC_DEBUG，再開 ————
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const wait = ms => new Promise(r => setTimeout(r, ms));

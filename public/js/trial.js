@@ -3,7 +3,7 @@
 // 下面三欄：贊成的人在左、票數和需要的票格在中、棄權的人在右（只有自己和說書人看得到）；
 // 再下面是投票倒數（說書人可暫停 / 重置）、未表態的人和計票進度；說書人最下面一行是取消、結算、計票按鈕。
 // 說書人喊立即計票後：審判牌換成計票倒數，輪到自己時彈一張選票（countPop），選了立刻輪到下一位
-import { h, roleToken, seatLabel } from './ui.js';
+import { h, roleToken, seatLabel, toast } from './ui.js';
 import { seatBadge, icon } from './glyph.js';
 import { clockState, needVotes, voteButtons, trialButtons, isFolded, foldButton, foldStub } from './flow.js';
 import { nomFx, nomHeld, callHeld } from './fx.js';
@@ -15,37 +15,73 @@ const seconds = ck => Math.ceil(ck.left / 1000);
 // 審判牌攤在桌上時是哪一張（收起、演出還沒播完、沒有提名時為空）：矮橫屏上玩家的角色面板要給它讓位（hud.js）
 export const openTrial = s => (s.nomination && !nomHeld() && !isFolded(foldKey(s.nomination)) ? foldKey(s.nomination) : null);
 
-// 審判牌收起來時桌心一張紙條：誰提名誰、票數，玩家還能接著投票
+// 審判牌收起來時桌心一張紙條：誰提名誰、票數，玩家還能接著投票（線下多設備是兩枚小章：舉手 / 放下）
 export function trialStub(ctx) {
   const s = ctx.state, nom = s.nomination, key = foldKey(nom), ck = clockState(ctx);
   if (!isFolded(key)) return null;
   const count = o => Object.values(o || {}).filter(Boolean).length, vb = voteButtons(ctx);
-  return foldStub(ctx, key, seatBadge(s, nom.nominatorId), icon('to'), seatBadge(s, nom.nomineeId), h('b', { class: 'fs-n' }, `${count(nom.votes)}/${needVotes(s)}`),
+  const up = nom.hand ? s.seats.filter(raised(s)).length : count(nom.votes);
+  return foldStub(ctx, key, seatBadge(s, nom.nominatorId), icon('to'), seatBadge(s, nom.nomineeId), h('b', { class: 'fs-n' + (up >= needVotes(s) ? ' enough' : '') }, `${up}/${needVotes(s)}`),
     ck && h('b', { class: 'fs-n tr-sec' }, seconds(ck)),
-    vb && h('div', { class: 'tr-k' }, vb.yes(count(nom.votes)), vb.no(count(nom.abstain))));
+    vb && h('div', { class: 'tr-k' }, vb.yes(count(nom.votes)), vb.no(count(nom.abstain))),
+    nom.hand && myHand(ctx, true));
 }
 
-// 線下局的審判牌：大家當面舉手，說書人點名字記下。只留誰提名誰、票數和一排能投票的人（舉手的亮著），沒有棄權、倒數
+// 線下多設備：自己手機上兩枚章「舉手 / 放下」，位置和字一直不變，亮著的那枚就是現在的樣子；可以反覆改，說書人點結算才算數。
+// 舉手是公開的（桌上座位、審判牌名單上都亮著），和真舉手一樣。說書人也能替他點，誰後點算誰的：最後是說書人點的，亮著的章角上寫「說書人代點」。
+// 舉不了手（死亡票用過了、管家的主人沒舉手）時「舉手」淡著，點了說為什麼；死了還有一票：章上帶一張票，寫明舉著結算會用掉
+let pend = null; // 剛點了、服務器還沒回話：先按點的樣子亮（{ at: 哪一次提名, who: 誰點的, up }），回話了就聽服務器的
+const pendOn = s => (pend && pend.at === s.nomination?.at && pend.who === s.myId ? pend : null);
+// 這一位現在舉沒舉手：自己剛點、還沒回話的按點的算
+const raised = s => seat => (seat.id === s.myId && pendOn(s) ? pendOn(s).up : !!s.nomination.votes[seat.id]);
+function myHand(ctx, small) {
+  const s = ctx.state, nom = s.nomination, me = s.seats.find(x => x.mine);
+  if (!nom?.hand || !me || s.isSt || s.peek || s.oneDevice) return null;
+  const up = raised(s)(me), num = id => s.seats.findIndex(x => x.id === id) + 1;
+  // 管家的主人：遮住身份時面板上沒有（旁邊的人會看到），從沒遮的那份裏拿來擋，但不寫出來
+  const master = !me.dead && (s.veiled ? ctx.live?.master : s.master), spent = me.dead && me.voteUsed, wait = master && !nom.votes[master];
+  const why = spent ? '你的死亡票已經用過了' : wait ? (s.veiled ? '現在還不能舉手' : `主人 ${num(master)} 號舉手後你才能舉手`) : null;
+  const bySt = !pendOn(s) && nom.votes[me.id] !== undefined && !nom.own?.[me.id];
+  const send = want => {
+    if (want && why) return toast(why);
+    if (want === up) return;
+    const p = pend = { at: nom.at, who: me.id, up: want };
+    ctx.render();
+    ctx.act('vote', { v: want ? 'yes' : null }).then(() => { if (pend === p) { pend = null; ctx.render(); } });
+  };
+  // 舉手那枚章下面的一行：會用掉死亡票 / 死亡票已用 / 跟著主人（遮住身份時不寫）
+  const sub = me.dead ? (spent ? '死亡票已用' : [icon('ticket'), '用掉死亡票']) : master && !s.veiled ? ['主人', seatBadge(s, master)] : null;
+  const dim = spent || (wait && !s.veiled); // 死亡票用過是公開的；主人的事遮住身份時不露
+  const btn = (want, text, tone) => h('button', {
+    class: `vt-btn hm-btn ${tone}` + (want === up ? ' on' : '') + (want && dim ? ' hm-off' : ''), 'data-key': 'hm-' + (want ? 'up' : 'down'), onclick: () => send(want) },
+  h('span', { class: 'hm-main' }, icon('hand', want ? '' : 'hm-down'), text),
+  want && sub && !small && h('small', { class: 'hm-sub' }, sub),
+  want === up && bySt && !small && h('i', { class: 'hm-st' }, '說書人代點'));
+  return h('div', { class: 'hand-me' + (small ? ' sm' : ''), 'data-key': 'hand-me' }, btn(true, '舉手', 'brass'), btn(false, '放下', 'gray'));
+}
+
+// 線下局的審判牌：大家當面舉手。只留誰提名誰、票數和一排能投票的人（舉手的亮著），沒有棄權、倒數。
+// 說書人點名字替他舉 / 放，最下面是取消、結算；多設備的玩家最下面是自己的舉手 / 放下（myHand），名單只能看
 function handTrial(ctx) {
   const s = ctx.state, nom = s.nomination, need = needVotes(s), tap = s.isSt && !s.peek;
-  const num = id => s.seats.findIndex(x => x.id === id) + 1, up = s.seats.filter(x => nom.votes[x.id]).length;
-  const who = id => { const seat = s.seats.find(x => x.id === id), r = seat.role || (seat.mine && s.myRole);
-    return h('div', { class: 'tr-who' }, r ? roleToken(r) : h('div', { class: 'token md blank' }, num(id)), h('div', { class: 'tr-plate' }, h('b', {}, num(id)), h('span', {}, seat.name))); };
+  const num = id => s.seats.findIndex(x => x.id === id) + 1, on = raised(s), up = s.seats.filter(on).length;
+  const who = (id, cls) => { const seat = s.seats.find(x => x.id === id), r = seat.role || (seat.mine && s.myRole);
+    return h('div', { class: 'tr-who ' + cls }, r ? roleToken(r) : h('div', { class: 'token md blank' }, num(id)), h('div', { class: 'tr-plate' }, h('b', {}, num(id)), h('span', {}, seat.name))); };
   // 死了、死亡票也用了的人不能投，淡著不能點
   const hand = seat => {
-    const on = !!nom.votes[seat.id], spent = seat.dead && seat.voteUsed && !on;
-    return h(tap ? 'button' : 'span', { class: 'hv' + (on ? ' on' : '') + (spent ? ' spent' : '') + (seat.dead ? ' dead' : ''), 'data-key': 'hv-' + seat.id, title: seat.name,
-      onclick: tap && !spent ? () => ctx.st('handVote', { seatId: seat.id, v: on ? null : 'yes' }) : null },
+    const lit = on(seat), spent = seat.dead && seat.voteUsed && !lit;
+    return h(tap ? 'button' : 'span', { class: 'hv' + (lit ? ' on' : '') + (spent ? ' spent' : '') + (seat.dead ? ' dead' : '') + (seat.mine ? ' mine' : ''), 'data-key': 'hv-' + seat.id, title: seat.name,
+      onclick: tap && !spent ? () => ctx.st('handVote', { seatId: seat.id, v: lit ? null : 'yes' }) : null },
     h('b', {}, num(seat.id)), h('span', {}, seat.name), icon('hand', 'hv-ico')); // 手的位置一直留著（沒舉時看不見），點了名字不變寬、不擠動別的名字
   };
-  return h('div', { class: 'trial hand-trial' + (nomFx() ? ' fx-pop' : ''), style: nomFx(), 'data-key': 'trial', 'data-exit': true },
-    h('div', { class: 'tr-head' }, who(nom.nominatorId),
-      h('div', { class: 'tr-verb' }, h('span', { class: 'tr-stamp', 'data-key': 'nom' }, '提名'), icon('to')), who(nom.nomineeId)),
+  return h('div', { class: 'trial hand-trial' + (s.seats.length >= 10 ? ' crowded' : '') + (nomFx() ? ' fx-pop' : ''), style: nomFx(), 'data-key': 'trial', 'data-exit': true },
+    h('div', { class: 'tr-head' }, who(nom.nominatorId, 'from'),
+      h('div', { class: 'tr-verb' }, h('span', { class: 'tr-stamp', 'data-key': 'nom' }, '提名'), icon('to')), who(nom.nomineeId, 'to')),
     h('div', { class: 'tr-mid' + (up >= need ? ' enough' : '') },
-      h('b', { class: 'tr-num', 'data-key': 'n' + up }, up),
+      h('span', { class: 'tr-tally' }, h('b', { class: 'tr-num', 'data-key': 'n' + up }, up), h('small', { class: 'tr-need' }, '/ ' + need)),
       h('div', { class: 'tr-slots', title: `需 ${need} 票` }, Array.from({ length: Math.max(need, up) }, (_, i) => h('i', { class: i < up ? 'on' : '' })))),
     h('div', { class: 'hv-row' }, s.seats.map(hand)),
-    trialButtons(ctx), foldButton(ctx, foldKey(nom)));
+    myHand(ctx), trialButtons(ctx), foldButton(ctx, foldKey(nom)));
 }
 
 export function trialPanel(ctx) {
@@ -117,9 +153,11 @@ let turn = null, beat = 0;
 export function countPop(ctx) {
   const s = ctx.state, nom = s.nomination, ck = nom && clockState(ctx);
   const live = !!ck && !!s.myId && !s.isSt && !s.peek && ck.current === s.myId && !nomHeld() && !callHeld();
+  // 換了身份（調試換座位、觀眾入座）：上一個人的選票直接收掉，不在新身份的屏幕上蓋章
+  if (turn && turn.who !== s.myId) { clearTimeout(turn.gone); turn = null; }
   if (live && turn?.at !== nom.at) {
     clearTimeout(turn?.gone);
-    turn = { at: nom.at, nomineeId: nom.nomineeId, clock: nom.clock };
+    turn = { at: nom.at, who: s.myId, nomineeId: nom.nomineeId, clock: nom.clock };
     play('turn');
   }
   if (!turn) return null;
