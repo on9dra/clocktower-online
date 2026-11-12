@@ -323,7 +323,7 @@ const TRAP = {
   ico: 'drop',
   a: () => [block('big', h('h4', {}, '中毒 / 醉酒'), scene('hp-poison',
         h('span', { class: 'hp-nbs' }, neighbour('imp'), h('span', { class: 'hp-me' }, h('span', { class: 'hp-drip' }, icon('drop')), tok('empath', 'md')), neighbour('poisoner')),
-        h('span', { class: 'hp-said' }, frm('鄰座中邪惡', { n: 0 }, '名'))),
+        h('span', { class: 'hp-said' }, frm('鄰座中有', { n: 0 }, '名邪惡'))),
       sm('能力失效，信息可能是錯的，他自己不知道')),
     block('big', h('h4', {}, '酒鬼'), scene('hp-flip', h('span', { class: 'hp-flip-in' }, h('span', { class: 'f' }, tok('washerwoman', 'md')), h('span', { class: 'b' }, tok('drunk', 'md'))),
       h('span', { class: 'hp-thinks' }, w('以為是'), mini('washerwoman'))), sm('以為自己是鎮民，能力無效'))],

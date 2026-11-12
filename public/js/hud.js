@@ -61,11 +61,11 @@ function rowView(ctx, m) {
   },
   ...rowBody(s, m));
 }
-// 自己的夜晚行動：行動圖標（毒滴、盾牌…）+ 短詞 + 座位；信息：式子，來源是別的角色時（換過角色）前面帶那張牌，說書人手寫的帶「說書人」
+// 自己的夜晚行動：行動圖標（毒滴、盾牌…）+ 動詞（投毒 / 認主，不是座位上的標記詞）+ 座位；信息：式子，來源是別的角色時（換過角色）前面帶那張牌，說書人手寫的帶「說書人」
 function rowBody(s, m) {
   if (m.k === 'act') {
     const a = ACTS[m.src], picked = (m.f || []).some(t => t.s || t.r);
-    return [a && h('span', { class: 'act-chip ' + a.tone }, icon(a.ico)), picked ? [a ? a.mark && w(a.mark, 'ink') : w('選了', 'ink'), formula(s, m.f.filter(t => t.op !== 'to'))] : w('沒有選人', 'muted')]; // 系統不認識的角色沒有自己的動作詞
+    return [a && h('span', { class: 'act-chip ' + a.tone }, icon(a.ico)), picked ? [a ? (a.verb || a.mark) && w(a.verb || a.mark, 'ink') : w('選了', 'ink'), formula(s, m.f.filter(t => t.op !== 'to'))] : w('沒有選人', 'muted')]; // 系統不認識的角色沒有自己的動作詞
   }
   return [!m.src ? w('說書人', 'src') : ROLES[m.src] && m.src !== s.myRole && mini(m.src, 'src'),
     m.f ? formula(s, m.f) : h('span', { class: 'hud-text' }, m.text)];

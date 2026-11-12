@@ -9,12 +9,12 @@ const seats = ids => (ids || []).map(s => ({ s }));
 
 // 數字類信息：一句話 + 式子
 const NUM = {
-  chef: { text: n => `場上鄰座的邪惡玩家有 ${n} 對`, f: (form, n) => [{ w: '鄰座的邪惡' }, { n, evil: true }, { w: '對' }] },
-  empath: { text: (n, form) => `你存活的鄰座（${form.extra.nb}）中有 ${n} 名邪惡玩家`, f: (form, n) => [...seats(form.extra?.nbIds), { w: '中邪惡' }, { n, evil: true }, { w: '名' }] },
-  chambermaid: { text: n => `你選的玩家中今晚有 ${n} 人被喚醒`, f: (form, n) => [...seats(form.extra?.nbIds), { w: '中被喚醒' }, { n }, { w: '人' }] },
+  chef: { text: n => `場上鄰座的邪惡玩家有 ${n} 對`, f: (form, n) => [{ w: '鄰座的邪惡玩家有' }, { n, evil: true }, { w: '對' }] },
+  empath: { text: (n, form) => `你存活的鄰座（${form.extra.nb}）中有 ${n} 名邪惡玩家`, f: (form, n) => [...seats(form.extra?.nbIds), { w: '中有' }, { n, evil: true }, { w: '名邪惡' }] },
+  chambermaid: { text: n => `你選的玩家中今晚有 ${n} 人被喚醒`, f: (form, n) => [...seats(form.extra?.nbIds), { w: '中有' }, { n }, { w: '人被喚醒' }] },
   clockmaker: { text: n => `惡魔與最近的爪牙相距 ${n} 步`, f: (form, n) => [{ tag: 'demon' }, { w: '與' }, { tag: 'minion' }, { w: '相距' }, { n }, { w: '步' }] },
-  oracle: { text: n => `死亡的玩家中有 ${n} 名邪惡玩家`, f: (form, n) => [{ w: '死者中邪惡' }, { n, evil: true }, { w: '名' }] },
-  mathematician: { text: n => `有 ${n} 名玩家的能力失常`, f: (form, n) => [{ w: '能力失常' }, { n }, { w: '人' }] },
+  oracle: { text: n => `死亡的玩家中有 ${n} 名邪惡玩家`, f: (form, n) => [{ w: '死者中有' }, { n, evil: true }, { w: '名邪惡' }] },
+  mathematician: { text: n => `有 ${n} 名玩家的能力失常`, f: (form, n) => [{ w: '能力失常的有' }, { n }, { w: '人' }] },
   juggler: { text: n => `你猜對了 ${n} 個角色`, f: (form, n) => [{ w: '猜對' }, { n }, { w: '個' }] },
 };
 // 是否類信息：兩個答案各自的短詞

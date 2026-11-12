@@ -496,20 +496,58 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
   .board > .hud :is(.hud-row, .hud-row .frm) { font-size: 17px; }
 }
 
-/* 說書人流程日誌 */
-.log2 { display: grid; gap: 12px; align-content: start; }
-.log-group { display: grid; gap: 3px; }
-.log-head { display: flex; align-items: center; gap: 4px; font: 700 15px var(--serif); color: var(--muted); border-bottom: 1.5px solid var(--line); padding-bottom: 3px; }
-.log-group.night .log-head { color: #4a5272; }
-.log-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 20px; padding: 3px 4px; border-radius: 6px; }
-.log-row:hover { background: #2a26220d; }
+/* 說書人流程日誌：每組一張兩欄的表，左欄「誰」（座位 + 角色牌 + 名字）按最寬的那格對齊，右欄是一句話（log.js） */
+.log2 { display: grid; gap: 16px; align-content: start; }
+.log-group { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 8px; row-gap: 0; }
+.log-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1.5px solid var(--line-strong);
+  font: 700 15px/1 var(--serif); letter-spacing: .12em; color: var(--ink); }
+.log-head .ico { width: 15px; height: 15px; color: var(--brass); }
+.log-group.night .log-head .ico { color: #8d97c4; }
+.log-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 16px; padding: 3px 4px; border-radius: 6px; }
+.log-group > .log-row { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: start; padding: 4px 4px; border-radius: 0; border-bottom: 1px dashed var(--line); }
+.log-group > .log-row:last-child { border-bottom: 0; }
+.log-group > .log-row.wide > * { grid-column: 1 / -1; }
+.log-row:hover { background: #ffffff0a; }
 .log-row .frm { font-size: inherit; }
-.log-row.k-setup .grim { font-size: 15px; }
-.lv { display: inline-flex; padding: 2px 5px; border-radius: 8px; }
-.lv0 { background: #8a1c1c14; box-shadow: inset 0 0 0 1.5px var(--evil); }
-.lv1 { box-shadow: inset 0 0 0 1.5px #d9a066; }
+.lg-who { display: inline-flex; align-items: center; gap: 4px; min-height: 1.6em; }
+.lg-who b { max-width: 6.5em; font: 700 13px/1.15 var(--serif); color: var(--ink); opacity: .85; }
+/* 英文角色名長（Mathematician、Snake Charmer）：小一號，按詞折行，單詞太長在音節處斷開，左欄不把右欄擠沒 */
+:root[data-lang="en"] .lg-who b { max-width: 6.4em; font-size: 11.5px; overflow-wrap: anywhere; hyphens: auto; }
+:root[data-lang="en"] .lt .token .token-name { font-size: max(7px, calc(var(--tk) * .15)); white-space: normal; }
+.lg-who.st { color: var(--muted); } .lg-who.st .ico { width: 14px; height: 14px; }
+.lg-who .tag { height: 1.45em; }
+.lg-what { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 5px; min-width: 0; min-height: 1.6em; padding-left: 9px; border-left: 1.5px solid var(--line); }
+.lg-what .frm { display: contents; }
+.lg-what .w { flex: 0 1 auto; min-width: 0; font-size: 13.5px; line-height: 1.25; color: var(--ink); } /* 長的一段字能折行，不撐出側欄 */
+.lg-what .w.muted { color: var(--muted); } .lg-what .w.bad, .lg-what .w.evil { color: var(--evil); } .lg-what .w.good { color: var(--good); } .lg-what .w.brass { color: var(--brass); }
+.lg-what .rn b { font-size: 13px; }
+.lg-nb { display: inline-flex; align-items: center; margin-right: -3px; white-space: nowrap; } /* 前一項 + 逗號，不在逗號前換行 */
+.lg-cm { font: 700 13.5px/1 var(--serif); font-style: normal; color: var(--muted); }
+.lg-n { font: 700 15px/1 var(--serif); color: var(--ink); } .lg-n small { font-size: 12px; color: var(--muted); }
+.lg-skull { width: 15px; height: 15px; color: var(--evil); }
+.lg-voters { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px; font-size: 13px; }
+.lg-voters .ico { width: 14px; height: 14px; color: var(--muted); }
+.lg-voters.off { opacity: .8; }
 .log-text { font-size: 13px; color: var(--muted); }
-.voters { display: inline-flex; flex-wrap: wrap; gap: 2px; font-size: 13px; }
+.lg-say { font-size: 13.5px; line-height: 1.35; color: var(--ink); }
+/* 開局的小圓桌：一圈角色牌（大小按相鄰座位的距離 --s 定），座位號在牌的內側，中間是偽裝和紅鯡魚 */
+.lt { --tk: min(17cqw, calc(64cqw * var(--s))); position: relative; grid-column: 1 / -1; width: min(100%, 320px, max(200px, 54svh)); aspect-ratio: 1; margin: 2px auto 6px; container-type: inline-size; }
+.lt-ring { position: absolute; inset: 12%; border-radius: 50%; border: 1.5px solid var(--line-strong); background: radial-gradient(circle, #ffffff08, transparent 70%); }
+.lt-seat { position: absolute; width: var(--tk); height: var(--tk); translate: -50% -50%; }
+.lt .lt-seat > .token { width: 100%; height: 100%; border-width: 1.5px; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--team); cursor: default; }
+.lt .token .token-icon { width: 54%; height: 54%; }
+.lt .token .token-name { padding: 0 1px; font-size: max(8px, calc(var(--tk) * .2)); line-height: 1; white-space: nowrap; }
+.lt-no.sb { position: absolute; left: 50%; top: 50%; z-index: 1; font-size: max(10px, calc(var(--tk) * .32));
+  translate: calc(-50% - var(--ux) * var(--tk) * .58) calc(-50% - var(--uy) * var(--tk) * .58); }
+.lt-fake { position: absolute; left: 50%; top: 50%; z-index: 1; width: 50%; aspect-ratio: 1; translate: calc(-50% + var(--tk) * .36) calc(-50% - var(--tk) * .36); }
+.lt-fake .token.xs { width: 100%; height: 100%; font-size: inherit; border-style: dashed; box-shadow: 0 0 0 2px var(--paper), inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px var(--team); }
+.lt-mid { position: absolute; inset: 26%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+.lt-mid .tag { height: 1.35rem; font-size: 12px; }
+.lt-bluffs { display: flex; gap: 3px; }
+.lt-bluffs .token { --tk: min(13cqw, 44px); width: var(--tk); height: var(--tk); }
+.lt-herring { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; }
+.lt-herring .ico { width: 16px; height: 16px; color: var(--evil); }
+.lt-herring .w { font-size: 12.5px; }
 .log-empty { display: grid; place-items: center; height: 80px; color: var(--line-strong); font-size: 32px; }
 .infocard.mark .mk-tip { max-width: 15em; margin: 0 auto; font-size: 12px; line-height: 1.4; color: var(--muted); text-align: left; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
 .infocard.mark .mk-tip.open { -webkit-line-clamp: unset; }
