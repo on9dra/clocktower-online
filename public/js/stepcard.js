@@ -333,5 +333,6 @@ function decideCard(ctx, step) {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
     }, face(o))))),
     h('div', { class: 'ic-top' }, actorMark(s, step), h('div', { class: 'frm big dc-pick' }, picked ? face(picked) : h('span', { class: 'sb empty' })), goonLine(s, step)),
-    h('div', { class: 'ic-foot' }, BW('確定', () => stepOp(ctx, 'decide', { choice: cur }), 'wide' + (cur ? stepLock() : ''), cur ? null : '先選一個')));
+    // 選著的正是開局前預選的（祖母的孫子）：按鈕寫明「使用預選選項」
+    h('div', { class: 'ic-foot' }, BW(cur && cur === d.pick ? '使用預選選項，確定' : '確定', () => stepOp(ctx, 'decide', { choice: cur }), 'wide' + (cur ? stepLock() : ''), cur ? null : '先選一個')));
 }

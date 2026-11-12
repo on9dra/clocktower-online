@@ -499,19 +499,23 @@ export function preShow(ctx, step) {
     h('div', { class: 'row' }, B([icon('eye'), '展示'], () => showPages(s, [{ to: step.seatId, body: bigCore(s, { seats, roles }) }]), 'sm'),
       B('改', () => preOpen(ctx, step.seatId), 'sm ghost')));
 }
-// 紅鯡魚那一排：「預選」鍵 + 已經預選了的
+// 準備階段預選好的：直接掛在那個人自己的座位上（town.js 放進座位的標記裏，seatmarks.js 排位）——告訴他的座位號 / 角色牌，
+// 角上一枚小綠勾；點它再改。不擺在屏幕下方的一排裏
+export function preTag(ctx, seat) {
+  const s = ctx.state, v = s.st.pre?.[seat.id], f = v && s.st.preForms?.find(x => x.seatId === seat.id);
+  if (!f) return null;
+  const ord = id => s.seats.findIndex(q => q.id === id), ids = (v.seats || [v.a, v.b, v.pick]).filter(Boolean).sort((x, y) => ord(x) - ord(y));
+  if (!v.none && !ids.length && !v.roles?.length) return null;
+  return h('button', { class: 'pre-tag', 'data-key': 'pre-tag', title: '預選的首夜信息', onclick: e => { e.stopPropagation(); preOpen(ctx, seat.id); } },
+    v.none ? w('無', 'ink') : ids.map(id => seatBadge(s, id)), (v.roles || [v.role]).filter(Boolean).map(id => mini(id)), h('i', { class: 'pre-ok' }, icon('check')));
+}
+// 紅鯡魚那一排：一個「預選」鍵（預選好的掛在各人座位上，preTag）
 function preItems(ctx) {
   const s = ctx.state, forms = s.st.preForms || [];
   if (!forms.length) return [];
   const on = preChoosing(s);
-  const done = forms.filter(f => s.st.pre?.[f.seatId]).map(f => {
-    const v = s.st.pre[f.seatId], ord = id => s.seats.findIndex(q => q.id === id);
-    const ids = (v.seats || [v.a, v.b, v.pick]).filter(Boolean).sort((x, y) => ord(x) - ord(y));
-    return h('button', { class: 'bluff-pick pre', 'data-key': 'pre-' + f.seatId, title: '改', onclick: () => preOpen(ctx, f.seatId) },
-      mini(f.roleId), v.none ? w('無', 'ink') : ids.map(id => seatBadge(s, id)), (v.roles || []).map(id => mini(id, 'pre-r')));
-  });
   return [h('button', { class: 'bluff-pick pre-btn' + (on ? ' on' : ''), 'data-key': 'pre-btn', onclick: () => { preEdit = on ? null : { inst: s.inst, seatId: null }; herringPick = null; ctx.render(); } },
-    icon('quill'), on ? w('點桌上的人', 'muted') : w('預選', 'ink')), done];
+    icon('quill'), on ? w('點桌上的人', 'muted') : w('預選', 'ink'))];
 }
 
 // 紅鯡魚：場上有占卜師（含以為自己是占卜師的酒鬼）才長出這一格，和偽裝一樣是單獨的設置，不藏在座位菜單裏。

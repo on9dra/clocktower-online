@@ -206,35 +206,27 @@
   .hd-go { min-height: 44px; }
 }
 
-/* 鎖定（infoform.js lockFly、town.js lockMark）：洗衣婦這類選定了「真的那一個」。紙底墨線、印章，不發光：
-   一枚鎖從上方的選項飛過來 → 四角墨線收攏框住頭像，頭像被按一下 → 右上角的鎖章砸下來，鎖梁「咔」地扣上 */
-.lock-fly { position: fixed; left: 0; top: 0; z-index: 300; width: 34px; height: 34px; pointer-events: none; }
-.lock-fly > svg { width: 62%; height: 62%; }
-.padlock { display: block; width: 100%; height: 100%; overflow: visible; }
-.padlock .lk-shackle { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; transform-box: fill-box; }
-.padlock .lk-body { fill: currentColor; }
-.padlock .lk-hole { fill: var(--card); }
-.lock-on { position: absolute; left: 50%; top: 50%; z-index: 4; width: 136%; aspect-ratio: 1; translate: -50% -50%; pointer-events: none; }
-.lock-on > svg { display: block; width: 100%; height: 100%; overflow: visible;
-  animation: lk-clamp .3s cubic-bezier(.3,0,.45,1.45) var(--lk-d, 0ms) both; }
-.lock-on path { fill: none; stroke-linecap: square; vector-effect: non-scaling-stroke; }
-.lock-on .lk-p { stroke: var(--card); stroke-width: 7px; }
-.lock-on .lk-i { stroke: var(--good); stroke-width: 3px; }
-@keyframes lk-clamp { from { transform: scale(1.8) rotate(45deg); opacity: 0; } 55% { opacity: 1; } to { transform: none; opacity: 1; } }
-.lk-seal { position: absolute; right: 0; top: 0; display: block; width: clamp(18px, 30%, 28px); aspect-ratio: 1; box-sizing: border-box; padding: 4px; /* 內邊距不能寫百分比：那是按整個鎖框的寬算的，鎖圖會被擠成 0 */
-  translate: 40% -40%; border-radius: 50%; color: var(--good); background: var(--card); border: 1.5px solid currentColor;
-  box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px currentColor; rotate: -8deg;
-  animation: lk-slam .24s cubic-bezier(.5,0,.7,1) calc(var(--lk-d, 0ms) + 220ms) both; }
-@keyframes lk-slam { from { transform: scale(2.6) rotate(-20deg); opacity: 0; } 70% { transform: scale(.9); opacity: 1; } to { transform: none; opacity: 1; } }
-.lk-seal .lk-shackle { animation: lk-click .14s ease-in calc(var(--lk-d, 0ms) + 470ms) both; }
-@keyframes lk-click { from { transform: translateY(-30%); } to { transform: none; } }
-.seat.selected.locked .token { animation: lk-press .32s ease-out calc(var(--lk-d, 0ms) + 120ms) both; }
-@keyframes lk-press { 35% { transform: scale(.88); } to { transform: none; } }
-/* 上方選中的那一格：左上角也扣一把小鎖，和桌上鎖住的座位是一對 */
-.lk-tag { position: absolute; left: -8px; top: -8px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; box-sizing: border-box; padding: 3px;
-  border-radius: 50%; color: var(--good); background: var(--card); border: 1.5px solid currentColor; rotate: -8deg; pointer-events: none;
-  animation: lk-slam .22s cubic-bezier(.5,0,.7,1) both; }
-@media (prefers-reduced-motion: reduce) { .lock-on > svg, .lk-seal, .lk-seal .lk-shackle, .seat.selected.locked .token, .lk-tag { animation: none; } }
+/* 鎖定（town.js lockMark）：洗衣婦這類選定了「真的那一個」——頭像換成一圈綠色的光圈（另一名玩家是普通選中的金光），
+   外面三段綠弧慢慢轉；光圈從外面收攏上來，頭像被按一下。上方對應的那一格也是綠的 */
+.lock-on { --lk: #3fbf74; --lk-ink: #23824b; position: absolute; left: 50%; top: 50%; z-index: 0; width: 100%; aspect-ratio: 1; translate: -50% -50%; pointer-events: none; }
+.lk-ring { position: absolute; inset: -6px; border-radius: 50%; border: 3px solid var(--lk);
+  box-shadow: 0 0 0 1.5px #e9f7ee, inset 0 0 0 1px #e9f7ee, 0 0 16px 5px #3fbf74a8, inset 0 0 10px 2px #3fbf7455;
+  animation: lk-in .34s cubic-bezier(.2,.8,.3,1.25) both, lk-breathe 2.4s ease-in-out .4s infinite; }
+@keyframes lk-in { from { transform: scale(1.7); opacity: 0; } 60% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes lk-breathe { 50% { box-shadow: 0 0 0 1.5px #e9f7ee, inset 0 0 0 1px #e9f7ee, 0 0 24px 8px #3fbf74c4, inset 0 0 12px 3px #3fbf7466; } }
+.lock-on > svg { position: absolute; inset: -16px; width: calc(100% + 32px); height: calc(100% + 32px); overflow: visible;
+  animation: lk-arcs-in .5s ease-out .1s both, lk-spin 9s linear .1s infinite; }
+.lk-arc { fill: none; stroke: var(--lk); stroke-width: 2.6px; stroke-linecap: round; stroke-dasharray: 62 36.5; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 3px #3fbf74); }
+@keyframes lk-arcs-in { from { opacity: 0; scale: 1.25; } to { opacity: 1; scale: 1; } }
+@keyframes lk-spin { to { rotate: 360deg; } }
+/* 鎖住的頭像：不要普通選中的金圈金光，換成綠的；名牌也是綠的 */
+.seat.selected.locked .token { outline: 0; box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4px var(--team); animation: lk-press .34s ease-out .12s both; }
+.seat.selected.locked .plate { background-color: #c9eed5; box-shadow: 0 0 0 2px #3fbf74, 0 0 12px 3px #3fbf7499; }
+@keyframes lk-press { 35% { transform: scale(.9); } to { transform: none; } }
+/* 上方選中的那一格（真的那一個）：綠的，和桌上鎖住的座位是一對 */
+.opt-tile.on.lock { border-color: #23824b; background: #c9eed5; box-shadow: 0 0 0 3px #3fbf74, 0 0 16px 5px #3fbf74a6; }
+.spread .ic-body .opt-tile.on.lock { background: #c9eed5; }
+@media (prefers-reduced-motion: reduce) { .lk-ring, .lock-on > svg, .seat.selected.locked .token { animation: none; } }
 
 /* 準備階段的「預選」鍵（flow.js preItems）：紅鯡魚後面；按下去等點桌上的人。已經預選了的排在它後面 */
 .bluff-pick.pre-btn { display: inline-flex; align-items: center; gap: 3px; min-height: 30px; padding-inline: 6px; border: 1.5px solid var(--line-strong); }
@@ -253,3 +245,13 @@
 .mk-pre { display: grid; justify-items: center; gap: 4px; }
 .mk-pre > .frm { justify-content: center; gap: 4px; }
 .mk-pre > .row { margin: 0; gap: 6px; flex-wrap: nowrap; }
+/* 預選好的首夜信息：掛在那個人自己的座位上（flow.js preTag，seatmarks.js 排位）——座位號 / 角色牌，角上一枚綠勾；點它再改 */
+.pre-tag { position: relative; display: inline-flex; align-items: center; gap: 1px; padding: 1px 4px; color: var(--ink); background: var(--card) url(../img/grain.svg);
+  border: 1.5px solid #3fbf74; border-radius: 3px; box-shadow: 0 2px 6px #0005; font: inherit; font-size: 12px; cursor: pointer; }
+.pre-tag .sb { font-size: 12px; }
+.pre-tag .token.xs { width: 17px; height: 17px; }
+.pre-tag .w { font-size: 12px; }
+.pre-ok { position: absolute; right: -6px; top: -6px; display: grid; place-items: center; width: 13px; height: 13px; border-radius: 50%; color: #fff; background: #2f9d5d; box-shadow: 0 0 0 1.5px var(--card); }
+.pre-ok .ico { width: 9px; height: 9px; }
+/* 「使用預選選項，下一個」：和鎖定的綠光圈同一個綠 */
+.btn.use-pre { border-color: #2f9d5d; box-shadow: 0 2.5px 0 #23824b, 0 0 0 1px #3fbf74; }

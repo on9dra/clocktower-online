@@ -285,5 +285,9 @@
  "你取下為止": "until you take it off",
  "他被處決也不會死。": "They don't die if executed.",
  "他是諾-達鯴的鎮民鄰座：諾-達鯴活著、能力正常時他一直中毒，取不下來": "They are a Townsfolk neighbour of the No Dashii: while the No Dashii is alive and sober they stay poisoned, so it can't be taken off",
- "頭像右下角：中毒、保護、紅鯡魚……貼上就生效": "Lower right of each token: poisoned, protected, red herring… take effect when added"
+ "頭像右下角：中毒、保護、紅鯡魚……貼上就生效": "Lower right of each token: poisoned, protected, red herring… take effect when added",
+ "使用預選選項，下一個": "Use preset, next",
+ "使用預選選項，發送": "Use preset, send",
+ "使用預選選項，確定": "Use preset, confirm",
+ "預選的首夜信息": "Preset first-night info"
 }

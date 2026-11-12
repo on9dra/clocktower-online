@@ -7,9 +7,9 @@ import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './sc
 import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge, trueMark, ACTS } from './glyph.js';
 import { hudLinked } from './hud.js';
 import { trialPanel, trialStub } from './trial.js';
-import { seatPicking, preCard, prePicking, padlock } from './infoform.js';
+import { seatPicking, preCard, prePicking } from './infoform.js';
 import { stepCard, decidePicking, markPicking, lastWordCard, noticeCard, ackPart } from './stepcard.js';
-import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat, freePreCard } from './flow.js';
+import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat, freePreCard, preTag } from './flow.js';
 import { pickRole, canHover, hoverSeat, openPick, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { actBubble, actPicking, startAct, openReminders, needPass, passCard, rolePicker, showButton } from './manual.js';
 import { markMeaning } from './stside.js';
@@ -165,6 +165,7 @@ export function renderTown(ctx) {
     // 排位（seatmarks.js）按這個先後，放不下時從後面收進「+N」：陣營改了，再是角色的提醒（紅鯡魚、主人、孫子……），最後是說書人自己寫的字
     const flip = t => t === '善良' || t === '邪惡';
     const shown = [...words.filter(flip), ...words.filter(t => tagFace(s, t)), ...words.filter(t => !flip(t) && !tagFace(s, t))];
+    const pre = s.isSt && s.phase === 'lobby' && preTag(ctx, seat);
     const seatEl = h('div', {
       class: cls.join(' '), 'data-key': seat.id, 'data-i': i, 'data-exit': s.phase === 'lobby' || null, // 準備階段拿掉的座位淡出去，不是一下子沒了
       // --ux、--uy：座位在圓桌上的方向，標記朝圓心掛（board.css .seat-more）
@@ -173,7 +174,7 @@ export function renderTown(ctx) {
       // 準備階段說書人可以拖座位：拖到另一個座位上就交換
       onpointerdown: s.isSt && !s.peek && s.phase === 'lobby' && !preCardOn ? e => dragSeat(ctx, seat, e) : null,
     },
-    h('div', { class: 'seat-token' + status.map(x => ' is-' + x.k).join(''), style: locked ? { '--lk-d': pk.lockDelay(seat.id) + 'ms' } : null, onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget, seatActs(ctx, seat)) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
+    h('div', { class: 'seat-token' + status.map(x => ' is-' + x.k).join(''), onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget, seatActs(ctx, seat)) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
       s.isSt && seat.fakeRole && fakeBadge(ctx, seat),
       s.phase === 'lobby' && seat.pinned && h('i', { class: 'pin-mark', title: '指定' }, icon('quill')),
@@ -203,7 +204,8 @@ export function renderTown(ctx) {
       h('b', {}, i + 1), naming === seat.id && canName(s, seat) ? nameInput(ctx, seat) : token.classList.contains('named') ? null : h('span', { class: 'pname' }, seat.name),
       !seat.online && h('i', { class: 'off', title: '離線' })),
     h('div', { class: 'seat-more' }, s.phase === 'lobby' && !s.oneDevice && scoreRow(seat), // 單設備的座位只是名字，不記積分
-    s.isSt && words.length > 0 && h('div', { class: 'tags' },
+    s.isSt && (words.length > 0 || pre) && h('div', { class: 'tags' },
+      pre, // 準備階段預選好的首夜信息：掛在這個人自己的座位上（flow.js preTag）
       // 寫全名一行就佔半個桌心，三枚疊起來把中間的操作卡擠沒了：只畫角色小牌和角上的符號（tagView）
       shown.map(t => tagView(ctx, seat, t)), moreChip(ctx, seat)),
     (missed.some(x => x.from === seat.id) || picks.some(x => x.from === seat.id) || (!s.isSt && (acts[seat.id] || auto[seat.id]?.some(k => !k.t) || (team[seat.id] && g[seat.id]) || mine[seat.id]))) && h('div', { class: 'pmarks' },
@@ -643,14 +645,12 @@ function stepTargets(s) {
   return new Set([...(step.picks || []), step.form?.extra?.targetId, step.decide?.targetId].filter(Boolean));
 }
 
-// 鎖定：四角墨線框住頭像，右上角扣一把鎖（infoform.js lockFly 先把鎖從上方的選項飛過來，落地時框才收攏；show.css .lock-on）。
-// 換了人：舊的框往外散開淡掉（data-exit grow）
-const LOCK_PATH = 'M2 12V2h10M28 2h10v10M38 28v10H28M12 38H2V28';
+// 鎖定：頭像套一圈綠色的光圈，外面三段綠弧慢慢轉（show.css .lock-on）。換了人：舊的往外散開淡掉（data-exit grow）
 function lockMark() {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 40 40');
-  svg.innerHTML = `<path class="lk-p" d="${LOCK_PATH}"/><path class="lk-i" d="${LOCK_PATH}"/>`;
-  return h('i', { class: 'lock-on', 'data-key': 'lock-on', 'data-exit': 'grow' }, svg, h('span', { class: 'lk-seal' }, padlock()));
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.innerHTML = '<circle class="lk-arc" cx="50" cy="50" r="47"/>';
+  return h('i', { class: 'lock-on', 'data-key': 'lock-on', 'data-exit': 'grow' }, h('i', { class: 'lk-ring' }), svg);
 }
 
 // 用能力選人時，選中的頭像上蓋這個動作的章（投毒、保護、攻擊……），一眼看出點中了誰、會怎樣。

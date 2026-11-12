@@ -3071,6 +3071,15 @@
  "使用能力？": [
   "public/js/flow.js"
  ],
+ "使用預選選項，發送": [
+  "public/js/infoform.js"
+ ],
+ "使用預選選項，確定": [
+  "public/js/stepcard.js"
+ ],
+ "使用預選選項，下一個": [
+  "public/js/infoform.js"
+ ],
  "士兵免疫": [
   "public/js/log.js"
  ],
@@ -4462,6 +4471,9 @@
   "public/js/infofmt.js"
  ],
  "預選": [
+  "public/js/flow.js"
+ ],
+ "預選的首夜信息": [
   "public/js/flow.js"
  ],
  "原創角色": [
