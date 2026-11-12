@@ -188,3 +188,6 @@
 .sp-act:hover { color: var(--ink); text-decoration: underline; }
 .sp-act.danger:hover { color: var(--evil); }
 .sp-act .ico { width: 13px; height: 13px; }
+/* 挑了人以後：再給他看一次自己的身份 / 偽裝（manual.js showRole） */
+.rp-to-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.rp-to-quick:empty { display: none; }

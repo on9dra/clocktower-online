@@ -470,6 +470,9 @@
   "public/js/log.js",
   "public/js/manual.js"
  ],
+ "被保護 被保护 保護 保护": [
+  "public/js/stside.js"
+ ],
  "被茶藝師保護": [
   "lib/rules.js"
  ],
@@ -584,7 +587,6 @@
   "lib/engine.js"
  ],
  "標記": [
-  "public/js/stepcard.js",
   "public/js/topbar.js"
  ],
  "標記角色猜測": [
@@ -977,6 +979,9 @@
  "地獄辣椒大賽": [
   "public/js/community.js"
  ],
+ "的": [
+  "public/js/stside.js"
+ ],
  "的紅鯡魚": [
   "public/js/log.js"
  ],
@@ -1291,6 +1296,9 @@
  "粉絲自製": [
   "public/js/about.js"
  ],
+ "瘋狂 疯狂": [
+  "public/js/stside.js"
+ ],
  "瘋狂：": [
   "public/js/town.js"
  ],
@@ -1345,12 +1353,6 @@
  "改為 {0}（{1}）死亡": [
   "lib/night.js"
  ],
- "改為善良": [
-  "public/js/town.js"
- ],
- "改為邪惡": [
-  "public/js/town.js"
- ],
  "改陣營": [
   "public/js/topbar.js"
  ],
@@ -1371,7 +1373,8 @@
  "告知": [
   "lib/night.js",
   "public/js/log.js",
-  "public/js/stepcard.js"
+  "public/js/stepcard.js",
+  "public/js/stside.js"
  ],
  "告知他": [
   "public/js/infoform.js"
@@ -1392,6 +1395,9 @@
  "給 {0} 加備註": [
   "public/js/side.js"
  ],
+ "給 {0} 貼標記": [
+  "public/js/town.js"
+ ],
  "給誰看": [
   "public/js/manual.js"
  ],
@@ -1399,11 +1405,7 @@
   "public/js/infoform.js"
  ],
  "給他看身份": [
-  "public/js/help.js",
-  "public/js/town.js"
- ],
- "給他看偽裝": [
-  "public/js/town.js"
+  "public/js/help.js"
  ],
  "更多": [
   "public/js/topbar.js"
@@ -1578,8 +1580,12 @@
   "public/js/flow.js",
   "public/js/glyph.js",
   "public/js/log.js",
+  "public/js/manual.js",
   "public/js/topbar.js",
   "public/js/town.js"
+ ],
+ "紅鯡魚 红鲱鱼 干擾項 干扰项": [
+  "public/js/stside.js"
  ],
  "紅鯡魚必須是善良玩家": [
   "lib/setup.js"
@@ -1846,8 +1852,7 @@
   "public/js/topbar.js"
  ],
  "解除中毒": [
-  "public/js/log.js",
-  "public/js/town.js"
+  "public/js/log.js"
  ],
  "解除醉酒": [
   "public/js/log.js"
@@ -1923,6 +1928,7 @@
   "lib/night.js"
  ],
  "今晚惡魔殺不死他。": [
+  "public/js/stside.js",
   "public/js/town.js"
  ],
  "今晚誰死？": [
@@ -2307,6 +2313,9 @@
   "lib/night.js",
   "public/js/stepcard.js"
  ],
+ "沒有死後還能用的能力，就點下一個跳過": [
+  "public/js/stepcard.js"
+ ],
  "沒有外來者": [
   "lib/night.js"
  ],
@@ -2332,6 +2341,7 @@
   "public/js/community.js"
  ],
  "每局一次的能力已經用掉了。": [
+  "public/js/stside.js",
   "public/js/town.js"
  ],
  "每人看自己的身份": [
@@ -2383,6 +2393,7 @@
   "public/js/town.js"
  ],
  "明天他只要提名，自己就會死。": [
+  "public/js/stside.js",
   "public/js/town.js"
  ],
  "明天晚上": [
@@ -2430,6 +2441,9 @@
  "能力失常的有": [
   "public/js/infofmt.js"
  ],
+ "能力失效，給他的信息可以是錯的。": [
+  "public/js/stside.js"
+ ],
  "能力失效，信息可能是錯的，他自己不知道": [
   "public/js/help.js"
  ],
@@ -2442,7 +2456,8 @@
  ],
  "能力已用": [
   "lib/util.js",
-  "public/js/manual.js"
+  "public/js/manual.js",
+  "public/js/stside.js"
  ],
  "能力正常：只能給合規的信息": [
   "public/js/infoform.js"
@@ -2903,6 +2918,7 @@
   "lib/util.js",
   "public/js/help.js",
   "public/js/log.js",
+  "public/js/manual.js",
   "public/js/town.js"
  ],
  "善良的鏡像雙子被處決": [
@@ -2967,13 +2983,12 @@
   "public/js/fx.js",
   "public/js/town.js"
  ],
- "設為占卜師的紅鯡魚": [
-  "public/js/town.js"
- ],
  "設為中毒": [
   "public/js/help.js",
-  "public/js/log.js",
-  "public/js/town.js"
+  "public/js/log.js"
+ ],
+ "設為醉酒": [
+  "public/js/log.js"
  ],
  "設置": [
   "public/js/settings.js",
@@ -3184,6 +3199,9 @@
  "說書人更正了你的角色：你是【{0}】（{1}）：{2}": [
   "lib/setup.js"
  ],
+ "說書人解除了 {0} 的{1}": [
+  "lib/manual.js"
+ ],
  "說書人解除了中毒": [
   "lib/ops.js"
  ],
@@ -3212,6 +3230,9 @@
  ],
  "說書人取消了本次提名，雙方今天可以重新提名 / 被提名。": [
   "lib/day.js"
+ ],
+ "說書人讓 {0} {1}": [
+  "lib/manual.js"
  ],
  "說書人收回了 {0} 的{1}": [
   "lib/engine.js"
@@ -3330,13 +3351,20 @@
  "他": [
   "lib/ops.js",
   "public/js/infoform.js",
-  "public/js/stepcard.js"
+  "public/js/stepcard.js",
+  "public/js/stside.js"
  ],
  "他保留能力": [
   "public/js/log.js"
  ],
  "他從此醉酒": [
   "public/js/log.js"
+ ],
+ "他的能力不再生效。": [
+  "public/js/stside.js"
+ ],
+ "他的身份": [
+  "public/js/manual.js"
  ],
  "他的陣營落敗": [
   "public/js/flow.js"
@@ -3351,6 +3379,9 @@
  "他今天已經被提名過了": [
   "lib/day.js"
  ],
+ "他今晚死亡。": [
+  "public/js/stside.js"
+ ],
  "他立即死亡": [
   "public/js/town.js"
  ],
@@ -3362,6 +3393,9 @@
  ],
  "他現在是邪惡陣營，和角色原本的陣營不同。": [
   "public/js/town.js"
+ ],
+ "他要「瘋狂」地證明自己是某個角色，否則可能被處決。": [
+  "public/js/stside.js"
  ],
  "他以為是": [
   "public/js/log.js"
@@ -3547,6 +3581,7 @@
  "偽裝": [
   "public/js/fx-ab.js",
   "public/js/glyph.js",
+  "public/js/manual.js",
   "public/js/topbar.js"
  ],
  "偽裝要是不在場的善良角色": [
@@ -3576,6 +3611,9 @@
  "未知操作": [
   "lib/engine.js",
   "lib/ops.js"
+ ],
+ "未知的狀態": [
+  "lib/manual.js"
  ],
  "未中": [
   "public/js/flow.js",
@@ -3807,6 +3845,7 @@
   "lib/util.js",
   "public/js/help.js",
   "public/js/log.js",
+  "public/js/manual.js",
   "public/js/town.js"
  ],
  "邪惡出櫃": [
@@ -4255,7 +4294,8 @@
   "public/js/fx-ab.js"
  ],
  "已死亡": [
-  "public/js/log.js"
+  "public/js/log.js",
+  "public/js/stepcard.js"
  ],
  "已提": [
   "public/js/town.js"
@@ -4477,12 +4517,12 @@
  ],
  "展示": [
   "public/js/infoform.js",
+  "public/js/manual.js",
   "public/js/stepcard.js"
  ],
  "展示角色卡": [
   "public/js/manual.js",
-  "public/js/pass.js",
-  "public/js/topbar.js"
+  "public/js/pass.js"
  ],
  "展示可用的偽裝": [
   "public/js/pass.js"
@@ -4491,6 +4531,7 @@
   "public/js/stepcard.js"
  ],
  "占卜師查驗時，他會被當作惡魔。": [
+  "public/js/stside.js",
   "public/js/town.js"
  ],
  "占卜師的紅鯡魚：{0}": [
@@ -4498,6 +4539,9 @@
  ],
  "占卜師的紅鯡魚還沒設（偽裝下面那一格）": [
   "public/js/flow.js"
+ ],
+ "占卜師一定有一個紅鯡魚：在另一名善良玩家身上貼上，就換過去": [
+  "public/js/manual.js"
  ],
  "爪牙和惡魔": [
   "public/js/help.js"
@@ -4889,6 +4933,9 @@
   "lib/util.js",
   "public/js/fx-ab-dlc.js",
   "public/js/glyph.js"
+ ],
+ "詛咒 诅咒 被詛咒 被诅咒": [
+  "public/js/stside.js"
  ],
  "詛咒了 {0}": [
   "lib/night.js"

@@ -1327,3 +1327,53 @@ body.art .token.blank.named { color: #2a2622; }
   .mk-card .mc-v > .token { width: 22px; height: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .seat .mk.glide { transition: none; } :is(.more-pop, .mk-card) { animation: none; } }
+
+/* 說書人貼標記：頭像右下角一枚小「+」（town.js seat-add，同類魔典的做法），點了直接開標記面板。
+   紙底墨線，和座位上的標記一個語言；手指點的範圍比看到的大一圈。鼠標下平時淡一點，指到這個座位才實 */
+.seat-add { position: absolute; right: calc(var(--tk) * .02 - 4px); bottom: calc(var(--tk) * .02 - 4px); z-index: 3; display: grid; place-items: center;
+  width: clamp(18px, calc(var(--tk) * .27), 26px); aspect-ratio: 1; padding: 0; border: 1.5px solid #2a2622; border-radius: 50%;
+  background: #e8e0d0; color: #2a2622; box-shadow: 0 1.5px 0 #2a262273; cursor: pointer; transition: opacity .18s ease, scale .18s ease; }
+.seat-add::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
+.seat-add .ico { width: 72%; height: 72%; stroke-width: 3.2; }
+.seat-add:active { scale: .9; }
+@media (hover: hover) {
+  .seat-add { opacity: .55; }
+  .seat:hover .seat-add, .seat-add:focus-visible { opacity: 1; }
+  .seat-add:hover { scale: 1.14; }
+}
+
+/* 線下說書人：畫面角落常駐一疊背面朝上的牌（manual.js showButton），點開挑一張亮給玩家看。位置由 town.js placeDeck 量（先左下角，壓到東西就換地方）。
+   牌是發過來的：量好位置後三張牌一張張從左邊滑進來落定。指上去最上面那張抬起、牌散開一點 */
+.town > .show-deck { position: absolute; left: var(--dl, 12px); top: var(--dt, auto); z-index: 4; transition: left .35s ease, top .35s ease; display: grid; justify-items: center; gap: 3px; width: 64px; padding: 4px 0 0;
+  border: 0; background: none; color: var(--brass, #b48a3c); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.show-deck .sd-cards { position: relative; width: 40px; height: 54px; }
+.show-deck .sd-c { position: absolute; inset: 0; border-radius: 4px; background: #2e261e radial-gradient(circle at 50% 50%, #4a3d2f 0 30%, transparent 31%);
+  box-shadow: inset 0 0 0 2px #2e261e, inset 0 0 0 3.2px #b48a3c, 0 2px 5px #0007; transform-origin: 50% 100%; transition: transform .22s cubic-bezier(.3,1.4,.5,1); }
+.town > .show-deck.unplaced { top: auto; bottom: 12px; visibility: hidden; transition: none; }
+.show-deck:not(.unplaced) .sd-c { animation: sd-deal .5s cubic-bezier(.2,.8,.3,1.1) backwards; }
+.show-deck .sd-c:nth-child(1) { transform: rotate(-13deg) translateX(-5px); animation-delay: 0s; }
+.show-deck .sd-c:nth-child(2) { transform: rotate(-4deg) translateX(-1px); animation-delay: .08s; }
+.show-deck .sd-c.top { display: grid; place-items: center; transform: rotate(7deg) translateX(4px); animation-delay: .16s; }
+.show-deck .sd-c.top .ico { width: 24px; height: 24px; color: #e3c374; stroke-width: 2.2; }
+.show-deck .sd-label { padding: 0 8px 1px; font: 700 13px/1.5 var(--serif); letter-spacing: 2px; color: #2a2622; background: #e8e0d0; box-shadow: 0 2px 0 #2a262266;
+  clip-path: polygon(0 0, 100% 0, 97% 50%, 100% 100%, 0 100%, 3% 50%); }
+@keyframes sd-deal { from { transform: translateX(-46px) rotate(-30deg); opacity: 0; } }
+@media (hover: hover) {
+  .show-deck:hover .sd-c:nth-child(1) { transform: rotate(-19deg) translateX(-9px); }
+  .show-deck:hover .sd-c.top { transform: rotate(11deg) translate(6px, -6px); }
+}
+.show-deck:active .sd-c.top { transform: rotate(7deg) translate(4px, -2px) scale(.96); }
+.show-deck.leaving { transition: opacity .25s ease, translate .25s ease; opacity: 0; translate: -16px 0; }
+@media (prefers-reduced-motion: reduce) { .show-deck:not(.unplaced) .sd-c { animation: none; } }
+@media (max-width: 640px) {
+  .town > .show-deck { width: 52px; }
+  .show-deck .sd-cards { margin-left: 6px; }
+  .show-deck .sd-cards { width: 34px; height: 46px; }
+  .show-deck .sd-c.top .ico { width: 20px; height: 20px; }
+  .show-deck .sd-label { font-size: 12px; letter-spacing: 1px; }
+}
+/* 放不下整疊時的橫條：小牌在左、字在右（town.js placeDeck） */
+.town > .show-deck.row { grid-auto-flow: column; align-items: center; gap: 7px; width: auto; padding: 0; }
+.show-deck.row .sd-cards { width: 26px; height: 35px; margin-left: 6px; }
+.show-deck.row .sd-c.top .ico { width: 15px; height: 15px; }
+.show-deck.row .sd-label { font-size: 12px; letter-spacing: 1px; }

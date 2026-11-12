@@ -180,6 +180,9 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .spread .ic-foot:has(> .ic-preview) { grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; }
   .spread .ic-foot .btn.wide { width: 100%; margin-top: 0; min-height: 46px; }
   .spread .ic-foot .btn.wide:not(:only-child) { width: auto; padding-inline: 16px; }
+  /* 線下說書人常駐的「展示」牌堆（board.css .show-deck）在左下角：下方這一排按鈕往右讓出牌堆的寬度，牌堆是旁路，按鈕還是佔大頭 */
+  .town:has(> .show-deck) .spread .ic-foot, .town:has(> .show-deck) .st-card > .spread > .row { width: calc(96vw - 58px); translate: calc(-50% + 29px) calc(-1 * var(--hole-y, 0px)); }
+  .spread.mark .ic-foot:not(:has(> .row)) { grid-template-columns: minmax(0, 1fr); } /* 線下標記卡只有「下一個」：佔滿一行 */
   .st-card > .spread .ic-foot .row, .st-card > .spread > .row { display: flex; justify-content: center; flex-wrap: nowrap; margin: 0; }
   .spread .ic-foot .row .btn, .st-card > .spread > .row .btn { flex: 1; min-height: 46px; }
   .spread .ic-foot .row .btn.ghost, .st-card > .spread > .row .btn.ghost { order: -1; }
@@ -1167,3 +1170,16 @@ button.hv:active { transform: scale(.94); }
 .dbg-turn { display: inline-grid; color: var(--brass); }
 .dbg-turn .ico { width: 15px; height: 15px; }
 .popmenu button:has(> .dbg-row.cur) { background: var(--hover); box-shadow: inset 3px 0 0 var(--brass); font-weight: 700; }
+
+/* 系統不認識的角色死了也停一步：一行寫他已死亡、沒有能力就跳過 */
+.mk-dead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 2px 6px; max-width: 18em; margin: 0 auto; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+/* 這個角色自己的提醒標記各說一句是什麼意思：左邊小牌 + 標記名，右邊一句 */
+.mk-rems { display: grid; gap: 4px; max-width: 19em; margin: 0 auto; padding-top: 5px; border-top: 1px dashed var(--line); font-size: 12px; line-height: 1.4; text-align: left; }
+.mk-rem { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 7px; align-items: start; }
+.mk-rem-t { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.mk-rem-t .token { width: 18px; height: 18px; font-size: 6px; }
+.mk-rem-t b { font-weight: 700; color: var(--ink); }
+@media (max-width: 860px) { .spread.mark .ic-body .mk-rems { max-width: min(92vw, 26em); font-size: 12.5px; } }
+/* 電腦上標記卡最上面那段字是這一步的正事（要達成什麼），不再是淡淡的長提示：墨色、大一號，讓開卡角的「收起」 */
+@media (min-width: 641px) { .infocard.mark .mk-tip { max-width: 17em; font-size: 13.5px; color: var(--ink); } .infocard.mark .mk-tip:first-child { margin-top: 22px; } } /* ic-body 在電腦上是 display: contents */
+@media (max-width: 640px) { .spread.mark > .ic-top:empty { display: none; } } /* 不用選人、行動者頭上有箭頭時圓桌中間沒東西：不留一張空紙條 */

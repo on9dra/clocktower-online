@@ -55,11 +55,11 @@ function placeSeat(seat, n, rw) {
   const T = { x: sx + tok.offsetLeft + r, y: sy + tok.offsetTop + r }, O = rw / 2;
   const tb = tok.getBoundingClientRect();
   const box = (el, x0 = sx, y0 = sy) => ({ x: x0 + el.offsetLeft + el.offsetWidth / 2 - T.x, y: y0 + el.offsetTop + el.offsetHeight / 2 - T.y, w: el.offsetWidth, h: el.offsetHeight });
-  // 擋路的：名牌、頭頂的死亡票、已提 / 被提、投票手、真假勾、皇冠、MVP、聊天氣泡、輪到誰的箭頭
+  // 擋路的：名牌、頭頂的死亡票、已提 / 被提、投票手、真假勾、皇冠、MVP、聊天氣泡、輪到誰的箭頭、說書人貼標記的「+」
   const walls = [];
   const plate = seat.querySelector(':scope > .plate');
   if (plate?.offsetWidth) walls.push(box(plate));
-  for (const el of tok.querySelectorAll(':scope > :is(.ghost-vote, .daytags, .vmark, .tm, .pin-mark, .crown, .mvp-tag, .mvp-btn, .aim-btn)')) {
+  for (const el of tok.querySelectorAll(':scope > :is(.ghost-vote, .daytags, .vmark, .tm, .pin-mark, .crown, .mvp-tag, .mvp-btn, .aim-btn, .seat-add)')) {
     const b = el.getBoundingClientRect();
     if (b.width) walls.push({ x: b.left + b.width / 2 - tb.left - r, y: b.top + b.height / 2 - tb.top - r, w: b.width, h: b.height });
   }

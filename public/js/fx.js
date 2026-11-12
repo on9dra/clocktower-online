@@ -1069,6 +1069,8 @@ export function onState(s) {
   const now = Date.now();
   const wasDead = new Set(p.seats.filter(x => x.dead).map(x => x.id));
   const newlyDead = new Set(s.seats.filter(x => x.dead && !wasDead.has(x.id)).map(x => x.id));
+  // 復活了（說書人連點「標記死亡」「復活」）：還沒播完的死亡淡出一起撤掉，不然頭像一直灰著
+  for (const x of s.seats) if (!x.dead && wasDead.has(x.id)) { recent.died.delete(x.id); held.delete(x.id); }
   // 斷線重連時只補播最近的
   const fresh = evs.filter(e => e.seq > seen && (!e.at || e.at > s.serverNow - 20000));
   seen = Math.max(seen, top);

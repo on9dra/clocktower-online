@@ -5,8 +5,8 @@ import { sel, startSelect, seatMenu } from './town.js';
 import { selectBar, selFrom, B, BW, PRETEND, stepOp, stepLock, cardTag } from './flow.js';
 import { showPages, bigRoles, bigNum, bigCore, bigWord, bigIs, bigBluffs, bluffSay } from './pass.js';
 import { ROLES } from './roles.js';
-import { showRole, openReminders } from './manual.js';
 import { infoForm } from './infoform.js';
+import { stAbility, markMeaning } from './stside.js';
 import { seatBadge, mini, icon, named, w, tag, formula, ACTS, wakeMark, actorMark } from './glyph.js';
 import { actRow, goonLine } from './log.js';
 
@@ -159,8 +159,10 @@ function markCons(ctx, step) {
 }
 function markCard(ctx, step) {
   const s = ctx.state, seat = s.seats.find(x => x.id === step.seatId), picks = step.picks || [];
-  // 標記貼在他選的人身上（沒選人就是他自己），這個角色自己的標記排最前
-  const marked = picks.length ? picks.map(id => s.seats.find(x => x.id === id)).filter(Boolean) : seat ? [seat] : [];
+  // 這個角色自己的提醒標記（「搗蛋」「熟客」）：第一次主持的說書人不知道是什麼，卡上逐個說一句。貼標記用座位右下角的「+」
+  // 說不出比能力本身更具體的意思（只能念整句能力）的不列：上面已經是那一句了
+  const goal = stAbility(step.roleId) || step.tip, own = [...new Set((s.st.reminders || []).filter(x => x.r === step.roleId).map(x => x.t))];
+  const rems = own.map(t => [t, markMeaning(step.roleId, t, own.length === 1)]).filter(([, say]) => say && say !== goal);
   const tell = () => prompt2(`告訴 ${seatLabel(s, step.seatId)}`, '', text => text && ctx.st('tellInfo', { seatId: step.seatId, text }), { max: 300 });
   // 被選的座位號能點：開這個座位的菜單（更換角色、改陣營……卡上沒有的都在那裏）
   // 還沒選：線下是等說書人在桌上點的空圈（和代點卡一樣，要幾個人幾個圈）；線上是等他在手機上選的三個點（說書人照樣能在桌上替他點）
@@ -178,14 +180,17 @@ function markCard(ctx, step) {
     h('div', { class: 'ic-top' }, actorMark(s, step), why && w(why, 'evil'),
       // 一行讀下來：選了 ⑤ ［中毒］
       step.ask && h('div', { class: 'mk-line' }, h('div', { class: 'opt-row mk-picks' }, pickRow), step.cons?.length > 0 && markCons(ctx, step))),
-    // 官方提示詞很長：只露幾行，點一下展開（只切這一個節點的 class，不重繪）
-    h('div', { class: 'ic-body' }, h('div', { class: 'ic-say mk-tip', onclick: e => e.currentTarget.classList.toggle('open') }, step.tip || ROLES[step.roleId]?.ability),
+    // 要達成什麼：能力換成說書人的說法（「告知他一名善良玩家」），不念劇本作者寫的一串手勢（「喚醒他並指向……」）。長的只露幾行，點一下展開
+    h('div', { class: 'ic-body' },
+      // 死了也停在這一步：系統不知道他死後還有沒有能力，交給說書人
+      seat?.dead && h('div', { class: 'mk-dead', 'data-key': 'dead' }, w('已死亡', 'bad'), h('span', {}, '沒有死後還能用的能力，就點下一個跳過')),
+      h('div', { class: 'ic-say mk-tip', onclick: e => e.currentTarget.classList.toggle('open') }, goal),
+      rems.length > 0 && h('div', { class: 'mk-rems' }, rems.map(([t, say]) => h('div', { class: 'mk-rem' },
+        h('span', { class: 'mk-rem-t' }, mini(step.roleId), h('b', {}, t)), h('span', {}, say)))),
       // 「告訴他」發出去之後：卡上留一行發了什麼，不用去看他的手機才知道發沒發
       typeof step.said === 'string' && h('div', { class: 'mk-said', 'data-key': 'said' }, icon('send'), h('span', {}, step.said))),
-    h('div', { class: 'ic-foot' }, h('div', { class: 'row' },
-      // 線下當面說、比劃，比劃不出來的角色整屏給他看；線上打字發到他手機上
-      s.offline ? B([icon('eye'), '展示'], () => showRole(ctx, step.seatId), 'sm ghost') : seat && B([icon('send'), '告訴他'], tell, 'sm ghost'),
-      marked.length > 0 && B([icon('quill'), '標記'], () => openReminders(ctx, marked, step.roleId), 'sm ghost')),
+    // 線下當面說、比劃；給他看角色牌用畫面角落常駐的「展示」，標記用座位的「+」。線上打字發到他手機上
+    h('div', { class: 'ic-foot' }, !s.offline && seat && h('div', { class: 'row' }, B([icon('send'), '告訴他'], tell, 'sm ghost')),
       B('下一個', () => stepOp(ctx, 'ack'), 'wide' + stepLock())));
 }
 

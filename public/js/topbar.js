@@ -10,7 +10,6 @@ import { openBoard } from './scores.js';
 import { openSettings } from './settings.js';
 import { SCRIPTS } from './roles.js';
 import { openInvite, hostUrl } from './invite.js';
-import { showRole } from './manual.js';
 import { openAbout } from './about.js';
 import { openPass } from './roompass.js';
 import { debugWho } from './debug.js';
@@ -56,7 +55,7 @@ function eggPill(ctx, me) {
 const UNDO_NAME = { setDead: '死亡 / 復活', execute: '處決', nominate: '提名', handVote: '舉手', closeVote: '結算投票', cancelVote: '取消提名', next: '推進',
   dawn: '天亮', setRole: '換角色', setShown: '玩家看到的角色', setAlign: '改陣營', remind: '標記', inform: '信息', tick: '勾選順序', card: '選人', cardPick: '記下選擇',
   cardDrop: '收回', win: '判定勝負', addSeats: '加座位', renameSeat: '改名', kick: '移除座位', moveSeat: '挪座位', shuffleSeats: '打亂座位', draft: '抽取',
-  undraft: '取消抽取', setBluff: '偽裝', abandon: '放棄本局', evilInfo: '互認', unpin: '恢復隨機', setRedHerring: '紅鯡魚', setPoison: '中毒', markPick: '選人', markDo: '能力結果' };
+  undraft: '取消抽取', setBluff: '偽裝', abandon: '放棄本局', evilInfo: '互認', unpin: '恢復隨機', setRedHerring: '紅鯡魚', setPoison: '中毒', setStatus: '標記', markPick: '選人', markDo: '能力結果' };
 function undoButton(ctx) {
   const u = ctx.state.st?.undo, name = u && (UNDO_NAME[u] || '上一步');
   return h('button', { class: 'btn sm ghost undo' + (u ? '' : ' disabled') + (ctx.state.oneDevice ? ' one' : ''), title: u ? `撤銷：${name}` : '沒有可以撤銷的',
@@ -80,14 +79,13 @@ export function topbar(ctx) {
   const inGame = s.phase !== 'lobby' && s.phase !== 'ended';
   const help = () => import('./help.js').then(m => m.showHelp(s.isSt || !!s.peek)), sound = () => { setMuted(!muted()); ctx.render(); };
   const narrow = () => matchMedia('(max-width: 860px)').matches;
-  // 手機上多設備線下局的說書人頂欄放不下（撤銷、四個標籤都得留）：展示角色卡、積分榜收進「⋯」（hud.css 同一個寬度把按鈕藏掉）
+  // 手機上多設備線下局的說書人頂欄放不下（撤銷、四個標籤都得留）：積分榜收進「⋯」（hud.css 同一個寬度把按鈕藏掉）
   const tucked = () => s.isSt && !s.peek && s.offline && !s.oneDevice && matchMedia('(max-width: 600px)').matches;
   // 調試房間（測試服）的說書人：頂欄多了切換身份的按鈕，手機上積分榜也收進「⋯」
   const boardTucked = () => !me && !!s.debug && matchMedia('(max-width: 600px)').matches;
   const more = e => menu(e.currentTarget, narrow() ? SCRIPTS[s.scriptId]?.name + (s.offline ? ' · 線下' : '') : null, [
     narrow() && { label: '規則與流程', onclick: help },
     narrow() && { label: [icon(muted() ? 'sound' : 'mute', 'menu-ico'), muted() ? '打開聲音' : '全部靜音'], onclick: sound },
-    tucked() && { label: [icon('eye', 'menu-ico'), '展示角色卡'], onclick: () => showRole(ctx, null) },
     (tucked() || boardTucked()) && { label: [icon('trophy', 'menu-ico'), '積分榜'], onclick: () => openBoard(ctx) },
     // 很窄的手機上觀戰的頂欄放不下獎盃（hud.css），積分榜收到這裏
     !me && !s.isSt && matchMedia('(max-width: 374px)').matches && { label: [icon('trophy', 'menu-ico'), '積分榜'], onclick: () => openBoard(ctx) },
@@ -123,8 +121,7 @@ export function topbar(ctx) {
     s.offline && h('span', { class: 'mode-tag' }, s.oneDevice ? '線下 · 單設備' : '線下'),
     h('span', { class: 'grow' }),
     s.isSt && !s.peek && s.offline && undoButton(ctx),
-    // 線下：隨時亮一張角色牌給玩家看（比劃不出來的只有角色）。挑好之後先蓋著，確認了才翻（manual.js showRole）
-    s.isSt && !s.peek && s.offline && h('button', { class: 'btn sm ghost show-role' + (s.oneDevice ? '' : ' many'), title: '展示角色卡', onclick: () => showRole(ctx, null) }, icon('eye'), h('span', {}, '展示角色卡')),
+    // 線下「展示角色卡」不在頂欄：畫面角落常駐一疊牌（manual.js showButton），隨時點
     !s.isSt && !s.peek && !s.stOnline && h('span', { class: 'warn' }, '說書人離線'),
     // 調試房間（測試服）：身份位換成切換身份的按鈕
     s.debug ? debugWho(ctx) : s.isSt || s.peek ? h('span', { class: 'who' }, '說書人') : me ? h('span', { class: 'who' }, me.name)

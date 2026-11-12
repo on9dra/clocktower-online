@@ -142,6 +142,7 @@ function fixBody(s, e) {
   const seat = e.seat && seatBadge(s, e.seat);
   switch (e.what) {
     case 'poison': return [seat, w('設為中毒', 'evil')];
+    case 'drunk': return [seat, w('設為醉酒', 'evil')];
     case 'unpoison': return [seat, w('解除中毒')];
     case 'sober': return [seat, w('解除醉酒')];
     case 'revive': return [seat, w('復活', 'good')];

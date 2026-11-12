@@ -36,7 +36,9 @@ const room = createRoom();
 const st = (op, args = {}) => applyStOp(room, { op, ...args });
 const must = (r, what) => { if (typeof r === 'string') fail(`${what}：${r}`); return r; };
 const seatN = n => room.seats[Number(n) - 1] || fail(`沒有 ${n} 號座位`);
-const roleOk = id => ROLES[id] || fail(`不認識的角色：${id}`);
+// 自製劇本的角色 id 是上傳時編的（h<房間>_<n>），寫角色名也認
+const byName = id => (ROLES[id] ? id : Object.keys(ROLES).find(k => ROLES[k].name === id) || id);
+const roleOk = id => ROLES[byName(id)] || fail(`不認識的角色：${id}`);
 
 // ───── 準備階段 ─────
 const mode = opt.mode || 'online';
@@ -55,7 +57,7 @@ if (mode === 'one') must(st('addSeats', { names: NAMES.slice(0, n) }), '加座�
 else for (let i = 0; i < n; i++) if (joinPlayer(room, `rig-p${i + 1}`, NAMES[i] || 'p' + (i + 1))) fail(`第 ${i + 1} 個玩家進不了房間`);
 if (room.seats.length !== n) fail(`座位數不對：要 ${n} 個，實際 ${room.seats.length} 個`);
 const setRole = (s, spec) => {
-  const [real, fake] = spec.split('>');
+  const [real, fake] = spec.split('>').map(byName);
   roleOk(real); if (fake) roleOk(fake);
   must(st('setRole', { seatId: s.id, roleId: real, fakeRole: fake || undefined }), `${s.name} 指定 ${real}`);
 };
@@ -73,7 +75,7 @@ const target = parseTarget(opt.at || 'day1');
 function parseTarget(t) {
   let m;
   if (t === 'lobby') return { kind: 'lobby' };
-  if ((m = /^night(\d+)(?::([\w-]+))?$/.exec(t))) return { kind: 'night', n: +m[1], role: m[2] || null };
+  if ((m = /^night(\d+)(?::([^\s:]+))?$/.exec(t))) return { kind: 'night', n: +m[1], role: m[2] ? byName(m[2]) : null };
   if ((m = /^day(\d+)(?::(nominate|slay)=(\d+)>(\d+))?$/.exec(t))) return { kind: 'day', n: +m[1], act: m[2] || null, from: m[3], to: m[4] };
   if ((m = /^end:(good|evil)$/.exec(t))) return { kind: 'end', team: m[1] };
   return fail(`at 看不懂：${t}（lobby | night2 | night2:imp | night1:dawn | day1 | day1:nominate=3>1 | day1:slay=3>1 | end:good）`);

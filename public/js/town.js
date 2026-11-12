@@ -11,9 +11,9 @@ import { seatPicking, preCard, prePicking } from './infoform.js';
 import { stepCard, decidePicking, markPicking, lastWordCard, noticeCard, ackPart } from './stepcard.js';
 import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat } from './flow.js';
 import { pickRole, canHover, hoverSeat, openPick, leaveSeat, closePick, pickingSeat } from './setup.js';
-import { actBubble, actPicking, startAct, openReminders, passFrom, needPass, passCard, rolePicker } from './manual.js';
+import { actBubble, actPicking, startAct, openReminders, needPass, passCard, rolePicker, showButton } from './manual.js';
+import { markMeaning } from './stside.js';
 import { seatLogView } from './log.js';
-import { showBluffs } from './pass.js';
 import { openSeatLink } from './invite.js';
 import { tr, getLang } from './lang.js';
 import { heraldHeld, turnSeat } from './herald.js';
@@ -116,6 +116,7 @@ export function renderTown(ctx) {
   const turnAt = turnSeat(ctx); // 線下說書人：輪到誰行動，他頭頂掛箭頭（herald.js）
   const stamp = selStamp(s);
   const ownPick = markStep && ROLES[markStep.roleId] ? ROLES[markStep.roleId].name + '選' : null;
+  const addable = s.isSt && !s.peek && s.phase !== 'lobby' && s.phase !== 'ended';
   domOrder.forEach(seat => {
     const i = s.seats.indexOf(seat);
     const ang = (i / Math.max(n, 1)) * Math.PI * 2 - Math.PI / 2;
@@ -148,7 +149,7 @@ export function renderTown(ctx) {
             : g[seat.id] ? h('div', { class: 'guess' }, roleToken(g[seat.id]))
               // 空座位：圈裏寫名字，號碼在下面的名牌上。單設備還沒起名字的空座位畫一支筆（點名牌寫名字）
               : h('div', { class: 'token md blank named' }, seat.name ? h('span', { class: 'tk-name' }, seat.name) : seat.local && icon('quill', 'tk-q'));
-    const died = fxFor('died', seat.id, 1400), voted = fxFor('lock', seat.id, 400) || fxFor('voted', seat.id, 600);
+    const died = dead && fxFor('died', seat.id, 1400), voted = fxFor('lock', seat.id, 400) || fxFor('voted', seat.id, 600);
     if (died) cls.push(died.cls);
     // 今天的提名情況：誰已經提名過、誰已經被提名過（每人每天各一次）
     const nominated = s.phase === 'day' && s.nominators.includes(seat.id), nominee = s.phase === 'day' && s.nominees.includes(seat.id);
@@ -187,7 +188,10 @@ export function renderTown(ctx) {
       mvpTag(seat),
       (nominated || nominee) && h('div', { class: 'daytags' },
         nominated && h('span', { title: '今天已經提名過' }, '已提'), nominee && h('span', { title: '今天已經被提名過' }, '被提')),
-      statusView(ctx, seat, status)),
+      statusView(ctx, seat, status),
+      // 說書人：頭像右下角一枚小「+」，點了直接貼標記（同類魔典的做法），不用先開座位菜單
+      addable && h('button', { class: 'seat-add', 'data-key': 'add', title: '貼標記', 'aria-label': `給 ${seatLabel(s, seat.id)} 貼標記`,
+        onclick: e => { e.stopPropagation(); closePick(); openReminders(ctx, seat); } }, icon('plus'))),
     // 單設備準備階段：點名牌就地改名字，回車跳到下一位（nameInput）
     h('div', { class: 'plate' + (canName(s, seat) ? ' nameable' : ''), onclick: canName(s, seat) ? e => { e.stopPropagation(); editName(ctx, seat.id); } : null },
       h('b', {}, i + 1), naming === seat.id && canName(s, seat) ? nameInput(ctx, seat) : token.classList.contains('named') ? null : h('span', { class: 'pname' }, seat.name),
@@ -249,7 +253,7 @@ export function renderTown(ctx) {
   }
   if (showNom) ring.append(nomLine(s, nom));
   const picking = s.isSt && !s.peek && s.phase === 'lobby' && !preCardOn;
-  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), picking && scriptPick(ctx),
+  return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), deck(ctx), picking && scriptPick(ctx),
     spot === 'corner' && h('div', { class: 'phase-tag', 'data-key': 'phase-tag', 'data-exit': true }, title), obituary(s), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(ctx, b)), b && b.side && cardEl(ctx, b));
 }
 
@@ -327,6 +331,51 @@ function placeObit() {
   // 已經掛著、要換大小：先淡掉再換，不在眼前變形（只挪位置的由 left / top 的過渡帶過去）
   // fade 記在 obitAt 上、重繪時帶著：淡掉的這一會兒有別的重繪也不會先亮回來
   if (obitAt.placed && obitAt.form !== pick.form) { obitAt.fade = true; ob.classList.add('fade'); obitWait = setTimeout(set, 280); } else set();
+}
+// 「展示」牌堆（線下說書人常駐，manual.js showButton）擺在哪：先試左下角，再右下角，再沿左右兩邊往上，找一處不壓座位、圓桌中間的牌和按鈕、
+// 告示、觀眾席、進度條的；都壓到就挑壓得最少的。量好的位置記在 deckAt，重繪時帶上；第一次量好之前不顯示，量好了才發牌
+// 整疊（牌在上、字在下）放不下就換成橫的一小條（.row：小牌在左、字在右，矮一半），手機橫屏卡在桌子旁邊時常用
+const deckAt = { l: null, t: null, row: false };
+function deck(ctx) {
+  const el = showButton(ctx);
+  if (!el) return null;
+  el.classList.toggle('row', deckAt.row);
+  if (deckAt.l == null) el.classList.add('unplaced');
+  else { el.style.setProperty('--dl', deckAt.l + 'px'); el.style.setProperty('--dt', deckAt.t + 'px'); }
+  return el;
+}
+function placeDeck() {
+  const d = document.querySelector('.town > .show-deck:not(.leaving)'), town = d?.parentElement, ring = town?.querySelector(':scope > .ring');
+  if (!d || !ring) return;
+  const t = town.getBoundingClientRect(), rect = el => el.getBoundingClientRect(), seen = r => r.width && r.height;
+  const tokens = [...ring.querySelectorAll(':scope > .seat > .seat-token')].map(rect).filter(seen).map(r => ({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 }));
+  const parts = [...ring.querySelectorAll(':scope > .seat > :is(.plate, .seat-more), :scope > .seat .mk.at, :scope > .center :is(.card, .ic-top, .ic-body, .ic-foot, .btn, .row)')].map(rect).filter(seen);
+  const around = [...town.querySelectorAll(':scope > :not(.ring, .show-deck)'), ...[...town.parentElement.children].filter(el => el !== town)].map(rect).filter(seen);
+  const pad = town.offsetWidth > 640 ? 12 : 6;
+  const lap = (r, L, T, R, B) => Math.max(0, Math.min(r.right, R) - Math.max(r.left, L)) * Math.max(0, Math.min(r.bottom, B) - Math.max(r.top, T));
+  const tries = [];
+  for (const row of [false, true]) {
+    d.classList.toggle('row', row);
+    const w = d.offsetWidth, hh = d.offsetHeight;
+    const cover = (l, top) => {
+      const L = t.left + l - 3, R = L + w + 6, T = t.top + top - 3, B = T + hh + 6;
+      let n = 0;
+      for (const r of [...parts, ...around]) n += lap(r, L, T, R, B);
+      for (const c of tokens) { const dd = Math.hypot(c.x - Math.min(Math.max(c.x, L), R), c.y - Math.min(Math.max(c.y, T), B)); if (dd < c.r) n += (c.r - dd) ** 2; }
+      return n;
+    };
+    const left = pad, right = t.width - w - pad, bottom = t.height - hh - pad;
+    for (let y = bottom; y >= pad; y -= 12) for (const x of [left, right]) tries.push({ l: Math.round(x), t: Math.round(y), row, n: cover(x, y) });
+  }
+  d.classList.toggle('row', deckAt.row);
+  const pick = tries.find(x => x.n === 0) || tries.filter(x => x.row).sort((a, b) => a.n - b.n)[0];
+  if (!pick || (deckAt.l === pick.l && deckAt.t === pick.t && deckAt.row === pick.row)) return;
+  const first = deckAt.l == null;
+  Object.assign(deckAt, { l: pick.l, t: pick.t, row: pick.row });
+  d.classList.toggle('row', pick.row);
+  d.style.setProperty('--dl', pick.l + 'px');
+  d.style.setProperty('--dt', pick.t + 'px');
+  if (first) { void d.offsetWidth; d.classList.remove('unplaced'); } // 第一次：先到位再發牌，不從別處滑過來
 }
 function obituary(s) {
   if ((s.phase !== 'dawn' && s.phase !== 'day') || !s.lastNight || dawnHeld()) return null;
@@ -438,6 +487,7 @@ export function fitTableCard() {
   if (ringRO && ringNow !== ringSeen) { ringRO.disconnect(); if (ringNow) ringRO.observe(ringNow); ringSeen = ringNow; }
   placeMarks(ringNow);
   placeObit();
+  requestAnimationFrame(placeDeck); // 桌心的牌縮放、挪位（下面這一段）做完再量
   const turn = document.querySelector('.center > .turn-pane:not(.leaving)'), st = document.querySelector('.st-card:not(.corner):not(.leaving)');
   const middle = document.querySelector('.center:not(.has-blk)'); // 沒有牌：準備、天亮、白天的按鈕，連標題一起算
   const el = turn || st || middle, card = turn || st?.firstElementChild || middle;
@@ -805,7 +855,7 @@ function markCard(ctx, seat, key) {
     const f = tagFace(s, text);
     face = f ? [mini(f.r), tagBadge(f.b)] : icon('quill', 'mc-q');
     name = text;
-    rule = TAG_RULE[text] || (f ? ROLES[f.r].ability : '你自己寫的標記。');
+    rule = TAG_RULE[text] || (f ? markMeaning(f.r, text, (s.st?.reminders || []).filter(x => x.r === f.r).length === 1) || ROLES[f.r].ability : '你自己寫的標記。');
     if (f && !TAG_RULE[text] && /選$/.test(text)) note = '系統不認識這個角色：效果要你自己結算，下一次入夜時清掉。';
   }
   for (const e of why[text] || []) {
@@ -815,12 +865,15 @@ function markCard(ctx, seat, key) {
       e.live && e.by && (e.till == null || e.till >= 1e8) ? kv('持續到：', seatBadge(s, e.by), w('失去能力時', 'ink')) : until(s, e.till) && kv('持續到：', w(until(s, e.till), 'ink'))));
   }
   const mine = text != null && (s.st?.marks?.[seat.id] || []).includes(text);
+  // 中毒、醉酒是規則上的狀態（「+」面板裏貼的、投毒者毒的都算）：取下就是解除
+  const cure = key === 'st-poison' || key === 'st-drunk' ? key.slice(3) : null;
   const card = h('div', { class: 'mk-card', 'data-key': `card-${seat.id}-${key}`, 'data-seat': seat.id, 'data-mark': key, 'data-exit': true },
     h('div', { class: 'mc-head' }, h('span', { class: 'mc-face' }, face), h('b', {}, name)),
     rule && h('p', { class: 'mc-rule' }, rule),
     note && h('p', { class: 'mc-note' }, note),
     rows,
-    mine && h('button', { class: 'btn sm mc-take', onclick: () => { ctx.st('remind', { seatId: seat.id, text, on: false }); closeMore(ctx); } }, '取下'));
+    (mine || cure) && h('button', { class: 'btn sm mc-take', onclick: () => {
+      ctx.st(...(cure ? ['setStatus', { seatId: seat.id, what: cure, on: false }] : ['remind', { seatId: seat.id, text, on: false }])); closeMore(ctx); } }, '取下'));
   card.querySelectorAll('.token').forEach(t => t.removeAttribute('title')); // 卡上已經寫明了，懸停不再冒能力全文
   return card;
 }
@@ -1022,41 +1075,29 @@ function seatActs(ctx, seat) {
   return [{ label: [icon('key', 'menu-ico'), '換設備'], onclick: () => ctx.st('seatLink', { seatId: seat.id }).then(r => r.ok && openSeatLink(ctx, seat, title, r.token)) },
     { label: '移出房間', danger: true, onclick: () => ask(`把 ${title} 移出房間？他不能再進來。`, () => ctx.st('kick', { seatId: seat.id }), '移出') }];
 }
+// 只留別處沒有的：中毒 / 醉酒 / 紅鯡魚 / 改陣營是標記（頭像右下角的「+」），給他看身份 / 偽裝在常駐的「展示」裏
 function stMenu(ctx, seat, title) {
   const s = ctx.state, st = s.st;
-  const good = seat.role && TEAMS[ROLES[seat.role].team].good;
-  // 紅鯡魚只在有占卜師（含以為自己是占卜師的酒鬼）時才有
-  const ft = s.seats.some(x => x.role === 'fortuneteller' || x.fakeRole === 'fortuneteller');
-  const herring = ft && good && st.redHerring !== seat.id && { label: '設為占卜師的紅鯡魚', onclick: () => ctx.st('setRedHerring', { seatId: seat.id }) };
   // 換設備 / 換人頂替：新設備打開鏈接就接過這個座位
   const relink = { label: [icon('key', 'menu-ico'), '換設備'],
     onclick: () => ctx.st('seatLink', { seatId: seat.id }).then(r => r.ok && openSeatLink(ctx, seat, title, r.token)) };
   const local = !!seat.local;
-  const live = s.phase !== 'ended', poisoned = st.poisoned === seat.id;
+  const live = s.phase !== 'ended';
   // 線下：雜耍藝人白天公開猜從他的座位開始；提名、開槍是圓桌中央的兩個鍵（flow.js dayActs），夜裏系統叫到誰就在桌上替他點（stepcard.js）
   const off = s.offline, day = live && s.phase === 'day' && !s.nomination && !st.ruling;
   const juggler = [seat.role, seat.fakeRole].includes('juggler') && s.day === 1;
-  const evil = seat.align ? seat.align === 'evil' : !good;
-  // 再給惡魔看一次偽裝：瘋子也有（看的是首夜給他的那份假偽裝），他要求再看時說書人照樣拿得出來，不穿幫
-  const bluffs = !local || !seat.role ? null : seat.role === 'lunatic' ? st.bluffsOf?.[seat.id] : ROLES[seat.role].team === 'demon' ? st.bluffs : null;
   return [
     off && day && juggler && { label: [icon('eye', 'menu-ico'), '雜耍藝人公開猜'], onclick: () => startAct(ctx, 'juggle', seat) },
-    live && local && { label: [icon('eye', 'menu-ico'), '給他看身份'], onclick: () => passFrom(ctx, seat.id) },
-    live && bluffs?.length > 0 && { label: [icon('eye', 'menu-ico'), '給他看偽裝'], onclick: () => showBluffs(s, seat.id, bluffs) },
     { label: [icon('book', 'menu-ico'), '記錄'], onclick: () => modal(`${title} 的記錄`, seatLogView(s, seat.id), { wide: true }) },
-    live && { label: [icon('quill', 'menu-ico'), '貼標記'], onclick: () => openReminders(ctx, seat) },
-    '-',
+    live && { label: '更換角色', onclick: () => pickRole(ctx, seat) },
+    live && { label: seat.dead ? '復活' : '標記死亡', onclick: () => ctx.st('setDead', { seatId: seat.id, dead: !seat.dead }) },
+    live && s.phase === 'day' && !s.dayOver && { label: '立即處決', danger: true,
+      onclick: () => ask(`立即處決 ${title}？按處決結算（聖徒、送葬者等），今天不能再處決別人。`, () => ctx.st('execute', { seatId: seat.id }), '處決') },
+    // 線上才有的（線下座位只是名字）：他的手機、他的視角、私聊
+    !local && '-',
     !local && { label: '代入他的視角', onclick: () => ctx.peek(seat.id) },
     !local && { label: '私聊', onclick: () => openChat(ctx, seat.id) },
     !local && relink,
     live && !off && { label: '補發信息（彈窗告訴他）', onclick: () => prompt2(`告訴 ${title}`, '', text => text && ctx.st('tellInfo', { seatId: seat.id, text }), { max: 300, placeholder: '例如：你得知 3 號是廚師' }) },
-    live && '-',
-    live && { label: '更換角色', onclick: () => pickRole(ctx, seat) },
-    live && { label: poisoned ? '解除中毒' : '設為中毒', onclick: () => ctx.st('setPoison', { seatId: poisoned ? null : seat.id }) },
-    live && herring,
-    live && { label: evil ? '改為善良' : '改為邪惡', onclick: () => ctx.st('setAlign', { seatId: seat.id, align: evil ? 'good' : 'evil' }) },
-    live && { label: seat.dead ? '復活' : '標記死亡', onclick: () => ctx.st('setDead', { seatId: seat.id, dead: !seat.dead }) },
-    live && s.phase === 'day' && !s.dayOver && { label: '立即處決', danger: true,
-      onclick: () => ask(`立即處決 ${title}？按處決結算（聖徒、送葬者等），今天不能再處決別人。`, () => ctx.st('execute', { seatId: seat.id }), '處決') },
   ];
 }

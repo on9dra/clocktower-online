@@ -1,12 +1,13 @@
 // 說書人的手邊工具：上傳 / 社區劇本、貼標記（只有說書人看得到）、線下局替玩家做白天的事（提名、開槍、雜耍藝人猜：
 // 圓桌中央一張小卡，點桌上的座位）、傳閱身份、整屏「給他看」（系統不認識的角色要告訴他什麼時用）
 import { h, modal, closeModal, toast, seatLabel } from './ui.js';
-import { ROLES, SCRIPTS } from './roles.js';
+import { ROLES, SCRIPTS, TEAMS } from './roles.js';
 import { COMMUNITY } from './community.js';
 import { B, BW } from './flow.js';
 import { seatBadge, mini, icon, w } from './glyph.js';
-import { passRoles, passRoleCard } from './pass.js';
-import { rolePanel } from './rolepick.js';
+import { passRoles, passRoleCard, showBluffs } from './pass.js';
+import { rolePanel, closeRolePanel } from './rolepick.js';
+import { markMeaning } from './stside.js';
 
 export const isOne = s => !!s.oneDevice;
 // 傳閱身份：從 from 那個座位開始的名字座位（不給就是全部）
@@ -293,30 +294,57 @@ export function showRole(ctx, seatId = null) {
   let to = seatId;
   const seats = h('div', { class: 'rp-to' }, s.seats.map(x => h('button', { class: 'rp-to-seat', 'data-id': x.id, title: x.name || null,
     onclick: () => { to = to === x.id ? null : x.id; mark(); } }, seatBadge(s, x.id))));
+  // 挑了人以後：單設備再給他看一次自己的身份（酒鬼看到的是他以為的角色），惡魔 / 瘋子再看一次偽裝（瘋子看的是首夜給他的那份假偽裝，不穿幫）。
+  // 原來在座位菜單裏，現在都從這一個入口進
+  const quick = h('div', { class: 'rp-to-quick' });
+  const done = fn => () => { closeRolePanel(); fn(); };
   const mark = () => {
-    who.replaceChildren(...(to ? [seatBadge(ctx.state, to)] : []));
+    const st = ctx.state, seat = st.seats.find(x => x.id === to), own = seat && seat.local && seat.role;
+    const bluffs = !own ? null : seat.role === 'lunatic' ? st.st?.bluffsOf?.[seat.id] : ROLES[seat.role]?.team === 'demon' ? st.st?.bluffs : null;
+    who.replaceChildren(...(to ? [seatBadge(st, to)] : []));
     for (const b of seats.children) b.classList.toggle('on', b.dataset.id === String(to));
+    quick.replaceChildren(...[own && B([icon('eye'), '他的身份'], done(() => passFrom(ctx, seat.id)), 'sm ghost'),
+      bluffs?.length > 0 && B([icon('mask'), '偽裝'], done(() => showBluffs(ctx.state, seat.id, bluffs)), 'sm ghost')].filter(Boolean));
   };
   mark();
   rolePicker(ctx, id => passRoleCard(ctx.state, id, to), [icon('eye'), who, w('展示角色卡')],
-    { key: 'show-' + Date.now(), lead: w('給誰看', 'ink'), top: seats, alive: () => !!ctx.state?.isSt && ctx.state.phase !== 'lobby' });
+    { key: 'show-' + Date.now(), lead: w('給誰看', 'ink'), top: h('div', {}, seats, quick), alive: () => !!ctx.state?.isSt && ctx.state.phase !== 'lobby' });
+}
+// 畫面角落常駐的「展示」：線下說書人隨時要亮一張牌給玩家看（比劃不出來的只有角色）。一疊背面朝上的牌，一眼認得出是「拿牌給人看」
+export function showButton(ctx) {
+  const s = ctx.state;
+  if (!s.isSt || s.peek || !s.offline || (s.phase !== 'night' && s.phase !== 'day')) return null;
+  return h('button', { class: 'show-deck', 'data-key': 'show-deck', 'data-exit': true, title: '展示角色卡', 'aria-label': '展示角色卡', onclick: () => showRole(ctx, null) },
+    h('span', { class: 'sd-cards' }, h('i', { class: 'sd-c' }), h('i', { class: 'sd-c' }), h('i', { class: 'sd-c top' }, icon('eye'))),
+    h('b', { class: 'sd-label' }, '展示'));
 }
 
-// ───── 貼標記 ─────
+// ───── 貼標記（座位右下角的「+」）─────
+// 中毒、醉酒、紅鯡魚、陣營是規則上的狀態：按下去就真的中毒 / 換紅鯡魚 / 改陣營（原來在座位菜單裏的「設為中毒」那幾項都在這裏），
+// 亮不亮按此刻的真實狀態，不管是誰造成的（投毒者毒的，在這裏取下就是解毒）。其餘的是只給說書人看的記號
 const COMMON = ['中毒', '醉酒', '被保護', '能力已用', '瘋狂', '查驗過'];
-// seat 可以是幾個座位（標記卡上他一次選了幾個人）：一起貼、一起取；lead 是排最前的角色（正在行動的那個角色自己的標記）
+const STATUS = { 中毒: 'poison', 醉酒: 'drunk' };
+const HERRING = new Set(['紅鯡魚', '干擾項']); // 占卜師的官方標記「干擾項」就是紅鯡魚
+// seat 可以是幾個座位：一起貼、一起取；lead 是排最前的角色（正在行動的那個角色自己的標記）
 export function openReminders(ctx, seat, lead) {
   const seats = [].concat(seat);
   seat = seats[0];
   const s = ctx.state, st = s.st, has = t => seats.every(x => (st.marks?.[x.id] || []).includes(t));
   const remind = (text, on) => { for (const x of seats) ctx.st('remind', { seatId: x.id, text, on }); };
-  const toggle = (e, text) => {
-    const on = !e.currentTarget.classList.contains('on');
-    e.currentTarget.classList.toggle('on', on);
-    remind(text, on);
-  };
+  const live = x => s.seats.find(y => y.id === x.id) || x;
+  // 一枚按鈕：亮不亮、按下去做什麼（set 回 false 就不切換）。只換這一個按鈕的 class，不重畫面板
+  const button = (label, on, set, title) => h('button', { class: 'chip' + (on ? ' on' : ''), title: title || null,
+    onclick: e => { const b = e.currentTarget, v = !b.classList.contains('on'); if (set(v) !== false) b.classList.toggle('on', v); } }, label);
+  const good = x => (x.align ? x.align === 'good' : !!TEAMS[ROLES[x.role]?.team]?.good);
+  const herring = () => seats.length === 1 && s.seats.some(x => x.role === 'fortuneteller' || x.fakeRole === 'fortuneteller') && good(seat)
+    && button('紅鯡魚', st.redHerring === seat.id, v => (v ? void ctx.st('setRedHerring', { seatId: seat.id }) : (toast('占卜師一定有一個紅鯡魚：在另一名善良玩家身上貼上，就換過去'), false)), markMeaning('fortuneteller', '紅鯡魚'));
   // key：存進標記的字；兩個角色有同名的標記（氣球駕駛員和寡婦都有「得知」）時帶上角色名，不然點一個兩個一起亮
-  const chip = (t, key = t) => h('button', { class: 'chip' + (has(key) ? ' on' : ''), onclick: e => toggle(e, key) }, t);
+  const chip = (t, key = t, r = null) => (STATUS[t] ? button(t, seats.every(x => (live(x).tags || []).includes(t)), v => { for (const x of seats) ctx.st('setStatus', { seatId: x.id, what: STATUS[t], on: v }); }, markMeaning(r, t))
+    : HERRING.has(t) ? herring() || null
+      : button(t, has(key), v => remind(key, v), r ? markMeaning(r, t, groups[r]?.length === 1) : null));
+  // 陣營：和角色原本的陣營反過來（莽夫、麻臉巫婆……）。按下改陣營，再按改回來
+  const natural = seat.role && (TEAMS[ROLES[seat.role]?.team]?.good ? 'good' : 'evil'), flip = natural === 'good' ? 'evil' : 'good';
+  const align = seats.length === 1 && natural && button(flip === 'evil' ? '邪惡' : '善良', seat.align === flip, v => void ctx.st('setAlign', { seatId: seat.id, align: v ? flip : natural }));
   // 這個座位自己的角色排最前
   const groups = {}, count = {};
   for (const { r, t } of st.reminders || []) { (groups[r] ||= []).push(t); count[t] = (count[t] || 0) + 1; }
@@ -324,19 +352,21 @@ export function openReminders(ctx, seat, lead) {
   const own = [...new Set([lead, seat.role, seat.fakeRole])].filter(id => groups[id]);
   const order = [...own, ...Object.keys(groups).filter(id => !own.includes(id))];
   const known = new Set(Object.entries(groups).flatMap(([r, ts]) => ts.map(t => keyOf(r, t))));
-  const extra = (st.marks?.[seat.id] || []).filter(t => !COMMON.includes(t) && !known.has(t));
-  const row = h('div', { class: 'hand-row' }, COMMON.map(t => chip(t)), extra.map(t => chip(t)));
+  const extra = (st.marks?.[seat.id] || []).filter(t => !COMMON.includes(t) && !known.has(t) && !HERRING.has(t));
+  const row = h('div', { class: 'hand-row' }, COMMON.map(t => chip(t)), align, extra.map(t => chip(t)));
   const text = h('input', { maxlength: 20, placeholder: '自己寫一個' });
   const add = () => {
     const t = text.value.trim();
     if (!t) return;
     text.value = '';
-    row.append(h('button', { class: 'chip on', onclick: e => toggle(e, t) }, t));
+    row.append(button(t, true, v => remind(t, v)));
     remind(t, true);
   };
   text.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) add(); };
   modal(`${seats.map(x => seatLabel(s, x.id)).join('、')} 的標記`, h('div', { class: 'hand-form' }, row,
-    order.map(id => h('div', { class: 'hand-row' }, mini(id), groups[id].map(t => chip(t, keyOf(id, t))))),
+    // 和第一行同名的（投毒者的「中毒」）是同一枚，不再列一次
+    order.map(id => [id, groups[id].filter(t => !COMMON.includes(t)).map(t => chip(t, keyOf(id, t), id)).filter(Boolean)]).filter(([, l]) => l.length)
+      .map(([id, l]) => h('div', { class: 'hand-row' }, mini(id), l)),
     h('div', { class: 'row rm-add' }, text, h('button', { class: 'btn', onclick: add }, icon('quill'), '貼上'))));
 }
 

@@ -347,13 +347,14 @@ sock.on('debug', () => {
 });
 setRender(render);
 addEventListener('resize', fitTopbar); // 轉屏、改窗口：頂欄重新量一次放不放得下
-// 計票倒數、投票倒數、MVP 倒數每秒重繪
+// 計票倒數、投票倒數、MVP 倒數、貞潔者反噬倒數每秒重繪。幾個倒數可能同時在走（線下舉手投票沒有倒數，貞潔者的倒數照樣要走），各算各的拼在一起
 let clockTick = null;
 setInterval(() => {
-  const n = ctx.state?.nomination, c = n?.clock, m = ctx.state?.mvpVote, f = ctx.state?.st?.step;
-  const k = c ? `${c.k}:${Math.ceil((c.at + c.step - ctx.now()) / 1000)}` : n ? `t${n.paused ?? Math.ceil((n.deadline - ctx.now()) / 1000)}`
-    : m && !m.done ? `m${Math.ceil((m.closesAt - ctx.now()) / 1000)}` : f?.status === 'fake' ? `f${Math.floor(ctx.now() / 500)}` : null;
-  if (k !== clockTick) { clockTick = k; if (k) render(); }
+  const n = ctx.state?.nomination, c = n?.clock, m = ctx.state?.mvpVote, f = ctx.state?.st?.step, v = ctx.state?.st?.virginCheck;
+  const sec = t => Math.ceil((t - ctx.now()) / 1000);
+  const k = [c ? `${c.k}:${sec(c.at + c.step)}` : n?.deadline ? `t${n.paused ?? sec(n.deadline)}` : n?.paused != null ? `t${n.paused}` : '',
+    m && !m.done ? `m${sec(m.closesAt)}` : '', f?.status === 'fake' ? `f${Math.floor(ctx.now() / 500)}` : '', v?.due ? `v${sec(v.due)}` : ''].join('|');
+  if (k !== clockTick) { clockTick = k; if (k !== '|||') render(); }
 }, 200);
 
 // 快捷鍵：Esc 關閉菜單 / 彈窗 / 取消代選。回車不觸發任何操作，也不重複點焦點停著的按鈕；只有輸入框裏的回車算提交
