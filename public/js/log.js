@@ -143,6 +143,7 @@ function fixBody(s, e) {
   switch (e.what) {
     case 'poison': return [seat, w('設為中毒', 'evil')];
     case 'drunk': return [seat, w('設為醉酒', 'evil')];
+    case 'status': return [seat, e.on ? w(`設為${e.word}`, 'evil') : w(`解除${e.word}`)]; // 「+」面板裏的其他狀態（被保護、詛咒、能力已用……）
     case 'unpoison': return [seat, w('解除中毒')];
     case 'sober': return [seat, w('解除醉酒')];
     case 'revive': return [seat, w('復活', 'good')];

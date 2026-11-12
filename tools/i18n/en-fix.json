@@ -1,4 +1,6 @@
 {
+ "新版本": "Update",
+ "刷新": "Reload",
  "角色分配": "Character assignments",
  "空": "Empty",
  "這個劇本最多 {0} 人": "This script allows at most {0} players",
@@ -272,5 +274,16 @@
  "點桌上的人": "Tap a seat",
  "改": "Edit",
  "這個角色的信息系統會算，不用預選": "The app works this one out, no preset needed",
- "太多了": "Too many"
+ "太多了": "Too many",
+ "處決不死 处决不死": null,
+ "立即處決!": null,
+ "惡魔的偽裝": "Demon's bluffs",
+ "瘋子的偽裝": "Lunatic's bluffs",
+ "設為{0}": "made {0}",
+ "解除{0}": "removed {0}",
+ "輪到時一張卡寫明要做什麼，你自己處理": "On their turn a card says what to do; you handle it",
+ "你取下為止": "until you take it off",
+ "他被處決也不會死。": "They don't die if executed.",
+ "他是諾-達鯴的鎮民鄰座：諾-達鯴活著、能力正常時他一直中毒，取不下來": "They are a Townsfolk neighbour of the No Dashii: while the No Dashii is alive and sober they stay poisoned, so it can't be taken off",
+ "頭像右下角：中毒、保護、紅鯡魚……貼上就生效": "Lower right of each token: poisoned, protected, red herring… take effect when added"
 }

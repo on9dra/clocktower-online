@@ -881,11 +881,12 @@ function markCard(ctx, seat, key) {
     // 來源：誰（座位號 + 角色）；沒有角色的是說書人自己設的。持續到：哪一天 / 哪一夜，跟著來源走的沒有期限就不寫
     rows.push(h('div', { class: 'mc-src' }, kv('來源：', ...(e.src ? [e.by && seatBadge(s, e.by), mini(e.src), w(ROLES[e.src]?.name || '', 'ink')] : [w('說書人', 'ink')])),
       // 跟著來源走、沒有期限的（哲學家、亡骨魔、諾-達鯴……）：寫來源那個人失去能力時，不寫「遊戲結束」
-      e.live && e.by && (e.till == null || e.till >= 1e8) ? kv('持續到：', seatBadge(s, e.by), w('失去能力時', 'ink')) : until(s, e.till) && kv('持續到：', w(until(s, e.till), 'ink'))));
+      e.hand ? kv('持續到：', w('你取下為止', 'ink')) // 說書人用「+」貼的
+        : e.live && e.by && (e.till == null || e.till >= 1e8) ? kv('持續到：', seatBadge(s, e.by), w('失去能力時', 'ink')) : until(s, e.till) && kv('持續到：', w(until(s, e.till), 'ink'))));
   }
   const mine = text != null && (s.st?.marks?.[seat.id] || []).includes(text);
-  // 中毒、醉酒是規則上的狀態（「+」面板裏貼的、投毒者毒的都算）：取下就是解除
-  const cure = key === 'st-poison' || key === 'st-drunk' ? key.slice(3) : null;
+  // 中毒、醉酒、被保護、處決不死、詛咒、瘋狂、能力已用是規則上的狀態（「+」面板裏貼的、角色能力造成的都算）：取下就是解除
+  const cure = /^st-(poison|drunk|protect|safe|curse|mad|used)$/.test(key) ? key.slice(3) : null;
   const card = h('div', { class: 'mk-card', 'data-key': `card-${seat.id}-${key}`, 'data-seat': seat.id, 'data-mark': key, 'data-exit': true },
     h('div', { class: 'mc-head' }, h('span', { class: 'mc-face' }, face), h('b', {}, name)),
     rule && h('p', { class: 'mc-rule' }, rule),

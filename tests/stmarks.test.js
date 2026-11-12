@@ -44,7 +44,7 @@ function game(entries, roles) {
   ok(st(r, 'setStatus', { seatId: monk.id, what: 'drunk', on: false }));
   assert.ok(!hasEff(r, monk, 'drunk'));
   assert.ok(r.g.log.some(l => l.e?.k === 'fix' && l.e.what === 'drunk' && l.e.seat === monk.id), '記進流程');
-  assert.strictEqual(typeof applyStOp(r, { op: 'setStatus', seatId: monk.id, what: 'mad', on: true }), 'string', '不認識的狀態拒絕');
+  assert.strictEqual(typeof applyStOp(r, { op: 'setStatus', seatId: monk.id, what: 'fly', on: true }), 'string', '不認識的狀態拒絕');
   remove(r.code);
   console.log('標記面板裏的中毒 / 醉酒是真的 ✔');
 }
@@ -106,4 +106,44 @@ function game(entries, roles) {
   assert.strictEqual(stAbility('imp'), '每個夜晚，讓小惡魔選擇一名玩家：他死亡。如果小惡魔以這種方式自殺，一名爪牙會變成小惡魔。');
   remove(r.code);
   console.log('說書人的說法、標記的意思 ✔');
+}
+
+// 「+」面板裏其他和規則有關的標記：被保護、處決不死、詛咒、瘋狂、能力已用都是真的；改回原陣營不擋隱士登記；諾-達鯴的毒取不下來
+{
+  const { evilAs, shieldOf } = await import('../lib/util.js').then(async u => ({ ...u, ...(await import('../lib/rules.js')) }));
+  const r = game([{ id: '_meta', name: '態' }, 'imp', 'poisoner', 'slayer', 'virgin', 'courtier', 'recluse', 'chef'], ['imp', 'poisoner', 'slayer', 'virgin', 'courtier', 'recluse', 'chef']);
+  const [, , slayer, virgin, courtier, recluse, chef] = r.seats;
+  for (const what of ['protect', 'safe', 'curse', 'mad']) {
+    ok(st(r, 'setStatus', { seatId: chef.id, what, on: true }));
+    assert.ok(hasEff(r, chef, what), what + ' 貼上就生效');
+  }
+  assert.ok(seatTags(r, chef).includes('被保護') && seatTags(r, chef).includes('詛咒') && seatTags(r, chef).includes('處決不死') && seatTags(r, chef).includes('瘋狂'));
+  assert.strictEqual(shieldOf(r, chef, { demon: true }), r.phase === 'night' ? 'protect' : shieldOf(r, chef, { demon: true }), '夜裏惡魔殺不死');
+  assert.strictEqual(shieldOf(r, chef, { exec: true }), 'safe', '處決不死');
+  for (const what of ['protect', 'safe', 'curse', 'mad']) ok(st(r, 'setStatus', { seatId: chef.id, what, on: false }));
+  assert.ok(!['protect', 'safe', 'curse', 'mad'].some(k => hasEff(r, chef, k)), '取下就解除');
+  // 能力已用：獵手、貞潔者、每局一次的角色是真的用掉了；廚師這種系統不記的只貼記號
+  ok(st(r, 'setStatus', { seatId: slayer.id, what: 'used', on: true }));
+  ok(st(r, 'setStatus', { seatId: virgin.id, what: 'used', on: true }));
+  ok(st(r, 'setStatus', { seatId: courtier.id, what: 'used', on: true }));
+  assert.ok(r.g.slayerUsed && r.g.virginUsed && r.g.used['courtier:' + courtier.id]);
+  for (const s of [slayer, virgin, courtier]) assert.ok(seatTags(r, s).includes('能力已用'));
+  ok(st(r, 'setStatus', { seatId: courtier.id, what: 'used', on: false }));
+  assert.ok(!r.g.used['courtier:' + courtier.id], '取下能力已用：侍臣今晚照樣醒');
+  ok(st(r, 'setStatus', { seatId: chef.id, what: 'used', on: true }));
+  assert.ok(r.g.marks[chef.id].includes('能力已用'));
+  // 陣營改過去再改回來：不記成被改過，隱士照樣能被當作邪惡
+  ok(st(r, 'setAlign', { seatId: recluse.id, align: 'evil' }));
+  assert.deepStrictEqual(evilAs(r, recluse), [true]);
+  ok(st(r, 'setAlign', { seatId: recluse.id, align: 'good' }));
+  assert.ok(!recluse.align && evilAs(r, recluse).includes(true), '改回原陣營後隱士照樣可以登記成邪惡');
+  remove(r.code);
+  // 諾-達鯴鄰座的鎮民：毒是算出來的，取下時說清楚為什麼取不下
+  const r2 = game([{ id: '_meta', name: '諾' }, 'nodashii', 'poisoner', 'chef', 'empath', 'monk', 'saint', 'washerwoman'], ['chef', 'nodashii', 'empath', 'poisoner', 'monk', 'saint', 'washerwoman']);
+  const nb = r2.seats[0];
+  assert.ok(isPoisoned(r2, nb));
+  const err = applyStOp(r2, { op: 'setStatus', seatId: nb.id, what: 'poison', on: false });
+  assert.ok(typeof err === 'string' && err.includes('諾-達鯴'), err);
+  remove(r2.code);
+  console.log('其他規則標記也是真的、陣營改回不擋登記 ✔');
 }

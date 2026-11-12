@@ -465,6 +465,7 @@
   "lib/engine.js"
  ],
  "被保護": [
+  "lib/manual.js",
   "lib/rules.js",
   "lib/util.js",
   "public/js/log.js",
@@ -808,6 +809,9 @@
  "處決5號，入夜": [
   "public/js/help.js"
  ],
+ "處決不死 处决不死": [
+  "public/js/stside.js"
+ ],
  "處決惡魔": [
   "public/js/help.js"
  ],
@@ -1134,6 +1138,9 @@
  "惡魔傳位給他": [
   "public/js/log.js"
  ],
+ "惡魔的偽裝": [
+  "public/js/manual.js"
+ ],
  "惡魔的偽裝不夠 3 個": [
   "public/js/flow.js"
  ],
@@ -1311,6 +1318,9 @@
  "瘋子 {0} 選擇了 {1}": [
   "lib/engine.js"
  ],
+ "瘋子的偽裝": [
+  "public/js/manual.js"
+ ],
  "瘋子看到的假信息：{0}": [
   "lib/engine.js"
  ],
@@ -1404,14 +1414,8 @@
  "給 {0} 貼標記": [
   "public/js/town.js"
  ],
- "給誰看": [
-  "public/js/manual.js"
- ],
  "給他看魔典": [
   "public/js/infoform.js"
- ],
- "給他看身份": [
-  "public/js/help.js"
  ],
  "更多": [
   "public/js/topbar.js"
@@ -1857,6 +1861,9 @@
  "結算投票": [
   "public/js/topbar.js"
  ],
+ "解除{0}": [
+  "public/js/log.js"
+ ],
  "解除中毒": [
   "public/js/log.js"
  ],
@@ -2147,6 +2154,9 @@
  "立即處決 {0}？按處決結算（聖徒、送葬者等），今天不能再處決別人。": [
   "public/js/town.js"
  ],
+ "立即處決!": [
+  "public/js/help.js"
+ ],
  "立即處決（糾錯）!": [
   "public/js/help.js"
  ],
@@ -2221,7 +2231,7 @@
  "輪到你了": [
   "lib/engine.js"
  ],
- "輪到時一張標記卡，你自己處理": [
+ "輪到時一張卡寫明要做什麼，你自己處理": [
   "public/js/help.js"
  ],
  "落敗": [
@@ -2461,6 +2471,7 @@
   "public/js/log.js"
  ],
  "能力已用": [
+  "lib/manual.js",
   "lib/util.js",
   "public/js/manual.js",
   "public/js/stside.js"
@@ -2538,6 +2549,9 @@
  ],
  "你沒有使用能力": [
   "lib/engine.js"
+ ],
+ "你取下為止": [
+  "public/js/town.js"
  ],
  "你是管家：主人舉手時你才能舉手": [
   "lib/day.js"
@@ -2990,8 +3004,10 @@
   "public/js/fx.js",
   "public/js/town.js"
  ],
+ "設為{0}": [
+  "public/js/log.js"
+ ],
  "設為中毒": [
-  "public/js/help.js",
   "public/js/log.js"
  ],
  "設為醉酒": [
@@ -3367,14 +3383,14 @@
  "他保留能力": [
   "public/js/log.js"
  ],
+ "他被處決也不會死。": [
+  "public/js/stside.js"
+ ],
  "他從此醉酒": [
   "public/js/log.js"
  ],
  "他的能力不再生效。": [
   "public/js/stside.js"
- ],
- "他的身份": [
-  "public/js/manual.js"
  ],
  "他的陣營落敗": [
   "public/js/flow.js"
@@ -3397,6 +3413,9 @@
  ],
  "他是惡魔": [
   "public/js/town.js"
+ ],
+ "他是諾-達鯴的鎮民鄰座：諾-達鯴活著、能力正常時他一直中毒，取不下來": [
+  "lib/manual.js"
  ],
  "他現在是善良陣營，和角色原本的陣營不同。": [
   "public/js/town.js"
@@ -3517,7 +3536,6 @@
   "public/js/log.js"
  ],
  "貼標記": [
-  "public/js/help.js",
   "public/js/town.js"
  ],
  "貼上": [
@@ -3547,6 +3565,9 @@
   "public/js/fx-ab-dlc.js"
  ],
  "投票限制": [
+  "public/js/help.js"
+ ],
+ "頭像右下角：中毒、保護、紅鯡魚……貼上就生效": [
   "public/js/help.js"
  ],
  "湍流沸騰": [
@@ -4948,9 +4969,11 @@
   "public/js/town.js"
  ],
  "詛咒": [
+  "lib/manual.js",
   "lib/util.js",
   "public/js/fx-ab-dlc.js",
-  "public/js/glyph.js"
+  "public/js/glyph.js",
+  "public/js/manual.js"
  ],
  "詛咒 诅咒 被詛咒 被诅咒": [
   "public/js/stside.js"
