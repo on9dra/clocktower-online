@@ -66,7 +66,8 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .seat .token { transition: transform .15s ease, box-shadow .2s ease; }
 .seat:hover .token { transform: translateY(-3px); }
 .seat.selectable .token { animation: beckon 1.6s ease-in-out infinite; }
-.seat.selected .token { box-shadow: inset 0 0 0 3px var(--lit), inset 0 0 0 4px var(--team); animation: picked .26s cubic-bezier(.5,0,.6,1.3); }
+/* 選中的樣子在 board.css（放大、金光、動作章）：這裏只管點中那一下的彈跳 */
+.seat.selected .token { animation: picked .26s cubic-bezier(.5,0,.6,1.3); }
 @keyframes picked { from { scale: 1.25; } }
 .seat.nominee .token { animation: nominee 1.6s ease-in-out infinite; animation-delay: var(--fx-delay, 0s); }
 @keyframes beckon { 50% { transform: translateY(-3px); } }
@@ -211,6 +212,21 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 /* 英文句子字母多：放寬到一行放得下（兩行時上面那行會被桌面頂邊蓋住），en-fix.json 裏這些句子也寫短 */
 :root[data-lang="en"] .ic-tag.say { max-width: min(84vw, 22em); }
 .on-table > .ic-top { position: relative; display: grid; justify-items: center; margin-top: 18px; }
+/* 有選項的卡：引導籤是選項上面的一行（和手機上圓桌上方那張紙條的頂行一樣），不掛在卡頂外面——卡比引導窄時掛在外面會被裁掉。右邊給「收起」留位 */
+/* 電腦上（和橫屏一樣）中間這張卡自己會滾動、還會縮放：掛在卡頂外面的引導籤會被裁、被縮得看不清，一律排進卡裏當第一行 */
+@media (min-width: 641px) { .st-card > .infocard > .ic-top > .ic-tag.say { grid-column: 1 / -1; position: static; translate: none; justify-self: stretch; justify-content: center; width: auto; max-width: none;
+  margin: 4px -2px 0; padding: 0 52px 7px; text-align: center; background: none; clip-path: none; border-bottom: 1px dashed var(--line-strong); } }
+/* 選人卡的「叫醒他/她指定一人［投毒］」、裁定卡的問句：同樣是給說書人的第一行，居中，右邊給「收起」留位 */
+.infocard > .ic-body > .ic-say { grid-column: 1 / -1; justify-self: stretch; justify-content: center; margin: 4px -2px 0; padding: 0 52px 7px; text-align: center; border-bottom: 1px dashed var(--line-strong); }
+.infocard > .ic-body > .ic-say > .frm { justify-content: center; }
+@media (min-width: 641px) { .infocard:has(.ic-who) > :is(.ic-top, .ic-body) > :is(.ic-tag, .ic-say) { padding-inline: 64px; } } /* 左上角掛著行動者的角標 */
+.infocard.pick > .ic-top > .opt-row, .infocard.decide > .ic-top > .dc-pick { justify-content: center; justify-self: center; }
+.infocard.pick > .ic-top .slots { font-size: 26px; }
+.dc-pick { font-size: 22px; }
+.dc-pick .sb.empty, .infocard.pick .slots .sb.empty { min-width: 1.3em; min-height: 1.3em; box-sizing: border-box; }
+.infocard.pick > .ic-foot .row, .infocard.decide > .ic-foot { justify-content: center; }
+.infocard > .ic-body > .ic-tag { grid-column: 1 / -1; position: static; translate: none; justify-self: stretch; justify-content: center; width: auto; max-width: none; margin: 4px -2px 0; padding: 0 52px 7px; text-align: center;
+  background: none; clip-path: none; border-bottom: 1px dashed var(--line-strong); }
 /* 貞潔者的角落小窗貼著桌面頂邊，籤長不出去：放在正文左邊 */
 .infocard.ruling.corner > .ic-tag { position: static; translate: none; align-self: start; justify-self: start; }
 .infocard.ruling { border-color: var(--brass); box-shadow: inset 0 0 0 3px var(--card), inset 0 0 0 4.5px var(--brass); }

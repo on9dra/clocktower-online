@@ -57,14 +57,8 @@
  "（{0} 票為平票）": [
   "public/js/flow.js"
  ],
- "（傳位）": [
-  "public/js/log.js"
- ],
  "（錯誤信息）": [
   "lib/engine.js"
- ],
- "（紅唇女郎）": [
-  "public/js/log.js"
  ],
  "（可以不指定）": [
   "public/js/stepcard.js"
@@ -494,6 +488,9 @@
  "被刺客刺殺": [
   "lib/night.js"
  ],
+ "被惡魔殺死": [
+  "public/js/log.js"
+ ],
  "被和平主義者保護": [
   "lib/rules.js"
  ],
@@ -507,6 +504,9 @@
   "lib/day.js",
   "lib/rules.js"
  ],
+ "被獵手射殺": [
+  "public/js/log.js"
+ ],
  "被魔鬼代言人保護": [
   "lib/rules.js"
  ],
@@ -518,12 +518,6 @@
  ],
  "被沙巴洛斯反芻（復活）": [
   "lib/night.js"
- ],
- "被殺": [
-  "public/js/log.js"
- ],
- "被射殺": [
-  "public/js/log.js"
  ],
  "被說書人復活": [
   "lib/rules.js"
@@ -571,8 +565,7 @@
   "public/js/glyph.js"
  ],
  "變成": [
-  "public/js/glyph.js",
-  "public/js/log.js"
+  "public/js/glyph.js"
  ],
  "變成{0}": [
   "lib/night.js"
@@ -644,6 +637,9 @@
  ],
  "不能行動": [
   "public/js/glyph.js"
+ ],
+ "不能選他自己": [
+  "public/js/town.js"
  ],
  "不能選擇其他惡魔，交換無效": [
   "lib/night.js"
@@ -728,8 +724,7 @@
   "public/js/glyph.js"
  ],
  "裁定": [
-  "public/js/flow.js",
-  "public/js/log.js"
+  "public/js/flow.js"
  ],
  "操作太頻繁，請稍後再試": [
   "server.js"
@@ -745,6 +740,9 @@
  "查驗過": [
   "public/js/manual.js"
  ],
+ "茶藝師保護": [
+  "public/js/log.js"
+ ],
  "場上鄰座的邪惡玩家有 {0} 對": [
   "public/js/infofmt.js"
  ],
@@ -752,7 +750,8 @@
   "lib/night.js"
  ],
  "場上沒有惡魔": [
-  "public/js/flow.js"
+  "public/js/flow.js",
+  "public/js/stepcard.js"
  ],
  "場上沒有其他{0}": [
   "lib/night.js"
@@ -835,8 +834,7 @@
   "public/js/roles.js"
  ],
  "傳位": [
-  "public/js/fx-ab.js",
-  "public/js/log.js"
+  "public/js/fx-ab.js"
  ],
  "傳閱身份": [
   "public/js/manual.js"
@@ -923,6 +921,9 @@
  "單設備的座位直接定人數": [
   "lib/debug.js"
  ],
+ "但{0}": [
+  "public/js/log.js"
+ ],
  "但他是士兵": [
   "lib/night.js"
  ],
@@ -958,11 +959,26 @@
   "public/js/gamelog.js",
   "public/js/log.js"
  ],
+ "得知：": [
+  "public/js/log.js"
+ ],
  "得知處決": [
   "public/js/help.js"
  ],
+ "得知惡魔和其他爪牙": [
+  "public/js/log.js"
+ ],
+ "得知假的爪牙和偽裝": [
+  "public/js/log.js"
+ ],
+ "得知爪牙和三個偽裝": [
+  "public/js/log.js"
+ ],
  "地獄辣椒大賽": [
   "public/js/community.js"
+ ],
+ "的紅鯡魚": [
+  "public/js/log.js"
  ],
  "的死亡被說書人收回": [
   "lib/engine.js"
@@ -1101,8 +1117,14 @@
   "public/js/infofmt.js",
   "public/js/roles.js"
  ],
+ "惡魔被處決，遊戲再進行一夜一天": [
+  "public/js/log.js"
+ ],
  "惡魔被處決後，遊戲再進行一天。": [
   "public/js/town.js"
+ ],
+ "惡魔傳位給他": [
+  "public/js/log.js"
  ],
  "惡魔的偽裝不夠 3 個": [
   "public/js/flow.js"
@@ -1127,6 +1149,9 @@
  ],
  "惡魔是 {0}。": [
   "lib/night.js"
+ ],
+ "惡魔死了，但雙子都活著：善良還不能獲勝": [
+  "public/js/log.js"
  ],
  "惡魔死亡": [
   "lib/rules.js"
@@ -1545,7 +1570,8 @@
   "lib/rules.js"
  ],
  "紅唇女郎接任": [
-  "public/js/flow.js"
+  "public/js/flow.js",
+  "public/js/log.js"
  ],
  "紅鯡魚": [
   "lib/util.js",
@@ -1975,6 +2001,7 @@
   "public/js/flow.js",
   "public/js/gamelog.js",
   "public/js/help.js",
+  "public/js/log.js",
   "public/js/manual.js",
   "public/js/town.js"
  ],
@@ -1999,6 +2026,9 @@
  ],
  "烤派中": [
   "public/js/community.js"
+ ],
+ "靠登記成立": [
+  "public/js/log.js"
  ],
  "科學怪鎮長": [
   "public/js/community.js"
@@ -2145,10 +2175,10 @@
   "public/js/flow.js",
   "public/js/help.js"
  ],
- "鄰座的邪惡": [
+ "鄰座的邪惡玩家有": [
   "public/js/infofmt.js"
  ],
- "鄰座中邪惡": [
+ "鄰座中有": [
   "public/js/help.js"
  ],
  "流程": [
@@ -2197,6 +2227,12 @@
  "買家後悔": [
   "public/js/community.js"
  ],
+ "莽夫變成": [
+  "public/js/log.js"
+ ],
+ "莽夫陣營不變": [
+  "public/js/log.js"
+ ],
  "沒提名": [
   "public/js/fx-ab-dlc.js"
  ],
@@ -2228,7 +2264,8 @@
   "lib/engine.js"
  ],
  "沒有惡魔": [
-  "public/js/fx-ab.js"
+  "public/js/fx-ab.js",
+  "public/js/stepcard.js"
  ],
  "沒有反芻": [
   "lib/night.js"
@@ -2257,6 +2294,9 @@
  "沒有了": [
   "lib/night.js"
  ],
+ "沒有命中": [
+  "public/js/log.js"
+ ],
  "沒有人得到 MVP 票": [
   "public/js/gamelog.js"
  ],
@@ -2270,12 +2310,10 @@
  "沒有外來者": [
   "lib/night.js"
  ],
- "沒有選": [
-  "public/js/log.js"
- ],
  "沒有選人": [
   "lib/night.js",
   "public/js/hud.js",
+  "public/js/log.js",
   "public/js/stepcard.js"
  ],
  "沒有選人，下次可以殺三人": [
@@ -2334,7 +2372,7 @@
  "民間創意": [
   "public/js/manual.js"
  ],
- "名": [
+ "名邪惡": [
   "public/js/help.js",
   "public/js/infofmt.js"
  ],
@@ -2386,7 +2424,10 @@
  "能力結果": [
   "public/js/topbar.js"
  ],
- "能力失常": [
+ "能力生效": [
+  "public/js/log.js"
+ ],
+ "能力失常的有": [
   "public/js/infofmt.js"
  ],
  "能力失效，信息可能是錯的，他自己不知道": [
@@ -2396,7 +2437,8 @@
   "public/js/town.js"
  ],
  "能力無效": [
-  "public/js/flow.js"
+  "public/js/flow.js",
+  "public/js/log.js"
  ],
  "能力已用": [
   "lib/util.js",
@@ -2525,7 +2567,8 @@
   "public/js/community.js"
  ],
  "弄臣免死": [
-  "lib/rules.js"
+  "lib/rules.js",
+  "public/js/log.js"
  ],
  "挪座位": [
   "public/js/topbar.js"
@@ -2536,6 +2579,9 @@
  "排除": [
   "public/js/help.js",
   "public/js/setup.js"
+ ],
+ "判定": [
+  "public/js/log.js"
  ],
  "判定善良獲勝…": [
   "public/js/help.js",
@@ -2596,6 +2642,9 @@
  "切換身份": [
   "public/js/debug.js"
  ],
+ "清除": [
+  "public/js/infoform.js"
+ ],
  "清除我的備註": [
   "public/js/town.js"
  ],
@@ -2653,6 +2702,7 @@
   "public/js/infofmt.js"
  ],
  "請選擇兩名不同的玩家": [
+  "lib/setup.js",
   "public/js/infofmt.js"
  ],
  "請選擇數字": [
@@ -2789,6 +2839,9 @@
   "public/js/infofmt.js",
   "public/js/lobby.js"
  ],
+ "人被喚醒": [
+  "public/js/infofmt.js"
+ ],
  "人人皆可玩": [
   "public/js/community.js"
  ],
@@ -2835,6 +2888,12 @@
  "殺死了 {0}": [
   "lib/night.js"
  ],
+ "殺死了他": [
+  "public/js/log.js"
+ ],
+ "殺死了他鄰座的爪牙": [
+  "public/js/log.js"
+ ],
  "善良": [
   "lib/engine.js",
   "lib/manual.js",
@@ -2853,6 +2912,7 @@
   "public/js/flow.js",
   "public/js/fx.js",
   "public/js/gamelog.js",
+  "public/js/log.js",
   "public/js/topbar.js",
   "public/js/town.js"
  ],
@@ -2898,8 +2958,7 @@
  ],
  "射": [
   "public/js/flow.js",
-  "public/js/help.js",
-  "public/js/log.js"
+  "public/js/help.js"
  ],
  "射{0}號失敗": [
   "public/js/town.js"
@@ -2931,8 +2990,7 @@
  ],
  "生效": [
   "lib/day.js",
-  "public/js/flow.js",
-  "public/js/log.js"
+  "public/js/flow.js"
  ],
  "聲明不成立，無人死亡": [
   "lib/night.js"
@@ -2984,6 +3042,7 @@
   "public/js/help.js",
   "public/js/infofmt.js",
   "public/js/infoform.js",
+  "public/js/log.js",
   "public/js/pass.js",
   "public/js/stepcard.js"
  ],
@@ -3083,6 +3142,9 @@
  "水手不死": [
   "lib/rules.js"
  ],
+ "水手免死": [
+  "public/js/log.js"
+ ],
  "說明": [
   "public/js/about.js"
  ],
@@ -3093,6 +3155,7 @@
   "public/js/gamelog.js",
   "public/js/hud.js",
   "public/js/lobby.js",
+  "public/js/log.js",
   "public/js/side.js",
   "public/js/topbar.js",
   "public/js/town.js"
@@ -3136,11 +3199,13 @@
   "server.js"
  ],
  "說書人判定": [
-  "lib/ops.js",
-  "public/js/log.js"
+  "lib/ops.js"
  ],
  "說書人判定{0}陣營獲勝": [
   "lib/ops.js"
+ ],
+ "說書人判定死亡": [
+  "public/js/log.js"
  ],
  "說書人強制玩家發起投票，玩家按順序在短時間內必須投票，數完自動結算": [
   "public/js/help.js"
@@ -3220,7 +3285,7 @@
  "死因未卜": [
   "public/js/community.js"
  ],
- "死者中邪惡": [
+ "死者中有": [
   "public/js/infofmt.js"
  ],
  "四": [
@@ -3255,10 +3320,23 @@
  "孫子被惡魔殺死": [
   "lib/night.js"
  ],
+ "孫子被惡魔殺死，她也死亡": [
+  "public/js/log.js"
+ ],
+ "孫子要是善良玩家": [
+  "lib/setup.js",
+  "public/js/flow.js"
+ ],
  "他": [
   "lib/ops.js",
   "public/js/infoform.js",
   "public/js/stepcard.js"
+ ],
+ "他保留能力": [
+  "public/js/log.js"
+ ],
+ "他從此醉酒": [
+  "public/js/log.js"
  ],
  "他的陣營落敗": [
   "public/js/flow.js"
@@ -3284,6 +3362,12 @@
  ],
  "他現在是邪惡陣營，和角色原本的陣營不同。": [
   "public/js/town.js"
+ ],
+ "他以為是": [
+  "public/js/log.js"
+ ],
+ "他中毒": [
+  "public/js/log.js"
  ],
  "他做的": [
   "public/js/log.js"
@@ -3311,6 +3395,12 @@
  "提名過": [
   "public/js/fx-ab-dlc.js"
  ],
+ "提名後沒死": [
+  "public/js/log.js"
+ ],
+ "提名後死亡": [
+  "public/js/log.js"
+ ],
  "提名你來點": [
   "public/js/help.js"
  ],
@@ -3319,6 +3409,9 @@
  ],
  "提名他": [
   "public/js/town.js"
+ ],
+ "提名貞潔者，被處決": [
+  "public/js/log.js"
  ],
  "提名自己": [
   "public/js/town.js"
@@ -3419,6 +3512,7 @@
   "server.js"
  ],
  "完成": [
+  "public/js/infoform.js",
   "public/js/setup.js"
  ],
  "玩家": [
@@ -3485,11 +3579,13 @@
  ],
  "未中": [
   "public/js/flow.js",
-  "public/js/fx.js",
-  "public/js/log.js"
+  "public/js/fx.js"
  ],
  "文件太大了": [
   "public/js/manual.js"
+ ],
+ "渦流在場": [
+  "public/js/log.js"
  ],
  "渦流在場，白天無人被處決": [
   "lib/rules.js"
@@ -3720,6 +3816,7 @@
   "public/js/flow.js",
   "public/js/fx.js",
   "public/js/gamelog.js",
+  "public/js/log.js",
   "public/js/topbar.js",
   "public/js/town.js"
  ],
@@ -3761,9 +3858,6 @@
  "醒來": [
   "public/js/glyph.js"
  ],
- "修正": [
-  "public/js/log.js"
- ],
  "需 {0} 票": [
   "public/js/trial.js"
  ],
@@ -3785,7 +3879,6 @@
  ],
  "選": [
   "public/js/flow.js",
-  "public/js/log.js",
   "public/js/rolepick.js",
   "public/js/town.js"
  ],
@@ -4008,6 +4101,9 @@
  "選中惡魔 {0}：交換角色和陣營，原惡魔中毒": [
   "lib/night.js"
  ],
+ "選中莽夫": [
+  "public/js/log.js"
+ ],
  "選中他的驅魔人是": [
   "public/js/stepcard.js"
  ],
@@ -4181,10 +4277,14 @@
   "public/js/log.js"
  ],
  "以為是{0}": [
+  "public/js/log.js",
   "public/js/town.js"
  ],
  "以為自己是鎮民，能力無效": [
   "public/js/help.js"
+ ],
+ "以下是不在場的可偽裝身份：": [
+  "public/js/pass.js"
  ],
  "佚名": [
   "public/js/community.js",
@@ -4285,6 +4385,9 @@
  ],
  "與": [
   "public/js/infofmt.js"
+ ],
+ "預選首夜告知的信息": [
+  "public/js/flow.js"
  ],
  "原創角色": [
   "public/js/manual.js"
@@ -4445,6 +4548,7 @@
   "public/js/rolepick.js"
  ],
  "這個角色不能選「沒有」": [
+  "lib/setup.js",
   "public/js/infofmt.js"
  ],
  "這個角色已經是偽裝了": [
@@ -4468,6 +4572,9 @@
  "這個鏈接的那一局已經結束了": [
   "server.js"
  ],
+ "這個座位沒有要預選的信息": [
+  "lib/setup.js"
+ ],
  "這個座位已在別的設備上打開": [
   "public/js/app.js"
  ],
@@ -4483,9 +4590,6 @@
  "貞潔者被提名": [
   "public/js/flow.js"
  ],
- "貞潔者反噬": [
-  "public/js/log.js"
- ],
  "真的是這個角色": [
   "public/js/glyph.js"
  ],
@@ -4493,8 +4597,7 @@
   "public/js/infoform.js"
  ],
  "陣營不變": [
-  "lib/engine.js",
-  "public/js/log.js"
+  "lib/engine.js"
  ],
  "陣營不同": [
   "public/js/infofmt.js"
@@ -4657,9 +4760,6 @@
  "製": [
   "public/js/about.js"
  ],
- "中被喚醒": [
-  "public/js/infofmt.js"
- ],
  "中毒 / 酒鬼時": [
   "public/js/help.js"
  ],
@@ -4669,13 +4769,10 @@
  "中毒、保護、死亡，全部判好": [
   "public/js/intro.js"
  ],
- "中毒/醉酒": [
-  "public/js/log.js"
- ],
  "中沒有惡魔": [
   "public/js/infofmt.js"
  ],
- "中邪惡": [
+ "中有": [
   "public/js/infofmt.js"
  ],
  "中有惡魔": [
@@ -4758,6 +4855,9 @@
  "自己寫一個": [
   "public/js/manual.js"
  ],
+ "自己醉酒": [
+  "public/js/log.js"
+ ],
  "自殺，{0} 接任": [
   "lib/night.js"
  ],
@@ -4792,6 +4892,9 @@
  ],
  "詛咒了 {0}": [
   "lib/night.js"
+ ],
+ "詛咒了他": [
+  "public/js/log.js"
  ],
  "詛咒之屋的黃昏": [
   "public/js/community.js"

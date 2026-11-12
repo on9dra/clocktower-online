@@ -10,6 +10,7 @@ import { openInvite } from './invite.js';
 import { rolePanel, closeRolePanel } from './rolepick.js';
 import { tr, getLang, trHas } from './lang.js';
 import { heraldHeld } from './herald.js';
+import { preDraft } from './infoform.js';
 
 // 角色那句話（glyph.js 的 say）：單數段是普通字，雙數段是關鍵詞（加粗）。中文用「」括起來直接接上；
 // 英文整句查（en-fix.json 裏以「段|段」為鍵，關鍵詞用 *…* 標出）：關鍵詞和標籤共用一個詞（「死亡」→ Dead）時，逐段翻語法不通。
@@ -130,18 +131,21 @@ export const foldButton = (ctx, key) => h('button', { class: 'hud-x fold-x', onc
 export const foldStub = (ctx, key, ...kids) => h('div', { class: 'cx fold-stub', 'data-key': 'fold-' + key, 'data-exit': true },
   h('div', { class: 'fs-lead' }, kids), B('展開', () => setFold(ctx, null), 'sm ghost'));
 
-// 選人模式下的確認卡（說書人代選時的操作卡用）：lead 是行動者的角色牌和座位號。
-// 手機上和信息卡一樣拆開（hud.css .spread）：行動者和選中的座位在圓桌中間，選角色的格子在上方，取消、確認在下方（確認在右，和發送同一個位置）
+// 選人模式下的確認卡（說書人代選時的操作卡用）：lead 是行動者——卡角的小角標（glyph.js actorMark，線下輪到他時有箭頭就沒有），或者一行角色牌和座位號。
+// 和信息卡同一個版式（手機上拆開，hud.css .spread）：上方是給說書人的一句（叫醒他/她指定一人［投毒］）和選角色的格子，
+// 正中是選中的人（點桌上的頭像），取消、確認在下方（確認在右，和發送同一個位置）
 // say：線下局說書人代點時，卡上寫這一步要叫他做什麼（和玩家手機上那句一樣）
 export const actSay = (rid, c) => {
   const a = ACTS[rid], say = (typeof a?.say === 'function' ? a.say(c) : a?.say) || [`選擇 ${c.count} 名玩家`];
   return h('div', { class: 'tp-say ic-say' }, sayView(say));
 };
 export function selectBar(ctx, lead, onDone, canCancel, say) {
-  const ask = asking(sel.on);
-  return h('div', { class: 'card focus infocard spread' },
-    h('div', { class: 'ic-top' }, h('div', { class: 'ic-head' }, lead), ask ? h('div', { class: 'ic-say use-ask' }, w('使用能力？', 'ink')) : say, h('div', { class: 'opt-row' }, slots(ctx))),
-    sel.on.roles && !ask && h('div', { class: 'ic-body' }, h('div', { class: 'opt-row' }, roleSlot(ctx))),
+  const ask = asking(sel.on), roles = sel.on.roles && !ask && h('div', { class: 'opt-row' }, roleSlot(ctx));
+  const who = lead instanceof Node && lead.classList.contains('ic-who') ? lead : lead && h('div', { class: 'ic-head' }, lead);
+  // 「使用能力？」（哲學家、侍臣先問一句）時還沒有要點的人：問句就是正中的那件事
+  return h('div', { class: 'card focus infocard spread pick' },
+    !ask && (say || roles) && h('div', { class: 'ic-body' }, say, roles),
+    h('div', { class: 'ic-top' }, who, ask ? h('div', { class: 'ic-say use-ask' }, w('使用能力？', 'ink')) : h('div', { class: 'opt-row' }, slots(ctx))),
     h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, canCancel && B('取消', () => stopSelect(ctx), 'ghost'), pickBtns(onDone, '', ctx))));
 }
 
@@ -418,23 +422,61 @@ function lobbyPane(ctx) {
         herringRow(ctx))));
 }
 
+// 開局前預選首夜的信息（洗衣婦、圖書管理員、調查員要告知誰，祖母的孫子是誰）：紅鯡魚那一排後面一格一個角色——角色小牌 + 預選了誰（沒選是虛線空圈）。
+// 點兩名玩家之一的：桌心換成首夜那張卡（上方必選的、正中結論，infoform.js preCard），點完「完成」；祖母的孫子像紅鯡魚一樣直接點桌上的人。
+// 首夜那一步按這個預填，到時候還能改（lib/night.js）
+let preEdit = null; // { inst, seatId }：正在預選的那一格
+export function preEditing(ctx) {
+  const s = ctx.state;
+  if (!preEdit || preEdit.inst !== s.inst || !s.isSt || s.peek || s.phase !== 'lobby') return null;
+  return s.st.preForms?.find(f => f.seatId === preEdit.seatId) || null;
+}
+export function preDone(ctx, f, fields) {
+  preEdit = null;
+  ctx.st('setPre', { seatId: f.seatId, fields });
+  ctx.render();
+}
+// 祖母：桌上能當孫子的善良玩家亮起來，點誰就是誰
+export function prePickSeat(ctx) {
+  const s = ctx.state, f = preEditing(ctx);
+  if (f?.kind !== 'grandchild') return null;
+  return { can: new Set(f.options), on: new Set([s.st.pre?.[f.seatId]?.pick].filter(Boolean)), fixed: new Set(), why: () => '孫子要是善良玩家',
+    pick: id => preDone(ctx, f, { pick: id }) };
+}
+function preItems(ctx) {
+  const s = ctx.state, empty = () => h('span', { class: 'sb empty' });
+  return (s.st.preForms || []).map(f => {
+    const v = s.st.pre?.[f.seatId], on = preEdit?.inst === s.inst && preEdit.seatId === f.seatId;
+    const ids = [v?.a, v?.b].filter(Boolean).sort((x, y) => s.seats.findIndex(q => q.id === x) - s.seats.findIndex(q => q.id === y));
+    const face = f.kind === 'grandchild' ? (v?.pick ? seatBadge(s, v.pick) : empty()) : v?.none ? w('無', 'ink') : ids.length ? ids.map(id => seatBadge(s, id)) : empty();
+    const open = () => {
+      if (on) { preEdit = null; return ctx.render(); }
+      if (f.kind === 'two') preDraft(f, v);
+      preEdit = { inst: s.inst, seatId: f.seatId };
+      ctx.render();
+    };
+    return h('button', { class: 'bluff-pick pre' + (on ? ' on' : '') + (v ? '' : ' empty'), 'data-key': 'pre-' + f.seatId, title: '預選首夜告知的信息', onclick: open }, mini(f.roleId), face);
+  });
+}
+
 // 紅鯡魚：場上有占卜師（含以為自己是占卜師的酒鬼）才長出這一格，和偽裝一樣是單獨的設置，不藏在座位菜單裏。
 // 系統先挑好一個；點這一格，桌上能當紅鯡魚的善良玩家亮起來，點誰就是誰（再點這一格收回）
 let herringPick = null; // 正在桌上點紅鯡魚的那個房間（實例標識）
 const hasFt = s => s.seats.some(x => x.role === 'fortuneteller' || x.fakeRole === 'fortuneteller');
 export function herringPicking(ctx) {
   const s = ctx.state;
-  if (herringPick !== s.inst || !s.isSt || s.peek || s.phase !== 'lobby' || !hasFt(s)) return null;
+  if (herringPick !== s.inst || !s.isSt || s.peek || s.phase !== 'lobby' || !hasFt(s) || preEdit) return null;
   const good = s.seats.filter(x => x.role && TEAMS[ROLES[x.role].team]?.good).map(x => x.id); // 官方：占卜師本人也可以
   return { can: new Set(good), on: new Set([s.st.redHerring].filter(Boolean)), fixed: new Set(), why: () => '紅鯡魚只能是善良玩家',
     pick: id => { herringPick = null; ctx.st('setRedHerring', { seatId: id }); ctx.render(); } };
 }
+// 和開局前預選的首夜信息排在同一排（preItems）
 function herringRow(ctx) {
-  const s = ctx.state, on = herringPick === s.inst, id = s.st.redHerring;
-  if (!hasFt(s)) return null;
-  return h('div', { class: 'row herring-row', 'data-key': 'herring' }, mini('fortuneteller'), w('紅鯡魚', 'ink'),
-    h('button', { class: 'bluff-pick herring' + (on ? ' on' : ''), title: on ? '收回' : '換一個', onclick: () => { herringPick = on ? null : s.inst; ctx.render(); } },
-      on ? [h('span', { class: 'sb empty' }), w('點桌上的善良玩家', 'muted')] : id ? seatBadge(s, id) : w('未設', 'muted')));
+  const s = ctx.state, on = herringPick === s.inst, id = s.st.redHerring, pre = preItems(ctx);
+  if (!hasFt(s) && !pre.length) return null;
+  return h('div', { class: 'row herring-row', 'data-key': 'herring' }, hasFt(s) && [mini('fortuneteller'), w('紅鯡魚', 'ink'),
+    h('button', { class: 'bluff-pick herring' + (on ? ' on' : ''), title: on ? '收回' : '換一個', onclick: () => { herringPick = on ? null : s.inst; preEdit = null; ctx.render(); } },
+      on ? [h('span', { class: 'sb empty' }), w('點桌上的善良玩家', 'muted')] : id ? seatBadge(s, id) : w('未設', 'muted'))], pre);
 }
 
 // 玩家：輪到自己行動時建立本地的選人狀態（桌面和圓桌中央的確認牌要用到），其他時候清掉

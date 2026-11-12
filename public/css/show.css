@@ -122,24 +122,53 @@
   .pass-ab { padding: 0; }
 }
 
-/* 桌上的卡：首夜互認（標題「請指示互認」，正文是誰是惡魔、誰是爪牙）；展示和下一個並排 */
-.infocard.mutual .mu-line { justify-content: center; gap: 6px 14px; font-size: 22px; }
-.mu-who { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.mu-who .tag { font-size: 15px; }
+/* 桌上的卡：首夜爪牙 / 惡魔 / 瘋子信息。正文是要告訴他的話（「① 是 惡魔」「② 是 爪牙」+ 偽裝），叫醒的是誰在卡角的小角標上 */
+.is-line { justify-content: center; gap: 6px 10px; font-size: 22px; }
+.is-line .tag { font-size: 16px; }
+/* 電腦上壓在卡的左上角裏面（卡自己會滾動，伸出去的部分會被裁掉）；手機上掛在中間那一小張的左下角外面（見下） */
+.ic-who { position: absolute; left: 8px; top: 6px; z-index: 3; display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; font-size: 15px;
+  color: var(--ink); background: var(--card) var(--paper-tex, none) 0 0 / 320px; box-shadow: 0 0 0 1px var(--line-strong), 0 3px 8px #0004; rotate: -4deg; pointer-events: none; }
+.ic-who .rn .token.xs, .ic-who > .token { width: 22px; height: 22px; }
+.luna-fake { justify-self: center; display: inline-block; margin: 0 auto; padding: 1px 4px 2px 8px; color: var(--evil); border: 2px solid currentColor; border-radius: 3px;
+  box-shadow: inset 0 0 0 1.5px var(--card), inset 0 0 0 2.5px currentColor; font: 900 15px/1.2 var(--serif); letter-spacing: .25em; rotate: -6deg; }
+/* 惡魔看的那一頁：上面「② 是 爪牙」，下面一句話 + 三張偽裝 */
+.bi-what { display: inline-flex; align-items: center; gap: min(3cqw, 12px); white-space: nowrap; }
+.bi-what > .tag { font-size: min(7cqw, 6cqh, 26px); }
+.bi-what > .tag .ico { width: 1em; height: 1em; }
+.bi-is { font: 900 min(8cqw, 6.5cqh, 34px)/1 var(--serif); color: var(--ink); }
+/* 只有這一句（爪牙看的「① 是 惡魔」）：座位號一大個在上，「是 惡魔」在下 */
+.pass-body > .big-is:only-child { flex-direction: column; gap: min(4cqh, 20px); }
+.pass-body > .big-is:only-child .big-seats { --sh: 36cqh; font-size: min(calc(64cqw / var(--n) - 10px), 36cqh); }
+.pass-body > .big-is:only-child .bi-what > .tag { font-size: min(10cqw, 7cqh, 44px); }
+.pass-body > .big-is:only-child .bi-is { font-size: min(12cqw, 8.5cqh, 54px); }
+.big-bluffs { display: grid; justify-items: center; gap: min(2.4cqh, 12px); }
+.big-say { max-width: 90cqw; margin: 0; font: 600 min(5cqw, 3.6cqh, 22px)/1.5 var(--serif); color: var(--ink); text-align: center; text-wrap: balance; }
+.big-say b { font-weight: 900; }
+.big-say b + b::before { content: '、'; font-weight: 600; }
+:root[data-lang="en"] .big-say b + b::before { content: ', '; }
+:root[data-lang="en"] .big-say > span { margin-right: .3em; }
+.demon-page { gap: min(5cqh, 24px); }
+.demon-page .big-bluffs > .big-roles { --th: 46cqh; }
+.big-stack > .big-bluffs:only-child > .big-roles { --th: 64cqh; }
 .infocard .ic-send, .infocard .ic-foot > .row:has(> .btn + .btn) { flex-wrap: nowrap; }
 .infocard .ic-send > .btn, .infocard .ic-foot > .row:has(> .btn + .btn) > .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; }
 /* 手機橫屏（卡在圓桌右邊）：展示和下一個那一排排在式子後面，選項再多也貼著卡底看得見（同 hud.css 的 .btn.wide） */
 @media (min-width: 641px) and (max-height: 500px) and (orientation: landscape) {
   .center > .st-card .infocard > .ic-foot > .row, .center > .st-card .infocard > .row.ic-send { order: 3; position: sticky; bottom: 0; z-index: 1; margin-top: 0; }
 }
-/* 這兩張卡沒有行動者那一行（右邊留給「收起」）：正文兩邊各讓出收起的寬度，居中不壓它 */
+/* 這幾張卡沒有行動者那一行（右邊留給「收起」，左上是角標）：正文兩邊各讓出寬度，居中不壓它們 */
 @media (min-width: 641px) { .st-card .infocard.group .ic-top > .frm-line { padding-inline: 40px; } }
+/* 引導籤尾的紅字：他的能力現在不靈（中毒、酒鬼……），答案可以是錯的 */
+.ic-tag .tag-why { margin-left: .5em; color: var(--evil); font-weight: 900; letter-spacing: .1em; }
 /* 單設備洗衣婦這類（桌心擺角色牌的那張）：紙條一行放不下兩個按鈕，按鈕放到紙條下面一排 */
 @media (max-width: 640px) and (max-height: 720px) and (orientation: portrait) { .tb-foot:has(> .ic-send) { grid-template-columns: minmax(0, 1fr); } }
 .tb-foot > .ic-send { justify-content: center; margin: 0; }
 @media (max-width: 640px) {
-  .infocard.mutual .mu-line { font-size: 17px; gap: 4px 8px; }
-  .mu-who .tag { font-size: 13px; }
+  .is-line { font-size: 18px; gap: 4px 6px; }
+  .is-line .tag { font-size: 14px; }
+  /* 手機上中間那一小張：角標掛在它左下角外面（頂上是引導籤） */
+  .spread > .ic-top > .ic-who { left: auto; right: calc(100% - 14px); top: auto; bottom: -12px; font-size: 13px; }
+  .spread.group > .ic-top { padding: 6px 12px 8px; gap: 4px; }
   .spread .ic-foot .ic-send { display: flex; gap: 6px; margin: 0; }
   .spread .ic-foot .ic-send > .btn { min-height: 46px; }
 }

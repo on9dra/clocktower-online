@@ -230,5 +230,11 @@
  "死者中有": "The dead include",
  "能力失常的有": "Malfunctioning:",
  "鄰座中有": "Neighbours include",
- "但{0}": "but {0}"
+ "但{0}": "but {0}",
+ "以下是不在場的可偽裝身份：": "Not in play — you can bluff as:",
+ "清除": "Clear",
+ "預選首夜告知的信息": "Preset first-night info",
+ "不能選他自己": "Can't pick themselves",
+ "孫子要是善良玩家": "The grandchild must be a good player",
+ "這個座位沒有要預選的信息": "Nothing to preset for this seat"
 }

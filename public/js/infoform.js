@@ -1,13 +1,15 @@
 // 說書人給信息的卡片。能力正常：只出現合規答案，唯一的答案直接鎖定，只有干擾項可選；
 // 中毒 / 酒鬼：同一張卡解鎖，所有選項放開（預填真實答案，真實項角上打藍勾）。
-// 下方是玩家將看到的式子，邊框顏色表示真實 / 登記 / 錯誤。
-// ON_TABLE 裏的角色（洗衣婦先試）：號碼直接點桌上的頭像，桌心只擺角色牌，中下方的紙條是這個組合的後果。
+// 版式（手機上拆開擺在圓桌上下，電腦上一張卡從上往下讀）：上方是給說書人的一句引導 + 要選的東西，正中是結論（玩家將看到的式子，
+// 邊框 / 印章表示真實 / 登記 / 錯誤），下方是按鈕。行動者不寫：線下他頭頂有箭頭、進度條上那一格亮著，線上在卡角掛個小角標。
+// ON_TABLE 裏的角色（洗衣婦、圖書管理員、調查員）：上方列出必選的那一個——在場的外來者（座位號 + 角色），點它或桌上他的座位都行；
+// 另一名玩家直接點桌上的頭像。中毒 / 酒鬼時上方列出這一類的全部角色，兩名玩家隨便點。
 import { showPages, bigCore } from './pass.js';
-import { h, roleToken } from './ui.js';
+import { h } from './ui.js';
 import { tr, getLang } from './lang.js';
 import { ROLES, TEAMS, CORE } from './roles.js';
 import { infoFormula, truthLevel, checkFields, YES } from './infofmt.js';
-import { formula, seatBadge, mini, named, evilNum, icon, w, trueMark } from './glyph.js';
+import { formula, seatBadge, mini, named, evilNum, icon, w, trueMark, actorMark } from './glyph.js';
 import { goonLine } from './log.js';
 import { B, BW, stepOp, stepLock } from './flow.js';
 import { mathGroups } from './mathcard.js';
@@ -23,25 +25,23 @@ const fit = (form, id, role) => (form.roleOf?.[id] === role ? 2 : (form.mayBe?.[
 const picked = d => [d.a, d.b].filter(Boolean);
 const setPair = (d, ids) => Object.assign(d, { a: ids[0] || null, b: ids[1] || null });
 
-// 點頭像：再點一次取消；兩人都選了時換掉沒撐起信息的那個。
-// 能力正常時選齊的兩人對不上角色：角色跟著換成剛點的人撐得起的
-function toggleSeat(form, d, id) {
-  const ids = picked(d);
-  if (ids.includes(id)) return setPair(d, ids.filter(x => x !== id));
-  const keep = ids.length < 2 ? ids : [(!form.free && ids.find(x => fit(form, x, d.role))) || ids[1]];
-  setPair(d, [...keep, id]);
-  const now = picked(d).reverse();
-  if (form.free || now.length < 2 || now.some(x => fit(form, x, d.role))) return;
-  const roles = now.flatMap(x => [form.roleOf?.[x], ...(form.mayBe?.[x] || [])]).filter(Boolean);
-  if (roles.length) d.role = roles[0];
+// 能力正常時誰能當「真的那一個」：該類角色的持有者，或者能被當作該類角色的隱士 / 間諜
+const canHold = (form, id) => !!(form.roleOf?.[id] || form.mayBe?.[id]?.length);
+const roleFor = (form, id, cur) => form.roleOf?.[id] || ((form.mayBe?.[id] || []).includes(cur) ? cur : form.mayBe?.[id]?.[0] || null);
+// 選定真的那一個（上方的選項，或者桌上點了他的座位）：角色跟著他走；他原來是另一名玩家的話，那一格空出來
+function pickHolder(form, d, id) {
+  Object.assign(d, { none: false, a: id, role: roleFor(form, id, d.role), b: d.b === id ? null : d.b });
 }
-// 點角色：能力正常時兩人裏沒人撐得起，把持有者換上去（替掉先點的那個），座位跟著亮
-function chooseRole(form, d, role) {
-  Object.assign(d, { none: false, role });
+// 點頭像：再點一次取消。能力正常時：還沒有真的那一個、或兩人都選了，點到持有者就換成他；其餘點的是另一名玩家。
+// 中毒 / 酒鬼：隨便兩個人，多點的頂掉先點的
+function toggleSeat(form, d, id) {
+  d.none = false;
   const ids = picked(d);
-  if (form.free || ids.some(x => fit(form, x, role))) return;
-  const seats = Object.keys({ ...form.roleOf, ...form.mayBe }).filter(x => fit(form, x, role)).sort((x, y) => fit(form, y, role) - fit(form, x, role));
-  setPair(d, [ids.at(-1), seats[0]].filter(Boolean));
+  if (form.free) return setPair(d, ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id].slice(-2));
+  if (d.a === id) return Object.assign(d, { a: null, role: null });
+  if (d.b === id) return Object.assign(d, { b: null });
+  if (canHold(form, id) && (!d.a || d.b)) return pickHolder(form, d, id);
+  d.b = id;
 }
 
 // 「兩名玩家之一是 X」：真相 = 持有者 + 角色；隱士 / 間諜可以被當作的身份也算
@@ -53,9 +53,15 @@ function truths(s, form) {
   return out;
 }
 
-// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項（渦流在場時不預填，說書人自己挑錯的；雜耍藝人攔不了，也不預填）
+// 首次打開時的預填：真實答案，a 是持有者、b 是干擾項（渦流在場時不預填，說書人自己挑錯的；雜耍藝人攔不了，也不預填）。
+// 說書人開局前預選過的（form.pre，lib/setup.js）優先：能力正常時要還合規，中毒 / 酒鬼時照用
 function initial(form) {
-  const t = form.truth;
+  const t = form.truth, pre = form.pre;
+  if (pre && form.kind === 'two' && (form.free || truthLevel(form, pre) > 0) && (pre.none || (pre.a && pre.b))) {
+    if (pre.none) return { none: true };
+    const a = form.free || canHold(form, pre.a) && truthLevel(form, { ...pre, b: null }) > 0 ? pre.a : pre.b;
+    return { a, b: a === pre.a ? pre.b : pre.a, role: pre.role };
+  }
   // 渦流下是非題只剩一個錯誤答案：直接選上，不用先點一下才能展示
   if (form.why === 'vortox') return form.kind === 'yesno' && !form.alt ? { yes: !form.truth.yes } : {};
   if (form.kind !== 'two') return form.kind === 'text' ? {} : { ...t };
@@ -75,8 +81,11 @@ export function seatPicking(ctx, step) {
   const set = patch => { Object.assign(d, patch); ctx.render(); };
   if (ON_TABLE.has(step.roleId)) {
     const ids = others(s, step);
+    // 座位上的勾：能力正常時標出所有能當真的那一個的人（藍勾持有者、橙勾能登記成的），和上方的選項一一對應；
+    // 中毒 / 酒鬼時只標真的持有上方選中那個角色的人
+    const mark = id => (form.free ? (d.role ? fit(form, id, d.role) : 0) : form.roleOf?.[id] ? 2 : form.mayBe?.[id]?.length ? 1 : 0);
     return { can: new Set(ids), on: new Set(picked(d)), fixed: new Set(), pick: id => { toggleSeat(form, d, id); ctx.render(); },
-      marks: Object.fromEntries(ids.map(id => [id, d.role ? fit(form, id, d.role) : 0]).filter(x => x[1])) };
+      marks: Object.fromEntries(ids.map(id => [id, mark(id)]).filter(x => x[1])) };
   }
   if (form.free) {
     return { can: new Set(others(s, step)), on: new Set([d.a, d.b].filter(Boolean)), fixed: new Set(),
@@ -193,11 +202,9 @@ const tellSay = (s, step) => {
   const t = tr(step.form.kind === 'two' ? '告知他' : TELL[step.form.kind] || '告知他'), [a, b] = t.split(getLang() === 'en' ? 'them' : tr('他'));
   return [a, seatBadge(s, step.seatId), b];
 };
-const icTop = (s, step, ...kids) => h('div', { class: 'ic-top' }, h('div', { class: 'ic-tag say' }, guide(step.form)), icHead(s, step), kids);
-const icHead = (s, step) => h('div', { class: 'ic-head' },
-  h('span', { class: 'ic-actor' }, mini(step.roleId)),
-  s.seats.some(x => x.id === step.seatId) && seatBadge(s, step.seatId, 'lg'),
-  step.form.why && w({ poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', puppet: '提線木偶', vortox: '渦流' }[step.form.why], 'evil'));
+// 引導籤：這一步說書人要做什麼；他的能力現在不靈（中毒、酒鬼……）時，籤尾一枚紅字，說明為什麼答案可以是錯的
+const WHY = { poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', puppet: '提線木偶', vortox: '渦流' };
+const guideTag = step => h('div', { class: 'ic-tag say' }, guide(step.form), step.form.why && h('b', { class: 'tag-why' }, WHY[step.form.why]));
 // 「展示」整屏只放核心：數字 → 一個大數字；是否 → 大大的「是 / 否」；兩名玩家之一 → 兩個大座位號 + 角色牌；
 // 某人是什麼角色 → 他的座位號 + 角色牌；間諜 → 整本魔典。不寫句子，不寫「或」「是」，他們看得懂
 export function infoCore(form, f) {
@@ -235,29 +242,56 @@ const sendBtn = (ctx, d, { level, err }, step) => {
   return h('div', { class: 'row ic-send' }, BW([icon('eye'), '展示'], () => showInfo(ctx, step, { ...d }), '', why), BW('下一個', go, cls, why));
 };
 
-// 桌心的角色牌 + 中下方的紙條（ON_TABLE）。在場的角色排前面；能力正常只列合規的，中毒 / 酒鬼全部列出
-function tableForm(ctx, step, d) {
-  const s = ctx.state, form = step.form, v = verdict(s, form, d), { level } = v;
-  const inPlay = new Set(Object.values(form.roleOf || {})), maybe = new Set(Object.values(form.mayBe || {}).flat());
-  const roles = [...inPlay, ...form.roles.filter(id => !inPlay.has(id) && (form.free || maybe.has(id)))];
+// ON_TABLE（洗衣婦、圖書管理員、調查員）。上方：引導 + 必選的那一個；正中：這個組合的後果（「④ 或 ⑦ 是 管家」+ 真實 / 錯誤章）；下方：展示、下一個。
+// 能力正常：上方一格一個能當真的人（座位號 + 角色），隱士 / 間諜選中後在下面一排挑他被當作哪個角色；另一名玩家點桌上的頭像。
+// 中毒 / 酒鬼 / 渦流：上方是這一類的全部角色（在場的打藍勾），兩名玩家隨便點
+function tableForm(ctx, step, d, foot) {
+  const s = ctx.state, form = step.form, v = verdict(s, form, d), { level } = v, team = TEAMS[form.team]?.name || '';
   const pick = fn => () => { fn(); ctx.render(); };
-  const tile = id => h('button', { class: 'tb-role' + (!d.none && d.role === id ? ' on' : '') + (!inPlay.has(id) && maybe.has(id) ? ' alt' : ''), 'data-key': id,
-    onclick: pick(() => chooseRole(form, d, id)) }, roleToken(id), inPlay.has(id) && Tm());
-  const none = form.allowNone && (form.free || form.truth.none || form.noneOk) && h('button', { class: 'tb-role none' + (d.none ? ' on' : ''), 'data-key': 'none',
-    onclick: pick(() => { d.none = true; }) }, `沒有${TEAMS[form.team]?.name || ''}`);
+  const none = form.allowNone && (form.free || form.truth.none || form.noneOk) && opt(w(`沒有${team}`, 'ink'),
+    { on: d.none, level: form.truth.none ? 2 : form.noneOk ? 1 : 0, cls: 'tb-none', onclick: pick(() => { d.none = true; }) });
+  let opts, sub = null;
+  if (form.free) {
+    const inPlay = new Set(Object.values(form.roleOf || {})), maybe = new Set(Object.values(form.mayBe || {}).flat());
+    const roles = [...form.roles.filter(id => inPlay.has(id)), ...form.roles.filter(id => !inPlay.has(id))];
+    opts = roles.map(id => opt(roles.length > 6 ? mini(id) : named(id), { on: !d.none && d.role === id, level: inPlay.has(id) ? 2 : maybe.has(id) ? 1 : 0,
+      onclick: pick(() => Object.assign(d, { none: false, role: id })) }));
+  } else {
+    const list = truths(s, form).filter(x => !x.none), many = list.length > 4;
+    opts = list.map(x => {
+      const on = !d.none && d.a === x.seat, r = x.role || (on ? d.role : null);
+      return opt([seatBadge(s, x.seat), x.via && mini(x.via, 'via'), r ? (many ? mini(r) : named(r)) : h('span', { class: 'tt q' }, '?')],
+        { on, level: x.via ? 1 : 2, cls: 'tb-who', onclick: pick(() => pickHolder(form, d, x.seat)) });
+    });
+    // 隱士 / 間諜：選中後挑他被當作哪個角色
+    const cur = list.find(x => !d.none && d.a === x.seat);
+    if (cur?.roles?.length > 1) sub = row(cur.roles.map(id => opt(mini(id), { on: d.role === id, level: 1, onclick: pick(() => { d.role = id; }) })));
+  }
   const slot = id => (id ? seatBadge(s, id) : h('span', { class: 'sb empty' }));
+  // 按座位順序寫（和整屏展示一樣），看不出哪個是真的
+  const pair = picked(d).sort((x, y) => s.seats.findIndex(q => q.id === x) - s.seats.findIndex(q => q.id === y));
   // 能力正常時對不上的組合發不出去，寫「不合規」；中毒 / 酒鬼時發得出去，是一條錯誤信息
   const verdictWord = level < 0 ? null : level === 0 && !form.free ? '不合規' : ['錯誤', '登記', '真實'][level];
-  return h('div', { class: 'card infocard on-table' + (form.free ? ' free' : '') },
-    icTop(s, step),
-    goonLine(s, step),
-    h('div', { class: 'tb-roles' }, roles.map(tile), none),
-    h('div', { class: 'tb-foot' },
-      h('div', { class: 'tb-slip' },
-        d.none ? formula(s, infoFormula(form, d), 'big')
-          : h('span', { class: 'frm big' }, slot(d.a), w('或'), slot(d.b), w('是'), d.role ? named(d.role) : h('span', { class: 'sb empty' })),
-        verdictWord && h('span', { class: 'tb-stamp t' + level, 'data-key': verdictWord }, verdictWord)),
-      sendBtn(ctx, d, v, step)));
+  return h('div', { class: 'card focus infocard spread tb' + (form.free ? ' free' : '') },
+    h('div', { class: 'ic-body tb-pick' }, guideTag(step), row(opts, none), sub),
+    h('div', { class: 'ic-top' }, actorMark(s, step), goonLine(s, step),
+      // 印章在紙條外面一層：手機上蓋在紙條右上角（紙條就不用給它留位置），電腦上在紙條右邊
+      h('div', { class: 'tb-res' },
+        h('div', { class: 'tb-slip' },
+          d.none ? formula(s, infoFormula(form, d), 'big')
+            : h('span', { class: 'frm big' }, slot(pair[0]), w('或'), slot(pair[1]), w('是'), d.role ? named(d.role) : h('span', { class: 'sb empty' }))),
+        verdictWord && h('span', { class: 'tb-stamp t' + level, 'data-key': verdictWord }, verdictWord))),
+    h('div', { class: 'ic-foot' }, foot || sendBtn(ctx, d, v, step)));
+}
+
+// 開局前預選（flow.js preRow）：和首夜那一步同一張卡，同樣的點法；下方是「清除」「完成」。f 是服務端 st.preForms 的一項
+const preStep = f => ({ id: 'pre-' + f.seatId, roleId: f.roleId, seatId: f.seatId, form: f.form, turn: false });
+export const preDraft = (f, fields) => { drafts['pre-' + f.seatId] = { a: null, b: null, role: null, ...(fields || {}) }; };
+export const prePicking = (ctx, f) => seatPicking(ctx, preStep(f));
+export function preCard(ctx, f, done) {
+  const step = preStep(f), d = draftOf(step);
+  const blank = !d.none && !d.a && !d.b && !d.role; // 什麼都沒選就按完成：等於沒預選
+  return tableForm(ctx, step, d, h('div', { class: 'row' }, B('清除', () => done(null), 'ghost'), B('完成', () => done(blank ? null : { ...d }))));
 }
 
 // 雜耍藝人：白天公開猜過的，對不對系統算好了
@@ -268,8 +302,9 @@ const guessList = (s, list) => h('div', { class: 'ic-events' }, list.map(x => h(
 function plainInfo(ctx, step) {
   const s = ctx.state, form = step.form, terms = infoFormula(form, form.truth);
   popResult(ctx, step);
+  // 沒有要選的：引導籤掛在正中那張上，正中只有要告訴他的結論
   return h('div', { class: 'card focus infocard spread' + (form.free ? ' free' : '') },
-    icTop(s, step, goonLine(s, step), h('div', { class: 'ic-preview good' }, formula(s, terms, 'big'))),
+    h('div', { class: 'ic-top' }, guideTag(step), actorMark(s, step), goonLine(s, step), h('div', { class: 'ic-preview good' }, formula(s, terms, 'big'))),
     h('div', { class: 'ic-foot' }, h('div', { class: 'row ic-send' },
       B([icon('eye'), '展示'], () => showInfo(ctx, step, form.truth)),
       B('下一個', () => stepOp(ctx, 'confirm', { fields: form.truth }), stepLock()))));
@@ -294,12 +329,12 @@ export function infoForm(ctx, step) {
   // 發送和別的信息卡在同一個地方，上方也少佔一行
   const br = form.kind === 'text' && terms ? terms.findIndex(t => t.op === 'br') : -1;
   const top = form.kind === 'text' && slip(br < 0 ? terms : terms.slice(0, br)), bottom = form.kind !== 'text' ? slip(terms) : br >= 0 && slip(terms.slice(br + 1));
+  // 上方：引導 + 要選的（數學家：成功 / 可能失效兩組和數字放在一起；間諜：整本魔典）；正中：結論；下方：按鈕。
+  // 什麼都不用選（唯一答案）：引導籤掛在正中那張上
+  const pickArea = body || form.open || top;
   return h('div', { class: 'card focus infocard spread' + (form.free ? ' free' : '') },
-    icTop(s, step),
-    goonLine(s, step),
+    pickArea && h('div', { class: 'ic-body' }, guideTag(step), form.open && mathGroups(s, form), body, top),
+    h('div', { class: 'ic-top' }, !pickArea && guideTag(step), actorMark(s, step), goonLine(s, step), bottom),
     form.extra?.guesses && guessList(s, form.extra.guesses),
-    // 數學家：成功 / 可能失效兩組和數字放在一起（手機上在圓桌上方，不壓座位）
-    (body || form.open) && h('div', { class: 'ic-body' }, form.open && mathGroups(s, form), body),
-    top && h('div', { class: 'ic-body' }, top),
-    h('div', { class: 'ic-foot' }, bottom, sendBtn(ctx, d, v, step)));
+    h('div', { class: 'ic-foot' }, sendBtn(ctx, d, v, step)));
 }

@@ -3,14 +3,19 @@ import { h, ask, toast, prompt2, seatLabel } from './ui.js';
 import { tr, getLang } from './lang.js';
 import { sel, startSelect, seatMenu } from './town.js';
 import { selectBar, selFrom, B, BW, PRETEND, stepOp, stepLock, cardTag } from './flow.js';
-import { showPages, bigRoles, bigNum, bigCore, bigTeam, bigWord, bluffSay } from './pass.js';
+import { showPages, bigRoles, bigNum, bigCore, bigWord, bigIs, bigBluffs, bluffSay } from './pass.js';
 import { ROLES } from './roles.js';
 import { showRole, openReminders } from './manual.js';
 import { infoForm } from './infoform.js';
-import { seatBadge, mini, icon, named, w, tag, formula, ACTS } from './glyph.js';
+import { seatBadge, mini, icon, named, w, tag, formula, ACTS, wakeMark, actorMark } from './glyph.js';
 import { actRow, goonLine } from './log.js';
 
 const choices = {}; // stepId -> 說書人在裁定卡上選中的選項
+// 裁定卡當前選中的：說書人點過的，沒點過就是預選的（祖母開局前預選的孫子，lib/night.js decide.pick）
+const choiceOf = step => {
+  const d = step.decide, key = step.id + (d.role || d.kind), has = id => d.options.some(o => o.id === id);
+  return has(choices[key]) ? choices[key] : has(d.pick) ? d.pick : null;
+};
 
 // 給 town.js：選項是座位的裁定（誰醉酒、替死、傳位……）可以直接點桌上的座位，和卡上的選項同步
 export function decidePicking(ctx, step) {
@@ -18,8 +23,8 @@ export function decidePicking(ctx, step) {
   if (!d || d.kind === 'ability') return null;
   const ids = d.options.map(o => o.id).filter(id => ctx.state.seats.some(x => x.id === id));
   if (!ids.length) return null;
-  const key = step.id + (d.role || d.kind);
-  return { can: new Set(ids), on: new Set(ids.includes(choices[key]) ? [choices[key]] : []), fixed: new Set(),
+  const key = step.id + (d.role || d.kind), cur = choiceOf(step);
+  return { can: new Set(ids), on: new Set(ids.includes(cur) ? [cur] : []), fixed: new Set(),
     pick: id => { choices[key] = id; ctx.render(); } };
 }
 
@@ -29,7 +34,7 @@ export function stepCard(ctx) {
   const s = ctx.state, step = s.st.step;
   // 線下：說書人當面叫醒他，他指給你看，你在桌上點（flow.js syncStPick 直接進入選人，不用先點「代為選擇」）
   if (sel.on && sel.on.key === step.id) {
-    return selectBar(ctx, [mini(step.roleId), seatBadge(s, step.seatId, 'lg')], (ids, role) => stepOp(ctx, 'pick', { ids, role }), !s.offline,
+    return selectBar(ctx, actorMark(s, step), (ids, role) => stepOp(ctx, 'pick', { ids, role }), !s.offline,
       s.offline && stSay(s, step.choose, step.roleId));
   }
   if (step.status === 'mark') return markCard(ctx, step);
@@ -75,50 +80,54 @@ export const stSay = (s, c, roleId) => {
 // 單設備首夜（只有單設備停在這幾步，多設備的信息直接發到手機上），按官方順序各自單獨叫醒：
 // 爪牙信息 = 只叫醒爪牙，指給他們看誰是惡魔（惡魔不睜眼：一起睜眼的話，瘋子會發現自己沒被叫起來）。
 // 瘋子信息 = 桌上先提醒說書人「下面是假信息」，點了展示才整屏給瘋子看，和真惡魔那一頁一模一樣（假爪牙 + 假偽裝）。
-// 惡魔信息 = 給惡魔看爪牙和偽裝，到這一步直接整屏彈出來，之後瘋子、提線木偶各多一頁。收起後桌上這張卡能再打開。
+// 惡魔信息 = 給惡魔看爪牙和偽裝，之後瘋子、提線木偶各多一頁。
+// 三張都不自己彈整屏：先停在桌上，說書人叫醒人、看清卡上寫的，再按「展示」。
+// 卡的正中只放要告訴他的那句話（「① 是 惡魔」「② 是 爪牙」+ 偽裝）；叫醒誰是卡角上的小角標，不和信息擠在一起。
 // 提線木偶不在爪牙裏：他不醒，別的爪牙也不知道他（官方）
 // 展示完都回到桌上這張卡，說書人讓他閉眼後自己點「下一個」
-const popped = new Set(); // 自動彈過整屏的步驟：收起之後不再自己彈出來
 // 惡魔 / 瘋子看的那一頁：同一個版式，瘋子分不出真假
 const demonPage = (s, l) => (l.minions?.length || l.bluffs?.length) && {
   to: l.seatId, say: l.minions?.length ? ['向惡魔', seatBadge(s, l.seatId), '展示爪牙和偽裝'] : bluffSay(s, l.seatId),
-  body: [l.minions?.length > 0 && bigTeam(s, 'minion', l.minions), l.bluffs?.length > 0 && bigRoles(l.bluffs)] };
+  body: h('div', { class: 'big-stack demon-page' }, l.minions?.length > 0 && bigIs(s, l.minions, 'minion'), l.bluffs?.length > 0 && bigBluffs(l.bluffs)) };
 // 惡魔那一頁之後：誰是瘋子、誰是提線木偶，各一頁
 const knows = l => [[l.luna, 'lunatic'], [l.pup, 'marionette']].filter(([id]) => id);
 const groupPages = (s, step) => step.lines.flatMap(l => [demonPage(s, l), ...knows(l).map(([id, r]) => ({ to: l.seatId, body: bigCore(s, { seats: [id], roles: [r] }) }))]).filter(Boolean);
 // 卡頂給說書人的一句（叫醒誰、做什麼）：和信息卡的引導同一個樣子（fx.css .ic-tag.say），比標題長，手機上居中不衝出卡
 const sayTag = text => h('div', { class: 'ic-tag say' }, text);
-// 桌上兩行：他看哪幾個爪牙、哪三張偽裝
-const toldRow = (s, l) => [l.minions?.length > 0 && h('div', { class: 'frm-line ic-line' }, tag('minion'), l.minions.map(id => seatBadge(s, id))),
-  l.bluffs?.length > 0 && h('div', { class: 'frm-line ic-line' }, tag('bluff'), l.bluffs.map(r => mini(r)))];
+// 正文一行：「① 是 惡魔」
+const isLine = (s, ids, k) => h('div', { class: 'frm-line ic-line is-line' }, ids.map(id => seatBadge(s, id, 'lg')), w('是', 'ink'), tag(k));
+// 偽裝：「偽裝」標籤 + 三張小牌
+const bluffRow = ids => h('div', { class: 'frm-line ic-line' }, tag('bluff'), ids.map(r => mini(r)));
+// 他看的爪牙、偽裝；有瘋子、提線木偶各再一行
+const toldRow = (s, l) => [l.minions?.length > 0 && isLine(s, l.minions, 'minion'), l.bluffs?.length > 0 && bluffRow(l.bluffs)];
 function groupCard(ctx, step) {
   const s = ctx.state, next = () => stepOp(ctx, 'ack'), eye = fn => B([icon('eye'), '展示'], fn);
+  const foot = show => h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, show && eye(show), B('下一個', next, stepLock())));
   if (step.roleId === 'minioninfo') {
     const demon = step.lines.find(l => l.demon)?.demon, minions = step.lines.map(l => l.seatId);
-    // 爪牙們一起看一頁：誰是惡魔、爪牙有誰
+    // 爪牙們一起看一頁：誰是惡魔（別的爪牙睜著眼，彼此看得到）
     const show = () => showPages(s, [{ to: minions[0], say: ['給', minions.map(id => seatBadge(s, id)), '看'],
-      body: h('div', { class: 'big-stack' }, demon && bigTeam(s, 'demon', [demon]), bigTeam(s, 'minion', minions)) }]);
-    return h('div', { class: 'card focus infocard spread group mutual' },
-      h('div', { class: 'ic-top' }, sayTag('叫醒爪牙，指出惡魔'),
-        h('div', { class: 'frm-line mu-line' }, minions.length > 0 && h('span', { class: 'mu-who' }, minions.map(id => seatBadge(s, id, 'lg')), tag('minion')),
-          demon && h('span', { class: 'mu-who' }, seatBadge(s, demon, 'lg'), tag('demon')))),
-      h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, eye(show), B('下一個', next, stepLock()))));
+      body: demon ? bigIs(s, [demon], 'demon') : bigWord('沒有惡魔') }]);
+    return h('div', { class: 'card focus infocard spread group' },
+      h('div', { class: 'ic-top' }, sayTag('叫醒爪牙，指出惡魔'), wakeMark(s, minions), demon ? isLine(s, [demon], 'demon') : w('場上沒有惡魔', 'muted')),
+      foot(show));
   }
-  const pages = groupPages(s, step), show = () => showPages(s, groupPages(s, step));
+  const pages = groupPages(s, step), show = pages.length > 0 && (() => showPages(s, groupPages(s, step)));
   if (step.roleId === 'lunainfo') {
     const l = step.lines[0];
     return h('div', { class: 'card focus infocard spread group luna' },
-      h('div', { class: 'ic-top' }, sayTag('叫醒瘋子，當他是惡魔展示'),
-        h('div', { class: 'ic-head' }, mini('lunatic'), seatBadge(s, l.seatId, 'lg'), w('假信息', 'evil')), toldRow(s, l)),
-      h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, pages.length > 0 && eye(show), B('下一個', next, stepLock()))));
+      h('div', { class: 'ic-top' }, sayTag('叫醒瘋子，當他是惡魔展示'), wakeMark(s, [l.seatId], mini('lunatic')),
+        h('span', { class: 'ink-stamp luna-fake' }, '假信息'), toldRow(s, l)),
+      foot(show));
   }
-  if (pages.length && !popped.has(step.id)) { popped.add(step.id); queueMicrotask(show); }
-  // 桌上：叫醒誰、給他看哪幾個爪牙和哪三張偽裝；有瘋子、提線木偶各再一行
+  // 惡魔：卡上是他要知道的（爪牙是誰、三張偽裝、瘋子 / 提線木偶是誰），叫醒的惡魔在角標上
+  const many = step.lines.length > 1;
   return h('div', { class: 'card focus infocard spread group' },
     h('div', { class: 'ic-top' }, sayTag(step.lines.some(l => l.minions?.length) ? '叫醒惡魔，展示爪牙和偽裝' : '叫醒惡魔，展示偽裝'),
-      step.lines.map(l => [h('div', { class: 'ic-head' }, tag('demon'), seatBadge(s, l.seatId, 'lg')), toldRow(s, l),
+      wakeMark(s, step.lines.map(l => l.seatId)),
+      step.lines.map(l => [many && h('div', { class: 'frm-line ic-line' }, tag('demon'), seatBadge(s, l.seatId)), toldRow(s, l),
         knows(l).map(([id, r]) => h('div', { class: 'frm-line ic-line' }, seatBadge(s, id), w('是', 'muted'), named(r)))])),
-    h('div', { class: 'ic-foot' }, h('div', { class: 'row' }, pages.length > 0 && eye(show), B('下一個', next, stepLock()))));
+    foot(show));
 }
 
 // 系統不認識的角色（混合推進）：說書人自己叫醒他、處理。
@@ -166,7 +175,7 @@ function markCard(ctx, step) {
   // 手機上拆開（hud.css .spread）：圓桌中間只有一小張——誰、選了誰、會怎樣；提示詞是給說書人的引導，放圓桌上方；按鈕在下方。
   // 電腦上是一張卡：誰、提示詞、選了誰、按鈕（提示詞靠 order 排回第二行）
   return h('div', { class: 'card focus infocard spread mark' },
-    h('div', { class: 'ic-top' }, head(s, step, why && w(why, 'evil')),
+    h('div', { class: 'ic-top' }, actorMark(s, step), why && w(why, 'evil'),
       // 一行讀下來：選了 ⑤ ［中毒］
       step.ask && h('div', { class: 'mk-line' }, h('div', { class: 'opt-row mk-picks' }, pickRow), step.cons?.length > 0 && markCons(ctx, step))),
     // 官方提示詞很長：只露幾行，點一下展開（只切這一個節點的 class，不重繪）
@@ -260,7 +269,7 @@ function ackCard(ctx, step) {
   // 展示：只給這張卡上的這個人看（按的時候用最新的狀態）
   const show = () => { const p = tells(ctx.state, step)[i]; p && showPages(ctx.state, p.pages); };
   return h('div', { class: 'card focus infocard spread' },
-    h('div', { class: 'ic-top' }, head(s, step), what && h('div', { class: 'frm big' + (parts.length ? ' sub' : '') }, what), goonLine(s, step), parts[i]?.lines),
+    h('div', { class: 'ic-top' }, actorMark(s, step), what && h('div', { class: 'frm big' + (parts.length ? ' sub' : '') }, what), goonLine(s, step), parts[i]?.lines),
     h('div', { class: 'ic-foot' }, parts.length ? h('div', { class: 'row' }, B([icon('eye'), '展示'], show), last ? B('下一個', next, stepLock()) : B('下一個', () => nextPart(ctx, step)))
       : B('確認', next, 'wide' + stepLock())));
 }
@@ -297,9 +306,9 @@ const GROUP = { minioninfo: '爪牙信息', demoninfo: '惡魔信息' };
 // 鎮長替死、小惡魔傳位、誰醉酒、造謠 / 月之子選中誰、反芻誰……：說書人從選項裏挑一個（座位號 + 角色牌，或短詞）
 function decideCard(ctx, step) {
   const s = ctx.state, d = step.decide, key = step.id + (d.role || d.kind);
-  const cur = d.options.some(o => o.id === choices[key]) ? choices[key] : null;
+  const cur = choiceOf(step);
   if (d.kind === 'ability') return h('div', { class: 'card focus infocard free spread' },
-    h('div', { class: 'ic-top' }, head(s, step),
+    h('div', { class: 'ic-top' }, actorMark(s, step),
       (step.picks || []).length > 0 && h('div', { class: 'frm big sub' }, w(ACTS[step.roleId]?.mark || '選了', 'ink'), step.picks.map(id => seatBadge(s, id))),
       // 為什麼停在這裏：誰的哪個能力因為什麼沒有用（「無效」是唯一的按鈕）——「⑤ 士兵 中毒，能力無效」
       h('div', { class: 'ic-say tell' }, seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil'), w('，能力無效', 'ink')), goonLine(s, step)),
@@ -312,10 +321,12 @@ function decideCard(ctx, step) {
   const lead = d.kind === 'mayor' ? [w('惡魔殺', 'bad'), seatBadge(s, d.targetId), named('mayor'), w('換誰死？', 'ink')]
     : d.kind === 'starpass' ? [w('誰成為', 'ink'), named('imp'), w('？', 'ink')]
       : [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
-  return h('div', { class: 'card focus infocard spread' },
-    h('div', { class: 'ic-top' }, head(s, step), h('div', { class: 'frm big' }, lead), goonLine(s, step)),
-    h('div', { class: 'ic-body' }, h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
+  // 上方：問句 + 選項（座位類的也能直接點桌上的頭像）；正中：選定的那一個；下方：確定
+  const picked = d.options.find(o => o.id === cur);
+  return h('div', { class: 'card focus infocard spread decide' },
+    h('div', { class: 'ic-body' }, h('div', { class: 'ic-say' }, h('span', { class: 'frm big' }, lead)), h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
     }, face(o))))),
+    h('div', { class: 'ic-top' }, actorMark(s, step), h('div', { class: 'frm big dc-pick' }, picked ? face(picked) : h('span', { class: 'sb empty' })), goonLine(s, step)),
     h('div', { class: 'ic-foot' }, BW('確定', () => stepOp(ctx, 'decide', { choice: cur }), 'wide' + (cur ? stepLock() : ''), cur ? null : '先選一個')));
 }

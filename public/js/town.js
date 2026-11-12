@@ -4,12 +4,12 @@ import { ROLES, TEAMS, SCRIPTS } from './roles.js';
 import { openChat, chatUnread, pickGuess, guesses, notes, addNote, clearNotes, infoMarksBySeat, markView, actMarksBySeat, actMarkView } from './side.js';
 import { fxFor, syncDelay, heldAlive, nomHeld, shownBlock, liveBlock, seatAway, execActive, clockFx, shotHeld, BLK_MS, shownEggs, nightHeld, dawnHeld, heldFace } from './fx.js';
 import { seatCrown, mvpVoting, mvpButton, mvpTag, mvpPane, scoreRow } from './scores.js';
-import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge, trueMark } from './glyph.js';
+import { mini, tag, icon, roleIcon, gallows, demonMark, w, seatBadge, trueMark, ACTS } from './glyph.js';
 import { hudLinked } from './hud.js';
 import { trialPanel, trialStub } from './trial.js';
-import { seatPicking } from './infoform.js';
+import { seatPicking, preCard, prePicking } from './infoform.js';
 import { stepCard, decidePicking, markPicking, lastWordCard, noticeCard, ackPart } from './stepcard.js';
-import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub } from './flow.js';
+import { clockState, blockLines, playerCenter, stCenter, herringPicking, rulingCard, reviewCard, scriptPick, isFolded, foldButton, foldStub, preEditing, preDone, prePickSeat } from './flow.js';
 import { pickRole, canHover, hoverSeat, openPick, leaveSeat, closePick, pickingSeat } from './setup.js';
 import { actBubble, actPicking, startAct, openReminders, passFrom, needPass, passCard, rolePicker } from './manual.js';
 import { seatLogView } from './log.js';
@@ -91,7 +91,8 @@ export function renderTown(ctx) {
   const missed = (s.shots || []).filter(x => !x.hit && !shotHeld(x)), picks = s.words || [], num = id => s.seats.findIndex(x => x.id === id) + 1;
   const ring = h('div', { class: 'ring' + (n > 10 ? ' crowded' : ''), style: { '--s': Math.sin(Math.PI / Math.max(n, 2)).toFixed(4), ...(s.isSt ? fitStyle() : {}) } }); // --s：按相鄰座位的距離定大小（board.css）
   const pk = pickingNow(ctx), linked = hudLinked(s), voting = mvpVoting(s), aimed = stepTargets(s);
-  const hoverPick = s.isSt && !s.peek && s.phase === 'lobby' && canHover(); // 準備階段：懸停頭像就能選角色（setup.js）
+  const preCardOn = preEditing(ctx)?.kind === 'two'; // 準備階段正在預選首夜信息：桌心是首夜那張卡，座位點了是選人
+  const hoverPick = s.isSt && !s.peek && s.phase === 'lobby' && canHover() && !preCardOn; // 準備階段：懸停頭像就能選角色（setup.js）
   // 準備階段說書人桌上的牌：帶 key，換了角色是一張新牌，蓋下來（hud.css）
   const dealt = id => { const t = roleToken(id); if (s.phase === 'lobby') t.setAttribute('data-key', id); return t; };
   const unread = chatUnread(s);
@@ -113,6 +114,7 @@ export function renderTown(ctx) {
   const domOrder = [...s.seats].sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
   const markStep = s.isSt && s.phase === 'night' && s.st?.step?.status === 'mark' ? s.st.step : null;
   const turnAt = turnSeat(ctx); // 線下說書人：輪到誰行動，他頭頂掛箭頭（herald.js）
+  const stamp = selStamp(s);
   const ownPick = markStep && ROLES[markStep.roleId] ? ROLES[markStep.roleId].name + '選' : null;
   domOrder.forEach(seat => {
     const i = s.seats.indexOf(seat);
@@ -163,7 +165,7 @@ export function renderTown(ctx) {
       style: { left: 50 + 41 * Math.cos(ang) + '%', top: 50 + 41 * Math.sin(ang) + '%', '--ux': Math.cos(ang).toFixed(3), '--uy': Math.sin(ang).toFixed(3), ...(died && died.style), ...(nom && nom.nomineeId === seat.id ? syncDelay(1600) : {}) },
       onclick: e => onSeat(ctx, seat, e.currentTarget),
       // 準備階段說書人可以拖座位：拖到另一個座位上就交換
-      onpointerdown: s.isSt && !s.peek && s.phase === 'lobby' ? e => dragSeat(ctx, seat, e) : null,
+      onpointerdown: s.isSt && !s.peek && s.phase === 'lobby' && !preCardOn ? e => dragSeat(ctx, seat, e) : null,
     },
     h('div', { class: 'seat-token' + status.map(x => ' is-' + x.k).join(''), onmouseenter: hoverPick ? e => hoverSeat(ctx, seat.id, e.currentTarget, seatActs(ctx, seat)) : null, onmouseleave: hoverPick ? leaveSeat : null }, token,
       // 說書人：假身份（酒鬼以為的鎮民等）做成頭像右下角的小副牌
@@ -171,6 +173,7 @@ export function renderTown(ctx) {
       s.phase === 'lobby' && seat.pinned && h('i', { class: 'pin-mark', title: '指定' }, icon('quill')),
       // 說書人給信息：當前角色真正的持有者藍勾，能被當作這個角色的橙勾（只畫勾，不寫「真」「登」）
       pk?.marks?.[seat.id] && trueMark(pk.marks[seat.id] === 1),
+      stamp && sel.on.ids.includes(seat.id) && h('span', { class: 'sel-stamp ' + (stamp.tone || ''), 'data-key': 'sel-stamp', 'data-exit': true }, stamp.word),
       dead && h('span', { class: 'dead-stamp' }, DEATH[seat.deathBy] || '死亡'),
       dead && !seat.voteUsed && h('span', { class: 'ghost-vote', title: '還有一張死亡票' }, icon('ticket')),
       nom && (nom.votes[seat.id] || nom.abstain?.[seat.id]) && h('span', {
@@ -245,7 +248,7 @@ export function renderTown(ctx) {
     ring.append(h('div', { class: 'blk-ret ' + ret.cls, 'data-key': 'ret-' + seat.id, style: { left: x + '%', top: y + '%', ...ret.style } }, seatToken(ctx, seat)));
   }
   if (showNom) ring.append(nomLine(s, nom));
-  const picking = s.isSt && !s.peek && s.phase === 'lobby';
+  const picking = s.isSt && !s.peek && s.phase === 'lobby' && !preCardOn;
   return h('div', { class: 'town' + (picking ? ' picking' : ''), 'data-key': 'town' }, ring, stand(s), picking && scriptPick(ctx),
     spot === 'corner' && h('div', { class: 'phase-tag', 'data-key': 'phase-tag', 'data-exit': true }, title), obituary(s), showNom && trialPanel(ctx), showNom && b && !b.side && h('div', { class: 'st-over' }, cardEl(ctx, b)), b && b.side && cardEl(ctx, b));
 }
@@ -383,6 +386,9 @@ function stBubble(ctx) {
   const s = ctx.state;
   if (s.isSt && !s.peek && s.offline) { const act = actBubble(ctx); if (act) return act; } // 線下：替玩家提名、開槍、猜
   if (needPass(ctx) && !nightHeld()) return { id: 'pass', seatId: null, card: () => passCard(ctx) };
+  // 準備階段預選首夜信息（洗衣婦、圖書管理員、調查員）：桌心換成首夜那張卡，「完成」回到準備
+  const pre = preEditing(ctx);
+  if (pre?.kind === 'two') return { id: 'pre-' + pre.seatId, seatId: pre.seatId, roleId: pre.roleId, noFold: true, card: () => preCard(ctx, pre, fields => preDone(ctx, pre, fields)) };
   // 白天接任的惡魔（紅唇女郎）：處決之後直接入夜，提示壓在今晚第一步前面，點了「知道了」再往下
   const notice = s.isSt && !s.peek && !s.st?.ruling && s.st?.notice;
   if (notice) return { id: `notice-${notice.seatId}-${notice.f[1]?.r}`, seatId: notice.seatId, card: () => noticeCard(ctx, notice) };
@@ -561,6 +567,7 @@ function fitBeside(st, ring) {
 
 function cardEl(ctx, b, foldable) {
   const key = b.id + (b.stage || '');
+  foldable &&= !b.noFold;
   if (foldable && isFolded(key)) {
     lastBubble = null; // 展開時照常播放出現的動畫
     return foldStub(ctx, key, b.roleId && mini(b.roleId), b.seatId && seatBadge(ctx.state, b.seatId));
@@ -577,6 +584,15 @@ function stepTargets(s) {
   const step = s.isSt && s.phase === 'night' && s.st.step;
   if (!step) return new Set();
   return new Set([...(step.picks || []), step.form?.extra?.targetId, step.decide?.targetId].filter(Boolean));
+}
+
+// 用能力選人時，選中的頭像上蓋這個動作的章（投毒、保護、攻擊……），一眼看出點中了誰、會怎樣。
+// 說書人代點、玩家自己選都有；遮著身份的玩家不蓋（章會說出他的角色）
+function selStamp(s) {
+  if (!sel.on || !seatsWanted(sel.on) || (!s.isSt && s.veiled)) return null;
+  const rid = s.isSt ? (s.st?.step?.id === sel.on.key ? s.st.step.roleId : null) : s.prompt?.stepId === sel.on.key ? s.prompt.roleId || s.myRole : null;
+  const a = rid && ACTS[rid], word = a && (a.verb || a.mark);
+  return word ? { word, tone: a.tone } : null;
 }
 
 // 死人頭像上的章：大家都看得到的死法有專門的字，其他（夜裏死的等）一律「死亡」
@@ -638,7 +654,11 @@ function pickingNow(ctx) {
   const s = ctx.state, step = s.isSt && s.phase === 'night' && s.st.step;
   const act = s.isSt && !s.peek && s.offline && actPicking(ctx);
   if (act) return act;
-  if (s.phase === 'lobby') return herringPicking(ctx); // 準備階段：點了紅鯡魚那一格，在桌上點人
+  if (s.phase === 'lobby') { // 準備階段：點了紅鯡魚 / 預選首夜信息那一格，在桌上點人
+    const pre = preEditing(ctx);
+    if (pre?.kind === 'two') { const pk = prePicking(ctx, pre); return pk && { ...pk, why: id => (id === pre.seatId ? '不能選他自己' : null) }; }
+    return prePickSeat(ctx) || herringPicking(ctx);
+  }
   if (!step || sel.on) return null;
   return step.status === 'confirm' ? seatPicking(ctx, step) : step.status === 'decide' ? decidePicking(ctx, step) : step.status === 'mark' ? markPicking(ctx, step) : null;
 }

@@ -130,6 +130,11 @@ export const bigRoles = ids => h('div', { class: 'big-roles' + (ids.length > 2 ?
   ids.map(id => h('div', { class: 'big-tok' }, roleToken(id))));
 // 帶字的陣營標籤 + 座位（瘋子看到的爪牙：爪牙 ② ⑤）
 export const bigTeam = (s, k, ids) => h('div', { class: 'big-team' }, tag(k), ids?.length > 0 && bigSeats(s, ids));
+// 一句話的結論：「① 是 惡魔」「② ⑤ 是 爪牙」——大座位號在前，「是」，陣營標籤在後，照著念就是給他的信息
+export const bigIs = (s, ids, k) => h('div', { class: 'big-team big-is' }, bigSeats(s, ids), h('span', { class: 'bi-what' }, h('span', { class: 'bi-is' }, '是'), tag(k)));
+// 惡魔的偽裝：先一句話說清這三張是什麼（認不出圖標的人也看得懂），再三張大牌
+export const bigBluffs = ids => h('div', { class: 'big-bluffs' },
+  h('p', { class: 'big-say' }, h('span', {}, '以下是不在場的可偽裝身份：'), ids.map(id => h('b', {}, ROLES[id]?.name || id))), bigRoles(ids)); // 名字之間的頓號在 show.css（英文是逗號）
 // 一條信息的核心：m { n } / { yes, tone } / { seats, roles, team } / { terms }（間諜看的整本魔典，原樣放大）。
 // 洗衣婦「② 或 ⑨ 是 圖書管理員」= 大的 ② ⑨ + 角色牌
 export function bigCore(s, m) {
@@ -162,8 +167,8 @@ export function showPages(s, pages) {
 export const showRoles = (s, seatId, roles) => showPages(s, [{ to: seatId, body: bigRoles(roles) }]);
 // 給他看一樣東西
 export const showThing = (s, seatId, kids) => showPages(s, [{ to: seatId, body: kids }]);
-// 惡魔偽裝：三張不在場的角色牌
-export const showBluffs = (s, seatId, bluffs) => showPages(s, [{ to: seatId, say: bluffSay(s, seatId), body: bigRoles(bluffs) }]);
+// 惡魔偽裝：一句話 + 三張不在場的角色牌（和首夜惡魔那一頁同一個樣子，瘋子分不出來）
+export const showBluffs = (s, seatId, bluffs) => showPages(s, [{ to: seatId, say: bluffSay(s, seatId), body: bigBluffs(bluffs) }]);
 
 // 一張張翻牌給人看（傳閱身份、頂欄「展示角色卡」）：先蓋著，「翻開」再確認一次才翻，看完蓋上，最後交還說書人也確認一次。
 // items：[{ seatId, role }]。有 seatId 的蓋著時寫「交給 ③ 名字」；沒有的是說書人隨手亮的一張角色牌，蓋著時是一枚背面朝上的牌

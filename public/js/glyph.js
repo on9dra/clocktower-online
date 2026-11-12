@@ -129,6 +129,10 @@ export function tag(k) {
 export const w = (text, k = '') => h('span', { class: 'w' + (k ? ' ' + k : '') }, text);
 // 角色小牌 + 名字
 export const named = roleId => h('span', { class: 'rn' }, mini(roleId), h('b', {}, ROLES[roleId]?.name || roleId));
+// 說書人卡角的小角標：這一步叫醒的是誰。卡的正文是要告訴他的話，不放他自己
+export const wakeMark = (s, ids, extra) => h('div', { class: 'ic-who' }, ids.map(id => seatBadge(s, id)), extra);
+// 行動者的角標：線下輪到他自己時頭頂有箭頭、進度條上那一格也亮著，卡上不再寫；線上 / 沒有箭頭時掛在卡角
+export const actorMark = (s, step) => !(s.offline && step.turn) && s.seats.some(x => x.id === step.seatId) ? wakeMark(s, [step.seatId], mini(step.roleId)) : null;
 
 const OPS = { to: 'to', eq: 'eq', pairs: 'pairs', mask: 'mask', exec: 'noose' };
 function term(s, t) {

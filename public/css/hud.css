@@ -73,7 +73,8 @@ span.ic-why .ico { width: 78%; height: 78%; }
   background: var(--card); cursor: pointer; font: inherit; color: inherit; transition: transform .12s, border-color .12s, box-shadow .12s; }
 .opt-tile:hover { border-color: var(--ink); }
 .opt-tile.alt { border-color: #d9a066; border-style: dashed; }
-.opt-tile.on { border: 1.5px solid var(--brass); background: var(--lit); box-shadow: 0 0 0 2px #e9c46a; }
+/* 選中的選項：和座位一樣亮——浮起、亮金底、一圈金光 */
+.opt-tile.on { z-index: 1; border: 2px solid #7f6320; background: #f3d77c; transform: translateY(-2px) scale(1.05); box-shadow: 0 0 0 3px #e3b33b, 0 0 16px 5px #f6cf55a6; }
 .opt-tile.fixed { cursor: default; padding: 6px 12px; border: 1.5px solid var(--brass); background: linear-gradient(#efe4c6, #e2d3aa);
   box-shadow: inset 0 0 0 3px #efe4c6, inset 0 0 0 4px #e0c47e; transform: none; }
 /* 給信息時角上的勾（glyph.js trueMark）：藍勾真的是，橙勾能登記成；只畫勾不寫字 */
@@ -101,6 +102,11 @@ span.ic-why .ico { width: 78%; height: 78%; }
 .tb-role.on .token { outline: 3px solid var(--brass); outline-offset: 2px; }
 .tb-role.none { width: var(--rtk); height: var(--rtk); border: 1.5px dashed var(--line-strong); font: 700 calc(var(--rtk) * .22)/1.15 var(--serif); }
 .tb-foot { display: grid; justify-items: center; gap: 14px; width: 100%; }
+/* 結論紙條 + 真實 / 錯誤章：章蓋在紙條右上角外面，紙條不用給它留位置，窄卡上也放得下 */
+.tb-res { position: relative; justify-self: center; width: max-content; max-width: 100%; margin-top: 6px; }
+.tb-res > .tb-slip { width: auto; max-width: 100%; padding-right: 18px; }
+.tb-res > .tb-stamp { right: -10px; top: -12px; translate: none; padding-block: 2px; background: #e6dece; }
+.infocard.tb > .ic-body > .opt-row, .infocard.tb .opt-row { justify-content: center; padding-top: 6px; }
 .tb-slip { --card: #e6dece; --ink: #2a2622; --muted: #635a4c; --line-strong: #92866f; --good: #2f5d8a; --evil: #8a1c1c;
   position: relative; display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 440px; max-width: 100%; min-height: 62px; padding: 8px 74px 8px 16px;
   overflow: hidden; color: var(--ink); background: var(--card) url(../img/grain.svg); /* overflow：蓋章動畫放大時不撐大卡片（fitTableCard 量的是滾動尺寸） */
@@ -228,6 +234,32 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .spread.mark .ic-body .mk-tip { max-width: min(92vw, 26em); margin: 0; padding: 5px 10px; font-size: 13px; color: var(--ink); background: var(--card); border-radius: 6px; box-shadow: 0 4px 12px #0005; -webkit-line-clamp: 2; }
   .spread.mark .ic-body .mk-tip.open { -webkit-line-clamp: unset; }
   .spread.mark > .ic-top .mk-do { min-height: 32px; font-size: 15px; }
+  /* 設計語言：圓桌上方一張紙條 = 給說書人的引導（頂上一行）+ 要選的東西；正中 = 結論；下方 = 按鈕。
+     引導籤在紙條裏是靜態的一行（不像別處那樣掛在卡頂外面），紙條墊在夜色上，和座位、座位上的標記一眼分得開 */
+  .spread .ic-body:has(> :is(.ic-tag, .ic-say)) { width: max-content; max-width: 96vw; box-sizing: border-box; padding: 0 12px 10px; gap: 7px; color: var(--ink);
+    background: var(--card) url(../img/grain.svg); filter: drop-shadow(0 6px 10px #0007);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), 92% 100%, 80% calc(100% - 4px), 66% 100%, 50% calc(100% - 5px), 34% 100%, 20% calc(100% - 4px), 8% 100%, 0 calc(100% - 5px)); }
+  .spread .ic-body > .ic-tag { position: static; translate: none; justify-self: stretch; justify-content: center; width: auto; max-width: none; margin: 0 -12px; padding: 7px 14px 6px; font-size: 13.5px; letter-spacing: .06em;
+    color: var(--muted); background: none; clip-path: none; border-bottom: 1px dashed var(--line-strong); }
+  .spread .ic-body > .opt-row { padding-top: 4px; } /* 角上的藍勾不被紙條的頂邊切掉 */
+  /* 代點選人：叫醒他/她指定一人［投毒］ 是紙條的頂行；瘋子今晚選了誰排在它前面 */
+  .spread .ic-body > .ic-say { margin: 0 -12px; padding: 8px 14px 7px; font-size: 15px; text-align: center; }
+  .spread .ic-body > .ic-say:last-child { margin-bottom: -4px; }
+  .spread .ic-body > .ic-say:not(:last-child) { border-bottom: 1px dashed var(--line-strong); }
+  .spread .ic-body > .ic-line { padding-top: 6px; }
+  .spread.pick > .ic-top .slots { font-size: 26px; }
+  .spread.decide > .ic-top .dc-pick { gap: 4px; font-size: 22px; }
+  .spread > .ic-top:has(> .ic-preview) { max-width: 72vw; } /* 結論一行寫得下（鄰座的邪惡玩家有 ① 對），放不下 fitHole 會縮 */
+  .spread > .ic-top > .ic-preview .frm.big { flex-wrap: nowrap; }
+  .spread .ic-body .opt-tile { background: #f4eee2; }
+  /* 洗衣婦這類：正中只有那張紙條（④ 或 ⑦ 是 管家 + 真實章），不再墊一層卡 */
+  .spread.tb > .ic-top { max-width: 88vw; padding: 0; background: none; box-shadow: none; }
+  .spread.tb .tb-res { max-width: 88vw; margin-top: 0; }
+  .spread.tb .tb-slip { min-height: 48px; padding: 6px 16px; }
+  .spread.tb .tb-slip .frm.big { font-size: 19px; }
+  .spread.tb .tb-stamp { right: -8px; font-size: 13px; }
+  .spread .ic-body .opt-tile.on { background: #f3d77c; }
+  .spread .tb-who .rn b { font-size: 15px; }
 }
 @media (max-width: 340px) { .spread .ic-foot .ic-preview .rn b { display: none; } } /* 最窄的手機預覽裏只留角色牌，一行放得下 */
 /* 手機瀏覽器的工具欄再佔掉一截高度：桌子小一點，給上面的選項和下面的發送讓位，紙條和發送並排 */
@@ -249,8 +281,9 @@ span.ic-why .ico { width: 78%; height: 78%; }
   .center > .turn-pane { max-height: calc(100cqh - 8px); overflow-y: auto; scrollbar-width: thin; }
   .center > :is(.st-card, .turn-pane) .fold-x { display: none; } /* 在圓桌旁邊，不壓座位 */
   .center > .st-card > .card { gap: 6px; max-height: calc(100cqh - 8px); padding-block: 7px; overflow-y: auto; scrollbar-width: thin; }
-  /* 卡自己滾動，頂邊外面的籤會被裁掉：排進卡裏當第一行，居中 */
-  .center > .st-card > .card .ic-tag { position: static; translate: none; max-width: 100%; margin: -7px auto 0; }
+  /* 卡自己滾動，頂邊外面的籤會被裁掉：排進卡裏當第一行，居中；卡的紙框有二十來像素寬，第一行往下讓開，不被它壓住 */
+  .center > .st-card > .card .ic-tag { position: static; translate: none; max-width: 100%; margin: 10px auto 0; }
+  .center > .st-card > .card > :is(.ic-top, .ic-body) > .ic-tag { grid-column: 1 / -1; justify-self: stretch; justify-content: center; width: auto; max-width: none; margin: 10px -2px 0; }
   .center > .st-card > .card.on-table { --rtk: 38px; grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .center > .st-card .ic-head { font-size: 18px; }
   .center > .st-card .ic-head .sb.lg { font-size: 21px; } /* 行動者的座位號小一號，選項多一排的高度 */

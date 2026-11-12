@@ -82,7 +82,7 @@
 @media (hover: hover) { .rp-role:hover { background-color: #d9cfba80; } } /* 觸屏點過以後 :hover 會一直留著，只給鼠標 */
 .rp-role:active .rp-tk { translate: 0 1.5px; }
 .rp-tk { position: relative; display: block; }
-.rp-role .token.sm { width: 54px; height: 54px; cursor: inherit; transition: box-shadow .18s ease, opacity .18s ease; }
+.rp-role .token.sm { width: 54px; height: 54px; cursor: inherit; transition: box-shadow .18s ease, opacity .18s ease, scale .2s ease; }
 .rp-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rp-ab { display: none; }
 /* 寬屏：牌大一號，紙上不空 */
@@ -103,8 +103,8 @@
 .rp-seal { position: absolute; right: -9px; bottom: -4px; z-index: 1; display: grid; place-items: center; width: 22px; height: 22px; box-sizing: border-box; pointer-events: none;
   color: var(--brass); background: #e8e0d0d9; border: 1.5px solid currentColor; box-shadow: inset 0 0 0 1.5px #e8e0d0, inset 0 0 0 2.5px currentColor;
   font: 900 12.5px/1 var(--serif); font-style: normal; rotate: -8deg; opacity: 0; scale: .5; transition: opacity .16s ease, scale .16s ease; }
-.rp-role.on { background-color: #eddfb466; }
-.rp-role.on .token { box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--team), 0 0 0 3px var(--card), 0 0 0 5.5px var(--brass); }
+.rp-role.on { background-color: #f3d77c8c; }
+.rp-role.on .token { scale: 1.08; box-shadow: inset 0 0 0 2px var(--card), inset 0 0 0 3px var(--team), 0 0 0 3px var(--card), 0 0 0 6px #e3b33b, 0 0 14px 4px #f6cf55b3; }
 .rp-role.on .rp-seal { opacity: 1; scale: 1; mix-blend-mode: multiply; } /* 只給蓋上的那一個疊色，二十幾個隱形的印不各開一層 */
 /* 在場：右上角一張小籤；不能選的（偽裝不能用在場的）牌淡掉，點了說為什麼 */
 .rp-tag { position: absolute; right: 3px; top: 3px; padding: 0 3px; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); font: 500 10.5px/14px var(--serif); font-style: normal;
