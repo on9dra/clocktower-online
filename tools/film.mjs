@@ -65,7 +65,7 @@ ws.close();
 proc.kill();
 writeFileSync(join(tmp, 'list.txt'), list.join('\n') + '\n');
 const out = 'public/img/shots/play';
-const ff = args => { const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', ...args], { stdio: 'inherit' }); if (r.status) process.exit(r.status); };
+const ff = args => { const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', ...args], { stdio: 'inherit', windowsHide: true }); if (r.status) process.exit(r.status); };
 // 裁掉側欄和頂欄，只留桌面；服務器帶寬小，壓狠一點
 const pick = KEEP.map(([a, b]) => `between(t,${a},${b})`).join('+');
 ff(['-f', 'concat', '-safe', '0', '-i', join(tmp, 'list.txt'), '-vf', `fps=24,select='${pick}',setpts=N/24/TB,crop=932:699:0:44,scale=720:540:flags=lanczos`, '-c:v', 'libx264', '-preset', 'veryslow', '-crf', '32', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', out + '.mp4']);

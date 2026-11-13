@@ -162,7 +162,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const wait = ms => new Promise(r => setTimeout(r, ms));
 function start(port, debug) {
   const env = { ...process.env, PORT: port, DATA_DIR: DATA, BOTC_DEBUG: debug ? '1' : '' };
-  const child = spawn(process.execPath, ['server.js'], { cwd: root, env });
+  const child = spawn(process.execPath, ['server.js'], { cwd: root, env, windowsHide: true }); // 不彈命令行窗口
   return new Promise((res, rej) => {
     child.stdout.on('data', d => { if (String(d).includes('已啓動')) res(child); });
     child.stderr.on('data', d => process.stderr.write(d));

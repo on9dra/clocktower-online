@@ -15,6 +15,7 @@ import { setBgm, duckBgm } from './bgm.js';
 import { burst, setBusy, setFireworks } from './fireworks.js';
 import { EGG } from './score.js';
 import { tr, getLang } from './lang.js';
+import { report } from './diag.js';
 
 const recent = { died: new Map(), voted: new Map(), lock: new Map(), shot: new Map(), nom: 0, hud: 0, blkin: new Map(), blkret: new Map(),
   crown: 0, mvp: 0, egg: { at: 0, n: 0 } };
@@ -187,7 +188,7 @@ async function runQueue() {
     const st = getStage();
     st.className = sc.block ? 'block' + (sc.skippable ? ' skippable' : '') : '';
     if (sc.skippable && !cur.skip) st.append(h('div', { class: 'skip-hint' }, icon('skip'), '跳過'));
-    try { await sc.run(); } catch (e) { console.error(e); }
+    try { await sc.run(); } catch (e) { console.error(e); report(e, 'fx'); } // 演出出錯也報給後台（diag.js）
     (sc.holds || []).forEach(release);
     sc.after?.();
     // 點了跳過：牌和底色淡掉，不是一下子沒了

@@ -1,4 +1,5 @@
 // 演出音效：除了入夜的鐘都放錄音（public/sfx），鐘用 Web Audio 現場合成；錄音沒載完、解不開時也放合成聲。默認開，頂欄喇叭一鍵全靜音；「⋯ → 設置」裏音效、音樂各有音量和靜音，還有煙花、煙花聲（都記在本機）
+import { missing } from './diag.js';
 let ac = null, master = null, bus = null, music = null;
 const revived = []; // 聲音環境被系統掛起後又起來時要做的事（bgm.js 補放音樂）
 // 不是每個動作都配聲音：只留有情緒、或者告訴你出了大事的那些。
@@ -24,7 +25,7 @@ function pump() {
     if (urgent) urgent--;
     downloading++;
     fetch(`sfx/${name}.m4a`).then(r => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
-      .then(b => ac.decodeAudioData(b)).then(b => { buffers[name] = b; }).catch(() => { /* 退回合成聲 */ })
+      .then(b => ac.decodeAudioData(b)).then(b => { buffers[name] = b; }).catch(e => missing(`/sfx/${name}.m4a`, e?.message || e)) // 退回合成聲；後台記一筆
       .finally(() => { downloading--; pump(); });
   }
 }

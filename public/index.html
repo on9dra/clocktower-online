@@ -102,6 +102,20 @@
     // 只用最老的寫法（var、function）：太舊的瀏覽器解析不了後面的開屏和 app.js，這段也得跑起來。開屏調 expect / ready / done 告訴它走到哪了
     (function () {
       var root = document.documentElement, el = document.getElementById('boot'), note = el.querySelector('.b-note'), copyBtn = note.querySelector('.b-copy'), t0 = Date.now(), lang = 'sc';
+      // 打不開的也要知道：一次訪問一個標識（app 起來以後 diag.js 接著用），開屏卡住、文件沒下下來、瀏覽器太舊時報給後台（/api/diag → /admin「問題」）
+      var sid = window.bootSid = (Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 14), told = {};
+      function tell(why, src) {
+        if (told[why]) return;
+        told[why] = 1;
+        try {
+          var n = window.performance && performance.getEntriesByType ? performance.getEntriesByType('resource').length : 0;
+          var body = JSON.stringify({ sid: sid, now: Date.now(), ev: [{ e: 'fail', t: Date.now(), why: why, ms: Date.now() - t0, res: n, url: src || undefined }] });
+          if (navigator.sendBeacon && navigator.sendBeacon('/api/diag', body)) return;
+          var x = new XMLHttpRequest();
+          x.open('POST', '/api/diag');
+          x.send(body);
+        } catch (e) { /* 報不出去就算了 */ }
+      }
       try { lang = localStorage.getItem('botc.lang') || 'sc'; } catch (e) { /* 隱私模式 */ }
       var say = lang === 'tc' ? { old: '瀏覽器版本太舊', load: '沒有載入完成', retry: '重試', copy: '複製鏈接', copied: '已複製', url: '鏈接' }
         : lang === 'en' ? { old: 'Browser too old', load: 'Failed to load', retry: 'Retry', copy: 'Copy link', copied: 'Copied', url: 'Link' }
@@ -113,9 +127,10 @@
       var old = !([].at && [].findLastIndex && window.CSS && CSS.supports && CSS.supports('container-type: inline-size') && CSS.supports('selector(:has(a))'));
       // kind：正在說的那句；hard：文件沒下下來、瀏覽器太舊，只能重試 / 換瀏覽器；只是等太久的，app 後來起來了就收回去接著演
       var kind = null, hard = old, ready = false, done = false, due = 0, seen = -1, moved = t0;
-      function fail(k, firm) {
+      function fail(k, firm, src) {
         if (done) return;
         if (firm) hard = true;
+        tell(hard ? k : 'slow', src); // slow：等了半分鐘還沒起來（後來起來了的也算）
         if (kind === 'old' || kind === k) return;
         kind = k;
         note.querySelector('p').textContent = say[k];
@@ -129,7 +144,7 @@
       addEventListener('error', function (e) {
         if (done || ready) return;
         var t = e.target;
-        if (t && t.tagName) { if (t.tagName === 'SCRIPT' || (t.tagName === 'LINK' && /stylesheet|preload/.test(t.rel))) fail('load', true); return; }
+        if (t && t.tagName) { if (t.tagName === 'SCRIPT' || (t.tagName === 'LINK' && /stylesheet|preload/.test(t.rel))) fail('load', true, t.src || t.href); return; }
         if (!e.filename || e.filename.indexOf(location.origin) !== 0) return; // 瀏覽器插件之類
         setTimeout(function () { if (!ready) fail('load'); }, 1500);
       }, true);
@@ -216,7 +231,7 @@
       // 小鎮和字標到了之後，JS 一次全列出來並行拉，不用一層層解析 import：香港線路一個往返 270ms，七層就是兩秒。
       // 等它們到了再拉：不搶開屏第一眼那幾張圖的帶寬。名單由 tests/preload.test.js 對著 import 核對
       let pulled = false, first = 2;
-      const pullJs = () => { if (pulled || guard.blocked()) return; pulled = true; for (const n of 'app ui roompass roles community icons lang t2s town seatmarks pmarks side log manual asks glyph gamelog fx ambient tactile sfx bgm fireworks score scores hud trial flow setup infoform infofmt stepcard stside invite topbar settings about author progress egg lobby intro press veil pass wake mathcard rolepick herald debug'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
+      const pullJs = () => { if (pulled || guard.blocked()) return; pulled = true; for (const n of 'app diag ui roompass roles community icons lang t2s town seatmarks pmarks side log manual asks glyph gamelog fx ambient tactile sfx bgm fireworks score scores hud trial flow setup infoform infofmt stepcard stside invite topbar settings about author progress egg lobby intro press veil pass wake mathcard rolepick herald debug'.split(' ')) document.head.append(Object.assign(document.createElement('link'), { rel: 'modulepreload', href: `js/${n}.js` })); };
       const firstArt = () => { if (!--first) pullJs(); };
       const start = () => { if (!art) { art = true; t0 = performance.now(); } };
       const end = () => {
@@ -237,12 +252,14 @@
       };
       const gate = () => {
         el.classList.add('gate');
+        (window.bootT = window.bootT || {}).gate = Math.round(performance.now()); // 後台看多少人要點「點擊進入」、等了多久才點（diag.js）
         const go = e => {
           if (e.key && e.key !== ' ') return;
           e.preventDefault(); e.stopPropagation(); // 底下的介紹也聽鍵盤
           el.removeEventListener('click', go);
           removeEventListener('keydown', go, true);
           el.classList.remove('gate');
+          window.bootT.go = Math.round(performance.now());
           strike(1500); // 點過了瀏覽器一定放行，只是聲卡起來要一會兒
         };
         el.addEventListener('click', go);

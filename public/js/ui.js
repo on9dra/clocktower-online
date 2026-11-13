@@ -2,6 +2,7 @@
 import { ROLES, TEAMS } from './roles.js';
 import { ICONS, ICON_VIEWBOX } from './icons.js';
 import { tr } from './lang.js';
+import { toastSeen } from './diag.js';
 
 // 事件用屬性掛載（el.onclick = fn），差量更新時可以直接換成最新的處理函數
 const EVENTS = ['onclick', 'onchange', 'oninput', 'onkeydown', 'onmouseenter', 'onmouseleave', 'oncontextmenu', 'onpointerdown', 'onwheel', 'onfocus', 'onblur'];
@@ -105,6 +106,7 @@ function exit(n, { l, t, w, h: ht, was }) {
 }
 
 export function toast(msg, ms = 2200) {
+  toastSeen(msg); // 後台看得到玩家被提示了什麼（多半是點了不能點的）
   const el = h('div', { class: 'toast' }, msg);
   document.body.append(el);
   setTimeout(() => leaveDom(el, 200), ms);

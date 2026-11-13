@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 let failed = 0;
 for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.test.js')).sort()) {
-  const r = spawnSync(process.execPath, [path.join(dir, f)], { stdio: 'inherit' });
+  const r = spawnSync(process.execPath, [path.join(dir, f)], { stdio: 'inherit', windowsHide: true }); // Windows 上不彈命令行窗口
   console.log(`${r.status === 0 ? '✓' : '✗'} ${f}`);
   if (r.status !== 0) failed++;
 }

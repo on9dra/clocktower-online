@@ -21,6 +21,11 @@ import * as stats from './lib/stats.js';
 import { adminPage } from './lib/admin.js';
 import { DEBUG, isBot, renameBots, debugInfo, setPresence, botTick } from './lib/debug.js';
 import { sweepAsks } from './lib/asks.js';
+import { undoOf, NEED_PASS } from './lib/ops.js';
+import { setGuardReport } from './lib/util.js';
+import { roomPage } from './lib/admin-issues.js';
+import * as trace from './lib/trace.js';
+import { issues, timeline, crashFile } from './lib/issues.js';
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -33,6 +38,7 @@ const LIMIT = {
   op: [40, 50], // 每個連接的操作：連發 40 個，之後每秒 20 個
   chat: [6, 2000], // 每個座位的聊天：連發 6 條，之後每 2 秒 1 條
   feedback: [3, 10 * 60 * 1000], // 每個 IP 的反饋：連寄 3 封，之後每 10 分鐘 1 封
+  diag: [60, 1000], // 每個 IP 的瀏覽器上報（public/js/diag.js）：連發 60 批，之後每秒 1 批（線下局一屋子手機共用一個出口 IP）
 };
 const SLOW = '操作太頻繁，請稍後再試';
 // 玩家標識會拿來當對象的鍵（積分檔案、MVP 投票）：__proto__ 之類的名字會改到所有對象共用的原型上
@@ -75,6 +81,36 @@ app.get('/admin', (req, res) => {
     .sort((a, b) => (!b.cold && b.st + b.on + b.watch + b.away > 0) - (!a.cold && a.st + a.on + a.watch + a.away > 0) || a.idle - b.idle);
   res.set('Cache-Control', 'no-store').set('X-Robots-Tag', 'noindex').type('html').send(adminPage({
     rooms, lobby: socks.filter(s => !s.data.code).length, samples: stats.read('samples', 30), visits: stats.read('visits', 30), games: stats.read('games', 30), running: stats.running() }));
+});
+// /admin 下面的其他頁：密鑰不對一律 404，和上面一起限流
+function gate(req, res) {
+  const ip = reqIp(req);
+  if (!allow('miss:' + ip, LIMIT.miss, 0)) { res.status(404).end(); return false; }
+  if (!adminOk(req)) { allow('miss:' + ip, LIMIT.miss); res.status(404).end(); return false; }
+  res.set('Cache-Control', 'no-store').set('X-Robots-Tag', 'noindex');
+  return true;
+}
+// 「問題」頁的數據：最近幾天的報錯、被拒的操作、卡住的步驟、斷線、載入……（lib/issues.js）
+app.get('/admin/issues', (req, res) => {
+  if (!gate(req, res)) return;
+  try { res.json(issues(Math.min(30, Math.max(1, Number(req.query.days) || 7)))); } catch (e) { trace.fail('admin', e); res.status(500).end(); }
+});
+// 一個房間的時間線：說書人、玩家每一步做了什麼，哪裏被拒、出錯、斷線（t：看哪個時刻前後；i：房號回收過的話分得出是哪個房間）
+app.get('/admin/room', (req, res) => {
+  if (!gate(req, res)) return;
+  const code = String(req.query.r || ''), t = Number(req.query.t) || Date.now(), inst = /^[0-9a-f]{6}$/.test(req.query.i) ? req.query.i : '';
+  res.type('html').send(roomPage({ code, t, inst, recs: timeline(code, t, inst) }));
+});
+// 出錯時存下的房間快照：下載下來，node tools/replay.mjs <文件> 復現
+app.get('/admin/crash', (req, res) => {
+  if (!gate(req, res)) return;
+  const f = crashFile(req.query.f);
+  if (f) res.download(f); else res.status(404).end();
+});
+// 瀏覽器報上來的問題（public/js/diag.js）：前端報錯、載入失敗、斷線多久、操作來回耗時、連點……一批一個請求，關頁面時用 sendBeacon 發
+app.post('/api/diag', express.text({ type: () => true, limit: '24kb' }), (req, res) => {
+  if (allow('diag:' + reqIp(req), LIMIT.diag)) guard(trace.ingest)(String(req.body || ''), String(req.headers['user-agent'] || ''));
+  res.status(204).end();
 });
 // 訪問人次：只數打開首頁（帶房號的邀請鏈接也是首頁）
 app.get(['/', '/index.html'], (req, res, next) => { guard(stats.visit)(reqIp(req), String(req.headers['user-agent'] || '')); next(); });
@@ -160,9 +196,10 @@ function broadcast(room) {
   guard(sweepAsks)(room); // 計時器推進了局面（貞潔者反噬、代班說書人裁定……）：不再成立的玩家請求作廢（lib/asks.js）
   // 一個連接的狀態出錯不能拖累同房間的其他人，更不能帶走整個進程
   for (const s of list) {
-    try { emitState(s, room); } catch (e) { console.error('推送狀態出錯', room.code, e); }
+    try { emitState(s, room); } catch (e) { trace.fail('view', e, { room, viewer: trace.who(room, s.data) }); }
   }
   store.save(room);
+  guard(trace.track)(room); // 後台日誌：換了階段、夜裏走完一步，記下用了多久
   countTick(room, broadcast);
   virginTick(room, broadcast);
   mvpTick(room, broadcast);
@@ -172,42 +209,53 @@ function broadcast(room) {
 
 io.on('connection', socket => {
   const ip = ipOf(socket);
+  // 這次訪問的標識（public/js/diag.js 起的，瀏覽器報上來的事件也帶著）：後台日誌靠它把斷線、進房和前端的報錯連起來
+  const sid = typeof socket.handshake.auth?.sid === 'string' && /^[\w-]{6,32}$/.test(socket.handshake.auth.sid) ? socket.handshake.auth.sid : undefined, born = Date.now();
+  const joinLog = (how, room, e, extra) => trace.log({ k: 'join', how, ...(room ? trace.where(room) : {}), ok: !e, e: e ? String(e).slice(0, 60) : undefined, sid, ...extra });
   if (DEBUG) socket.emit('debug'); // 測試服：大廳亮出「調試模式」
   // 回覆：字符串是錯誤，對象是附帶的數據
   const reply = (cb, r) => cb && cb(typeof r === 'string' ? { ok: false, error: r } : { ok: true, ...r });
   const handle = (fn) => (data = {}, cb) => {
     if (typeof cb !== 'function') cb = null;
-    if (!allow('op:' + socket.id, LIMIT.op)) return reply(cb, SLOW);
-    try { fn(data || {}, cb); } catch (e) { console.error(e); reply(cb, '服務器出錯：' + e.message); }
+    if (!allow('op:' + socket.id, LIMIT.op)) { trace.slow('op:' + socket.id, { ...trace.where(store.get(socket.data?.code)), what: 'op', sid }); return reply(cb, SLOW); }
+    try { fn(data || {}, cb); } catch (e) {
+      const room = store.get(socket.data?.code);
+      trace.fail('handler', e, { room, by: room && trace.who(room, socket.data) });
+      reply(cb, '服務器出錯：' + e.message);
+    }
   };
   // 有改動的操作：記下活躍時間、回覆、推送
   const done = (room, cb, r) => { store.touch(room); reply(cb, r); broadcast(room); };
   const miss = () => allow('miss:' + ip, LIMIT.miss);
   // 找房間：找不到、或鏈接裏的實例標識對不上（房號已經給了新房間）都算輸錯一次
-  const find = (code, inst, cb) => {
-    if (!allow('miss:' + ip, LIMIT.miss, 0)) return reply(cb, SLOW);
+  const find = (code, inst, cb, how) => {
+    if (!allow('miss:' + ip, LIMIT.miss, 0)) { trace.slow('miss:' + ip, { what: 'miss', how, sid }); return reply(cb, SLOW); }
     const room = store.get(code);
     if (room && (!inst || inst === room.inst)) return room;
     miss();
-    reply(cb, room ? '這個鏈接的那一局已經結束了' : '房間不存在');
+    const e = room ? '這個鏈接的那一局已經結束了' : '房間不存在';
+    joinLog(how, null, e, { code: String(code ?? '').slice(0, 8) }); // 不寫成 r：輸錯的房號以後可能是別人的房間
+    reply(cb, e);
   };
   const badPid = pid => typeof pid !== 'string' || !PID.test(pid);
 
   // debug：大廳勾了調試模式（只有測試服認）
   socket.on('st:create', handle(({ debug } = {}, cb) => {
-    if (!allow('create:' + ip, LIMIT.create)) return reply(cb, '建房太頻繁，請稍後再試');
-    if (!store.makeSpace(code => socketsOf(code).length > 0)) return reply(cb, '房間已滿，請稍後再試');
+    if (!allow('create:' + ip, LIMIT.create)) { joinLog('create', null, '建房太頻繁'); return reply(cb, '建房太頻繁，請稍後再試'); }
+    if (!store.makeSpace(code => socketsOf(code).length > 0)) { joinLog('create', null, '房間已滿'); return reply(cb, '房間已滿，請稍後再試'); }
     const room = store.createRoom();
     room.debug = DEBUG && !!debug;
     socket.data = { code: room.code, st: true };
+    joinLog('create', room, null, { by: 'st' });
     reply(cb, { code: room.code, stKey: room.stKey, inst: room.inst });
     broadcast(room);
   }));
 
   socket.on('st:join', handle(({ code, stKey, debug, as }, cb) => {
-    const room = find(code, null, cb);
+    const room = find(code, null, cb, 'st');
     if (!room) return;
-    if (room.stKey !== stKey) { miss(); return reply(cb, '說書人密鑰錯誤'); }
+    if (room.stKey !== stKey) { miss(); joinLog('st', room, '說書人密鑰錯誤'); return reply(cb, '說書人密鑰錯誤'); }
+    joinLog('st', room, null, { by: 'st' });
     room.debug = DEBUG && !!debug; // 調試模式跟著大廳的勾選走
     socket.data = { code: room.code, st: true };
     if (room.debug && typeof as === 'string' && room.seats.some(s => s.id === as)) socket.data.as = as; // 刷新前換成的座位
@@ -217,10 +265,11 @@ io.on('connection', socket => {
   // 坐不下（已開局、滿員）就觀戰
   socket.on('pl:join', handle(({ code, inst, pid, name, pass }, cb) => {
     if (badPid(pid)) return reply(cb, '缺少玩家標識');
-    const room = find(code, inst, cb);
+    const room = find(code, inst, cb, 'pl');
     if (!room) return;
     const err = joinPlayer(room, pid, name, String(pass || ''));
     if (err === BAD_PASS) miss();
+    if (err !== NEED_PASS) joinLog('pl', room, err !== WATCH && err, { watch: err === WATCH ? 1 : undefined, by: room.seats.findIndex(s => s.pid === pid) + 1 || undefined }); // 有密碼的房間先用空密碼試一次，不算失敗
     if (err && err !== WATCH) return reply(cb, err);
     socket.data = { code: room.code, pid, watch: err === WATCH, name: String(name ?? '').trim().slice(0, 12) || '路人' };
     done(room, cb, { watch: err === WATCH });
@@ -229,9 +278,10 @@ io.on('connection', socket => {
   // 說書人發的重連鏈接：接過座位，原來的設備退出
   socket.on('pl:claim', handle(({ code, inst, pid, token }, cb) => {
     if (badPid(pid)) return reply(cb, '缺少玩家標識');
-    const room = find(code, inst, cb);
+    const room = find(code, inst, cb, 'claim');
     if (!room) return;
     const err = claimSeat(room, pid, String(token || ''));
+    joinLog('claim', room, err, { by: room.seats.findIndex(s => s.pid === pid) + 1 || undefined });
     if (err) { miss(); return reply(cb, err); }
     socket.data = { code: room.code, pid };
     done(room, cb);
@@ -255,15 +305,21 @@ io.on('connection', socket => {
       room: /^\d{4}$/.test(room) ? room : '', lang: lang === 'sc' ? 'sc' : 'tc', ua: String(socket.handshake.headers['user-agent'] || '').slice(0, 160) });
     fs.mkdir(path.dirname(FEEDBACK), { recursive: true }, () =>
       fs.appendFile(FEEDBACK, line + '\n', e => { if (e) console.error(e); reply(cb, e ? '寄出失敗，請稍後再試' : {}); }));
+    trace.log({ k: 'fb', r: /^\d{4}$/.test(room) ? room : undefined, text: text.slice(0, 300), sid }); // 房間時間線上也看得到
   }));
 
   socket.on('st:op', handle((op, cb) => {
     const room = store.get(socket.data.code);
     if (!room || !socket.data.st) return reply(cb, '無權限');
-    if (op.op === 'close') return close(room, cb);
-    const r = applyStOp(room, op, true);
+    // 後台日誌：在哪一步點的、點了什麼、成沒成、用了多久；出錯時把操作前的房間存下來（lib/trace.js）
+    const t0 = performance.now(), before = trace.where(room), by = trace.who(room, socket.data);
+    if (op.op === 'close') { trace.log({ k: 'op', ...before, by, op: 'close', ok: true, ms: 0 }); trace.untrack(room.code); return close(room, cb); }
+    const u = op.op === 'undo' ? undoOf(room) || undefined : undefined, snap = trace.freeze(room);
+    let r;
+    try { r = applyStOp(room, op, true); } catch (e) { trace.fail('op', e, { room, before: snap, o: op, by }); throw e; }
     if (typeof r !== 'string') store.acted(room);
     done(room, cb, r);
+    trace.op(room, { by, kind: 'st', o: op, before, r, ms: performance.now() - t0, extra: { u, conf: r?.confirmEnd ? 1 : undefined } });
   }));
 
   // 解散房間：其他人退回大廳，存檔刪掉
@@ -296,29 +352,40 @@ io.on('connection', socket => {
     const room = store.get(socket.data.code);
     const pid = socket.data.pid || (room && asSeat(room, socket.data)?.pid); // 調試：說書人替他換成的那個座位操作
     if (!room || !pid) return reply(cb, '未加入房間');
-    if (act.act === 'chat' && !allow(`chat:${room.code}:${pid}`, LIMIT.chat)) return reply(cb, SLOW);
-    const err = applyPlayerAction(room, pid, act);
+    const t0 = performance.now(), before = trace.where(room), by = trace.who(room, socket.data);
+    if (act.act === 'chat' && !allow(`chat:${room.code}:${pid}`, LIMIT.chat)) { trace.slow(`chat:${room.code}:${pid}`, { ...before, what: 'chat', by }); return reply(cb, SLOW); }
+    const snap = trace.freeze(room);
+    let err;
+    try { err = applyPlayerAction(room, pid, act); } catch (e) { trace.fail('act', e, { room, before: snap, o: act, by }); throw e; }
     if (!err) store.acted(room);
     if (act.act === 'leave' && !err) { if (socket.data.st) socket.data.as = null; else socket.data = {}; } // 自己離座：不用再通知他「座位沒了」；調試中的說書人回到說書人視角
     done(room, cb, err);
+    trace.op(room, { by, kind: 'pl', o: act, before, r: err, ms: performance.now() - t0 });
   }));
 
-  socket.on('disconnect', () => {
+  // why：transport close（關頁面、網斷了）/ ping timeout（網絡卡住）/ client namespace disconnect（自己離開房間）/ server shutting down（重啓）
+  socket.on('disconnect', why => {
     const room = store.get(socket.data && socket.data.code);
+    trace.log({ k: 'disc', ...trace.where(room), by: room ? trace.who(room, socket.data) : undefined, why, dur: Date.now() - born, tr: socket.conn?.transport?.name, sid });
     if (room) setTimeout(guard(() => broadcast(room)), 50);
   });
 });
 
 store.load();
+setGuardReport(e => trace.fail('guard', e)); // 計時器、統計裏的錯誤也進後台日誌
+trace.log({ k: 'up', build: trace.BUILD, rooms: store.all().length });
+trace.prune();
+setInterval(() => trace.prune(), 24 * 3600 * 1000).unref();
 setInterval(guard(() => stats.sample(store.all(), [...io.sockets.sockets.values()], store.get)), stats.SAMPLE_EVERY).unref();
+setInterval(guard(() => trace.coldCheck(store.all(), stats.cold)), stats.SAMPLE_EVERY).unref(); // 半小時沒人操作的局：記下停在哪一步
 // 每小時清理一次長時間沒人用、也沒人連著的房間
 setInterval(() => store.sweep(code => socketsOf(code).length > 0), 3600 * 1000).unref();
 // 退出前把還沒寫盤的房間寫完
-for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { store.flushSync(); process.exit(0); });
+for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { store.flushSync(); trace.flushSync(); process.exit(0); });
 // 最後一道防線：漏網的錯誤記下來，房間寫完盤再退出，由 systemd 拉起來從存檔恢復（不寫盤會丟最後半秒的改動）
 process.on('uncaughtException', e => {
-  console.error('未捕獲的錯誤', e);
-  try { store.flushSync(); } finally { process.exit(1); }
+  trace.fail('uncaught', e);
+  try { store.flushSync(); trace.flushSync(); } finally { process.exit(1); }
 });
-process.on('unhandledRejection', e => console.error('未處理的 Promise 拒絕', e));
+process.on('unhandledRejection', e => trace.fail('reject', e));
 server.listen(PORT, () => console.log(`血染鐘樓魔典已啓動: http://localhost:${PORT}`));

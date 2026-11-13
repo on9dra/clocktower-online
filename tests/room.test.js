@@ -128,7 +128,7 @@ const old = store.createRoom();
 fs.writeFileSync(path.join(DATA, 'rooms.json'), JSON.stringify([old]));
 
 function start() {
-  const child = spawn(process.execPath, ['server.js'], { cwd: root, env: { ...process.env, PORT, DATA_DIR: DATA, MAX_ROOMS: '99' } });
+  const child = spawn(process.execPath, ['server.js'], { cwd: root, env: { ...process.env, PORT, DATA_DIR: DATA, MAX_ROOMS: '99' }, windowsHide: true }); // 不彈命令行窗口
   return new Promise((res, rej) => {
     child.stdout.on('data', d => { if (String(d).includes('已啓動')) res(child); });
     child.stderr.on('data', d => process.stderr.write(d));

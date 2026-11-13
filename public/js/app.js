@@ -28,6 +28,7 @@ import { veiled, noteArrival } from './veil.js';
 import { closePass } from './pass.js';
 import { keepAwake } from './wake.js';
 import { debugBox, debugWanted, asKey, debugKey } from './debug.js';
+import * as diag from './diag.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
 Object.assign(window.boot, { locked, chime: ms => chime('night', ms) }); // 開屏結束時鐘響兩下，和音波同拍
@@ -51,7 +52,19 @@ if (params.get('room') && params.get('st')) { LS.set('botc.st.' + params.get('ro
 let claimToken = params.get('seat');
 params.delete('seat');
 
-const sock = io();
+const sock = io({ auth: { sid: diag.sid } }); // sid：這次訪問的標識，後台日誌靠它把斷線、進房和前端報上來的問題連起來
+diag.watchSocket(sock);
+// 診斷上報（diag.js）：每條事件帶上當時在哪——房號、第幾夜 / 天、說書人還是幾號、線上還是線下
+diag.start({
+  pid: () => pid,
+  ctx: () => {
+    const s = ctx.state;
+    if (!s) return session ? { r: session.code } : {};
+    const i = s.seats ? s.seats.findIndex(x => x.id === s.myId) : -1;
+    return { r: s.code, at: s.phase === 'night' ? 'night' + s.night : s.phase === 'day' || s.phase === 'dawn' ? s.phase + s.day : s.phase,
+      st: s.isSt ? 1 : 0, seat: i >= 0 ? i + 1 : undefined, md: s.oneDevice ? 'one' : s.offline ? 'multi' : 'on' };
+  },
+});
 let session = null, chat = [], fresh = false, dealt = null; // session：{ code, inst, st }；fresh：剛建好房間，桌面擺好（dealt）時彈邀請
 let linked = false, everOn = false; // linked：這個連接已經（重新）進了房間；everOn：連上過服務器
 let debugAvail = false; // 測試服（服務器說的）：大廳有「調試模式」
