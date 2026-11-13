@@ -217,6 +217,9 @@
  "{0} 是【{1}】或【{2}】": [
   "public/js/infofmt.js"
  ],
+ "{0} 是標記死亡，不算處決。": [
+  "public/js/flow.js"
+ ],
  "{0} 是僵怖：看起來死了，其實還活著": [
   "lib/rules.js"
  ],
@@ -808,6 +811,12 @@
  ],
  "撤回": [
   "public/js/asks.js"
+ ],
+ "撤回結束": [
+  "public/js/flow.js"
+ ],
+ "撤回結束，繼續遊戲": [
+  "public/js/gamelog.js"
  ],
  "撤銷": [
   "public/js/help.js",
@@ -1925,6 +1934,9 @@
  "結束白天並入夜？": [
   "public/js/flow.js"
  ],
+ "結束遊戲": [
+  "public/js/app.js"
+ ],
  "結算": [
   "public/js/flow.js"
  ],
@@ -1971,6 +1983,9 @@
  ],
  "今天被處決也不會死。": [
   "public/js/town.js"
+ ],
+ "今天還沒有處決": [
+  "public/js/flow.js"
  ],
  "今天沒有人被處決。": [
   "lib/day.js"
@@ -2888,6 +2903,7 @@
   "public/js/town.js"
  ],
  "取消": [
+  "public/js/app.js",
   "public/js/flow.js",
   "public/js/manual.js",
   "public/js/town.js",
@@ -3071,6 +3087,9 @@
  ],
  "善良角色": [
   "public/js/roles.js"
+ ],
+ "善良陣營獲勝": [
+  "public/js/app.js"
  ],
  "上處決台": [
   "public/js/fx.js",
@@ -3357,6 +3376,9 @@
  ],
  "說書人裁定猜對": [
   "lib/night.js"
+ ],
+ "說書人撤回了遊戲結束，遊戲繼續": [
+  "lib/ops.js"
  ],
  "說書人代點": [
   "public/js/trial.js"
@@ -3831,9 +3853,6 @@
  "渦流在場，白天無人被處決": [
   "lib/rules.js"
  ],
- "渦流在場：今天沒有人被處決，邪惡陣營會直接獲勝。確定結束白天？": [
-  "public/js/flow.js"
- ],
  "渦流在場：鎮民只能得到錯誤信息": [
   "lib/engine.js"
  ],
@@ -4072,6 +4091,9 @@
   "public/js/log.js",
   "public/js/topbar.js",
   "public/js/town.js"
+ ],
+ "邪惡陣營獲勝": [
+  "public/js/app.js"
  ],
  "寫點什麼再寄出": [
   "public/js/about.js",
@@ -4464,6 +4486,9 @@
  "疑心之蛭": [
   "public/js/community.js"
  ],
+ "已撤回，遊戲繼續": [
+  "public/js/flow.js"
+ ],
  "已撤銷：{0}": [
   "public/js/topbar.js"
  ],
@@ -4589,6 +4614,7 @@
   "lib/ops.js"
  ],
  "遊戲結束": [
+  "public/js/topbar.js",
   "public/js/town.js"
  ],
  "遊戲結束：{0}陣營獲勝（{1}）": [
@@ -4800,6 +4826,9 @@
  "照樣開始": [
   "public/js/flow.js"
  ],
+ "照樣入夜": [
+  "public/js/flow.js"
+ ],
  "照樣殺死": [
   "public/js/stepcard.js"
  ],
@@ -4877,6 +4906,9 @@
  ],
  "這些角色不在場，需要時可以偽裝成他們": [
   "public/js/hud.js"
+ ],
+ "這一步會結束遊戲": [
+  "public/js/app.js"
  ],
  "這一步需要你裁定，不能跳過": [
   "lib/engine.js"

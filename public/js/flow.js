@@ -175,7 +175,9 @@ export function stCenter(ctx) {
     case 'ended': {
       // MVP 投票還沒結束：「再來一局」先問一句（會按已投的票結算）；已投人數在 MVP 牌上
       const m = s.mvpVote, open = m && !m.done;
-      return h('div', { class: 'cx' }, btns(open ? B('再來一局', () => ask('MVP 投票還沒結束：按已投的票結算，然後回到準備？', () => ctx.st('next'), '再來一局'), 'big') : next('再來一局')));
+      // 撤回結束（點錯、判早了）：旁路操作，小鍵靠邊
+      const back = s.st.undo === 'end' && B([icon('reset'), '撤回結束'], () => ctx.st('undo').then(r => r.ok && import('./ui.js').then(m => m.toast('已撤回，遊戲繼續'))), 'ghost sm undo-end');
+      return h('div', { class: 'cx' }, btns(open ? B('再來一局', () => ask('MVP 投票還沒結束：按已投的票結算，然後回到準備？', () => ctx.st('next'), '再來一局'), 'big') : next('再來一局'), back));
     }
   }
   return null;
@@ -274,17 +276,30 @@ export function reviewCard(ctx) {
 // 結束白天前說清楚會發生什麼，避免誤點直接入夜
 function endDayButton(ctx, small = false) {
   const s = ctx.state, nom = s.nomination, block = s.block && seatLabel(s, s.block.nomineeId);
+  // 今天白天標記死亡的人不算處決：說書人常把「死亡」當成處決點（渦流局因此直接判了邪惡獲勝）。結束白天前點明，順手給「處決他，入夜」
+  const marked = !nom && !block && !s.dayOver ? s.st?.markedToday || [] : [];
   const [label, msg] = nom ? ['結算並結束白天', '結算當前投票，然後結束白天？']
     : block && !s.dayOver ? [`處決${block}，入夜`, `處決 ${block}，然後入夜？`]
-      : ['結束白天，入夜', s.dayOver ? '結束白天並入夜？'
-        // 渦流：白天沒人被處決，邪惡直接獲勝（中毒的渦流不算，服務端裁定；這裏只提醒）
-        : s.seats.some(x => x.role === 'vortox' && !x.dead) ? '渦流在場：今天沒有人被處決，邪惡陣營會直接獲勝。確定結束白天？'
-          : '今天沒有人被處決。確定結束白天、直接入夜？'];
+      : ['結束白天，入夜', s.dayOver ? '結束白天並入夜？' : '今天沒有人被處決。確定結束白天、直接入夜？'];
   // 線下多設備：還有玩家在手機上提出、沒處理的請求（asks.js），入夜就作廢了：照樣能結束，先提醒一句
-  const pend = s.st?.asks?.list.filter(a => a.kind !== 'word').length || 0, warn = pend ? `還有 ${pend} 條玩家的請求沒處理，入夜後作廢。\n` : '';
-  // 線下有撤銷，按鈕上已經寫明處決誰：直接做，不再問一遍同樣的話
-  const sure = s.offline && block && !s.dayOver && !nom && !pend;
-  return B(label, () => (sure ? ctx.st('next') : ask(warn + msg, () => ctx.st('next'), label)), nom ? 'ghost' : small ? '' : 'big'); // 線下白天的正事是提名、開槍，入夜退一級
+  const pend = s.st?.asks?.list.filter(a => a.kind !== 'word').length || 0, warn = pend ? `還有 ${pend} 條玩家的請求沒處理，入夜後作廢。
+` : '';
+  // 線下有撤銷，按鈕上已經寫明處決誰：直接做，不再問一遍同樣的話。
+  // 渦流在場、沒人被處決：服務端試一遍，真的會結束遊戲（渦流沒中毒）才彈「這一步會結束遊戲」，這裏不再先問一遍
+  const vortex = !nom && !block && !s.dayOver && s.seats.some(x => x.role === 'vortox' && !x.dead);
+  const sure = (s.offline && block && !s.dayOver && !nom && !pend) || (vortex && !pend && !marked.length);
+  const go = () => ctx.st('next');
+  const click = () => sure ? go() : marked.length ? markedAsk(ctx, marked, warn, go) : ask(warn + msg, go, label);
+  return B(label, click, nom ? 'ghost' : small ? '' : 'big'); // 線下白天的正事是提名、開槍，入夜退一級
+}
+function markedAsk(ctx, marked, warn, go) {
+  const s = ctx.state, names = marked.map(id => seatLabel(s, id)).join('、');
+  modal('今天還沒有處決', h('div', {},
+    h('p', { style: { whiteSpace: 'pre-wrap', marginTop: 0 } }, warn + `${names} 是標記死亡，不算處決。`),
+    h('div', { class: 'row', style: { justifyContent: 'flex-end', flexWrap: 'wrap' } },
+      h('button', { class: 'btn ghost', onclick: closeModal }, '取消'),
+      h('button', { class: 'btn ghost', onclick: () => { closeModal(); go(); } }, '照樣入夜'),
+      marked.map(id => h('button', { class: 'btn', onclick: () => { closeModal(); ctx.st('execute', { seatId: id }).then(r => r.ok && go()); } }, `處決${seatLabel(s, id)}，入夜`)))));
 }
 
 // 劇本卡的選中態不等服務器：點了就亮（到香港來回要 0.3 秒），被拒絕就退回。left 是還沒回覆的操作數：連點時中間幾步的狀態不把高亮拉回去

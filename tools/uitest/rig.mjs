@@ -83,7 +83,7 @@ if (!CHROME) { console.log('找不到 Chrome：用環境變量 CHROME 指定路�
 const slog = fs.createWriteStream(path.join(dir, 'server.log'), { flags: 'a' });
 let server = null;
 async function startServer() {
-  server = spawn(process.execPath, [path.join(HERE, 'serve.mjs')], { cwd: SNAP, stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+  server = spawn(process.execPath, [path.join(HERE, 'serve.mjs')], { cwd: SNAP, stdio: ['ignore', 'pipe', 'pipe', 'ipc'], windowsHide: true,
     env: { ...process.env, PORT: String(PORT), RATE_LIMIT: '0', DATA_DIR: DATA } });
   server.stdout.pipe(slog, { end: false }); server.stderr.pipe(slog, { end: false });
   const me = server;
@@ -111,7 +111,7 @@ await startServer();
 // ───── Chrome ─────
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${DBG}`, `--user-data-dir=${path.join(dir, 'chrome')}`, '--no-proxy-server', '--mute-audio',
   '--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
-  '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: 'ignore' });
+  '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: 'ignore', windowsHide: true }); // rig 自己沒有控制台：子進程不藏的話每起一個彈一個命令行窗口
 let ver;
 for (let i = 0; i < 80 && !ver; i++) { await sleep(250); try { ver = await (await fetch(`http://127.0.0.1:${DBG}/json/version`)).json(); } catch { /* 還沒起來 */ } }
 if (!ver) { console.log('Chrome 沒起來'); process.exit(1); }
@@ -442,7 +442,7 @@ const CMD = {
     const own = Object.fromEntries(args.map(a => [a.split('=')[0], a.slice(a.indexOf('=') + 1)]));
     const pass = args.filter(a => !['phones', 'stsize', 'phonesize', 'shot'].includes(a.split('=')[0]));
     for (const dev of Object.keys(devs)) await drop(dev); // 舊設備先斷開，舊房間沒人連著
-    const out = await new Promise(res => execFile(process.execPath, [path.join(HERE, 'preset.mjs'), SNAP, DATA, ...pass], { cwd: project, maxBuffer: 1 << 22 },
+    const out = await new Promise(res => execFile(process.execPath, [path.join(HERE, 'preset.mjs'), SNAP, DATA, ...pass], { cwd: project, maxBuffer: 1 << 22, windowsHide: true },
       (err, so, se) => res(err && !so ? { error: (se || err.message).slice(0, 1500) } : JSON.parse(so))));
     if (out.error) return '✗ ' + out.error;
     await reloadRooms();

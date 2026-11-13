@@ -17,7 +17,7 @@ const CUTS = [
 const KEEP = [[0, 2.2], [5, 6.2], [7.8, 9.3], [11, 12.2], [15, 17], [18, 19.2], [22, 24.5], [28, 31]];
 const sleep = ms => new Promise(ok => setTimeout(ok, ms));
 const tmp = mkdtempSync(join(tmpdir(), 'film-'));
-const proc = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${join(tmp, 'prof')}`, '--no-proxy-server', '--hide-scrollbars', '--window-size=1280,800', 'about:blank'], { stdio: 'ignore' });
+const proc = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${join(tmp, 'prof')}`, '--no-proxy-server', '--hide-scrollbars', '--window-size=1280,800', 'about:blank'], { stdio: 'ignore', windowsHide: true });
 let page;
 for (let i = 0; i < 40 && !page; i++) { await sleep(250); try { page = (await (await fetch(`http://127.0.0.1:${PORT}/json`)).json()).find(t => t.type === 'page'); } catch { /* 還沒起來 */ } }
 const ws = new WebSocket(page.webSocketDebuggerUrl);

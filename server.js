@@ -9,7 +9,7 @@ import qrcode from 'qrcode-generator';
 import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import * as store from './lib/store.js';
-import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, WATCH, BAD_PASS } from './lib/ops.js';
+import { applyStOp, applyPlayerAction, joinPlayer, claimSeat, keepLive, WATCH, BAD_PASS } from './lib/ops.js';
 import { scriptPayload } from './lib/script.js';
 import { viewFor } from './lib/view.js';
 import { countTick, virginTick } from './lib/day.js';
@@ -156,6 +156,7 @@ function broadcast(room) {
   room.watchers = [...new Map(list.filter(s => s.data.watch).map(s => [s.data.pid, { pid: s.data.pid, name: s.data.name }])).values()];
   for (const seat of room.seats) seat.online = !!seat.local || online.has(seat.pid) || isBot(seat) || drive.includes(seat.id); // 線下座位沒有手機，一直算在場
   guard(stats.observe)(room); // 統計出錯不能耽誤推送
+  guard(keepLive)(room); // 遊戲結束前最後推出去的局面：結束後說書人可以撤回（lib/ops.js）
   guard(sweepAsks)(room); // 計時器推進了局面（貞潔者反噬、代班說書人裁定……）：不再成立的玩家請求作廢（lib/asks.js）
   // 一個連接的狀態出錯不能拖累同房間的其他人，更不能帶走整個進程
   for (const s of list) {
@@ -260,7 +261,7 @@ io.on('connection', socket => {
     const room = store.get(socket.data.code);
     if (!room || !socket.data.st) return reply(cb, '無權限');
     if (op.op === 'close') return close(room, cb);
-    const r = applyStOp(room, op);
+    const r = applyStOp(room, op, true);
     if (typeof r !== 'string') store.acted(room);
     done(room, cb, r);
   }));

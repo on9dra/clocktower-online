@@ -1,5 +1,5 @@
 // 入口：連接、身份持久化、大廳、整體渲染
-import { h, toast, closeModal, morph, closeMenu, leaveDom } from './ui.js';
+import { h, toast, closeModal, morph, closeMenu, leaveDom, modal } from './ui.js';
 import { renderTown } from './town.js';
 import { renderSide, sideCollapsed, closeSheet, resetSide } from './side.js';
 import { syncPrompt, syncStPick, unfold } from './flow.js';
@@ -63,10 +63,40 @@ const send = (ev, data) => new Promise(res => {
   if (!online()) { refuse(); return res({ ok: false, error: OFF }); }
   sock.timeout(10000).emit(ev, data, (err, r) => done(res)(err ? { ok: false, error: SLOW } : r));
 });
+// 撤回結束：重畫前把桌上的結果字、皇冠各複製一份蓋在原處，淡出、微微上浮，底下已經是退回去的局面
+function unwindEnd() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (const el of document.querySelectorAll('.game:not(.gone) .ring > .seat .crown, .game:not(.gone) .ring > .center > *')) {
+    const r = el.getBoundingClientRect();
+    if (!r.width) continue;
+    const g = el.cloneNode(true);
+    Object.assign(g.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', margin: 0, pointerEvents: 'none', zIndex: 30 });
+    document.body.append(g);
+    g.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-8px)' }], { duration: 520, easing: 'ease-in', fill: 'forwards' });
+    setTimeout(() => g.remove(), 560);
+  }
+  // 重畫完：退回去的白天 / 夜晚按鈕等舊結果淡得差不多了再浮上來
+  setTimeout(() => { for (const el of document.querySelectorAll('.game:not(.gone) .ring > .center > *')) el.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: 260, easing: 'ease-out', fill: 'backwards' }); });
+}
+function endAsk(c, go) {
+  const good = c.team === 'good';
+  modal('這一步會結束遊戲', h('div', { class: 'end-ask' },
+    h('p', { class: 'end-ask-team ' + (good ? 'good' : 'evil') }, good ? '善良陣營獲勝' : '邪惡陣營獲勝'),
+    h('p', { class: 'end-ask-why' }, c.reason),
+    h('div', { class: 'row', style: { justifyContent: 'flex-end' } },
+      h('button', { class: 'btn ghost', onclick: closeModal }, '取消'),
+      h('button', { class: 'btn', onclick: () => { closeModal(); go(); } }, '結束遊戲'))));
+}
 export const ctx = {
   state: null, ls: LS, offset: 0,
   now: () => Date.now() + ctx.offset, // 與服務器對齊的時間（計票時鐘用）
-  st: (op, args = {}) => send('st:op', { op, ...args }),
+  // 這一步會結束遊戲（服務端試過、已經退回去，見 lib/ops.js）：先給說書人看結果和原因，點「結束遊戲」再帶 sure 重發。
+  // 回調先以「沒做」回去，等確認的按鈕不會一直鎖著
+  st: (op, args = {}) => send('st:op', { op, ...args }).then(r => {
+    if (!r.ok || !r.confirmEnd) return r;
+    endAsk(r.confirmEnd, () => send('st:op', { op, ...args, sure: true }));
+    return { ok: false };
+  }),
   act: (act, args = {}) => {
     // 說書人代入視角時只能看，不能替玩家操作
     if (ctx.state && ctx.state.peek) { toast('代入視角中只能查看'); return Promise.resolve({ ok: false }); }
@@ -319,6 +349,7 @@ sock.on('state', s => {
   ident = id;
   // 換了階段（入夜、天亮、結束）：開著的座位菜單裏還是上一個階段能做的事（提名、開槍），收掉
   if (phaseWas && phaseWas !== s.phase) closeMenu();
+  if (phaseWas === 'ended' && s.phase !== 'ended' && s.phase !== 'lobby') unwindEnd(); // 說書人撤回了結束：結果和皇冠淡出，不一下子沒了
   phaseWas = s.phase;
   chat = trimChat(s.chatReset ? s.chat : chat.concat(s.chat));
   s.chat = chat;

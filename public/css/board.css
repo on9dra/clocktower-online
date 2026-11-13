@@ -1466,3 +1466,12 @@ body.art .token.blank.named { color: #2a2622; }
 .show-deck.row .sd-cards { width: 26px; height: 35px; margin-left: 6px; }
 .show-deck.row .sd-c.top .ico { width: 15px; height: 15px; }
 .show-deck.row .sd-label { font-size: 12px; letter-spacing: 1px; }
+
+/* 這一步會結束遊戲（app.js endAsk）：結果大字，原因小字 */
+.end-ask-team { margin: 0; font: 700 24px/1.2 var(--serif); letter-spacing: .08em; }
+.end-ask-team.good { color: var(--good); }
+.end-ask-team.evil { color: var(--evil); }
+.end-ask-why { margin: 4px 0 14px; color: var(--muted); }
+/* 結束畫面的「撤回結束」：旁路小鍵 */
+.cx .undo-end { gap: 4px; }
+.cx .undo-end .ico { width: 14px; height: 14px; }

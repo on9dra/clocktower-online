@@ -26,7 +26,7 @@ const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).
 // ---------- Chrome ----------
 const CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', DBG = 9400 + Math.floor(Math.random() * 400);
 const prof = mkdtempSync(join(tmpdir(), 'enchrome-'));
-const proc = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${DBG}`, `--user-data-dir=${prof}`, '--mute-audio', '--no-proxy-server', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+const proc = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${DBG}`, `--user-data-dir=${prof}`, '--mute-audio', '--no-proxy-server', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore', windowsHide: true });
 let ver;
 for (let i = 0; i < 60 && !ver; i++) { await sleep(250); try { ver = await (await fetch(`http://127.0.0.1:${DBG}/json/version`)).json(); } catch { } }
 const ws = new WebSocket(ver.webSocketDebuggerUrl);

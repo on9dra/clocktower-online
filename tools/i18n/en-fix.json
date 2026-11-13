@@ -289,5 +289,16 @@
  "使用預選選項，下一個": "Use preset, next",
  "使用預選選項，發送": "Use preset, send",
  "使用預選選項，確定": "Use preset, confirm",
- "預選的首夜信息": "Preset first-night info"
+ "預選的首夜信息": "Preset first-night info",
+ "這一步會結束遊戲": "This will end the game",
+ "善良陣營獲勝": "Good wins",
+ "邪惡陣營獲勝": "Evil wins",
+ "結束遊戲": "End game",
+ "照樣入夜": "Go to night anyway",
+ "今天還沒有處決": "No execution yet today",
+ "{0} 是標記死亡，不算處決。": "{0} was marked dead, which is not an execution.",
+ "撤回結束": "Undo end",
+ "已撤回，遊戲繼續": "Undone, the game goes on",
+ "撤回結束，繼續遊戲": "End undone, game goes on",
+ "說書人撤回了遊戲結束，遊戲繼續": "The Storyteller undid the end of the game; play continues"
 }

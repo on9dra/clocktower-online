@@ -12,6 +12,7 @@ function entry(s, e) {
   switch (e.k) {
     case 'start': return ['div', [icon('quill'), '開局', h('small', {}, e.n, ' 人')]];
     case 'lobby': return ['div', ['回到準備']];
+    case 'unend': return ['div', [icon('reset'), '撤回結束，繼續遊戲']];
     case 'night': return ['div', [icon('moon'), `第 ${e.n} 夜`], 'night'];
     case 'day': return ['div', [icon('sun'), `第 ${e.n} 天`], 'day'];
     case 'dawn': return e.deaths?.length ? [2, [icon('skull'), e.deaths.map(id => who(s, id)), w('死亡', 'bad')]] : [0, [w('平安夜')]];
