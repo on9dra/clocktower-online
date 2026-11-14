@@ -281,8 +281,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 }
 
 /* 調試模式（測試服才有，app.js 連上後插進來）：大廳左上角，和右上角那排對齊。勾框是虛線，勾上變實線、打勾 */
-.dbg-box { position: absolute; top: 12px; left: 16px; display: inline-flex; align-items: center; gap: 7px; padding: 6px 4px; color: var(--muted); font-size: 13px; cursor: pointer;
-  animation: l-rise .4s ease backwards; transition: color .15s; }
+.dbg-boxes { position: absolute; top: 12px; left: 16px; display: grid; justify-items: start; animation: l-rise .4s ease backwards; }
+.dbg-box { display: inline-flex; align-items: center; gap: 7px; padding: 6px 4px; color: var(--muted); font-size: 13px; cursor: pointer; transition: color .15s; }
+/* 「機器人不自動選」跟在調試模式下面，勾了調試模式才滑出來 */
+.dbg-box.sub { margin-left: 14px; opacity: 0; visibility: hidden; translate: 0 -8px; transition: color .15s, opacity .2s ease, translate .2s ease, visibility .2s; }
+.dbg-box:has(input:checked) + .dbg-box.sub { opacity: 1; visibility: visible; translate: none; }
 .dbg-box:hover, .dbg-box:has(input:checked) { color: var(--ink); }
 .dbg-box input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .dbg-tick { display: inline-grid; place-items: center; flex: none; width: 15px; height: 15px; border: 1.5px dashed currentColor; border-radius: 2px; }
@@ -290,6 +293,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 :is(.dbg-box:has(input:checked), .dbg-row.on) .dbg-tick { border-style: solid; }
 :is(.dbg-box:has(input:checked), .dbg-row.on) .dbg-tick .ico { opacity: 1; transform: none; }
 .dbg-box input:focus-visible + .dbg-tick { outline: 2px solid currentColor; outline-offset: 2px; }
-.lobby.pre .dbg-box { animation-play-state: paused; }
-.lobby.off .dbg-box { animation: l-sink .32s ease-in forwards; }
-@media (prefers-reduced-motion: reduce) { .dbg-box { animation: none; } }
+.lobby.pre .dbg-boxes { animation-play-state: paused; }
+.lobby.off .dbg-boxes { animation: l-sink .32s ease-in forwards; }
+@media (prefers-reduced-motion: reduce) { .dbg-boxes { animation: none; } }
+/* 手機：第二個勾會壓到標題，標題往下讓一行（只有測試服有這兩個勾） */
+@media (max-width: 640px) { .dbg-box { padding-block: 3px; } .lobby:has(.dbg-boxes) .lobby-head { margin-top: 20px; } }

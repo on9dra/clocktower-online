@@ -1,4 +1,4 @@
-// 調試模式（測試服）：機器人、說書人換成座位身份、離席時機器人代為主持；沒開 BOTC_DEBUG 的服務器上一律沒有。
+// 機器人（哪個服務器都能加，說書人試劇本用）；調試模式（測試服）：說書人換成座位身份、離席時機器人代為主持、機器人不自動選，沒開 BOTC_DEBUG 的服務器上沒有。
 // 用法：node tests/debug.test.js
 import assert from 'assert';
 import fs from 'fs';
@@ -32,10 +32,15 @@ function started(roles) {
   return r;
 }
 
-// 機器人：只有開了調試的房間能加，按座位號起名，準備階段才能加減，不超過劇本人數
+// 機器人：按座位號起名，準備階段才能加減，不超過劇本人數
 {
+  // 沒開調試的房間也能加；單設備直接定人數，不加機器人
   const plain = store.createRoom();
-  assert.match(st(plain, 'addBots', { n: 3 }), /調試/);
+  ok(st(plain, 'addBots', { n: 3 }));
+  assert.ok(plain.seats.length === 3 && plain.seats.every(isBot));
+  ok(st(plain, 'kick', { seatId: plain.seats[0].id }));
+  assert.ok(!plain.banned?.length, '移出機器人不記名單');
+  assert.match(st(plain, 'dbgAuto', { on: false }), /調試/);
   const r = debugRoom(5);
   assert.deepStrictEqual(r.seats.map(s => s.name), ['機器人1', '機器人2', '機器人3', '機器人4', '機器人5']);
   assert.ok(r.seats.every(isBot));
@@ -68,6 +73,45 @@ function started(roles) {
   const step = r.g.step;
   assert.ok(step && ['ack', 'confirm', 'decide', 'review'].includes(step.status), '停在等說書人的那一步：' + step?.status);
   assert.strictEqual(botStep(r), false);
+}
+
+// 沒開調試的房間（正式服）：機器人照樣自己選、自己投票，說書人的活不替他做
+{
+  const r = started(['imp', 'poisoner', 'fortuneteller', 'empath', 'monk', 'chef', 'soldier']);
+  r.debug = false;
+  setPresence(r, [], true);
+  ok(nominate(r, r.seats[2], r.seats[3]));
+  assert.ok(botStep(r), '機器人投票');
+  assert.ok(Object.keys(r.nomination.votes).length > 0);
+}
+
+// 勾了「機器人不自動選」：機器人不選人、不投票，代班說書人也不替它選；說書人換成那個座位自己選了才往下走
+{
+  const r = started(['imp', 'poisoner', 'fortuneteller', 'empath', 'monk', 'chef', 'soldier']);
+  r.dbgManual = true;
+  const seat = id => r.seats.find(s => s.role === id);
+  setPresence(r, [seat('soldier').id], false); // 坐在士兵的位置上，代班說書人在主持
+  ok(st(r, 'next')); // 入夜：第一個醒的是投毒者
+  for (let k = 0; k < 20 && botStep(r);) k++;
+  let step = r.g.step;
+  assert.ok(step?.status === 'choose' && step.seatId === seat('poisoner').id, '停在投毒者選人：' + step?.roleId + ' ' + step?.status);
+  assert.strictEqual(debugInfo(r, seat('soldier').id).manual, true);
+  // 換成投毒者自己選：這一步過了，停到下一個要選人的機器人（僧侶）
+  setPresence(r, [seat('poisoner').id], false);
+  assert.strictEqual(botStep(r), false, '換過去了也不替他選');
+  ok(applyPlayerAction(r, seat('poisoner').pid, { act: 'pick', ids: autoPicks(r, step).ids }));
+  for (let k = 0; k < 20 && botStep(r);) k++;
+  step = r.g.step;
+  assert.ok(step?.status === 'choose' && step.seatId !== seat('poisoner').id, '下一個要選人的也等著：' + step?.roleId + ' ' + step?.status);
+  // 白天：機器人不投票
+  const d = started(['imp', 'poisoner', 'fortuneteller', 'empath', 'monk', 'chef', 'soldier']);
+  d.dbgManual = true;
+  setPresence(d, [], true);
+  ok(nominate(d, d.seats[2], d.seats[3]));
+  assert.strictEqual(botStep(d), false, '機器人不投票');
+  // 沒開調試的房間不認這個勾
+  d.debug = false;
+  assert.ok(botStep(d));
 }
 
 // 說書人換成小惡魔的身份（每晚都醒）：機器人不碰這個座位，其餘座位和說書人的活都由機器人做，一直打到分出勝負
@@ -181,7 +225,7 @@ const port = () => new Promise(res => { const s = net.createServer().listen(0, '
 
 let server;
 try {
-  // 正式服：大廳沒有調試模式，建房帶上 debug 也不算，沒有機器人、不能換身份
+  // 正式服：大廳沒有調試模式，建房帶上 debug、manual 也不算，不能換身份；機器人可以加，照常自己行動
   {
     const P = await port(), URL = `http://127.0.0.1:${P}`;
     server = await start(P, false);
@@ -189,12 +233,14 @@ try {
     socks.push(s);
     let told = false;
     s.on('debug', () => { told = true; });
-    const R = await call(s, 'st:create', { debug: true });
+    const R = await call(s, 'st:create', { debug: true, manual: true });
     const v = await until(s, x => x.code === R.code);
     await wait(150);
     assert.ok(!told, '正式服不亮調試模式');
     assert.strictEqual(v.debug, undefined);
-    assert.match((await call(s, 'st:op', { op: 'addBots', n: 3 })).error, /調試/);
+    const got = until(s, x => x.seats.length === 3);
+    assert.ok((await call(s, 'st:op', { op: 'addBots', n: 3 })).ok);
+    assert.ok((await got).seats.every(x => x.bot && x.online), '機器人座位帶標記、算在場');
     assert.strictEqual((await call(s, 'dbg:as', { seatId: null })).error, '無權限');
     s.close();
     server.kill();

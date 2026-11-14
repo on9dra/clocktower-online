@@ -928,6 +928,11 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .cx .frm-line { justify-content: center; font-size: 16px; }
 .cx > .row { justify-content: center; }
 /* 抽完才有內容的一塊：高度定死（名字長時偽裝佔兩行也放得下），內容出來時上面的按鈕不動。空著的時候不擋底下的座位 */
+/* 機器人補位（flow.js botConfig）：借用按鈕下面留給偽裝的那一塊，不佔自己的高度；抽完淡掉讓位 */
+.bots { position: relative; z-index: 1; display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 6px; height: 0; overflow: visible; align-self: start; transition: opacity .2s ease, visibility .2s; }
+.bots > * { flex: none; align-self: flex-start; }
+.bots select { width: auto; padding-block: 4px; font-size: 16px; }
+.lp-act:has(.lobby-after > *) .bots { opacity: 0; visibility: hidden; }
 .lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 66px; pointer-events: none; }
 /* 開始遊戲在圓桌正中間（底部會被手機瀏覽器的地址欄擋住）：一直在，開不了時淡一點，點了說原因 */
 .start-row { display: flex; justify-content: center; margin-top: 2px; }
@@ -994,6 +999,7 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
   .lp-act { gap: 4px; }
   .lobby-after { gap: 3px; }
   .lp-act .btn.big { padding: 6px 18px; }
+  .cx .bots .btn.sm { min-height: 32px; } /* 矮屏：機器人那一排也要整個在屏幕裏 */
 }
 /* 三個最長的角色名也要放得下一行：窄屏先收邊距，最窄的只留名字 */
 @media (max-width: 400px) and (orientation: portrait) { .lobby-after .bluff-pick { padding-inline: 1px; } }

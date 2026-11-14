@@ -561,7 +561,9 @@ const fitStyle = () => ({ '--bh': fit.bh + 'px', '--fh': fit.fh + 'px', '--rk': 
 function fitAround(st, ring) {
   const up = st.querySelector('.ic-body, .tb-roles'), dn = st.querySelector('.ic-foot, .tb-foot, .spread > .row');
   if (!ring || !dn || getComputedStyle(dn).position !== 'absolute') return;
-  const bh = up ? Math.ceil(up.scrollHeight) : 0, fh = Math.ceil(dn.offsetHeight);
+  // 上面那塊正在從舊高度過渡到新高度（decidewhy.js swap，動畫 id 'fit-hold'）：量到的是動畫中的框，沿用畫完時量的
+  const held = up?.getAnimations({ subtree: true }).some(a => a.id === 'fit-hold');
+  const bh = up ? (held ? fit.bh : Math.ceil(up.scrollHeight)) : 0, fh = Math.ceil(dn.offsetHeight);
   if (bh === fit.bh && fh === fit.fh) return;
   Object.assign(fit, { bh, fh });
   for (const [k, v] of Object.entries(fitStyle())) ring.style.setProperty(k, v);
@@ -1106,8 +1108,9 @@ function aimAsk(ctx, seat) {
 function seatActs(ctx, seat) {
   if (seat.local) return [];
   const title = seatLabel(ctx.state, seat.id);
-  return [{ label: [icon('key', 'menu-ico'), '換設備'], onclick: () => ctx.st('seatLink', { seatId: seat.id }).then(r => r.ok && openSeatLink(ctx, seat, title, r.token)) },
-    { label: '移出房間', danger: true, onclick: () => ask(`把 ${title} 移出房間？他不能再進來。`, () => ctx.st('kick', { seatId: seat.id }), '移出') }];
+  // 機器人的座位：發鏈接是讓真人來頂替；移出不記名單
+  return [{ label: [icon('key', 'menu-ico'), seat.bot ? '真人頂替' : '換設備'], onclick: () => ctx.st('seatLink', { seatId: seat.id }).then(r => r.ok && openSeatLink(ctx, seat, title, r.token)) },
+    { label: '移出房間', danger: true, onclick: () => ask(seat.bot ? `把 ${title} 移出房間？` : `把 ${title} 移出房間？他不能再進來。`, () => ctx.st('kick', { seatId: seat.id }), '移出') }];
 }
 // 只留別處沒有的：中毒 / 醉酒 / 紅鯡魚 / 改陣營是標記（頭像右下角的「+」），給他看身份 / 偽裝在常駐的「展示」裏
 function stMenu(ctx, seat, title) {

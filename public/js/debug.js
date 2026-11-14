@@ -1,18 +1,24 @@
 // 測試服的調試工具（服務器開了 BOTC_DEBUG 才有）：大廳左上角的「調試模式」勾選；勾上以後建的房間、回到的自己主持的房間裏，
-// 頂欄的身份換成一個按鈕——換成任意座位的身份（看到的、能做的都和那位玩家一樣）、加減機器人、自己在座位上時機器人代為主持
+// 頂欄的身份換成一個按鈕——換成任意座位的身份（看到的、能做的都和那位玩家一樣）、自己在座位上時機器人代為主持。
+// 勾了調試模式，下面再出來一個「機器人不自動選」：機器人不替人選、不投票，要換成那個座位的身份自己選了才往下走。
+// 加減機器人不在這裏：準備階段圓桌中央（flow.js botConfig），正式服也有
 import { h, menu } from './ui.js';
 import { icon, mini } from './glyph.js';
 import { ROLES } from './roles.js';
 import { unseenOf } from './hud.js';
 
-const KEY = 'botc.debug';
+const KEY = 'botc.debug', MANUAL = 'botc.debug.manual';
 export const debugWanted = ls => ls.get(KEY) === '1';
+export const manualWanted = ls => debugWanted(ls) && ls.get(MANUAL) === '1';
 export const asKey = code => 'botc.dbg.as.' + code; // 刷新、斷線重連後回到原來那個座位的身份
 
 // 大廳：服務器說了是測試服才插進來（大廳畫出來時還沒連上），從紙上蓋下來
 export function debugBox(ls) {
-  const box = h('input', { type: 'checkbox', checked: debugWanted(ls), onchange: () => ls.set(KEY, box.checked ? '1' : '0') });
-  return h('label', { class: 'dbg-box' }, box, h('i', { class: 'dbg-tick' }, icon('check')), h('span', {}, '調試模式'));
+  const tick = (key, text, cls = '') => {
+    const box = h('input', { type: 'checkbox', checked: ls.get(key) === '1', onchange: () => ls.set(key, box.checked ? '1' : '0') });
+    return h('label', { class: 'dbg-box' + cls }, box, h('i', { class: 'dbg-tick' }, icon('check')), h('span', {}, text));
+  };
+  return h('div', { class: 'dbg-boxes' }, tick(KEY, '調試模式'), tick(MANUAL, '機器人不自動選', ' sub'));
 }
 
 const who = (s, id) => {
@@ -28,10 +34,9 @@ export function debugWho(ctx) {
     h('i', { class: 'dbg-tag' }, '調試'), who(s, d.as), stWaits(d) && h('i', { class: 'dbg-ping', 'data-key': 'ping' }));
 }
 
-// 菜單：說書人、每個座位（角色，夜裏輪到誰），準備階段加減機器人，最後是代為主持的開關
+// 菜單：說書人、每個座位（角色，夜裏輪到誰），最後是代為主持的開關
 function debugMenu(ctx, anchor) {
-  const s = ctx.state, d = s.debug, n = s.seats.length, lobby = s.phase === 'lobby';
-  const bots = d.seats.filter(x => x.bot).length, add = lobby && !s.oneDevice && n < d.max;
+  const s = ctx.state, d = s.debug;
   // 死了的座位：骷髏、淡一點（代入的玩家夜裏還看不到今晚的死者，這裏是真實的）
   const dead = id => !!id && !!d.seats.find(y => y.id === id)?.dead;
   // 每個座位的狀態：死了、夜裏輪到他、舉手（亮的舉著，淡的還能舉）、幾條私密信息沒看過；說書人那行：等著處理的請求、裁定
@@ -52,10 +57,6 @@ function debugMenu(ctx, anchor) {
   menu(anchor, '切換身份', [
     { label: row(null), onclick: () => ctx.dbgAs(null) },
     ...s.seats.map(x => ({ label: row(x.id, role(x)), onclick: () => ctx.dbgAs(x.id) })),
-    '-',
-    add && { label: '加 1 個機器人', onclick: () => ctx.st('addBots', { n: 1 }) },
-    ...(add ? [5, 7, 10, 15].filter(k => k > n + 1 && k <= d.max).map(k => ({ label: `機器人坐滿 ${k} 人`, onclick: () => ctx.st('addBots', { n: k - n }) })) : []),
-    lobby && bots > 0 && { label: `移除 ${bots} 個機器人`, onclick: () => ctx.st('removeBots') },
     '-',
     { label: h('span', { class: 'dbg-row' + (d.auto ? ' on' : '') }, h('i', { class: 'dbg-tick' }, icon('check')), '離席時自動主持'),
       onclick: () => ctx.st('dbgAuto', { on: !d.auto }) },

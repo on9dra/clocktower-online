@@ -245,11 +245,12 @@ io.on('connection', socket => {
   // debug：大廳勾了調試模式（只有測試服認）
   // pid：說書人這台設備的標識（和當玩家時是同一個），後台靠它和網絡地址的摘要認出同一夥人開的局（lib/stats.js）
   const hostTag = (room, pid) => guard(stats.host)(room, badPid(pid) ? null : pid, ip);
-  socket.on('st:create', handle(({ debug, pid } = {}, cb) => {
+  socket.on('st:create', handle(({ debug, manual, pid } = {}, cb) => {
     if (!allow('create:' + ip, LIMIT.create)) { joinLog('create', null, '建房太頻繁'); return reply(cb, '建房太頻繁，請稍後再試'); }
     if (!store.makeSpace(code => socketsOf(code).length > 0)) { joinLog('create', null, '房間已滿'); return reply(cb, '房間已滿，請稍後再試'); }
     const room = store.createRoom();
     room.debug = DEBUG && !!debug;
+    room.dbgManual = room.debug && !!manual; // 還勾了「機器人不自動選」
     hostTag(room, pid);
     guard(stats.step)(badPid(pid) ? dev : pid, 'create');
     socket.data = { code: room.code, st: true };
@@ -258,13 +259,14 @@ io.on('connection', socket => {
     broadcast(room);
   }));
 
-  socket.on('st:join', handle(({ code, stKey, debug, as, pid }, cb) => {
+  socket.on('st:join', handle(({ code, stKey, debug, manual, as, pid }, cb) => {
     const room = find(code, null, cb, 'st');
     if (!room) return;
     if (room.stKey !== stKey) { miss(); joinLog('st', room, '說書人密鑰錯誤'); return reply(cb, '說書人密鑰錯誤'); }
     joinLog('st', room, null, { by: 'st' });
     hostTag(room, pid);
     room.debug = DEBUG && !!debug; // 調試模式跟著大廳的勾選走
+    room.dbgManual = room.debug && !!manual;
     socket.data = { code: room.code, st: true };
     if (room.debug && typeof as === 'string' && room.seats.some(s => s.id === as)) socket.data.as = as; // 刷新前換成的座位
     done(room, cb);

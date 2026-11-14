@@ -260,6 +260,9 @@
  "{0} 復活了。": [
   "lib/engine.js"
  ],
+ "{0} 個": [
+  "public/js/flow.js"
+ ],
  "{0} 毫秒": [
   "lib/admin-issues.js"
  ],
@@ -625,6 +628,9 @@
  ],
  "把 {0} 從{1}變成{2}": [
   "lib/night.js"
+ ],
+ "把 {0} 移出房間？": [
+  "public/js/town.js"
  ],
  "把 {0} 移出房間？他不能再進來。": [
   "public/js/town.js"
@@ -1881,6 +1887,9 @@
  "還沒輪到你": [
   "lib/engine.js"
  ],
+ "還沒有機器人": [
+  "public/js/flow.js"
+ ],
  "還沒有角色：點「隨機抽取」，或者點座位指定": [
   "public/js/flow.js"
  ],
@@ -2043,10 +2052,13 @@
  "霍爾特的復仇": [
   "public/js/community.js"
  ],
+ "機器人": [
+  "public/js/flow.js"
+ ],
  "機器人{0}": [
   "lib/debug.js"
  ],
- "機器人坐滿 {0} 人": [
+ "機器人不自動選": [
   "public/js/debug.js"
  ],
  "積分榜": [
@@ -2102,11 +2114,11 @@
   "public/js/stepcard.js",
   "public/js/trial.js"
  ],
- "加 1 個機器人": [
-  "public/js/debug.js"
- ],
  "加入房間": [
   "public/js/lobby.js"
+ ],
+ "加入機器人": [
+  "public/js/flow.js"
  ],
  "加座位": [
   "public/js/topbar.js"
@@ -5070,8 +5082,8 @@
  "移出房間": [
   "public/js/town.js"
  ],
- "移除 {0} 個機器人": [
-  "public/js/debug.js"
+ "移除機器人": [
+  "public/js/flow.js"
  ],
  "移除座位": [
   "public/js/topbar.js"
@@ -5523,6 +5535,12 @@
  ],
  "真的是這個角色": [
   "public/js/glyph.js"
+ ],
+ "真人頂替": [
+  "public/js/town.js"
+ ],
+ "真人頂替 {0}": [
+  "public/js/invite.js"
  ],
  "真實": [
   "public/js/infoform.js"

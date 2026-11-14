@@ -407,6 +407,22 @@ function startButton(ctx, due, off) {
   return h('div', { class: 'start-row' }, B([icon('play'), '開始遊戲'], go, 'big start' + (block.length ? ' blocked' : '')));
 }
 
+// 機器人補位：說書人一個人試劇本用（線上、線下多設備；單設備直接定人數）。夜裏輪到它自己選，投票隨機舉手。
+// 三樣一直在原位、不換字，不能用時變暗、點了說為什麼；借用按鈕下面留給偽裝的那一塊，抽完讓位（加減座位本來就會作廢抽取）
+function botConfig(ctx) {
+  const s = ctx.state;
+  if (s.oneDevice) return null;
+  const n = s.seats.length, max = maxOf(s), left = Math.max(0, max - n), bots = s.seats.filter(x => x.bot).length;
+  const pick = Math.min(Math.max(7 - n, 1), left);
+  const count = h('select', { 'data-keep': 'botCount', 'aria-label': '機器人' },
+    [...Array(Math.max(left, 1)).keys()].map(i => h('option', { value: i + 1, selected: i + 1 === pick || null }, `${i + 1} 個`)));
+  // 讀頁面上的那個下拉框（差量更新會保留用戶選過的值）
+  const add = () => ctx.st('addBots', { n: Number(document.querySelector('[data-keep=botCount]')?.value) || 1 });
+  return h('div', { class: 'bots' }, count,
+    BW('加入機器人', add, 'sm', left ? null : max < 15 ? `這個劇本最多 ${max} 人` : '最多 15 人'),
+    BW('移除機器人', () => ctx.st('removeBots'), 'sm ghost', bots ? null : '還沒有機器人'));
+}
+
 function lobbyPane(ctx) {
   const s = ctx.state, st = s.st, n = s.seats.length, rules = st.roleRules;
   if (!s.venue && !n) return venuePane(ctx);
@@ -441,6 +457,7 @@ function lobbyPane(ctx) {
       btns(s.oneDevice && seatCounter(ctx), !s.offline && BW('打亂座位', () => ctx.st('shuffleSeats'), 'ghost', n > 1 ? null : '至少要兩個人才能換座'), B('角色配置', () => openSetup(ctx)),
         BW('隨機抽取', () => ctx.st('draft'), '', n < 5 ? `至少要 5 人才能抽，現在 ${n} 人` : n > maxOf(s) ? `這個劇本只適合 5–${maxOf(s)} 人，現在 ${n} 人` : null)),
       // 偽裝永遠三格：小劇本人多時不在場的善良角色不夠，抽不滿的格子留成「空」，照樣能點開選；「偽裝」兩個字也能點開
+      botConfig(ctx),
       h('div', { class: 'lobby-after' }, st.draft && row(
         h('button', { class: 'bluff-pick bluff-tag', title: '指定', onclick: () => pickBluff(ctx, Math.max(0, [0, 1, 2].findIndex(i => !st.bluffs[i]))) }, tag('bluff')),
         [0, 1, 2].map(i => { const id = st.bluffs[i];

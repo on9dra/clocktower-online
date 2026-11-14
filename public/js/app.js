@@ -27,7 +27,7 @@ import { setBgm } from './bgm.js';
 import { veiled, noteArrival } from './veil.js';
 import { closePass } from './pass.js';
 import { keepAwake } from './wake.js';
-import { debugBox, debugWanted, asKey, debugKey } from './debug.js';
+import { debugBox, debugWanted, manualWanted, asKey, debugKey } from './debug.js';
 import * as diag from './diag.js';
 
 await window.boot.css; // 開屏（index.html）把樣式表掛上之後再開始畫
@@ -218,7 +218,7 @@ function resume() {
   }
   const key = LS.get('botc.st.' + code);
   // 調試模式（只有測試服認）：刷新、重連後回到原來換成的那個座位
-  if (key) return sock.emit('st:join', { code, stKey: key, pid, debug: debugWanted(LS), as: LS.get(asKey(code)) }, r => {
+  if (key) return sock.emit('st:join', { code, stKey: key, pid, debug: debugWanted(LS), manual: manualWanted(LS), as: LS.get(asKey(code)) }, r => {
     if (r.ok) return enter(code, true, inst);
     // 房號換了一個房間，本機記著的是舊房間的密鑰：丟掉，當玩家進
     if (r.error === '說書人密鑰錯誤') { LS.del('botc.st.' + code); return resume(); }
@@ -262,7 +262,7 @@ function lobby(code = params.get('room') || '') {
   }
   const create = () => {
     window.boot.more();
-    sock.emit('st:create', { pid, debug: debugWanted(LS) }, r => {
+    sock.emit('st:create', { pid, debug: debugWanted(LS), manual: manualWanted(LS) }, r => {
       if (!r.ok) return toast(r.error);
       LS.set('botc.st.' + r.code, r.stKey);
       fresh = true;
@@ -416,7 +416,7 @@ sock.on('debug', () => {
   if (debugAvail) return;
   debugAvail = true;
   const page = document.querySelector('#app > .lobby:not(.off)');
-  if (page && !page.querySelector('.dbg-box')) page.append(debugBox(LS));
+  if (page && !page.querySelector('.dbg-boxes')) page.append(debugBox(LS));
 });
 setRender(render);
 addEventListener('resize', fitTopbar); // 轉屏、改窗口：頂欄重新量一次放不放得下
