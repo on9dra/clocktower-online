@@ -393,7 +393,20 @@ sock.on('connect', () => {
 // 斷線：服務器重啓、網絡斷了，socket.io 自己重連，連上後 resume() 回到房間。自己離開房間時的斷開不算
 sock.on('disconnect', why => {
   linked = false;
-  if (why !== 'io client disconnect') syncNet(800);
+  if (why !== 'io client disconnect') syncNet(away() ? BACK : 800);
+});
+// 鎖屏、切到別的應用：頁面被系統凍住，連接跟著斷，回來兩三秒自己連上。這不算出事：
+// 回到前台馬上重連（不等退避的那幾秒），紙條多等一會兒，連不上才掛出來；這期間點了操作，照舊馬上提示
+const BACK = 6000;
+let backAt = document.hidden ? Infinity : -1e9;
+const away = () => document.hidden || performance.now() - backAt < 3000;
+document.addEventListener('visibilitychange', () => {
+  if (sock.connected) sock.emit('vis', { hidden: document.hidden }); // 後台日誌分得出「切後台斷的」和「用著用著斷的」
+  if (document.hidden) { backAt = Infinity; return; }
+  backAt = performance.now();
+  if (online()) return;
+  if (!sock.connected) sock.disconnect().connect(); // 正在退避等下一次重試的話，connect() 不會提前，先收掉再連
+  if (!slip && slipT) { clearTimeout(slipT); slipT = null; syncNet(BACK); }
 });
 // 一直沒連上（服務器起不來、網絡不通）：開屏揭開幾秒後也掛出紙條，不然點什麼都沒反應
 window.boot.out.then(() => syncNet(4000));

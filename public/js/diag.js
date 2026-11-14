@@ -105,6 +105,8 @@ function rtt(name, ms, timedOut) {
 // 盯著連接：哪些請求計時、斷線多久回來、一直連不上
 const TIMED = new Set(['st:op', 'pl:act', 'st:peek', 'dbg:as', 'st:create', 'st:join', 'pl:join', 'pl:claim', 'feedback']);
 let downAt = null, downWhy = '', tries = 0, everUp = false;
+let downBg = false, shownAt = -1e9; // 斷的時候頁面在後台、或者剛切回來（鎖屏凍住的連接，回來才發現斷了）
+document.addEventListener('visibilitychange', () => { if (!document.hidden) shownAt = performance.now(); });
 export function watchSocket(sock) {
   const emit = sock.emit.bind(sock);
   sock.emit = (ev, ...args) => {
@@ -117,11 +119,11 @@ export function watchSocket(sock) {
   sock.on('connect', () => {
     if (!everUp) { everUp = true; T.conn = performance.now(); T.tr = sock.io?.engine?.transport?.name; }
     if (downAt != null) {
-      note('net', { why: downWhy, off: Math.round(performance.now() - downAt), slip: !!document.querySelector('.net-off') });
+      note('net', { why: downWhy, off: Math.round(performance.now() - downAt), slip: !!document.querySelector('.net-off'), bg: downBg || undefined });
       downAt = null;
     }
   });
-  sock.on('disconnect', why => { if (why !== 'io client disconnect' && downAt == null) { downAt = performance.now(); downWhy = why; } });
+  sock.on('disconnect', why => { if (why !== 'io client disconnect' && downAt == null) { downAt = performance.now(); downWhy = why; downBg = document.hidden || performance.now() - shownAt < 3000; } });
   sock.on('connect_error', e => {
     tries++;
     if (!everUp && tries === 3) note('net', { why: 'connect_error ' + String(e?.message || '').slice(0, 40), off: Math.round(performance.now()), tries });
@@ -138,7 +140,7 @@ function sendBoot() {
     nav: nav ? Math.round(nav.responseStart) : undefined, dcl: nav ? Math.round(nav.domContentLoadedEventEnd) : undefined,
     css: T.css, ready: T.ready, out: T.out, conn: T.conn, tr: T.tr, gate: b.gate, go: b.go, quiet: document.documentElement.dataset.boot === 'quiet' || undefined,
     w: innerWidth, h: innerHeight, dpr: devicePixelRatio, touch: navigator.maxTouchPoints > 0, pwa: matchMedia('(display-mode: standalone)').matches,
-    lang: document.documentElement.dataset.lang, net: c?.effectiveType, mem: navigator.deviceMemory, cpu: navigator.hardwareConcurrency,
+    lang: document.documentElement.dataset.lang, wl: 'wakeLock' in navigator ? 1 : 0, net: c?.effectiveType, mem: navigator.deviceMemory, cpu: navigator.hardwareConcurrency,
   });
 }
 

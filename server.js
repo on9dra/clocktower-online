@@ -363,10 +363,13 @@ io.on('connection', socket => {
     trace.op(room, { by, kind: 'pl', o: act, before, r: err, ms: performance.now() - t0 });
   }));
 
+  // 頁面切到後台 / 回到前台（鎖屏、切應用）：之後的斷線記成「切後台」，不算網絡問題
+  let hid = false;
+  socket.on('vis', o => { hid = !!o?.hidden; });
   // why：transport close（關頁面、網斷了）/ ping timeout（網絡卡住）/ client namespace disconnect（自己離開房間）/ server shutting down（重啓）
   socket.on('disconnect', why => {
     const room = store.get(socket.data && socket.data.code);
-    trace.log({ k: 'disc', ...trace.where(room), by: room ? trace.who(room, socket.data) : undefined, why, dur: Date.now() - born, tr: socket.conn?.transport?.name, sid });
+    trace.log({ k: 'disc', ...trace.where(room), by: room ? trace.who(room, socket.data) : undefined, why, dur: Date.now() - born, tr: socket.conn?.transport?.name, sid, bg: hid || undefined });
     if (room) setTimeout(guard(() => broadcast(room)), 50);
   });
 });
