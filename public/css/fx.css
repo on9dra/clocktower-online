@@ -249,8 +249,12 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
   .infocard.ruling.corner .frm-line { flex-wrap: nowrap; margin: 0; font-size: 16px; white-space: nowrap; }
   .infocard.ruling.corner .frm-line .rn b { display: none; } /* 標題已經寫了是貞潔者 */
   .infocard.ruling.corner .btn { min-height: 40px; }
+  .infocard.ruling.corner > .reg-hint { grid-column: 2; align-self: end; } /* 上次被當作什麼：按鈕底下，和問句最後一行平齊 */
 }
 @media (max-width: 340px) { .infocard.ruling.corner .v-left .w { display: none; } } /* 最窄的手機：只留計時圖標和秒數，不鑽到「立即反噬」底下 */
+/* 最窄的手機（320）：左邊不折行的「② 間諜 提名 ④ 貞潔者」加上並排的兩個按鈕超出卡片，「無事發生」被切掉一半。
+   按鈕不疊（小窗變高會蓋住底下的審判牌）：這一行只留座位號，角色在標題和下一行已經寫著 */
+@media (max-width: 340px) and (orientation: portrait) { .infocard.ruling.corner .frm-line .rn { display: none; } }
 /* 橫屏矮：小窗在頂上排成一行（標題、誰提名誰、倒數、按鈕），審判牌在下面少讓一點高度，按鈕都留在屏幕上 */
 @media (max-height: 520px) and (orientation: landscape) {
   .town > .st-card.corner { left: 4px; right: 4px; top: 4px; width: auto; max-width: none; max-height: none; padding: 0; overflow: visible; }
@@ -313,4 +317,11 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .why-lines.brief > .why-line { text-wrap: wrap; }
 .why-line > .w { margin-inline: 2px; }
 .why-line > .w.pl { margin-left: -2px; }
+/* 隱士 / 間諜上次被當作什麼（decidewhy.js regHint）：選項下面一行淡淡的小字，只是提醒，不搶選項和結論 */
+.reg-hint { display: grid; justify-content: center; row-gap: 2px; min-width: 0; }
+.reg-hint .why-line { line-height: 20px; text-align: start; } /* 兩行（上次 / 之前）左邊對齊，整塊居中 */
+.reg-hint .w { font-size: 13px; color: var(--muted); }
+.reg-hint .rn b { font-size: 13px; font-weight: 600; color: var(--muted); }
+.reg-hint .w.rh-src { font-size: 12px; }
+.reg-hint .rh-seat { gap: 2px; }
 .nw { display: inline-flex; align-items: center; gap: inherit; white-space: nowrap; } /* 角色名和後面的（惡魔）不拆到兩行 */

@@ -609,6 +609,9 @@
  "按順序叫醒他們": [
   "public/js/town.js"
  ],
+ "按真實身份": [
+  "public/js/decidewhy.js"
+ ],
  "按住看": [
   "public/js/hud.js"
  ],
@@ -727,6 +730,9 @@
  ],
  "被刺客刺殺": [
   "lib/night.js"
+ ],
+ "被當作": [
+  "public/js/decidewhy.js"
  ],
  "被惡魔殺死": [
   "public/js/log.js"
@@ -942,6 +948,9 @@
  ],
  "不死舞會": [
   "public/js/community.js"
+ ],
+ "不算": [
+  "public/js/decidewhy.js"
  ],
  "不同陣營": [
   "public/js/fx-ab-dlc.js",
@@ -2153,7 +2162,6 @@
   "public/js/stepcard.js"
  ],
  "簡略": [
-  "public/js/decidewhy.js",
   "public/js/rolepick.js"
  ],
  "建房": [
@@ -3519,6 +3527,7 @@
   "lib/ops.js",
   "lib/rules.js",
   "lib/util.js",
+  "public/js/decidewhy.js",
   "public/js/help.js",
   "public/js/log.js",
   "public/js/manual.js",
@@ -3561,6 +3570,9 @@
   "public/js/flow.js",
   "public/js/help.js",
   "public/js/manual.js"
+ ],
+ "上次": [
+  "public/js/decidewhy.js"
  ],
  "上次沒有選人：選擇三名玩家，使其": [
   "public/js/glyph.js"
@@ -3860,8 +3872,7 @@
   "public/js/log.js"
  ],
  "說明": [
-  "public/js/about.js",
-  "public/js/decidewhy.js"
+  "public/js/about.js"
  ],
  "說書人": [
   "lib/admin-issues.js",
@@ -4608,7 +4619,6 @@
   "public/js/infofmt.js"
  ],
  "詳細": [
-  "public/js/decidewhy.js",
   "public/js/rolepick.js"
  ],
  "想把 {0} 變成{1}，但這個角色已在場，無事發生": [
@@ -4665,6 +4675,7 @@
   "lib/ops.js",
   "lib/rules.js",
   "lib/util.js",
+  "public/js/decidewhy.js",
   "public/js/help.js",
   "public/js/log.js",
   "public/js/manual.js",
@@ -5646,6 +5657,9 @@
   "public/js/hud.js"
  ],
  "之後醒來的惡魔選了人，還會再問你一次，也可以等那時再定。": [
+  "public/js/decidewhy.js"
+ ],
+ "之前": [
   "public/js/decidewhy.js"
  ],
  "之中有": [

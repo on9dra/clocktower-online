@@ -4,6 +4,7 @@
 // 不套固定句式；符號只替名詞（座位、角色），因果和連接詞都留著
 import { h, modal, closeModal } from './ui.js';
 import { seatBadge, named, w } from './glyph.js';
+import { ROLES, TEAMS } from './roles.js';
 
 // 一句說明：文字排版（不是 flex），座位號、角色跟著字一起換行，不會單獨落一行。
 // 座位號、角色牌後面緊跟著標點開頭的話（「⑤ 渦流：今晚誰死？」）：標點黏在牌上，不會折到下一行開頭
@@ -17,6 +18,28 @@ const line = (...kids) => h('div', { class: 'why-line' }, kids.flat(Infinity).fi
   return out;
 }, []));
 const roleOf = (s, id) => s.seats.find(x => x.id === id)?.role;
+
+// 隱士 / 間諜之前被當作什麼（服務端 st.regLog，lib/util.js noteReg）：只是提醒，官方規則每次都可以不一樣，這次照樣由你定。
+// 每人一行「上次」；更早有過不一樣的說法（給調查員當過投毒者、後來給共情者按真實身份），再補一行「之前」，兩種說法各在誰手上一眼看到。
+// 沒被查過的不寫
+const AS_WORD = { evil: '邪惡', good: '善良' };
+const asWord = as => (ROLES[as] ? named(as) : w(TEAMS[as]?.name || AS_WORD[as] || as));
+const regKey = r => `${r.as}|${!!r.not}`;
+// 座位號黏著後面那個詞，折行時不會單獨剩一個 ⑤ 在行尾
+const regRow = (s, id, r, lead, bare) => {
+  const src = ROLES[r.src]?.name, verb = w(r.as == null ? '按真實身份' : r.not ? '不算' : '被當作');
+  return line(w(lead), bare ? verb : h('span', { class: 'nw rh-seat' }, seatBadge(s, id), verb), r.as != null && asWord(r.as),
+    src && w(`（${src}）`, 'rh-src')); // 給了誰（「上次 / 之前」已經說了先後，不再寫第幾夜，省一行）
+};
+// bare：卡上只講這一個人（裁定卡上方已經寫著「⑤ 隱士 可以被當作惡魔」），不再重複座位號，手機上中間那張小卡少折一行
+export function regHint(s, ids, bare = false) {
+  const log = s.st?.regLog || {};
+  const rows = [...new Set(ids || [])].filter(id => log[id]?.length).flatMap(id => {
+    const list = log[id], last = list.at(-1), prev = list.slice(0, -1).reverse().find(r => regKey(r) !== regKey(last));
+    return [regRow(s, id, last, '上次', bare), prev && regRow(s, id, prev, '之前', bare)];
+  });
+  return rows.length ? h('div', { class: 'reg-hint' }, rows) : null;
+}
 
 // 說明紙的標題
 const TITLE = { hagdeaths: '麻臉巫婆變出了惡魔', starpass: '小惡魔傳位', regurgitate: '沙巴洛斯反芻', mayor: '鎮長替死', grandchild: '祖母的孫子',

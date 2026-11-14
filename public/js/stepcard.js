@@ -9,7 +9,7 @@ import { infoForm } from './infoform.js';
 import { stAbility, markMeaning } from './stside.js';
 import { seatBadge, mini, icon, named, w, tag, formula, ACTS, wakeMark, actorMark } from './glyph.js';
 import { actRow, goonLine } from './log.js';
-import { decideWhy, decideTitle, whyNote, whyLead } from './decidewhy.js';
+import { decideWhy, decideTitle, whyNote, whyLead, regHint } from './decidewhy.js';
 
 const choices = {}; // stepId -> 說書人在裁定卡上選中的選項
 // 裁定卡當前選中的：說書人點過的，沒點過就是預選的（祖母開局前預選的孫子，lib/night.js decide.pick）
@@ -323,6 +323,8 @@ function pretendCard(ctx, step) {
 const GROUP = { minioninfo: '爪牙信息', demoninfo: '惡魔信息' };
 
 // 鎮長替死、小惡魔傳位、誰醉酒、造謠 / 月之子選中誰、反芻誰……：說書人從選項裏挑一個（座位號 + 角色牌，或短詞）
+// 算不算登記由說書人定的裁定（賭徒猜的角色、月之子選的人）：選項下面提示他上次被當作什麼
+const REG_DECIDE = new Set(['gamble', 'moonreg']);
 function decideCard(ctx, step) {
   const s = ctx.state, d = step.decide, key = step.id + (d.role || d.kind);
   const cur = choiceOf(step), why = decideWhy(s, step);
@@ -345,7 +347,7 @@ function decideCard(ctx, step) {
   return h('div', { class: 'card focus infocard spread decide' },
     h('div', { class: 'ic-body' }, h('div', { class: 'ic-say' }, h('span', { class: 'frm big' }, lead)), h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
-    }, face(o)))), note),
+    }, face(o)))), REG_DECIDE.has(d.kind) && regHint(s, [d.targetId], true), note),
     h('div', { class: 'ic-top' }, actorMark(s, step), h('div', { class: 'frm big dc-pick' }, picked ? face(picked) : h('span', { class: 'sb empty' })), goonLine(s, step)),
     // 選著的正是開局前預選的（祖母的孫子）：按鈕寫明「使用預選選項」
     h('div', { class: 'ic-foot' }, BW(cur && cur === d.pick ? '使用預選選項，確定' : '確定', () => stepOp(ctx, 'decide', { choice: cur }), 'wide' + (cur ? stepLock() : ''), cur ? null : '先選一個')));

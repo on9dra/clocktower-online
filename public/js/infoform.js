@@ -14,6 +14,7 @@ import { formula, seatBadge, mini, named, evilNum, icon, w, trueMark, actorMark 
 // 鎖定（洗衣婦這類，能力正常時）：選定了「真的那一個」——點上方的選項或桌上他的座位——他的頭像套上一圈綠色的光圈，
 // 上方那一格也是綠的（town.js lockMark、show.css .lock-on），和另一名玩家的普通金色選中分開。換人時舊的光圈散開，新的收攏上去
 import { goonLine } from './log.js';
+import { regHint } from './decidewhy.js';
 import { B, BW, stepOp, stepLock } from './flow.js';
 import { mathGroups } from './mathcard.js';
 import { rolePanel } from './rolepick.js';
@@ -210,6 +211,8 @@ const tellSay = (s, step) => {
 // 寫成完整的一句、單獨一行：緊跟在「……並告知他」後面的「中毒」會被讀成「告知他中毒」
 const WHY = { poison: '該角色已「中毒」', tipsy: '該角色已「醉酒」', drunk: '他其實是「酒鬼」', puppet: '他其實是「提線木偶」', vortox: '「渦流」在場' };
 const guideTag = step => [h('div', { class: 'ic-tag say' }, guide(step.form)), step.form.why && h('div', { class: 'opt-row ic-impaired' }, WHY[step.form.why])];
+// 隱士 / 間諜能登記時，選項下面一行小字：他們上次被當作什麼（只是提醒，不鎖定）。能力不靈時答案本來就隨便給，不寫
+const regLine = (s, form) => form.alt && !form.free && regHint(s, form.regIds);
 // 「展示」整屏只放核心：數字 → 一個大數字；是否 → 大大的「是 / 否」；兩名玩家之一 → 兩個大座位號 + 角色牌；
 // 某人是什麼角色 → 他的座位號 + 角色牌；間諜 → 整本魔典。不寫句子，不寫「或」「是」，他們看得懂
 export function infoCore(form, f) {
@@ -290,7 +293,7 @@ function tableForm(ctx, step, d, foot) {
   // 能力正常時對不上的組合發不出去，寫「不合規」；中毒 / 酒鬼時發得出去，是一條錯誤信息
   const verdictWord = level < 0 ? null : level === 0 && !form.free ? '不合規' : ['錯誤', '登記', '真實'][level];
   return h('div', { class: 'card focus infocard spread tb' + (form.free ? ' free' : '') },
-    h('div', { class: 'ic-body tb-pick' }, guideTag(step), row(opts, none), sub),
+    h('div', { class: 'ic-body tb-pick' }, guideTag(step), row(opts, none), sub, regLine(s, form)),
     h('div', { class: 'ic-top' }, actorMark(s, step), goonLine(s, step),
       // 印章在紙條外面一層：手機上蓋在紙條右上角（紙條就不用給它留位置），電腦上在紙條右邊
       h('div', { class: 'tb-res' },
@@ -348,10 +351,10 @@ export function infoForm(ctx, step) {
   const top = form.kind === 'text' && slip(br < 0 ? terms : terms.slice(0, br)), bottom = form.kind !== 'text' ? slip(terms) : br >= 0 && slip(terms.slice(br + 1));
   // 上方：引導 + 要選的（數學家：成功 / 可能失效兩組和數字放在一起；間諜：整本魔典）；正中：結論；下方：按鈕。
   // 什麼都不用選（唯一答案）：引導籤掛在正中那張上
-  const pickArea = body || form.open || top;
+  const pickArea = body || form.open || top, hint = regLine(s, form);
   return h('div', { class: 'card focus infocard spread' + (form.free ? ' free' : '') },
-    pickArea && h('div', { class: 'ic-body' }, guideTag(step), form.open && mathGroups(s, form), body, top),
-    h('div', { class: 'ic-top' }, !pickArea && guideTag(step), actorMark(s, step), goonLine(s, step), bottom),
+    pickArea && h('div', { class: 'ic-body' }, guideTag(step), form.open && mathGroups(s, form), body, top, hint),
+    h('div', { class: 'ic-top' }, !pickArea && guideTag(step), actorMark(s, step), goonLine(s, step), bottom, !pickArea && hint),
     form.extra?.guesses && guessList(s, form.extra.guesses),
     h('div', { class: 'ic-foot' }, sendBtn(ctx, d, v, step)));
 }

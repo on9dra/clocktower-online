@@ -13,7 +13,7 @@ import { tr, getLang, trHas } from './lang.js';
 import { heraldHeld } from './herald.js';
 import { preDraft } from './infoform.js';
 import { showPages, bigCore } from './pass.js';
-import { rulingWhy, whyLead } from './decidewhy.js';
+import { rulingWhy, whyLead, regHint } from './decidewhy.js';
 
 // 角色那句話（glyph.js 的 say）：單數段是普通字，雙數段是關鍵詞（加粗）。中文用「」括起來直接接上；
 // 英文整句查（en-fix.json 裏以「段|段」為鍵，關鍵詞用 *…* 標出）：關鍵詞和標籤共用一個詞（「死亡」→ Dead）時，逐段翻語法不通。
@@ -251,6 +251,7 @@ export function rulingCard(ctx, r = ctx.state.st.ruling, op = 'rule') {
     rulingWho(s, r),
     r.why && row(w(r.why, 'evil'), w('能力無效', 'muted')),
     lines || (!r.forced && r.reg && row(mini(r.reg), w(REG_AS[r.kind], 'muted'))),
+    !r.forced && r.reg && regHint(s, [r.kind === 'virgin' ? r.from : r.to], true), // 隱士 / 間諜上次被當作什麼
     note];
   const acts = h('div', { class: 'row' }, left != null
     ? [h('span', { class: 'v-left' }, icon('timer'), h('b', {}, left), w('秒後反噬', 'muted')), B('立即反噬', () => ctx.st(op, { work: true }), 'sm')]
