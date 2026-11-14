@@ -80,7 +80,7 @@ app.get('/admin', (req, res) => {
   const rooms = store.all().map(r => { const p = stats.presence(r, socks); return { r, ...p, away: stats.away(r, p), mode: stats.mode(r), cold: stats.cold(r), idle: now - stats.lastSeen(r) }; })
     .sort((a, b) => (!b.cold && b.st + b.on + b.watch + b.away > 0) - (!a.cold && a.st + a.on + a.watch + a.away > 0) || a.idle - b.idle);
   res.set('Cache-Control', 'no-store').set('X-Robots-Tag', 'noindex').type('html').send(adminPage({
-    rooms, lobby: socks.filter(s => !s.data.code).length, samples: stats.read('samples', 30), visits: stats.read('visits', 30), games: stats.read('games', 30), running: stats.running() }));
+    rooms, lobby: socks.filter(s => !s.data.code).length, samples: stats.read('samples', 30), visits: stats.read('visits', 30), games: stats.read('games', 30), steps: stats.read('steps', 30), running: stats.running() }));
 });
 // /admin 下面的其他頁：密鑰不對一律 404，和上面一起限流
 function gate(req, res) {
@@ -212,6 +212,9 @@ io.on('connection', socket => {
   // 這次訪問的標識（public/js/diag.js 起的，瀏覽器報上來的事件也帶著）：後台日誌靠它把斷線、進房和前端的報錯連起來
   const sid = typeof socket.handshake.auth?.sid === 'string' && /^[\w-]{6,32}$/.test(socket.handshake.auth.sid) ? socket.handshake.auth.sid : undefined, born = Date.now();
   const joinLog = (how, room, e, extra) => trace.log({ k: 'join', how, ...(room ? trace.where(room) : {}), ok: !e, e: e ? String(e).slice(0, 60) : undefined, sid, ...extra });
+  // 留存統計：這台設備打開了頁面（lib/stats.js 的 step；設備標識只留摘要）
+  const dev = typeof socket.handshake.auth?.pid === 'string' && PID.test(socket.handshake.auth.pid) ? socket.handshake.auth.pid : null;
+  guard(stats.step)(dev, 'open');
   if (DEBUG) socket.emit('debug'); // 測試服：大廳亮出「調試模式」
   // 回覆：字符串是錯誤，對象是附帶的數據
   const reply = (cb, r) => cb && cb(typeof r === 'string' ? { ok: false, error: r } : { ok: true, ...r });
@@ -240,22 +243,27 @@ io.on('connection', socket => {
   const badPid = pid => typeof pid !== 'string' || !PID.test(pid);
 
   // debug：大廳勾了調試模式（只有測試服認）
-  socket.on('st:create', handle(({ debug } = {}, cb) => {
+  // pid：說書人這台設備的標識（和當玩家時是同一個），後台靠它和網絡地址的摘要認出同一夥人開的局（lib/stats.js）
+  const hostTag = (room, pid) => guard(stats.host)(room, badPid(pid) ? null : pid, ip);
+  socket.on('st:create', handle(({ debug, pid } = {}, cb) => {
     if (!allow('create:' + ip, LIMIT.create)) { joinLog('create', null, '建房太頻繁'); return reply(cb, '建房太頻繁，請稍後再試'); }
     if (!store.makeSpace(code => socketsOf(code).length > 0)) { joinLog('create', null, '房間已滿'); return reply(cb, '房間已滿，請稍後再試'); }
     const room = store.createRoom();
     room.debug = DEBUG && !!debug;
+    hostTag(room, pid);
+    guard(stats.step)(badPid(pid) ? dev : pid, 'create');
     socket.data = { code: room.code, st: true };
     joinLog('create', room, null, { by: 'st' });
     reply(cb, { code: room.code, stKey: room.stKey, inst: room.inst });
     broadcast(room);
   }));
 
-  socket.on('st:join', handle(({ code, stKey, debug, as }, cb) => {
+  socket.on('st:join', handle(({ code, stKey, debug, as, pid }, cb) => {
     const room = find(code, null, cb, 'st');
     if (!room) return;
     if (room.stKey !== stKey) { miss(); joinLog('st', room, '說書人密鑰錯誤'); return reply(cb, '說書人密鑰錯誤'); }
     joinLog('st', room, null, { by: 'st' });
+    hostTag(room, pid);
     room.debug = DEBUG && !!debug; // 調試模式跟著大廳的勾選走
     socket.data = { code: room.code, st: true };
     if (room.debug && typeof as === 'string' && room.seats.some(s => s.id === as)) socket.data.as = as; // 刷新前換成的座位
@@ -271,6 +279,7 @@ io.on('connection', socket => {
     if (err === BAD_PASS) miss();
     if (err !== NEED_PASS) joinLog('pl', room, err !== WATCH && err, { watch: err === WATCH ? 1 : undefined, by: room.seats.findIndex(s => s.pid === pid) + 1 || undefined }); // 有密碼的房間先用空密碼試一次，不算失敗
     if (err && err !== WATCH) return reply(cb, err);
+    guard(stats.step)(pid, 'join');
     socket.data = { code: room.code, pid, watch: err === WATCH, name: String(name ?? '').trim().slice(0, 12) || '路人' };
     done(room, cb, { watch: err === WATCH });
   }));

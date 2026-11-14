@@ -52,7 +52,7 @@ if (params.get('room') && params.get('st')) { LS.set('botc.st.' + params.get('ro
 let claimToken = params.get('seat');
 params.delete('seat');
 
-const sock = io({ auth: { sid: diag.sid } }); // sid：這次訪問的標識，後台日誌靠它把斷線、進房和前端報上來的問題連起來
+const sock = io({ auth: { sid: diag.sid, pid } }); // sid：這次訪問的標識，後台日誌靠它把斷線、進房和前端報上來的問題連起來
 diag.watchSocket(sock);
 // 診斷上報（diag.js）：每條事件帶上當時在哪——房號、第幾夜 / 天、說書人還是幾號、線上還是線下
 diag.start({
@@ -218,7 +218,7 @@ function resume() {
   }
   const key = LS.get('botc.st.' + code);
   // 調試模式（只有測試服認）：刷新、重連後回到原來換成的那個座位
-  if (key) return sock.emit('st:join', { code, stKey: key, debug: debugWanted(LS), as: LS.get(asKey(code)) }, r => {
+  if (key) return sock.emit('st:join', { code, stKey: key, pid, debug: debugWanted(LS), as: LS.get(asKey(code)) }, r => {
     if (r.ok) return enter(code, true, inst);
     // 房號換了一個房間，本機記著的是舊房間的密鑰：丟掉，當玩家進
     if (r.error === '說書人密鑰錯誤') { LS.del('botc.st.' + code); return resume(); }
@@ -262,7 +262,7 @@ function lobby(code = params.get('room') || '') {
   }
   const create = () => {
     window.boot.more();
-    sock.emit('st:create', { debug: debugWanted(LS) }, r => {
+    sock.emit('st:create', { pid, debug: debugWanted(LS) }, r => {
       if (!r.ok) return toast(r.error);
       LS.set('botc.st.' + r.code, r.stKey);
       fresh = true;

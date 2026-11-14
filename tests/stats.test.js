@@ -86,5 +86,23 @@ assert.deepStrictEqual([one.mode, one.who], ['one', []]);
 assert.deepStrictEqual([g2s.find(g => g.n === 9).mode, g2s.find(g => g.n === 10).mode], ['off', 'on']);
 assert.ok(g2s.every(g => !('manual' in g)));
 assert.strictEqual(stats.read('samples', 1).at(-1).off, 5);
+
+// 說書人的設備和網絡：只留摘要（網絡地址加鹽），跟著對局記錄走；換網絡多記一個；同一台設備當玩家時是同一個標識
+const f = setup(['chef', 'imp', 'poisoner', 'monk', 'soldier', 'saint', 'virgin', 'empath', 'mayor']);
+stats.host(f, 'host-device', '11.22.33.44'); stats.host(f, 'host-device', '11.22.33.44'); stats.host(f, null, '55.66.77.88');
+assert.ok(/^[0-9a-f]{8}$/.test(f.host.dev) && f.host.nets.length === 2);
+stats.observe(f);
+assert.strictEqual(stats.running().at(-1).dev, f.host.dev);
+endGame(f, 'good', '測試');
+stats.observe(f);
+// 留存：打開、建房、進房各記一筆，30 分鐘內同一件事不重記；沒有標識的不記
+stats.step('host-device', 'open'); stats.step('host-device', 'open'); stats.step('host-device', 'create'); stats.step('guest', 'open'); stats.step(null, 'open');
+await wait(200);
+const g9 = stats.read('games', 1).find(g => g.n === 9 && g.winner === 'good'), steps = stats.read('steps', 1);
+assert.deepStrictEqual([g9.dev, g9.net], [f.host.dev, f.host.nets]);
+assert.deepStrictEqual(steps.map(s => s.k).sort(), ['create', 'open', 'open']);
+assert.strictEqual(steps.find(s => s.k === 'create').d, g9.dev, '建房的設備和對局記錄裏的說書人對得上');
+const disk = fs.readdirSync(path.join(dir, 'stats')).filter(n => n !== 'salt').map(n => fs.readFileSync(path.join(dir, 'stats', n), 'utf8')).join('');
+assert.ok(!/11\.22\.33\.44|host-device/.test(disk + JSON.stringify(f.host)), 'IP 和設備標識不原樣落盤');
 fs.rmSync(dir, { recursive: true, force: true });
 console.log('stats tests ok');
