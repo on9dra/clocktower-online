@@ -8,9 +8,9 @@ import { getLang } from './lang.js';
 import { formula, seatBadge, mini, icon, tag, named, w, ACTS } from './glyph.js';
 
 const RES = { poison: ['投毒'], protect: ['保護', 'good'], kill: ['殺死', 'bad'], blocked: ['攻擊'], fail: ['失效', 'muted'],
-  master: ['認主'], starpass: ['自殺傳位', 'bad'], mayor: ['攻擊'], charge: ['蓄力', 'bad'], noop: ['行動'] };
+  master: ['認主'], starpass: ['自殺傳位', 'bad'], mayor: ['攻擊'], charge: ['蓄力', 'bad'], noop: ['行動'], pick: ['選中'] };
 const WHY = { protect: '被保護', soldier: '士兵免疫', mayor: '鎮長替死', dead: '已死亡', tealady: '茶藝師保護', fool: '弄臣免死', sailor: '水手免死', safe: '被保護',
-  notdemon: '不是惡魔', nottown: '不是鎮民', notgood: '不是善良', inplay: '已在場', absent: '不在場' };
+  notdemon: '不是惡魔', nottown: '不是鎮民', notgood: '不是善良', inplay: '已在場', absent: '不在場', hag: '死亡由說書人定' };
 const BENT = { poison: '中毒', drunk: '醉酒', tipsy: '醉酒', puppet: '提線木偶', vortox: '渦流在場' }; // 信息可以給錯的原因
 const DIED = { demon: '被惡魔殺死', execute: '被處決', slayer: '被獵手射殺', virgin: '提名貞潔者，被處決', starpass: '自殺傳位', manual: '說書人判定死亡' };
 const VOTE = { block: ['上處決台', 'bad'], tie: ['平票'], fail: ['票數不足', 'muted'] };
@@ -59,7 +59,7 @@ export function actRow(s, e) {
   const why = e.why && WHY[e.why];
   return glue([w(verb, k), seats, e.role && named(e.role),
     e.res === 'fail' ? then('無效', 'muted')
-      : why && (e.res === 'blocked' ? then(`但${why}`, 'good') : then(why, ['notdemon', 'nottown', 'notgood', 'inplay', 'absent'].includes(e.why) ? 'muted' : 'good')),
+      : why && (e.res === 'blocked' ? then(`但${why}`, 'good') : then(why, ['notdemon', 'nottown', 'notgood', 'inplay', 'absent', 'hag'].includes(e.why) ? 'muted' : 'good')),
     e.heir ? [then(''), seatBadge(s, e.heir), w('接任', 'bad')] : e.noHeir && then('沒有人接任', 'muted')]);
 }
 

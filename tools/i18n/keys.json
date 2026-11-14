@@ -42,14 +42,41 @@
  "：{0}號": [
   "public/js/progress.js"
  ],
+ ":超時": [
+  "public/js/diag.js"
+ ],
  "：他變成了": [
   "public/js/stepcard.js"
  ],
  "。{0} 是{1}": [
   "lib/night.js"
  ],
+ "· {0} 人": [
+  "lib/admin-issues.js"
+ ],
+ "· {0}連上": [
+  "lib/admin-issues.js"
+ ],
+ "· {0}能用": [
+  "lib/admin-issues.js"
+ ],
+ "· <span class=\"bad\">超時 {0}</span>": [
+  "lib/admin-issues.js"
+ ],
  "· 裁定中": [
   "public/js/asks.js"
+ ],
+ "· 看到了重連紙條": [
+  "lib/admin-issues.js"
+ ],
+ "· 輪詢": [
+  "lib/admin-issues.js"
+ ],
+ "· 慢的 {0}": [
+  "lib/admin-issues.js"
+ ],
+ "· 內核": [
+  "lib/trace.js"
  ],
  "· 審判中": [
   "public/js/asks.js"
@@ -63,11 +90,20 @@
  "‹ 上一頁": [
   "public/js/intro.js"
  ],
+ "‹{0}項›": [
+  "lib/trace.js"
+ ],
  "（{0} 票為平票）": [
   "public/js/flow.js"
  ],
  "（錯誤信息）": [
   "lib/engine.js"
+ ],
+ "（觀戰）": [
+  "lib/admin-issues.js"
+ ],
+ "（灰的）": [
+  "lib/admin-issues.js"
  ],
  "（可以不指定）": [
   "public/js/stepcard.js"
@@ -84,6 +120,9 @@
  ],
  "（隱士/間諜登記）": [
   "lib/engine.js"
+ ],
+ "（重啓前開始的）": [
+  "lib/admin-issues.js"
  ],
  "{0} {1} 個": [
   "public/js/manual.js"
@@ -143,8 +182,14 @@
  "{0} 對": [
   "public/js/fx-ab.js"
  ],
+ "{0} 分 {1} 秒": [
+  "lib/admin-issues.js"
+ ],
  "{0} 復活了。": [
   "lib/engine.js"
+ ],
+ "{0} 毫秒": [
+  "lib/admin-issues.js"
  ],
  "{0} 號": [
   "public/js/pass.js"
@@ -188,6 +233,9 @@
  "{0} 沒有選人。": [
   "lib/day.js"
  ],
+ "{0} 秒": [
+  "lib/admin-issues.js"
+ ],
  "{0} 名": [
   "public/js/fx-ab-dlc.js"
  ],
@@ -210,6 +258,9 @@
  ],
  "{0} 人醒": [
   "public/js/fx-ab-dlc.js"
+ ],
+ "{0} 時 {1} 分": [
+  "lib/admin-issues.js"
  ],
  "{0} 是{1}，他選擇了 {2}。": [
   "lib/day.js"
@@ -335,10 +386,20 @@
  "{0}不能選擇自己": [
   "public/js/town.js"
  ],
+ "{0}操作太頻繁</span> ×{1} {2}": [
+  "lib/admin-issues.js"
+ ],
+ "{0}打不開</span> {1} <span class=\"dim\">{2} · {3}</span>": [
+  "lib/admin-issues.js"
+ ],
+ "{0}服務器出錯</span> {1} {2} {3}{4}<details><summary class=\"dim\">調用棧</summary><pre>{5}</pre></details>": [
+  "lib/admin-issues.js"
+ ],
  "{0}攻擊 {1}，但他{2}": [
   "lib/engine.js"
  ],
  "{0}號": [
+  "lib/admin-issues.js",
   "public/js/progress.js",
   "public/js/ui.js"
  ],
@@ -353,6 +414,15 @@
  ],
  "{0}號{1}": [
   "lib/util.js"
+ ],
+ "{0}冷了</span> 停在 {1} {2} · {3} 分鐘沒人操作": [
+  "lib/admin-issues.js"
+ ],
+ "{0}連點</span> {1} 下 {2}{3}": [
+  "lib/admin-issues.js"
+ ],
+ "{0}沒載入</span> {1}": [
+  "lib/admin-issues.js"
  ],
  "{0}讓 {1} {2}": [
   "lib/engine.js"
@@ -373,6 +443,9 @@
  "{0}以為自己是哪個{1}？": [
   "public/js/setup.js"
  ],
+ "{0}用了 {1}": [
+  "lib/admin-issues.js"
+ ],
  "{0}只能以為自己是{1}": [
   "lib/setup.js"
  ],
@@ -384,6 +457,45 @@
  ],
  "← 線上 / 線下": [
   "public/js/flow.js"
+ ],
+ "<!doctype html><html lang=\"zh-Hant\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>房間 {0}</title>\n<style>\n:root{--paper:#f3ecdc;--ink:#2a2622;--muted:#2a262299;--line:#2a26221f;--red:#a3402e}\n*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 system-ui,sans-serif}\nheader{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:12px 16px;background:var(--paper);border-bottom:2px solid var(--ink)}\nheader b{font-size:18px}header button{font:inherit;background:none;border:1px solid var(--ink);color:var(--ink);padding:3px 10px;cursor:pointer}header button[aria-pressed=true]{background:var(--ink);color:var(--paper)}\nmain{padding:8px 16px 40px;overflow-x:auto}table{border-collapse:collapse;width:100%;max-width:1100px}\ntd{padding:4px 8px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap;font-variant-numeric:tabular-nums}td.wrap{white-space:normal;word-break:break-word;width:100%}\ntr.ph td{padding-top:14px;border-bottom:1px solid var(--ink)}tr.inst td{padding-top:22px;font-size:16px;font-weight:bold}tr.gm td{padding-top:12px;color:var(--muted)}\ntr.here td{background:#a3402e1a}body.only tr.n{display:none}\n.bad{color:var(--red)}.dim{color:var(--muted)}.mono{font:12px ui-monospace,Consolas,monospace}pre{font:12px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-all;margin:4px 0}\ndetails summary{cursor:pointer;font-size:12px}a{color:inherit}\n</style>\n<header><a id=\"back\">← 後台</a><b>房間 {1}</b><span class=\"dim\">{2} 條</span><button id=\"only\" aria-pressed=\"false\">只看問題</button></header>\n<main>{3}</main>\n<script>\nconst KEY = new URLSearchParams(location.search).get('key') || '', T = {4};\nconst pad = n => String(n).padStart(2, '0');\ndocument.querySelectorAll('[data-t]').forEach(td => { const d = new Date(+td.dataset.t); td.textContent = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); });\ndocument.getElementById('back').href = '/admin?key=' + encodeURIComponent(KEY);\ndocument.querySelectorAll('[data-crash]').forEach(a => a.href = '/admin/crash?key=' + encodeURIComponent(KEY) + '&f=' + encodeURIComponent(a.dataset.crash));\nconst only = document.getElementById('only'), set = on => { document.body.classList.toggle('only', on); only.setAttribute('aria-pressed', on); try { localStorage.adminOnly = on ? 1 : ''; } catch {} };\nonly.onclick = () => set(!document.body.classList.contains('only'));\ntry { set(!!localStorage.adminOnly); } catch {}\n// 帶著時刻點進來的：最近的那一行標出來、滾到中間\nlet best = null, bd = Infinity;\ndocument.querySelectorAll('tr[data-k] td[data-t]').forEach(td => { const d = Math.abs(td.dataset.t - T); if (d < bd && td.offsetParent) { bd = d; best = td.parentNode; } });\nif (best && T) { best.classList.add('here'); best.scrollIntoView({ block: 'center' }); }\n</script>": [
+  "lib/admin-issues.js"
+ ],
+ "<a href=\"#\" data-crash=\"{0}\">快照</a>": [
+  "lib/admin-issues.js"
+ ],
+ "<b>反饋</b> {0}": [
+  "lib/admin-issues.js"
+ ],
+ "<details><summary class=\"dim\">調用棧</summary><pre>{0}</pre></details>": [
+  "lib/admin-issues.js"
+ ],
+ "<p class=\"dim\">這段時間沒有記錄</p>": [
+  "lib/admin-issues.js"
+ ],
+ "<span class=\"bad\">{0} 毫秒</span>": [
+  "lib/admin-issues.js"
+ ],
+ "<span class=\"dim\">（先問要不要結束）</span>": [
+  "lib/admin-issues.js"
+ ],
+ "<span class=\"dim\">{0} · 待了 {1}</span>": [
+  "lib/admin-issues.js"
+ ],
+ "<span class=\"dim\">操作 {0} 次{1}{2}</span>": [
+  "lib/admin-issues.js"
+ ],
+ "<span class=\"dim\">打開 · {0} · {1} · {2}×{3}{4}{5}</span>": [
+  "lib/admin-issues.js"
+ ],
+ "<span class=\"dim\">斷線 · {0} · 連了 {1}{2}</span> <span class=\"dim mono\">{3}</span>": [
+  "lib/admin-issues.js"
+ ],
+ "<tr class=\"gm\"><td colspan=\"3\">一局 <span class=\"mono dim\">{0}</span> {1}</td></tr>": [
+  "lib/admin-issues.js"
+ ],
+ "<tr class=\"inst\"><td colspan=\"3\">房間 {0} <span class=\"mono dim\">{1}</span></td></tr>": [
+  "lib/admin-issues.js"
  ],
  "3 本官方，或上傳 Json": [
   "public/js/help.js"
@@ -463,6 +575,9 @@
  ],
  "白天結束時處決；平票就沒人處決": [
   "public/js/help.js"
+ ],
+ "百度": [
+  "lib/trace.js"
  ],
  "百無禁忌": [
   "public/js/community.js"
@@ -616,6 +731,7 @@
   "lib/engine.js"
  ],
  "標記": [
+  "lib/admin-issues.js",
   "public/js/topbar.js"
  ],
  "標記死亡": [
@@ -764,6 +880,7 @@
   "public/js/glyph.js"
  ],
  "裁定": [
+  "lib/admin-issues.js",
   "public/js/flow.js"
  ],
  "裁定中": [
@@ -824,6 +941,9 @@
  ],
  "撤銷：{0}": [
   "public/js/topbar.js"
+ ],
+ "撤銷了 {0}": [
+  "lib/admin-issues.js"
  ],
  "成功": [
   "public/js/mathcard.js"
@@ -917,6 +1037,7 @@
   "public/js/help.js"
  ],
  "打開": [
+  "lib/issues.js",
   "public/js/settings.js"
  ],
  "打開聲音": [
@@ -1081,6 +1202,15 @@
   "public/js/help.js",
   "public/js/intro.js"
  ],
+ "第{0}天": [
+  "lib/admin-issues.js"
+ ],
+ "第{0}天天亮": [
+  "lib/admin-issues.js"
+ ],
+ "第{0}夜": [
+  "lib/admin-issues.js"
+ ],
  "第{0}頁": [
   "public/js/help.js"
  ],
@@ -1132,6 +1262,9 @@
  "調試模式": [
   "public/js/debug.js"
  ],
+ "釘釘": [
+  "lib/trace.js"
+ ],
  "頂欄，一步步往回退": [
   "public/js/help.js"
  ],
@@ -1143,6 +1276,9 @@
  ],
  "賭徒猜錯": [
   "lib/night.js"
+ ],
+ "斷線 {0} 後回來 <span class=\"dim\">{1}{2}</span>": [
+  "lib/admin-issues.js"
  ],
  "對": [
   "public/js/infofmt.js",
@@ -1324,6 +1460,9 @@
  "房間已解散": [
   "public/js/app.js"
  ],
+ "房間已滿": [
+  "server.js"
+ ],
  "房間已滿，請稍後再試": [
   "server.js"
  ],
@@ -1382,8 +1521,17 @@
  "否": [
   "public/js/pass.js"
  ],
+ "服務器": [
+  "lib/issues.js"
+ ],
  "服務器出錯：": [
   "server.js"
+ ],
+ "服務器斷開": [
+  "lib/admin-issues.js"
+ ],
+ "服務器重啓": [
+  "lib/admin-issues.js"
  ],
  "附": [
   "public/js/help.js"
@@ -1458,6 +1606,9 @@
  ],
  "格林合唱團": [
   "public/js/community.js"
+ ],
+ "格式不對": [
+  "lib/trace.js"
  ],
  "個": [
   "public/js/infofmt.js"
@@ -1552,11 +1703,17 @@
   "public/js/rolepick.js",
   "public/js/ui.js"
  ],
+ "關頁面 / 網斷了": [
+  "lib/admin-issues.js"
+ ],
  "關於": [
   "public/js/lobby.js"
  ],
  "觀戰": [
   "public/js/topbar.js"
+ ],
+ "觀眾": [
+  "lib/admin-issues.js"
  ],
  "觀眾席": [
   "public/js/town.js"
@@ -1623,6 +1780,9 @@
  "好月升起": [
   "public/js/community.js"
  ],
+ "號": [
+  "lib/admin-issues.js"
+ ],
  "和": [
   "public/js/help.js",
   "public/js/infofmt.js",
@@ -1678,6 +1838,12 @@
  "互認": [
   "public/js/help.js",
   "public/js/topbar.js"
+ ],
+ "華為瀏覽器": [
+  "lib/trace.js"
+ ],
+ "畫出來": [
+  "lib/issues.js"
  ],
  "換不了": [
   "lib/ops.js"
@@ -1819,10 +1985,17 @@
   "public/js/flow.js"
  ],
  "假裝叫醒": [
+  "lib/admin-issues.js",
   "public/js/stepcard.js"
  ],
  "簡略": [
   "public/js/rolepick.js"
+ ],
+ "建房": [
+  "lib/admin-issues.js"
+ ],
+ "建房太頻繁": [
+  "server.js"
  ],
  "建房太頻繁，請稍後再試": [
   "server.js"
@@ -1924,6 +2097,9 @@
  ],
  "接任惡魔": [
   "public/js/flow.js"
+ ],
+ "結束": [
+  "lib/admin-issues.js"
  ],
  "結束白天": [
   "public/js/help.js"
@@ -2054,6 +2230,12 @@
  "僅剩三人且無人被處決，鎮長獲勝": [
   "lib/day.js"
  ],
+ "進房": [
+  "lib/admin-issues.js"
+ ],
+ "進了房間": [
+  "lib/issues.js"
+ ],
  "進入大廳": [
   "public/js/intro.js"
  ],
@@ -2093,10 +2275,14 @@
  "劇本下載失敗，再試一次": [
   "public/js/manual.js"
  ],
+ "卡頓 {0} 次，最長 {1} 毫秒": [
+  "lib/admin-issues.js"
+ ],
  "卡在圓桌中央；結果唯一時只有一個按鈕": [
   "public/js/help.js"
  ],
  "開局": [
+  "lib/issues.js",
   "public/js/fx.js",
   "public/js/gamelog.js",
   "public/js/help.js",
@@ -2131,6 +2317,9 @@
  "看": [
   "public/js/pass.js",
   "public/js/stepcard.js"
+ ],
+ "看到結局": [
+  "lib/issues.js"
  ],
  "看手機": [
   "public/js/stepcard.js"
@@ -2208,6 +2397,9 @@
  "口無遮攔": [
   "public/js/community.js"
  ],
+ "夸克": [
+  "lib/trace.js"
+ ],
  "快速、簡約、精美的線上魔典": [
   "public/js/about.js",
   "public/js/lobby.js"
@@ -2215,10 +2407,14 @@
  "快速上手": [
   "public/js/manual.js"
  ],
+ "快照寫盤出錯": [
+  "lib/trace.js"
+ ],
  "來源：": [
   "public/js/town.js"
  ],
  "離開": [
+  "lib/admin-issues.js",
   "public/js/topbar.js"
  ],
  "離開房間": [
@@ -2272,6 +2468,9 @@
  ],
  "例如：你得知 3 號是廚師": [
   "public/js/town.js"
+ ],
+ "連接出錯": [
+  "lib/admin-issues.js"
  ],
  "連接中": [
   "public/js/app.js"
@@ -2769,6 +2968,9 @@
  "其實是：": [
   "public/js/town.js"
  ],
+ "其他": [
+  "lib/trace.js"
+ ],
  "其他爪牙：{0}": [
   "lib/night.js"
  ],
@@ -2790,6 +2992,15 @@
  ],
  "牽線搭橋": [
   "public/js/community.js"
+ ],
+ "前端": [
+  "lib/issues.js"
+ ],
+ "前端出錯": [
+  "lib/admin-issues.js"
+ ],
+ "切到後台": [
+  "lib/admin-issues.js"
  ],
  "切換身份": [
   "public/js/debug.js"
@@ -2971,10 +3182,14 @@
   "public/js/pass.js"
  ],
  "確認": [
+  "lib/admin-issues.js",
   "public/js/flow.js",
   "public/js/herald.js",
   "public/js/intro.js",
   "public/js/stepcard.js"
+ ],
+ "確認結果": [
+  "lib/admin-issues.js"
  ],
  "確認開局": [
   "public/js/help.js"
@@ -3023,6 +3238,9 @@
  "日誌": [
   "public/js/side.js"
  ],
+ "日誌寫盤出錯": [
+  "lib/trace.js"
+ ],
  "入夜": [
   "public/js/flow.js",
   "public/js/progress.js"
@@ -3039,6 +3257,9 @@
  ],
  "三": [
   "public/js/stepcard.js"
+ ],
+ "三星瀏覽器": [
+  "lib/trace.js"
  ],
  "掃碼入座": [
   "public/js/intro.js"
@@ -3087,6 +3308,9 @@
  ],
  "善良角色": [
   "public/js/roles.js"
+ ],
+ "善良勝": [
+  "lib/admin-issues.js"
  ],
  "善良陣營獲勝": [
   "public/js/app.js"
@@ -3242,6 +3466,9 @@
   "public/js/pass.js",
   "public/js/stepcard.js"
  ],
+ "是惡魔選的。今晚誰死？": [
+  "lib/night.js"
+ ],
  "是弄臣（首次死亡不死）": [
   "lib/rules.js"
  ],
@@ -3295,6 +3522,9 @@
  ],
  "署名": [
   "public/js/about.js"
+ ],
+ "數據壞了": [
+  "lib/admin-issues.js"
  ],
  "豎屏": [
   "public/js/pass.js"
@@ -3351,6 +3581,7 @@
   "public/js/about.js"
  ],
  "說書人": [
+  "lib/admin-issues.js",
   "lib/ops.js",
   "lib/util.js",
   "public/js/debug.js",
@@ -3361,6 +3592,9 @@
   "public/js/side.js",
   "public/js/topbar.js",
   "public/js/town.js"
+ ],
+ "說書人→{0}號": [
+  "lib/admin-issues.js"
  ],
  "說書人把 {0} 從{1}改為{2}": [
   "lib/setup.js"
@@ -3391,6 +3625,9 @@
  ],
  "說書人更正了你的角色：你是【{0}】（{1}）：{2}": [
   "lib/setup.js"
+ ],
+ "說書人回房": [
+  "lib/admin-issues.js"
  ],
  "說書人解除了 {0} 的{1}": [
   "lib/manual.js"
@@ -3506,6 +3743,9 @@
  "死亡玩家不能提名": [
   "lib/day.js"
  ],
+ "死亡由說書人定": [
+  "public/js/log.js"
+ ],
  "死因未卜": [
   "public/js/community.js"
  ],
@@ -3514,6 +3754,9 @@
  ],
  "四": [
   "public/js/stepcard.js"
+ ],
+ "搜狗": [
+  "lib/trace.js"
  ],
  "搜索劇本名、作者": [
   "public/js/manual.js"
@@ -3666,6 +3909,9 @@
   "public/js/asks.js",
   "public/js/town.js"
  ],
+ "提示「{0}」": [
+  "lib/admin-issues.js"
+ ],
  "替死、三人勝": [
   "public/js/help.js"
  ],
@@ -3693,8 +3939,12 @@
   "lib/engine.js"
  ],
  "天亮前確認": [
+  "lib/admin-issues.js",
   "lib/engine.js",
   "lib/night.js"
+ ],
+ "天亮確認": [
+  "lib/admin-issues.js"
  ],
  "天堂之門": [
   "public/js/community.js"
@@ -3760,15 +4010,13 @@
  "推進": [
   "public/js/topbar.js"
  ],
- "推送狀態出錯": [
-  "server.js"
- ],
  "完成": [
   "public/js/flow.js",
   "public/js/infoform.js",
   "public/js/setup.js"
  ],
  "玩家": [
+  "lib/admin-issues.js",
   "public/js/lobby.js",
   "public/js/scores.js"
  ],
@@ -3800,6 +4048,15 @@
  "網絡不通，請稍後再試": [
   "public/js/app.js"
  ],
+ "網絡卡住": [
+  "lib/admin-issues.js"
+ ],
+ "微博": [
+  "lib/trace.js"
+ ],
+ "微信": [
+  "lib/trace.js"
+ ],
  "偽裝": [
   "public/js/fx-ab.js",
   "public/js/glyph.js",
@@ -3815,17 +4072,14 @@
  "未表態": [
   "public/js/trial.js"
  ],
- "未捕獲的錯誤": [
-  "server.js"
- ],
- "未處理的 Promise 拒絕": [
-  "server.js"
- ],
  "未分類": [
   "public/js/manual.js"
  ],
  "未加入房間": [
   "server.js"
+ ],
+ "未入座": [
+  "lib/admin-issues.js"
  ],
  "未設": [
   "public/js/flow.js"
@@ -3999,6 +4253,7 @@
   "lib/engine.js"
  ],
  "線上": [
+  "lib/admin-issues.js",
   "public/js/flow.js"
  ],
  "線上魔典": [
@@ -4011,6 +4266,12 @@
  ],
  "線下 · 單設備": [
   "public/js/topbar.js"
+ ],
+ "線下·單設備": [
+  "lib/admin-issues.js"
+ ],
+ "線下·多設備": [
+  "lib/admin-issues.js"
  ],
  "線下局當面舉手，說書人會記下": [
   "lib/ops.js"
@@ -4062,6 +4323,9 @@
  "小紅書": [
   "public/js/author.js"
  ],
+ "小米瀏覽器": [
+  "lib/trace.js"
+ ],
  "小心陷阱": [
   "public/js/help.js"
  ],
@@ -4091,6 +4355,9 @@
   "public/js/log.js",
   "public/js/topbar.js",
   "public/js/town.js"
+ ],
+ "邪惡勝": [
+  "lib/admin-issues.js"
  ],
  "邪惡陣營獲勝": [
   "public/js/app.js"
@@ -4204,6 +4471,9 @@
  "選了 {0}，他已經死亡": [
   "lib/night.js"
  ],
+ "選了 {0}（今晚的死亡由說書人決定）": [
+  "lib/night.js"
+ ],
  "選了{0}": [
   "lib/night.js"
  ],
@@ -4211,6 +4481,7 @@
   "lib/night.js"
  ],
  "選人": [
+  "lib/admin-issues.js",
   "public/js/stepcard.js",
   "public/js/topbar.js"
  ],
@@ -4373,7 +4644,8 @@
   "lib/engine.js"
  ],
  "選中": [
-  "lib/night.js"
+  "lib/night.js",
+  "public/js/log.js"
  ],
  "選中惡魔 {0}，惡魔今晚不行動": [
   "lib/night.js"
@@ -4416,6 +4688,12 @@
  ],
  "延長線": [
   "public/js/community.js"
+ ],
+ "演出": [
+  "lib/issues.js"
+ ],
+ "演出出錯": [
+  "lib/admin-issues.js"
  ],
  "演示頁不能寄出": [
   "public/js/about.js"
@@ -4603,6 +4881,9 @@
  ],
  "用掉死亡票": [
   "public/js/trial.js"
+ ],
+ "用重連鏈接": [
+  "lib/admin-issues.js"
  ],
  "幽靈釀造": [
   "public/js/community.js"
@@ -5153,6 +5434,7 @@
   "public/js/fx-ab.js"
  ],
  "準備": [
+  "lib/admin-issues.js",
   "public/js/help.js",
   "public/js/town.js"
  ],
@@ -5204,6 +5486,9 @@
  ],
  "自己記、自己判": [
   "public/js/intro.js"
+ ],
+ "自己離開": [
+  "lib/admin-issues.js"
  ],
  "自己寫一個": [
   "public/js/manual.js"
@@ -5306,6 +5591,9 @@
  "座位上已經有人了": [
   "lib/ops.js"
  ],
+ "const KEY = new URLSearchParams(location.search).get('key') || '';\nconst STEPS = {0};\nconst q = (p, o) => p + '?' + new URLSearchParams({ key: KEY, ...o });\nconst roomA = (r, t, i) => r ? '<a href=\"' + q('/admin/room', { r, t: t || '', ...(i ? { i } : {}) }) + '\">' + r + '</a>' : '';\nconst secs = ms => ms == null ? '–' : ms === Infinity ? '更久' : ms < 1000 ? Math.round(ms) + ' 毫秒' : ms < 60000 ? (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' 秒' : Math.floor(ms / 60000) + ' 分 ' + Math.round(ms % 60000 / 1000) + ' 秒';\nconst when = t => md(t) + ' ' + hm(t);\nconst AT = { lobby: '準備', ended: '結束', night: '夜裏', day: '白天', dawn: '天亮' };\nconst spread = (list, name = x => esc(x)) => list.length === 1 ? name(list[0][0]) : list.map(([k, n]) => name(k) + '（' + n + '）').join('<br>');\nconst atName = a => { const m = String(a || '').match(/^(night|day|dawn)(d+)$/); return m ? (m[1] === 'night' ? '第' + m[2] + '夜' : m[1] === 'dawn' ? '第' + m[2] + '天天亮' : '第' + m[2] + '天') : AT[a] || a || ''; };\nconst ST = { choose: '選人', decide: '裁定', ack: '確認結果', confirm: '確認', mark: '標記', review: '天亮確認', fake: '假裝叫醒' };\nconst WHY = { 'transport close': '關頁面 / 網斷了', 'ping timeout': '網絡卡住', 'transport error': '連接出錯', 'server shutting down': '服務器重啓', 'server namespace disconnect': '服務器斷開', 'parse error': '數據壞了' };\nconst HOW = { create: '建房', st: '說書人回房', pl: '玩家進房', claim: '重連鏈接' };\nconst FAIL = { old: '瀏覽器太舊', load: '沒有載入完成' };\nconst modeName = m => D.modes[m] ? '<span style=\"color:' + D.modes[m][1] + '\">' + D.modes[m][0] + '</span>' : esc(m || '');\nconst byName = b => b == null ? '' : b === 'st' ? '說書人' : b === 'w' ? '觀眾' : b === '-' ? '未入座' : String(b).startsWith('st>') ? '說書人→' + String(b).slice(3) + '號' : b + '號';\nconst pctOf = (a, b) => b ? Math.round(a / b * 100) + '%' : '–';\nconst table = (head, rows, cls) => rows.length ? '<div class=\"scroll\"><table' + (cls ? ' class=\"' + cls + '\"' : '') + '><tr>' + head.map(h => '<th>' + h + '</th>').join('') + '</tr>' + rows.join('') + '</table></div>' : '';\nconst sec = (id, title, n, body) => body ? '<h2 id=\"' + id + '\">' + title + (n != null ? '<b>' + n + '</b>' : '') + '</h2>' + body : '';\nconst sum = a => a.reduce((n, x) => n + x.n, 0);\n// 點一行展開下面的明細（例子、調用棧、房間鏈接），再點收起\nconst more = (cells, detail, cls = '') => '<tr class=\"more ' + cls + '\">' + cells.map(c => '<td' + (c && c.wrap ? ' class=\"wrap\"' : '') + '>' + (c && c.wrap ? c.wrap : c ?? '') + '</td>').join('') + '</tr><tr class=\"det\" hidden><td colspan=\"' + cells.length + '\">' + detail + '</td></tr>';\nconst W = s => ({ wrap: s });\n\nlet issCache = {}, issSeq = 0;\nasync function drawIssues(force) {\n  const d = range, box = $('#iss');\n  if (!issCache[d] || force) {\n    const seq = ++issSeq;\n    box.style.opacity = .35;\n    try { const r = await fetch(q('/admin/issues', { days: d })); if (!r.ok) throw 0; issCache[d] = await r.json(); }\n    catch { if (seq === issSeq) { box.style.opacity = ''; box.innerHTML = '<p class=\"dim\">讀不到</p>'; } return; }\n    if (seq !== issSeq || d !== range) return;\n  }\n  box.style.opacity = '';\n  renderIssues(issCache[d]);\n  setTimeout(fit);\n}\n\nfunction renderIssues(I) {\n  const k = I.kpi;\n  $('#ik').innerHTML = [[k.srv, '服務器錯誤', 's-err'], [k.cli, '前端錯誤', 's-err'], [k.fail, '打不開', 's-fail'], [k.refused, '被拒的操作', 's-ref'], [k.disc, '斷線', 's-net'], [k.rage, '連點', 's-rage'], [k.fb, '反饋', 's-fb']]\n    .map(([v, name, id]) => '<a data-go=\"' + id + '\" class=\"' + (v ? '' : 'zero') + '\"><b>' + v + '</b><span>' + name + '</span></a>').join('');\n  const out = [];\n  // 錯誤：同一類（去掉數字、引號裏的名字，加上第一個出錯位置）歸一行；只在舊版本出現過的淡一些（多半已經修了）\n  out.push(sec('s-err', '錯誤', I.errors.length ? sum(I.errors) : null, table(['次數', '人', '位置', '錯誤', '瀏覽器', '最近'], I.errors.map(g => {\n    const old = g.builds.length && !g.builds.includes(I.build);\n    const side = g.side === '服務器' ? 's' : g.side === '演出' ? 'f' : 'c';\n    const det = g.samples.slice().reverse().map(x => '<div class=\"smp\"><span class=\"dim\">' + when(x.t) + '</span> ' + roomA(x.r, x.t, x.i) + ' ' + atName(x.at) + ' ' + byName(x.by ?? (x.st ? 'st' : x.seat))\n      + (x.op ? ' <span class=\"mono\">' + esc(x.op) + '</span>' : '') + (x.w ? ' <span class=\"dim\">' + esc(x.w) + '</span>' : '') + (x.br ? ' <span class=\"dim\">' + esc(x.br + ' · ' + (x.os || '')) + '</span>' : '')\n      + (x.snap ? ' <a href=\"' + q('/admin/crash', { f: x.snap }) + '\">快照</a>' : '') + (x.build ? ' <span class=\"dim mono\">' + esc(x.build) + '</span>' : '')\n      + '<pre>' + esc(x.msg) + (x.src ? '\n' + esc(x.src) : '') + (x.stack ? '\n' + esc(x.stack) : '') + '</pre></div>').join('');\n    return more([g.n, g.who, '<span class=\"side ' + side + '\">' + g.side + '</span><span class=\"mono\">' + esc(g.at) + '</span>', W(esc(g.msg)), W(spread(g.br)), ago(I.now - g.last)], det, old ? 'old' : '');\n  }))));\n  out.push(sec('s-fb', '反饋', I.feedback.length || null, table(['時間', '房間', '內容', '聯繫'], I.feedback.map(f => '<tr><td>' + when(f.t) + '</td><td>' + roomA(f.r, f.t) + '</td><td class=\"wrap\">' + esc(f.text) + '</td><td class=\"wrap\">' + esc(f.contact) + '</td></tr>'))));\n  out.push(sec('s-fail', '打不開', (sum(I.fails) + sum(I.res)) || null, table(['次數', '原因', '瀏覽器'], I.fails.map(x => '<tr><td>' + x.n + '</td><td>' + (FAIL[x.why] || esc(x.why)) + '</td><td>' + esc(x.br) + '</td></tr>'))\n    + table(['次數', '沒載入的文件', '瀏覽器'], I.res.map(x => '<tr><td>' + x.n + '</td><td class=\"mono\">' + esc(x.url) + '</td><td>' + esc(x.br) + '</td></tr>'))));\n  // 被拒的操作：點了，服務器說不行。佔比高的多半是界面讓人以為能點\n  out.push(sec('s-ref', '被拒的操作', I.refused.length ? sum(I.refused) : null, table(['次數', '佔這個操作', '操作', '原因', '說書人點的', '在哪', '模式', '房間'], I.refused.map(g => more([g.n, pctOf(g.n, g.total), '<span class=\"mono\">' + esc(g.op) + '</span>', W(esc(g.e)), pctOf(g.st, g.n),\n    spread(g.ats, a => AT[a] || esc(a)), spread(g.md, modeName), g.rooms],\n    g.samples.slice().reverse().map(x => '<div class=\"smp\"><span class=\"dim\">' + when(x.t) + '</span> ' + roomA(x.r, x.t, x.i) + ' ' + atName(x.at) + ' ' + byName(x.by) + (x.a ? ' <span class=\"mono dim\">' + esc(JSON.stringify(x.a)) + '</span>' : '') + '</div>').join(''))))));\n  out.push(sec('s-join', '進不了房間', I.joins.length ? sum(I.joins) : null, table(['次數', '怎麼進', '原因'], I.joins.map(x => '<tr><td>' + x.n + '</td><td>' + (HOW[x.how] || esc(x.how)) + '</td><td>' + esc(x.e) + '</td></tr>'))));\n  // 連點：700 毫秒內在同一處點了三下以上。點的是灰按鈕的另算（灰的）\n  out.push(sec('s-rage', '連點', I.rage.length ? sum(I.rage) : null, table(['次數', '人', '點的是', '在哪', '灰的'], I.rage.map(x => '<tr><td>' + x.n + '</td><td>' + x.who + '</td><td class=\"mono wrap\">' + esc(x.sel) + '</td><td>' + spread(x.ats, a => AT[a] || esc(a)) + '</td><td>' + (x.dis || '') + '</td></tr>'))));\n  out.push(sec('s-toast', '彈出的提示', I.toast.length ? sum(I.toast) : null, table(['次數', '人', '提示'], I.toast.map(x => '<tr><td>' + x.n + '</td><td>' + x.who + '</td><td class=\"wrap\">' + esc(x.text) + '</td></tr>'))));\n  // 夜裏每一步停了多久：按 90% 的局要多久排，最慢的在上面\n  out.push(sec('s-step', '夜裏每一步', I.steps.length ? sum(I.steps) : null, table(['模式', '這一步', '次數', '中位', '90%', '最久', '中位停在'], I.steps.slice(0, 30).map(x => '<tr><td>' + modeName(x.md) + '</td><td>' + esc(STEPS[x.role] || x.role) + '</td><td>' + x.n + '</td><td>' + secs(x.p50) + '</td><td>' + secs(x.p90) + '</td><td>' + secs(x.max) + '</td><td class=\"wrap dim\">'\n    + Object.entries(x.d).sort((a, b) => b[1] - a[1]).map(([s, v]) => (ST[s] || esc(s)) + ' ' + secs(v)).join(' · ') + '</td></tr>'))));\n  out.push(sec('s-cold', '散局', (sum(I.cold) + sum(I.abandon)) || null, table(['模式', '怎麼散的', '在哪', '這一步', '次數'], [...I.cold.map(x => ({ ...x, how: '沒人操作了' })), ...I.abandon.map(x => ({ ...x, how: '說書人放棄' }))].sort((a, b) => b.n - a.n)\n    .map(x => '<tr><td>' + modeName(x.md) + '</td><td>' + x.how + '</td><td>' + atName(x.at) + '</td><td>' + esc(STEPS[x.role] || x.role || '') + '</td><td>' + x.n + '</td></tr>'))));\n  out.push(sec('s-undo', '撤銷', I.undo.length ? sum(I.undo) : null, table(['模式', '撤銷的操作', '次數'], I.undo.map(x => '<tr><td>' + modeName(x.md) + '</td><td class=\"mono\">' + esc(x.u) + '</td><td>' + x.n + '</td></tr>'))));\n  const N = I.net, b = N.boot, mini = items => '<div class=\"mini\">' + items.filter(([v]) => v !== '–' && v !== '≤ –').map(([v, k]) => '<div><b>' + v + '</b><span>' + k + '</span></div>').join('') + '</div>';\n  out.push(sec('s-net', '網絡和載入', null, mini([['≤ ' + secs(N.rtt.p50), '操作來回 · 中位'], ['≤ ' + secs(N.rtt.p95), '操作來回 · 95%'], [N.rtt.to, '操作超時'],\n    [secs(N.off.p50), '斷線到回來 · 中位'], [secs(N.off.p90), '斷線到回來 · 90%'], [secs(b.ready.p50), '打開到能用 · 中位'], [secs(b.ready.p90), '打開到能用 · 90%'], [secs(b.conn.p50), '連上服務器 · 中位'], [N.jank.who || '–', '卡頓過的人'], [N.jank.max ? secs(N.jank.max) : '–', '最長一次卡頓']])\n    + table(['斷線原因', '次數'], N.disc.map(([w, n]) => '<tr><td>' + (WHY[w] || esc(w)) + '</td><td>' + n + '</td></tr>'))\n    + table(['斷線時走的', '次數'], N.tr.map(([w, n]) => '<tr><td>' + (w === 'polling' ? '輪詢（websocket 不通）' : esc(w)) + '</td><td>' + n + '</td></tr>'))\n    + table(['慢操作（服務器 ≥ 300 毫秒）', '次數'], I.slowOps.map(([o, n]) => '<tr><td class=\"mono\">' + esc(o) + '</td><td>' + n + '</td></tr>'))));\n  out.push(sec('s-dev', '瀏覽器', null, table(['瀏覽器', '訪問', '出錯', '比例'], I.devices.map(x => '<tr' + (x.bad ? ' class=\"bad\"' : '') + '><td>' + esc(x.br) + '</td><td>' + x.n + '</td><td>' + (x.bad || '') + '</td><td>' + (x.bad ? pctOf(x.bad, x.n) : '') + '</td></tr>'))));\n  const f0 = I.funnel[0][1] || 1;\n  out.push(sec('s-fun', '走到哪一步', null, '<div class=\"fun\">' + I.funnel.map(([k, n]) => '<span>' + k + '</span><i style=\"width:' + Math.max(1, n / f0 * 100) + '%\"></i><span>' + n + ' · ' + pctOf(n, f0) + '</span>').join('') + '</div>'));\n  $('#iss').innerHTML = out.join('');\n}\n// 展開明細；頂上的數字跳到那一段\ndocument.addEventListener('click', e => {\n  const tr = e.target.closest('.iss tr.more');\n  if (tr && !e.target.closest('a')) { const d = tr.nextElementSibling; d.hidden = !d.hidden; tr.classList.toggle('open', !d.hidden); fit(); return; }\n  const a = e.target.closest('[data-go]');\n  if (a) { const t = document.getElementById(a.dataset.go); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 12, behavior: 'smooth' }); }\n});\n// 現在、對局頁上的房號點進時間線\ndocument.querySelectorAll('a.tl').forEach(a => a.href = q('/admin/room', { r: a.dataset.r, ...(a.dataset.i ? { i: a.dataset.i } : {}) }));": [
+  "lib/admin-issues.js"
+ ],
  "MVP 次數": [
   "public/js/help.js",
   "public/js/scores.js"
@@ -5315,5 +5603,14 @@
  ],
  "MVP 投票已結束": [
   "lib/score.js"
+ ],
+ "OPPO瀏覽器": [
+  "lib/trace.js"
+ ],
+ "QQ瀏覽器": [
+  "lib/trace.js"
+ ],
+ "vivo瀏覽器": [
+  "lib/trace.js"
  ]
 }

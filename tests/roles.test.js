@@ -311,6 +311,51 @@ const raw = (r, role, ids, roleId) => applyPlayerAction(r, S(r, role).pid, { act
   assert.ok(S(r, 'saint').dead);
   ok(st(r, 'decide', { choice: 'none' }));
 }
+// 麻臉巫婆創造了惡魔：之後醒的惡魔選了人不自動殺，說書人看過他選誰再定（5634 房：選了「沒有了」亡骨魔照樣殺人）
+{
+  const r = mk(['pithag', 'vigormortis', 'chef', 'saint', 'oracle', 'flowergirl'], 'snv');
+  go(r, ['pithag', 'vigormortis']);
+  assert.strictEqual(raw(r, 'pithag', [S(r, 'chef').id], 'vortox'), undefined);
+  ok(st(r, 'decide', { choice: 'none' }));
+  assert.strictEqual(r.g.step.roleId, 'vigormortis');
+  act(r, 'vigormortis', [S(r, 'oracle').id]);
+  assert.strictEqual(r.g.step.decide?.kind, 'hagdeaths', '停下來問說書人');
+  assert.strictEqual(r.g.step.decide.targetId, S(r, 'oracle').id);
+  assert.ok(!S(r, 'oracle').dead, '沒有自動殺');
+  ok(st(r, 'decide', { choice: 'none' }));
+  assert.ok(!S(r, 'oracle').dead, '說書人定了無人死亡');
+}
+{
+  const r = mk(['pithag', 'vigormortis', 'chef', 'saint', 'oracle', 'flowergirl'], 'snv');
+  go(r, ['pithag', 'vigormortis']);
+  raw(r, 'pithag', [S(r, 'chef').id], 'vortox');
+  ok(st(r, 'decide', { choice: 'none' }));
+  act(r, 'vigormortis', [S(r, 'oracle').id]);
+  ok(st(r, 'decide', { choice: S(r, 'oracle').id }));
+  assert.ok(S(r, 'oracle').dead, '照惡魔選的殺');
+  assert.strictEqual(S(r, 'oracle').deathBy, 'demon');
+  assert.strictEqual(r.g.step.decide?.kind, 'hagdeaths', '還可以再選');
+  ok(st(r, 'decide', { choice: S(r, 'flowergirl').id }));
+  assert.ok(S(r, 'flowergirl').dead);
+  ok(st(r, 'decide', { choice: 'none' }));
+  // 下一夜照常：惡魔選了就殺
+  go(r, ['vigormortis'], 3);
+  act(r, 'vigormortis', [S(r, 'saint').id]);
+  assert.ok(S(r, 'saint').dead, '只有創造惡魔的那一夜由說書人定');
+}
+// 方古跳身也是今晚的死亡：說書人照方古選的結算才跳
+{
+  const r = mk(['pithag', 'fanggu', 'chef', 'saint', 'oracle', 'flowergirl'], 'snv');
+  go(r, ['pithag', 'fanggu']);
+  raw(r, 'pithag', [S(r, 'chef').id], 'vortox');
+  ok(st(r, 'decide', { choice: 'none' }));
+  const saint = S(r, 'saint'), fg = S(r, 'fanggu');
+  act(r, 'fanggu', [saint.id]);
+  assert.strictEqual(saint.role, 'saint', '還沒跳');
+  ok(st(r, 'decide', { choice: saint.id }));
+  assert.strictEqual(saint.role, 'fanggu');
+  assert.ok(fg.dead);
+}
 // 雜耍藝人：白天猜的系統記下，當晚算好數字
 {
   const r = mk(['juggler', 'imp', 'witch', 'flowergirl', 'saint', 'oracle'], 'snv');
