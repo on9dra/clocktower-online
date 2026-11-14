@@ -527,6 +527,9 @@
  "「流程」標籤": [
   "public/js/help.js"
  ],
+ "「渦流」在場": [
+  "public/js/infoform.js"
+ ],
  "「中毒」": [
   "public/js/intro.js"
  ],
@@ -1689,6 +1692,12 @@
  ],
  "複製邀請鏈接": [
   "public/js/invite.js"
+ ],
+ "該角色已「中毒」": [
+  "public/js/infoform.js"
+ ],
+ "該角色已「醉酒」": [
+  "public/js/infoform.js"
  ],
  "改": [
   "public/js/flow.js"
@@ -4126,6 +4135,12 @@
  ],
  "他立即死亡": [
   "public/js/town.js"
+ ],
+ "他其實是「酒鬼」": [
+  "public/js/infoform.js"
+ ],
+ "他其實是「提線木偶」": [
+  "public/js/infoform.js"
  ],
  "他是惡魔": [
   "public/js/town.js"

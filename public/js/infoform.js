@@ -206,9 +206,10 @@ const tellSay = (s, step) => {
   const t = tr(step.form.kind === 'two' ? '告知他' : TELL[step.form.kind] || '告知他'), [a, b] = t.split(getLang() === 'en' ? 'them' : tr('他'));
   return [a, seatBadge(s, step.seatId), b];
 };
-// 引導籤：這一步說書人要做什麼；他的能力現在不靈（中毒、酒鬼……）時，籤尾一枚紅字，說明為什麼答案可以是錯的
-const WHY = { poison: '中毒', tipsy: '醉酒', drunk: '酒鬼', puppet: '提線木偶', vortox: '渦流' };
-const guideTag = step => h('div', { class: 'ic-tag say' }, guide(step.form), step.form.why && h('b', { class: 'tag-why' }, WHY[step.form.why]));
+// 引導籤：這一步說書人要做什麼；他的能力現在不靈（中毒、酒鬼……）時，下面另起一行紅字說明為什麼答案可以是錯的。
+// 寫成完整的一句、單獨一行：緊跟在「……並告知他」後面的「中毒」會被讀成「告知他中毒」
+const WHY = { poison: '該角色已「中毒」', tipsy: '該角色已「醉酒」', drunk: '他其實是「酒鬼」', puppet: '他其實是「提線木偶」', vortox: '「渦流」在場' };
+const guideTag = step => [h('div', { class: 'ic-tag say' }, guide(step.form)), step.form.why && h('div', { class: 'opt-row ic-impaired' }, WHY[step.form.why])];
 // 「展示」整屏只放核心：數字 → 一個大數字；是否 → 大大的「是 / 否」；兩名玩家之一 → 兩個大座位號 + 角色牌；
 // 某人是什麼角色 → 他的座位號 + 角色牌；間諜 → 整本魔典。不寫句子，不寫「或」「是」，他們看得懂
 export function infoCore(form, f) {
@@ -258,18 +259,19 @@ const samePre = (form, d) => {
 
 // ON_TABLE（洗衣婦、圖書管理員、調查員）。上方：引導 + 必選的那一個；正中：這個組合的後果（「④ 或 ⑦ 是 管家」+ 真實 / 錯誤章）；下方：展示、下一個。
 // 能力正常：上方一格一個能當真的人（座位號 + 角色），隱士 / 間諜選中後在下面一排挑他被當作哪個角色；另一名玩家點桌上的頭像。
-// 中毒 / 酒鬼 / 渦流：上方是這一類的全部角色（在場的打藍勾），兩名玩家隨便點
+// 中毒 / 酒鬼 / 渦流：沒有必選的，上方不擺角色按鈕，只寫他為什麼不靈；兩名玩家照常點桌上的頭像，
+// 要換角色就點正中結論裏的那個角色（rolepick.js 的劇本單，在場的打藍勾）
 function tableForm(ctx, step, d, foot) {
   const s = ctx.state, form = step.form, v = verdict(s, form, d), { level } = v, team = TEAMS[form.team]?.name || '';
   const pick = fn => () => { fn(); ctx.render(); };
   const none = form.allowNone && (form.free || form.truth.none || form.noneOk) && opt(w(`沒有${team}`, 'ink'),
     { on: d.none, level: form.truth.none ? 2 : form.noneOk ? 1 : 0, cls: 'tb-none', onclick: pick(() => { d.none = true; }) });
-  let opts, sub = null;
+  let opts = null, sub = null, roleEl = d.role ? named(d.role) : h('span', { class: 'sb empty' });
   if (form.free) {
     const inPlay = new Set(Object.values(form.roleOf || {})), maybe = new Set(Object.values(form.mayBe || {}).flat());
     const roles = [...form.roles.filter(id => inPlay.has(id)), ...form.roles.filter(id => !inPlay.has(id))];
-    opts = roles.map(id => opt(roles.length > 6 ? mini(id) : named(id), { on: !d.none && d.role === id, level: inPlay.has(id) ? 2 : maybe.has(id) ? 1 : 0,
-      onclick: pick(() => Object.assign(d, { none: false, role: id })) }));
+    roleEl = roleSlot(ctx, step, 'two', roles, () => (d.none ? null : d.role), id => (inPlay.has(id) ? 2 : maybe.has(id) ? 1 : 0),
+      id => { Object.assign(d, { none: false, role: id }); ctx.render(); });
   } else {
     const list = truths(s, form).filter(x => !x.none), many = list.length > 4;
     opts = list.map(x => {
@@ -294,7 +296,7 @@ function tableForm(ctx, step, d, foot) {
       h('div', { class: 'tb-res' },
         h('div', { class: 'tb-slip' },
           d.none ? formula(s, infoFormula(form, d), 'big')
-            : h('span', { class: 'frm big' }, slot(pair[0]), w('或'), slot(pair[1]), w('是'), d.role ? named(d.role) : h('span', { class: 'sb empty' }))),
+            : h('span', { class: 'frm big' }, slot(pair[0]), w('或'), slot(pair[1]), w('是'), roleEl)),
         verdictWord && h('span', { class: 'tb-stamp t' + level, 'data-key': verdictWord }, verdictWord))),
     h('div', { class: 'ic-foot' }, foot || sendBtn(ctx, d, v, step, samePre(form, d))));
 }

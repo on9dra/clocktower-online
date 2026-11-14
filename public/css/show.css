@@ -158,8 +158,8 @@
 }
 /* 這幾張卡沒有行動者那一行（右邊留給「收起」，左上是角標）：正文兩邊各讓出寬度，居中不壓它們 */
 @media (min-width: 641px) { .st-card .infocard.group .ic-top > .frm-line { padding-inline: 40px; } }
-/* 引導籤尾的紅字：他的能力現在不靈（中毒、酒鬼……），答案可以是錯的 */
-.ic-tag .tag-why { margin-left: .5em; color: var(--evil); font-weight: 900; letter-spacing: .1em; }
+/* 引導籤下面另起一行的紅字：他的能力現在不靈（中毒、酒鬼……），答案可以是錯的 */
+.opt-row.ic-impaired { justify-content: center; color: var(--evil); font-weight: 900; letter-spacing: .06em; line-height: 1.5; }
 /* 單設備洗衣婦這類（桌心擺角色牌的那張）：紙條一行放不下兩個按鈕，按鈕放到紙條下面一排 */
 @media (max-width: 640px) and (max-height: 720px) and (orientation: portrait) { .tb-foot:has(> .ic-send) { grid-template-columns: minmax(0, 1fr); } }
 .tb-foot > .ic-send { justify-content: center; margin: 0; }
