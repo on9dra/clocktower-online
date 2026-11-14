@@ -13,6 +13,7 @@ import { tr, getLang, trHas } from './lang.js';
 import { heraldHeld } from './herald.js';
 import { preDraft } from './infoform.js';
 import { showPages, bigCore } from './pass.js';
+import { rulingWhy, whyNote, tagLast } from './decidewhy.js';
 
 // 角色那句話（glyph.js 的 say）：單數段是普通字，雙數段是關鍵詞（加粗）。中文用「」括起來直接接上；
 // 英文整句查（en-fix.json 裏以「段|段」為鍵，關鍵詞用 *…* 標出）：關鍵詞和標籤共用一個詞（「死亡」→ Dead）時，逐段翻語法不通。
@@ -244,10 +245,13 @@ export function rulingCard(ctx, r = ctx.state.st.ruling, op = 'rule') {
   const btn = (label, work) => B(label, () => ctx.st(op, { work }), side ? 'sm' : '');
   const opts = r.forced ? [r.auto] : [true, false];
   const left = side && r.due ? Math.max(0, Math.ceil((r.due - ctx.now()) / 1000)) : null;
+  // 誰做了什麼 → 為什麼是這個結果 / 要你定什麼（decidewhy.js）→ 角落的規則說明（角落小窗放不下，不放）
+  const why = rulingWhy(s, r), note = !side && whyNote(why?.note, RULE_TITLE[r.kind]);
   const say = [cardTag(!side && icon('timer'), RULE_TITLE[r.kind] || '裁定'),
     rulingWho(s, r),
     r.why && row(w(r.why, 'evil'), w('能力無效', 'muted')),
-    !r.forced && r.reg && row(mini(r.reg), w(REG_AS[r.kind], 'muted'))];
+    why?.say || (!r.forced && r.reg && row(mini(r.reg), w(REG_AS[r.kind], 'muted'))),
+    !tagLast(why?.say, note) && note];
   const acts = h('div', { class: 'row' }, left != null
     ? [h('span', { class: 'v-left' }, icon('timer'), h('b', {}, left), w('秒後反噬', 'muted')), B('立即反噬', () => ctx.st(op, { work: true }), 'sm')]
     : opts.map(work => btn(work ? yes : no, work)));

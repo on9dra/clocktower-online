@@ -1,4 +1,13 @@
 {
+ "，不能被當作惡魔，所以無事發生": [
+  "public/js/decidewhy.js"
+ ],
+ "，不能被當作善良，所以呆瓜的陣營落敗": [
+  "public/js/decidewhy.js"
+ ],
+ "，不能被當作邪惡，所以無事發生": [
+  "public/js/decidewhy.js"
+ ],
  "，不在場": [
   "lib/night.js"
  ],
@@ -12,14 +21,23 @@
  "，賭徒死亡": [
   "lib/night.js"
  ],
+ "，可以被當作他猜的角色": [
+  "public/js/decidewhy.js"
+ ],
  "，能力無效": [
   "public/js/stepcard.js"
+ ],
+ "，你可以改由別人代他死": [
+  "public/js/decidewhy.js"
  ],
  "，讓他看手機": [
   "public/js/stepcard.js"
  ],
  "，死亡": [
   "lib/day.js"
+ ],
+ "，他可以被當作另一陣營": [
+  "public/js/decidewhy.js"
  ],
  "，他明晚死亡": [
   "public/js/glyph.js"
@@ -45,8 +63,17 @@
  ":超時": [
   "public/js/diag.js"
  ],
+ "：其中一人醉酒到明天黃昏，由你選": [
+  "public/js/decidewhy.js"
+ ],
+ "：他保留能力，兩邊最近的鎮民之一中毒，由你選": [
+  "public/js/decidewhy.js"
+ ],
  "：他變成了": [
   "public/js/stepcard.js"
+ ],
+ "：他們兩人之一醉酒到明天黃昏，由你選": [
+  "public/js/decidewhy.js"
  ],
  "。{0} 是{1}": [
   "lib/night.js"
@@ -98,6 +125,9 @@
  ],
  "（錯誤信息）": [
   "lib/engine.js"
+ ],
+ "（惡魔）": [
+  "public/js/decidewhy.js"
  ],
  "（觀戰）": [
   "lib/admin-issues.js"
@@ -595,6 +625,9 @@
   "public/js/help.js",
   "public/js/log.js"
  ],
+ "保護了": [
+  "public/js/decidewhy.js"
+ ],
  "保護了 {0}": [
   "lib/night.js"
  ],
@@ -614,6 +647,9 @@
  "被保護 被保护 保護 保护": [
   "public/js/stside.js"
  ],
+ "被變成了": [
+  "public/js/decidewhy.js"
+ ],
  "被茶藝師保護": [
   "lib/rules.js"
  ],
@@ -622,6 +658,9 @@
   "public/js/flow.js",
   "public/js/gamelog.js",
   "public/js/log.js"
+ ],
+ "被處決，所以邪惡獲勝": [
+  "public/js/decidewhy.js"
  ],
  "被處決：善良落敗": [
   "public/js/help.js"
@@ -723,6 +762,9 @@
  "變成了": [
   "public/js/stepcard.js"
  ],
+ "變成新的惡魔": [
+  "public/js/decidewhy.js"
+ ],
  "變身": [
   "public/js/fx-ab-dlc.js",
   "public/js/glyph.js"
@@ -813,6 +855,12 @@
   "public/js/log.js",
   "public/js/town.js"
  ],
+ "不是惡魔，所以無事發生": [
+  "public/js/decidewhy.js"
+ ],
+ "不是獵手（或能力已經用過），所以無事發生": [
+  "public/js/decidewhy.js"
+ ],
  "不是善良": [
   "public/js/log.js"
  ],
@@ -835,6 +883,9 @@
   "public/js/fx-ab-dlc.js",
   "public/js/infofmt.js"
  ],
+ "不想讓人復活就選「無人」。": [
+  "public/js/decidewhy.js"
+ ],
  "不選": [
   "public/js/stepcard.js"
  ],
@@ -854,6 +905,7 @@
  ],
  "猜": [
   "public/js/asks.js",
+  "public/js/decidewhy.js",
   "public/js/gamelog.js",
   "public/js/glyph.js",
   "public/js/log.js",
@@ -902,6 +954,9 @@
  ],
  "茶藝師保護": [
   "public/js/log.js"
+ ],
+ "常見做法：讓原來的惡魔死，提示大家惡魔換了人；或者讓今晚無人死亡。": [
+  "public/js/decidewhy.js"
  ],
  "場上鄰座的邪惡玩家有 {0} 對": [
   "public/js/infofmt.js"
@@ -1059,6 +1114,9 @@
  "大家都閉上了眼": [
   "public/js/town.js"
  ],
+ "呆瓜得知自己死亡時，要公開選一名存活玩家：選中邪惡玩家，他的陣營落敗。": [
+  "public/js/decidewhy.js"
+ ],
  "呆瓜選人": [
   "public/js/flow.js"
  ],
@@ -1099,6 +1157,9 @@
  ],
  "但{0}": [
   "public/js/log.js"
+ ],
+ "但今晚變出了新惡魔，誰死由你決定": [
+  "public/js/decidewhy.js"
  ],
  "但他是士兵": [
   "lib/night.js"
@@ -1277,6 +1338,9 @@
  "賭徒猜錯": [
   "lib/night.js"
  ],
+ "賭徒猜錯就死。": [
+  "public/js/decidewhy.js"
+ ],
  "斷線 {0} 後回來 <span class=\"dim\">{1}{2}</span>": [
   "lib/admin-issues.js"
  ],
@@ -1332,6 +1396,9 @@
  "惡魔的偽裝不夠 3 個：劇本裏不在場的善良角色只剩 {0} 個，人數超過劇本適合的人數了": [
   "public/js/flow.js"
  ],
+ "惡魔攻擊了": [
+  "public/js/decidewhy.js"
+ ],
  "惡魔攻擊了鎮長：你可以讓另一名玩家代替他死亡": [
   "lib/night.js"
  ],
@@ -1344,11 +1411,11 @@
  "惡魔沒有交換角色": [
   "lib/night.js"
  ],
- "惡魔殺": [
-  "public/js/stepcard.js"
- ],
  "惡魔是 {0}。": [
   "lib/night.js"
+ ],
+ "惡魔死了，存活玩家還有 5 人或以上，所以": [
+  "public/js/decidewhy.js"
  ],
  "惡魔死了，但雙子都活著：善良還不能獲勝": [
   "public/js/log.js"
@@ -1731,6 +1798,9 @@
  "規則沒判到的勝負，例如呆瓜選中邪惡": [
   "public/js/help.js"
  ],
+ "規則說明": [
+  "public/js/decidewhy.js"
+ ],
  "規則與流程": [
   "public/js/help.js",
   "public/js/topbar.js"
@@ -1758,6 +1828,9 @@
  ],
  "還要點 {0} 人": [
   "public/js/flow.js"
+ ],
+ "還要讓誰死？選「沒有了」結束": [
+  "public/js/decidewhy.js"
  ],
  "還要選角色": [
   "public/js/flow.js"
@@ -1789,6 +1862,9 @@
   "public/js/intro.js",
   "public/js/stepcard.js"
  ],
+ "和平主義者：被處決的善良玩家可能不死亡，由說書人決定。": [
+  "public/js/decidewhy.js"
+ ],
  "河的對岸": [
   "public/js/community.js"
  ],
@@ -1807,9 +1883,15 @@
  "紅唇": [
   "lib/rules.js"
  ],
+ "紅唇女郎：惡魔死亡時，如果還有 5 名或以上存活玩家，她變成那個惡魔。": [
+  "public/js/decidewhy.js"
+ ],
  "紅唇女郎接任": [
   "public/js/flow.js",
   "public/js/log.js"
+ ],
+ "紅唇女郎沒有能力，所以不接任": [
+  "public/js/decidewhy.js"
  ],
  "紅鯡魚": [
   "lib/util.js",
@@ -1856,9 +1938,6 @@
  ],
  "換設備主持": [
   "public/js/invite.js"
- ],
- "換誰死？": [
-  "public/js/stepcard.js"
  ],
  "換一個": [
   "public/js/flow.js"
@@ -2160,6 +2239,9 @@
  "今天被處決也不會死。": [
   "public/js/town.js"
  ],
+ "今天的聲明如果是真的，今晚要死一人": [
+  "public/js/decidewhy.js"
+ ],
  "今天還沒有處決": [
   "public/js/flow.js"
  ],
@@ -2199,6 +2281,9 @@
  ],
  "今晚": [
   "public/js/flow.js"
+ ],
+ "今晚變出了新惡魔，誰死由你決定": [
+  "public/js/decidewhy.js"
  ],
  "今晚不醒": [
   "public/js/flow.js",
@@ -2325,6 +2410,7 @@
   "public/js/stepcard.js"
  ],
  "看完了": [
+  "public/js/decidewhy.js",
   "public/js/pass.js"
  ],
  "看完了，蓋上": [
@@ -2354,11 +2440,20 @@
  "可以被當作惡魔": [
   "public/js/flow.js"
  ],
+ "可以被當作惡魔：算命中，他死亡；算未中，無事發生": [
+  "public/js/decidewhy.js"
+ ],
  "可以被當作另一陣營": [
   "public/js/flow.js"
  ],
+ "可以被當作另一陣營：算邪惡，呆瓜的陣營落敗；算善良，無事發生": [
+  "public/js/decidewhy.js"
+ ],
  "可以被當作鎮民": [
   "public/js/flow.js"
+ ],
+ "可以被當作鎮民：算鎮民，提名者被處決；不算，無事發生": [
+  "public/js/decidewhy.js"
  ],
  "可以登記為這個角色": [
   "public/js/glyph.js"
@@ -2494,6 +2589,9 @@
   "public/js/flow.js",
   "public/js/help.js"
  ],
+ "獵手每局一次，白天公開選一名玩家：選中惡魔，惡魔死亡；否則什麼都不發生。": [
+  "public/js/decidewhy.js"
+ ],
  "鄰座的邪惡玩家有": [
   "public/js/infofmt.js"
  ],
@@ -2511,6 +2609,9 @@
  ],
  "旅店老闆：選擇其中一人醉酒到下個黃昏": [
   "lib/night.js"
+ ],
+ "旅店老闆選的兩人今晚不會死，但其中一人醉酒到明天黃昏。": [
+  "public/js/decidewhy.js"
  ],
  "旅行者": [
   "public/js/roles.js"
@@ -2536,6 +2637,12 @@
  ],
  "麻臉巫婆把你變了": [
   "lib/night.js"
+ ],
+ "麻臉巫婆變出了惡魔": [
+  "public/js/decidewhy.js"
+ ],
+ "麻臉巫婆變出了惡魔：這一晚誰死全由你決定，惡魔選的人不會自動死。": [
+  "public/js/decidewhy.js"
  ],
  "麻臉巫婆創造了惡魔": [
   "lib/night.js"
@@ -2769,6 +2876,7 @@
   "public/js/town.js"
  ],
  "能力無效": [
+  "public/js/decidewhy.js",
   "public/js/flow.js",
   "public/js/log.js"
  ],
@@ -2877,6 +2985,9 @@
  "你選的玩家中今晚有 {0} 人被喚醒": [
   "public/js/infofmt.js"
  ],
+ "你選的爪牙變成新的小惡魔，之後會被叫醒告知。": [
+  "public/js/decidewhy.js"
+ ],
  "你選擇了 {0}": [
   "lib/engine.js"
  ],
@@ -2964,6 +3075,9 @@
  ],
  "七號座位之歌": [
   "public/js/community.js"
+ ],
+ "其實是": [
+  "public/js/decidewhy.js"
  ],
  "其實是：": [
   "public/js/town.js"
@@ -3264,8 +3378,17 @@
  "掃碼入座": [
   "public/js/intro.js"
  ],
+ "沙巴洛斯的能力：每晚叫醒他之前，說書人可以讓他上一晚殺死的一人復活，那人恢復能力。": [
+  "public/js/decidewhy.js"
+ ],
+ "沙巴洛斯反芻": [
+  "public/js/decidewhy.js"
+ ],
  "沙巴洛斯可以讓上一晚選中的一名死者復活": [
   "lib/night.js"
+ ],
+ "殺了自己，要由一名爪牙接任小惡魔": [
+  "public/js/decidewhy.js"
  ],
  "殺人、傳位": [
   "public/js/help.js"
@@ -3281,6 +3404,9 @@
  ],
  "殺死了他鄰座的爪牙": [
   "public/js/log.js"
+ ],
+ "殺死了爪牙": [
+  "public/js/decidewhy.js"
  ],
  "善良": [
   "lib/engine.js",
@@ -3344,6 +3470,9 @@
  "上一局邪惡獲勝": [
   "public/js/scores.js"
  ],
+ "上一晚殺死的人，你可以讓其中一人復活": [
+  "public/js/decidewhy.js"
+ ],
  "上一夜沒有殺人：下一夜可以殺死三人。": [
   "public/js/town.js"
  ],
@@ -3405,6 +3534,9 @@
  "聲明不成立，無人死亡": [
   "lib/night.js"
  ],
+ "聲明是假的就選「無人」。": [
+  "public/js/decidewhy.js"
+ ],
  "勝負判定": [
   "public/js/help.js"
  ],
@@ -3419,6 +3551,12 @@
  "聖徒被處決": [
   "lib/day.js",
   "public/js/flow.js"
+ ],
+ "聖徒被處決時，善良陣營落敗；聖徒中毒或醉酒時不會。": [
+  "public/js/decidewhy.js"
+ ],
+ "聖徒沒有能力，所以被處決也不會輸": [
+  "public/js/decidewhy.js"
  ],
  "失敗": [
   "public/js/fx.js",
@@ -3457,6 +3595,7 @@
  ],
  "是": [
   "lib/night.js",
+  "public/js/decidewhy.js",
   "public/js/gamelog.js",
   "public/js/glyph.js",
   "public/js/help.js",
@@ -3466,11 +3605,17 @@
   "public/js/pass.js",
   "public/js/stepcard.js"
  ],
- "是惡魔選的。今晚誰死？": [
-  "lib/night.js"
+ "是惡魔，所以他死亡": [
+  "public/js/decidewhy.js"
  ],
  "是弄臣（首次死亡不死）": [
   "lib/rules.js"
+ ],
+ "是善良玩家，被處決了；和平主義者在場，所以他可能不死，由你決定": [
+  "public/js/decidewhy.js"
+ ],
+ "是善良玩家，所以無事發生": [
+  "public/js/decidewhy.js"
  ],
  "是士兵": [
   "lib/engine.js",
@@ -3481,6 +3626,12 @@
  ],
  "是我，翻開": [
   "public/js/pass.js"
+ ],
+ "是邪惡玩家，所以呆瓜的陣營落敗": [
+  "public/js/decidewhy.js"
+ ],
+ "是鎮民，所以提名者會被處決": [
+  "public/js/decidewhy.js"
  ],
  "試藥": [
   "public/js/fx-ab-dlc.js",
@@ -3510,6 +3661,9 @@
  ],
  "手動擺牌": [
   "public/js/intro.js"
+ ],
+ "首夜要得知她的孫子：選一名善良玩家": [
+  "public/js/decidewhy.js"
  ],
  "首夜要給他看的人和角色": [
   "public/js/flow.js"
@@ -3546,9 +3700,6 @@
  "誰比誰聖潔": [
   "public/js/community.js"
  ],
- "誰成為": [
-  "public/js/stepcard.js"
- ],
  "誰從此醉酒？": [
   "lib/night.js",
   "public/js/stepcard.js"
@@ -3574,11 +3725,15 @@
  "水手不死": [
   "lib/rules.js"
  ],
+ "水手每晚選一名存活玩家，他和水手之一醉酒到明天黃昏。": [
+  "public/js/decidewhy.js"
+ ],
  "水手免死": [
   "public/js/log.js"
  ],
  "說明": [
-  "public/js/about.js"
+  "public/js/about.js",
+  "public/js/decidewhy.js"
  ],
  "說書人": [
   "lib/admin-issues.js",
@@ -3710,8 +3865,14 @@
  "死後選人": [
   "public/js/topbar.js"
  ],
+ "死了，要有一名玩家從此醉酒，由你選": [
+  "public/js/decidewhy.js"
+ ],
  "死了還在局裏": [
   "public/js/help.js"
+ ],
+ "死前選了": [
+  "public/js/decidewhy.js"
  ],
  "死去的玩家不能開槍": [
   "public/js/manual.js"
@@ -3794,6 +3955,12 @@
   "lib/setup.js",
   "public/js/flow.js"
  ],
+ "所以今晚誰死由你決定：選的人直接死亡": [
+  "public/js/decidewhy.js"
+ ],
+ "所以照常讓他行動，只是這一步不產生效果。": [
+  "public/js/decidewhy.js"
+ ],
  "他": [
   "lib/ops.js",
   "public/js/infoform.js",
@@ -3805,6 +3972,9 @@
  ],
  "他被處決也不會死。": [
   "public/js/stside.js"
+ ],
+ "他猜的人能被當作別的角色（隱士、間諜這類），所以算不算猜對由你決定：算對，賭徒沒事；算錯，賭徒死亡。": [
+  "public/js/decidewhy.js"
  ],
  "他從此醉酒": [
   "public/js/log.js"
@@ -3846,6 +4016,9 @@
  ],
  "他現在是邪惡陣營，和角色原本的陣營不同。": [
   "public/js/town.js"
+ ],
+ "他選的人能被當作另一陣營（隱士、間諜這類），所以由你決定：算善良，那人死亡；算邪惡，無事發生。": [
+  "public/js/decidewhy.js"
  ],
  "他要「瘋狂」地證明自己是某個角色，否則可能被處決。": [
   "public/js/stside.js"
@@ -4044,6 +4217,12 @@
  ],
  "亡骨魔：選擇鄰近的一名鎮民中毒": [
   "lib/night.js"
+ ],
+ "亡骨魔殺死的爪牙死後仍保有能力；同時這名爪牙兩邊最近的鎮民之一中毒，直到亡骨魔失去能力。": [
+  "public/js/decidewhy.js"
+ ],
+ "亡骨魔殺死爪牙": [
+  "public/js/decidewhy.js"
  ],
  "網絡不通，請稍後再試": [
   "public/js/app.js"
@@ -4313,6 +4492,12 @@
  "小惡魔把惡魔身份傳給了你": [
   "lib/night.js"
  ],
+ "小惡魔傳位": [
+  "public/js/decidewhy.js"
+ ],
+ "小惡魔可以殺死自己，把惡魔身份傳給一名存活的爪牙。": [
+  "public/js/decidewhy.js"
+ ],
  "小惡魔自殺傳位": [
   "lib/night.js",
   "lib/rules.js"
@@ -4375,6 +4560,9 @@
  "心上人死了：選擇一名玩家從此醉酒": [
   "lib/night.js"
  ],
+ "心上人死亡時，由說書人選一名玩家從此醉酒：他的能力一直無效，自己不知道。": [
+  "public/js/decidewhy.js"
+ ],
  "新手上手快": [
   "public/js/intro.js"
  ],
@@ -4431,6 +4619,9 @@
  "選 MVP": [
   "public/js/help.js"
  ],
+ "選「不死亡」：處決不生效，他活著；選「死亡」：照常死亡。": [
+  "public/js/decidewhy.js"
+ ],
  "選不出合規的人": [
   "lib/debug.js"
  ],
@@ -4442,6 +4633,7 @@
   "public/js/help.js"
  ],
  "選了": [
+  "public/js/decidewhy.js",
   "public/js/gamelog.js",
   "public/js/hud.js",
   "public/js/log.js",
@@ -4484,6 +4676,9 @@
   "lib/admin-issues.js",
   "public/js/stepcard.js",
   "public/js/topbar.js"
+ ],
+ "選他選的人：照惡魔殺人結算。選別人：那人直接死亡。選「無人死亡」：今晚沒人死。": [
+  "public/js/decidewhy.js"
  ],
  "選填": [
   "public/js/about.js"
@@ -4642,6 +4837,9 @@
  ],
  "選擇至多 {0} 名玩家": [
   "lib/engine.js"
+ ],
+ "選鎮長：他自己死。選別人：那人代他死（算被惡魔殺死）。選「無人死亡」：今晚沒人死。": [
+  "public/js/decidewhy.js"
  ],
  "選中": [
   "lib/night.js",
@@ -4976,6 +5174,9 @@
  "月之子沒有選人": [
   "lib/night.js"
  ],
+ "月之子死時選一名玩家：選中善良玩家，那人當晚死亡。": [
+  "public/js/decidewhy.js"
+ ],
  "雜耍藝人猜": [
   "public/js/topbar.js"
  ],
@@ -5013,6 +5214,9 @@
  "在場的外來者：{0}": [
   "lib/night.js"
  ],
+ "在這裏選的人直接死亡，可以連選幾人；選「沒有了」繼續。": [
+  "public/js/decidewhy.js"
+ ],
  "暫停": [
   "public/js/trial.js"
  ],
@@ -5039,6 +5243,9 @@
  ],
  "造謠成真：{0} 死亡": [
   "lib/night.js"
+ ],
+ "造謠者白天公開說一句話；如果那句話是真的，當晚由你選一名玩家死亡。": [
+  "public/js/decidewhy.js"
  ],
  "造謠者今天的聲明是真的嗎？是的話選一名玩家死亡": [
   "lib/night.js"
@@ -5221,8 +5428,14 @@
  "鎮長 {0} 死亡": [
   "lib/night.js"
  ],
+ "鎮長：只剩 3 名存活玩家且當天沒有處決時，善良陣營獲勝。": [
+  "public/js/decidewhy.js"
+ ],
  "鎮長的能力：無人死亡": [
   "lib/night.js"
+ ],
+ "鎮長的能力：夜裏被惡魔攻擊時，可能由另一名玩家代替他死亡，由你決定。": [
+  "public/js/decidewhy.js"
  ],
  "鎮長的能力轉移給 {0}，但他{1}，無人死亡": [
   "lib/night.js"
@@ -5230,11 +5443,18 @@
  "鎮長獲勝": [
   "public/js/fx-ab.js"
  ],
+ "鎮長沒有能力，所以遊戲繼續": [
+  "public/js/decidewhy.js"
+ ],
  "鎮長勝利": [
   "public/js/flow.js"
  ],
  "鎮長替死": [
+  "public/js/decidewhy.js",
   "public/js/log.js"
+ ],
+ "鎮長中毒、醉酒時沒有這個能力。": [
+  "public/js/decidewhy.js"
  ],
  "睜開眼，你在昨晚死去了": [
   "public/js/town.js"
@@ -5266,8 +5486,14 @@
  "證明自己是": [
   "lib/night.js"
  ],
+ "之後惡魔殺死孫子時，祖母也會跟著死。": [
+  "public/js/decidewhy.js"
+ ],
  "之後角色牌一直翻開著，旁邊的人瞄一眼就能看到。": [
   "public/js/hud.js"
+ ],
+ "之後醒來的惡魔選了人，還會再問你一次，也可以等那時再定。": [
+  "public/js/decidewhy.js"
  ],
  "之中有": [
   "public/js/help.js",
@@ -5333,6 +5559,9 @@
  "只剩 2 人存活": [
   "public/js/help.js"
  ],
+ "只剩 3 名存活玩家，今天沒有人被處決，所以善良獲勝": [
+  "public/js/decidewhy.js"
+ ],
  "只剩 3 人且無人處決：善良獲勝": [
   "public/js/help.js"
  ],
@@ -5393,6 +5622,15 @@
  ],
  "中毒、保護、死亡，全部判好": [
   "public/js/intro.js"
+ ],
+ "中毒、醉酒的呆瓜選人沒有效果。": [
+  "public/js/decidewhy.js"
+ ],
+ "中毒、醉酒的獵手開槍無效，他自己不知道。": [
+  "public/js/decidewhy.js"
+ ],
+ "中毒、醉酒的人（還有酒鬼、瘋子）沒有真正的能力，但他自己不知道。": [
+  "public/js/decidewhy.js"
  ],
  "中沒有惡魔": [
   "public/js/infofmt.js"
@@ -5520,6 +5758,12 @@
  "祖母：選擇她的孫子": [
   "lib/night.js"
  ],
+ "祖母的孫子": [
+  "public/js/decidewhy.js"
+ ],
+ "祖母首夜得知一名善良玩家和他的角色，這人就是她的孫子。": [
+  "public/js/decidewhy.js"
+ ],
  "祖母知道他是誰；惡魔殺死他時，祖母也會死。": [
   "public/js/town.js"
  ],
@@ -5562,6 +5806,12 @@
  ],
  "最高票上台": [
   "public/js/help.js"
+ ],
+ "醉酒的人能力無效，他自己不知道；水手醉酒時，今晚就可能被殺死。": [
+  "public/js/decidewhy.js"
+ ],
+ "醉酒的人能力無效，他自己不知道。": [
+  "public/js/decidewhy.js"
  ],
  "醉酒三天": [
   "public/js/glyph.js"

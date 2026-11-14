@@ -9,6 +9,7 @@ import { infoForm } from './infoform.js';
 import { stAbility, markMeaning } from './stside.js';
 import { seatBadge, mini, icon, named, w, tag, formula, ACTS, wakeMark, actorMark } from './glyph.js';
 import { actRow, goonLine } from './log.js';
+import { decideWhy, decideTitle, whyNote, tagLast } from './decidewhy.js';
 
 const choices = {}; // stepId -> 說書人在裁定卡上選中的選項
 // 裁定卡當前選中的：說書人點過的，沒點過就是預選的（祖母開局前預選的孫子，lib/night.js decide.pick）
@@ -324,27 +325,27 @@ const GROUP = { minioninfo: '爪牙信息', demoninfo: '惡魔信息' };
 // 鎮長替死、小惡魔傳位、誰醉酒、造謠 / 月之子選中誰、反芻誰……：說書人從選項裏挑一個（座位號 + 角色牌，或短詞）
 function decideCard(ctx, step) {
   const s = ctx.state, d = step.decide, key = step.id + (d.role || d.kind);
-  const cur = choiceOf(step);
+  const cur = choiceOf(step), why = decideWhy(s, step);
   if (d.kind === 'ability') return h('div', { class: 'card focus infocard free spread' },
     h('div', { class: 'ic-top' }, actorMark(s, step),
       (step.picks || []).length > 0 && h('div', { class: 'frm big sub' }, w(ACTS[step.roleId]?.mark || '選了', 'ink'), step.picks.map(id => seatBadge(s, id))),
       // 為什麼停在這裏：誰的哪個能力因為什麼沒有用（「無效」是唯一的按鈕）——「⑤ 士兵 中毒，能力無效」
-      h('div', { class: 'ic-say tell' }, seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil'), w('，能力無效', 'ink')), goonLine(s, step)),
+      h('div', { class: 'ic-say tell' }, seatBadge(s, d.targetId), named(d.role), w(d.why, 'evil'), w('，能力無效', 'ink')), goonLine(s, step), whyNote(why?.note, decideTitle(step))),
     // 沒有能力，只有「無效」：官方說書人不能讓它生效
     h('div', { class: 'ic-foot' }, B('無效', () => stepOp(ctx, 'decide', { choice: 'fail' }), 'wide' + stepLock())));
   const face = o => {
     const seat = s.seats.find(x => x.id === o.id);
     return seat ? [seatBadge(s, seat.id), mini(seat.role)] : o.id === 'none' ? icon('none') : w(o.label, 'ink');
   };
-  const lead = d.kind === 'mayor' ? [w('惡魔殺', 'bad'), seatBadge(s, d.targetId), named('mayor'), w('換誰死？', 'ink')]
-    : d.kind === 'starpass' ? [w('誰成為', 'ink'), named('imp'), w('？', 'ink')]
-      : [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
+  // 主句：為什麼現在問、要定什麼（decidewhy.js）；沒寫到的裁定才退回選了誰 + 問句
+  const lead = why?.say || [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
+  const note = whyNote(why?.note, decideTitle(step)), inLine = tagLast(lead, note);
   // 上方：問句 + 選項（座位類的也能直接點桌上的頭像）；正中：選定的那一個；下方：確定
   const picked = d.options.find(o => o.id === cur);
   return h('div', { class: 'card focus infocard spread decide' },
     h('div', { class: 'ic-body' }, h('div', { class: 'ic-say' }, h('span', { class: 'frm big' }, lead)), h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
-    }, face(o))))),
+    }, face(o)))), !inLine && note),
     h('div', { class: 'ic-top' }, actorMark(s, step), h('div', { class: 'frm big dc-pick' }, picked ? face(picked) : h('span', { class: 'sb empty' })), goonLine(s, step)),
     // 選著的正是開局前預選的（祖母的孫子）：按鈕寫明「使用預選選項」
     h('div', { class: 'ic-foot' }, BW(cur && cur === d.pick ? '使用預選選項，確定' : '確定', () => stepOp(ctx, 'decide', { choice: cur }), 'wide' + (cur ? stepLock() : ''), cur ? null : '先選一個')));
