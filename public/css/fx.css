@@ -286,16 +286,58 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .why-sheet p { margin: 0 0 8px; text-wrap: pretty; }
 .why-sheet .row { justify-content: flex-end; margin-top: 12px; }
 :root[data-lang="en"] .why-sheet { font-family: inherit; }
-/* 有主句時籤跟在句尾（decidewhy.js tagLast），不另佔一行 */
+/* 有主句時「說明」籤跟在句尾（decidewhy.js whyLead），不另佔一行 */
 .why-line > .ic-note { display: inline-block; margin: 0 0 0 6px; }
-/* 電腦、橫屏：夜裏裁定卡的籤掛在卡片左上角（右上角是「收起」）——卡多一行就會被縮小。
-   白天裁定卡第一行就是誰做了什麼，角上沒有空位：留在句尾 */
 @media (min-width: 641px) {
-  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .ic-note { position: absolute; left: 7px; top: 9px; z-index: 2; margin: 0; }
   .st-card > .infocard .ic-note .in-tab { gap: 2px; padding: 1px 3px; letter-spacing: .04em; }
   .st-card > .infocard .ic-note .in-tab .ico { width: 12px; height: 12px; }
 }
-.why-line { display: block; max-width: 100%; text-align: center; line-height: 1.45; text-wrap: balance; word-break: keep-all; overflow-wrap: break-word; } /* 中文在標點處換行，不把「所以」拆成兩行；一句長到放不下才在字間斷 */
+/* 簡略 / 詳細：上下疊著的兩個小字，選中的是墨色加底線。浮在第一行左邊，右邊浮著一樣寬的「說明」（沒有就是一塊空 .wm-pad），
+   第一行夾在中間仍然居中；疊起來不比一行高，只讓出第一行兩邊。電腦、橫屏的夜裏裁定卡兩邊本來就空著 52px（右上角是「收起」）：
+   直接掛在卡框兩角 */
+.why-line { --wm-w: 48px; }
+.why-tools > .ic-note .in-tab { gap: 2px; padding: 1px 3px; letter-spacing: .04em; }
+.why-tools > .ic-note .in-tab .ico { width: 12px; height: 12px; }
+:root[data-lang="en"] .why-line { --wm-w: 62px; }
+.why-mode { float: left; display: flex; flex-direction: column; align-items: flex-start; width: var(--wm-w); margin: -2px 6px -4px -4px; font: 11.5px/1.3 var(--serif); }
+.why-tools { display: contents; }
+.why-tools > :is(.wm-pad, .ic-note) { float: right; width: calc(var(--wm-w) - 4px); height: 1px; }
+.why-tools > .ic-note { display: flex; justify-content: flex-end; height: auto; margin: 2px -4px 0 6px; }
+.why-mode .wm { padding: 2px 3px; border: 0; border-bottom: 1px solid transparent; background: none; color: var(--muted); font: inherit; letter-spacing: .08em; white-space: nowrap;
+  cursor: pointer; transition: color .2s, border-color .2s; }
+.why-mode .wm.on { color: var(--ink); font-weight: 700; border-bottom-color: var(--brass); cursor: default; }
+@media (hover: hover) { .why-mode .wm:not(.on):hover { color: var(--brass); } }
+:root[data-lang="en"] .why-mode .wm { letter-spacing: 0; }
+@media (min-width: 641px) {
+  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .why-mode { position: absolute; left: 8px; top: 8px; z-index: 2; float: none; margin: 0; }
+  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .wm-pad { display: none; }
+  /* 「說明」也不跟在句尾（句子多折一行，整張卡就被縮小）：掛在右上角「收起」下面，左右兩角對稱 */
+  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .why-tools > .ic-note { position: absolute; right: 6px; top: 32px; z-index: 2; margin: 0; }
+}
+@media (min-width: 641px) and (max-height: 500px) and (orientation: landscape) { /* 橫屏卡在圓桌旁邊，沒有「收起」 */
+  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .why-tools > .ic-note { top: 8px; }
+}
+/* 換版：舊的句子先淡掉，新的再淡進來（切換籤本身不動） */
+/* 手機上兩邊浮不下的時候（圓桌中間的裁定卡、英文的長句、360 以下的窄屏）：兩個籤並成一行放在主句上面。
+   多一小行，比第一行被擠得折成兩三行矮 */
+@media (max-width: 640px) {
+  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 0 0 3px; }
+  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools > * { float: none; width: auto; margin: 0; }
+  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-mode { flex-direction: row; gap: 4px; }
+  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools > .wm-pad { display: none; }
+}
+@media (max-width: 360px) {
+  .why-tools { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 0 0 3px; }
+  .why-tools > * { float: none; width: auto; margin: 0; }
+  .why-tools .why-mode { flex-direction: row; gap: 4px; }
+  .why-tools > .wm-pad { display: none; }
+}
+.why-line.why-out > :not(.why-tools) { opacity: 0; transition: opacity .12s ease; }
+.why-line.why-in > :not(.why-tools) { animation: why-in .26s ease both; }
+@keyframes why-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .why-line.why-in > * { animation: none; } }
+.why-line { display: block; max-width: 100%; text-align: center; line-height: 22px; text-wrap: balance; word-break: keep-all; overflow-wrap: break-word; } /* 中文在標點處換行，不把「所以」拆成兩行；一句長到放不下才在字間斷 */
 .why-line > * { vertical-align: middle; }
+.why-line + .why-line { margin-top: 4px; }
 .why-line > .w { margin-inline: 2px; }
 .nw { display: inline-flex; align-items: center; gap: inherit; white-space: nowrap; } /* 角色名和後面的（惡魔）不拆到兩行 */

@@ -9,7 +9,7 @@ import { infoForm } from './infoform.js';
 import { stAbility, markMeaning } from './stside.js';
 import { seatBadge, mini, icon, named, w, tag, formula, ACTS, wakeMark, actorMark } from './glyph.js';
 import { actRow, goonLine } from './log.js';
-import { decideWhy, decideTitle, whyNote, tagLast } from './decidewhy.js';
+import { decideWhy, decideTitle, whyNote, whyLead } from './decidewhy.js';
 
 const choices = {}; // stepId -> 說書人在裁定卡上選中的選項
 // 裁定卡當前選中的：說書人點過的，沒點過就是預選的（祖母開局前預選的孫子，lib/night.js decide.pick）
@@ -338,14 +338,15 @@ function decideCard(ctx, step) {
     return seat ? [seatBadge(s, seat.id), mini(seat.role)] : o.id === 'none' ? icon('none') : w(o.label, 'ink');
   };
   // 主句：為什麼現在問、要定什麼（decidewhy.js）；沒寫到的裁定才退回選了誰 + 問句
-  const lead = why?.say || [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
-  const note = whyNote(why?.note, decideTitle(step)), inLine = tagLast(lead, note);
+  // 主句：詳細 / 簡略兩版，說明籤在句尾（decidewhy.js）；沒寫到的裁定才退回選了誰 + 問句，說明籤放在選項下面
+  const { lines, note } = whyLead(ctx, why, decideTitle(step));
+  const lead = lines || [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
   // 上方：問句 + 選項（座位類的也能直接點桌上的頭像）；正中：選定的那一個；下方：確定
   const picked = d.options.find(o => o.id === cur);
   return h('div', { class: 'card focus infocard spread decide' },
     h('div', { class: 'ic-body' }, h('div', { class: 'ic-say' }, h('span', { class: 'frm big' }, lead)), h('div', { class: 'opt-row' }, d.options.map(o => h('button', {
       class: 'opt-tile' + (cur === o.id ? ' on' : ''), title: o.label, onclick: () => { choices[key] = o.id; ctx.render(); },
-    }, face(o)))), !inLine && note),
+    }, face(o)))), note),
     h('div', { class: 'ic-top' }, actorMark(s, step), h('div', { class: 'frm big dc-pick' }, picked ? face(picked) : h('span', { class: 'sb empty' })), goonLine(s, step)),
     // 選著的正是開局前預選的（祖母的孫子）：按鈕寫明「使用預選選項」
     h('div', { class: 'ic-foot' }, BW(cur && cur === d.pick ? '使用預選選項，確定' : '確定', () => stepOp(ctx, 'decide', { choice: cur }), 'wide' + (cur ? stepLock() : ''), cur ? null : '先選一個')));

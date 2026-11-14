@@ -14,6 +14,9 @@
  "，猜錯你會死": [
   "public/js/glyph.js"
  ],
+ "，但誰死由你定": [
+  "public/js/decidewhy.js"
+ ],
  "，但他{0}": [
   "lib/day.js",
   "lib/night.js"
@@ -28,6 +31,9 @@
   "public/js/stepcard.js"
  ],
  "，你可以改由別人代他死": [
+  "public/js/decidewhy.js"
+ ],
+ "，其實是": [
   "public/js/decidewhy.js"
  ],
  "，讓他看手機": [
@@ -60,10 +66,43 @@
  "：{0}號": [
   "public/js/progress.js"
  ],
+ "：不算惡魔": [
+  "public/js/decidewhy.js"
+ ],
  ":超時": [
   "public/js/diag.js"
  ],
+ "：呆瓜的陣營落敗": [
+  "public/js/decidewhy.js"
+ ],
+ "：復活誰？": [
+  "public/js/decidewhy.js"
+ ],
+ "：今晚誰死？": [
+  "public/js/decidewhy.js"
+ ],
+ "：哪位鄰近鎮民中毒？": [
+  "public/js/decidewhy.js"
+ ],
  "：其中一人醉酒到明天黃昏，由你選": [
+  "public/js/decidewhy.js"
+ ],
+ "：聲明成真就選一人死": [
+  "public/js/decidewhy.js"
+ ],
+ "：誰是孫子？": [
+  "public/js/decidewhy.js"
+ ],
+ "：誰死？": [
+  "public/js/decidewhy.js"
+ ],
+ "：誰醉酒？": [
+  "public/js/decidewhy.js"
+ ],
+ "：算猜對？": [
+  "public/js/decidewhy.js"
+ ],
+ "：算善良？": [
   "public/js/decidewhy.js"
  ],
  "：他保留能力，兩邊最近的鎮民之一中毒，由你選": [
@@ -73,6 +112,9 @@
   "public/js/stepcard.js"
  ],
  "：他們兩人之一醉酒到明天黃昏，由你選": [
+  "public/js/decidewhy.js"
+ ],
+ "：無事": [
   "public/js/decidewhy.js"
  ],
  "。{0} 是{1}": [
@@ -521,6 +563,9 @@
  "<span class=\"dim\">斷線 · {0} · 連了 {1}{2}</span> <span class=\"dim mono\">{3}</span>": [
   "lib/admin-issues.js"
  ],
+ "<span class=\"dim\">屏幕常亮 · {0}{1}</span>": [
+  "lib/admin-issues.js"
+ ],
  "<tr class=\"gm\"><td colspan=\"3\">一局 <span class=\"mono dim\">{0}</span> {1}</td></tr>": [
   "lib/admin-issues.js"
  ],
@@ -665,6 +710,9 @@
  "被處決：善良落敗": [
   "public/js/help.js"
  ],
+ "被處決：邪惡獲勝": [
+  "public/js/decidewhy.js"
+ ],
  "被處決者是": [
   "public/js/infofmt.js"
  ],
@@ -751,6 +799,7 @@
   "public/js/glyph.js"
  ],
  "變成": [
+  "public/js/decidewhy.js",
   "public/js/glyph.js"
  ],
  "變成{0}": [
@@ -856,6 +905,12 @@
   "public/js/town.js"
  ],
  "不是惡魔，所以無事發生": [
+  "public/js/decidewhy.js"
+ ],
+ "不是惡魔：無事": [
+  "public/js/decidewhy.js"
+ ],
+ "不是獵手：無事": [
   "public/js/decidewhy.js"
  ],
  "不是獵手（或能力已經用過），所以無事發生": [
@@ -1084,6 +1139,9 @@
  ],
  "從這台設備上刪掉": [
   "public/js/manual.js"
+ ],
+ "存活 5 人以上：": [
+  "public/js/decidewhy.js"
  ],
  "錯": [
   "public/js/infoform.js"
@@ -1395,6 +1453,9 @@
  ],
  "惡魔的偽裝不夠 3 個：劇本裏不在場的善良角色只剩 {0} 個，人數超過劇本適合的人數了": [
   "public/js/flow.js"
+ ],
+ "惡魔攻擊": [
+  "public/js/decidewhy.js"
  ],
  "惡魔攻擊了": [
   "public/js/decidewhy.js"
@@ -1893,6 +1954,9 @@
  "紅唇女郎沒有能力，所以不接任": [
   "public/js/decidewhy.js"
  ],
+ "紅唇女郎沒有能力：不接任": [
+  "public/js/decidewhy.js"
+ ],
  "紅鯡魚": [
   "lib/util.js",
   "public/js/flow.js",
@@ -2068,6 +2132,7 @@
   "public/js/stepcard.js"
  ],
  "簡略": [
+  "public/js/decidewhy.js",
   "public/js/rolepick.js"
  ],
  "建房": [
@@ -2422,6 +2487,9 @@
  "靠登記成立": [
   "public/js/log.js"
  ],
+ "靠視頻頂著": [
+  "lib/admin-issues.js"
+ ],
  "科學怪鎮長": [
   "public/js/community.js"
  ],
@@ -2443,14 +2511,23 @@
  "可以被當作惡魔：算命中，他死亡；算未中，無事發生": [
   "public/js/decidewhy.js"
  ],
+ "可以被當作惡魔：算命中？": [
+  "public/js/decidewhy.js"
+ ],
  "可以被當作另一陣營": [
   "public/js/flow.js"
  ],
  "可以被當作另一陣營：算邪惡，呆瓜的陣營落敗；算善良，無事發生": [
   "public/js/decidewhy.js"
  ],
+ "可以被當作另一陣營：算邪惡？": [
+  "public/js/decidewhy.js"
+ ],
  "可以被當作鎮民": [
   "public/js/flow.js"
+ ],
+ "可以被當作鎮民：算不算？": [
+  "public/js/decidewhy.js"
  ],
  "可以被當作鎮民：算鎮民，提名者被處決；不算，無事發生": [
   "public/js/decidewhy.js"
@@ -3116,6 +3193,9 @@
  "切到後台": [
   "lib/admin-issues.js"
  ],
+ "切後台 / 鎖屏": [
+  "lib/admin-issues.js"
+ ],
  "切換身份": [
   "public/js/debug.js"
  ],
@@ -3387,6 +3467,9 @@
  "沙巴洛斯可以讓上一晚選中的一名死者復活": [
   "lib/night.js"
  ],
+ "殺了爪牙": [
+  "public/js/decidewhy.js"
+ ],
  "殺了自己，要由一名爪牙接任小惡魔": [
   "public/js/decidewhy.js"
  ],
@@ -3420,6 +3503,9 @@
   "public/js/manual.js",
   "public/js/pmarks.js",
   "public/js/town.js"
+ ],
+ "善良被處決，和平主義者在場：死不死？": [
+  "public/js/decidewhy.js"
  ],
  "善良的鏡像雙子被處決": [
   "lib/rules.js"
@@ -3511,6 +3597,9 @@
   "public/js/settings.js",
   "public/js/topbar.js"
  ],
+ "申請不到": [
+  "lib/admin-issues.js"
+ ],
  "深夜飛車": [
   "public/js/community.js"
  ],
@@ -3537,6 +3626,9 @@
  "聲明是假的就選「無人」。": [
   "public/js/decidewhy.js"
  ],
+ "剩 3 人、沒有處決：善良獲勝": [
+  "public/js/decidewhy.js"
+ ],
  "勝負判定": [
   "public/js/help.js"
  ],
@@ -3556,6 +3648,9 @@
   "public/js/decidewhy.js"
  ],
  "聖徒沒有能力，所以被處決也不會輸": [
+  "public/js/decidewhy.js"
+ ],
+ "聖徒沒有能力：不會輸": [
   "public/js/decidewhy.js"
  ],
  "失敗": [
@@ -3608,8 +3703,14 @@
  "是惡魔，所以他死亡": [
   "public/js/decidewhy.js"
  ],
+ "是惡魔：死亡": [
+  "public/js/decidewhy.js"
+ ],
  "是弄臣（首次死亡不死）": [
   "lib/rules.js"
+ ],
+ "是善良：無事": [
+  "public/js/decidewhy.js"
  ],
  "是善良玩家，被處決了；和平主義者在場，所以他可能不死，由你決定": [
   "public/js/decidewhy.js"
@@ -3627,10 +3728,16 @@
  "是我，翻開": [
   "public/js/pass.js"
  ],
+ "是邪惡：呆瓜的陣營落敗": [
+  "public/js/decidewhy.js"
+ ],
  "是邪惡玩家，所以呆瓜的陣營落敗": [
   "public/js/decidewhy.js"
  ],
  "是鎮民，所以提名者會被處決": [
+  "public/js/decidewhy.js"
+ ],
+ "是鎮民：提名者被處決": [
   "public/js/decidewhy.js"
  ],
  "試藥": [
@@ -3866,6 +3973,9 @@
   "public/js/topbar.js"
  ],
  "死了，要有一名玩家從此醉酒，由你選": [
+  "public/js/decidewhy.js"
+ ],
+ "死了：誰從此醉酒？": [
   "public/js/decidewhy.js"
  ],
  "死了還在局裏": [
@@ -4358,6 +4468,9 @@
  "系統不認識這個角色：效果要你自己結算，下一次入夜時清掉。": [
   "public/js/town.js"
  ],
+ "系統的": [
+  "lib/admin-issues.js"
+ ],
  "系統已留好可選項": [
   "public/js/help.js"
  ],
@@ -4468,6 +4581,7 @@
   "public/js/infofmt.js"
  ],
  "詳細": [
+  "public/js/decidewhy.js",
   "public/js/rolepick.js"
  ],
  "想把 {0} 變成{1}，但這個角色已在場，無事發生": [
@@ -4561,6 +4675,9 @@
   "lib/night.js"
  ],
  "心上人死亡時，由說書人選一名玩家從此醉酒：他的能力一直無效，自己不知道。": [
+  "public/js/decidewhy.js"
+ ],
+ "新惡魔之夜：還有誰死？": [
   "public/js/decidewhy.js"
  ],
  "新手上手快": [
@@ -5446,6 +5563,9 @@
  "鎮長沒有能力，所以遊戲繼續": [
   "public/js/decidewhy.js"
  ],
+ "鎮長沒有能力：繼續": [
+  "public/js/decidewhy.js"
+ ],
  "鎮長勝利": [
   "public/js/flow.js"
  ],
@@ -5740,6 +5860,9 @@
  "自殺，沒有存活的爪牙可以接任": [
   "lib/night.js"
  ],
+ "自殺：哪名爪牙接任？": [
+  "public/js/decidewhy.js"
+ ],
  "自殺傳位": [
   "public/js/log.js"
  ],
@@ -5841,7 +5964,7 @@
  "座位上已經有人了": [
   "lib/ops.js"
  ],
- "const KEY = new URLSearchParams(location.search).get('key') || '';\nconst STEPS = {0};\nconst q = (p, o) => p + '?' + new URLSearchParams({ key: KEY, ...o });\nconst roomA = (r, t, i) => r ? '<a href=\"' + q('/admin/room', { r, t: t || '', ...(i ? { i } : {}) }) + '\">' + r + '</a>' : '';\nconst secs = ms => ms == null ? '–' : ms === Infinity ? '更久' : ms < 1000 ? Math.round(ms) + ' 毫秒' : ms < 60000 ? (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' 秒' : Math.floor(ms / 60000) + ' 分 ' + Math.round(ms % 60000 / 1000) + ' 秒';\nconst when = t => md(t) + ' ' + hm(t);\nconst AT = { lobby: '準備', ended: '結束', night: '夜裏', day: '白天', dawn: '天亮' };\nconst spread = (list, name = x => esc(x)) => list.length === 1 ? name(list[0][0]) : list.map(([k, n]) => name(k) + '（' + n + '）').join('<br>');\nconst atName = a => { const m = String(a || '').match(/^(night|day|dawn)(d+)$/); return m ? (m[1] === 'night' ? '第' + m[2] + '夜' : m[1] === 'dawn' ? '第' + m[2] + '天天亮' : '第' + m[2] + '天') : AT[a] || a || ''; };\nconst ST = { choose: '選人', decide: '裁定', ack: '確認結果', confirm: '確認', mark: '標記', review: '天亮確認', fake: '假裝叫醒' };\nconst WHY = { 'transport close': '關頁面 / 網斷了', 'ping timeout': '網絡卡住', 'transport error': '連接出錯', 'server shutting down': '服務器重啓', 'server namespace disconnect': '服務器斷開', 'parse error': '數據壞了' };\nconst HOW = { create: '建房', st: '說書人回房', pl: '玩家進房', claim: '重連鏈接' };\nconst FAIL = { old: '瀏覽器太舊', load: '沒有載入完成' };\nconst modeName = m => D.modes[m] ? '<span style=\"color:' + D.modes[m][1] + '\">' + D.modes[m][0] + '</span>' : esc(m || '');\nconst byName = b => b == null ? '' : b === 'st' ? '說書人' : b === 'w' ? '觀眾' : b === '-' ? '未入座' : String(b).startsWith('st>') ? '說書人→' + String(b).slice(3) + '號' : b + '號';\nconst pctOf = (a, b) => b ? Math.round(a / b * 100) + '%' : '–';\nconst table = (head, rows, cls) => rows.length ? '<div class=\"scroll\"><table' + (cls ? ' class=\"' + cls + '\"' : '') + '><tr>' + head.map(h => '<th>' + h + '</th>').join('') + '</tr>' + rows.join('') + '</table></div>' : '';\nconst sec = (id, title, n, body) => body ? '<h2 id=\"' + id + '\">' + title + (n != null ? '<b>' + n + '</b>' : '') + '</h2>' + body : '';\nconst sum = a => a.reduce((n, x) => n + x.n, 0);\n// 點一行展開下面的明細（例子、調用棧、房間鏈接），再點收起\nconst more = (cells, detail, cls = '') => '<tr class=\"more ' + cls + '\">' + cells.map(c => '<td' + (c && c.wrap ? ' class=\"wrap\"' : '') + '>' + (c && c.wrap ? c.wrap : c ?? '') + '</td>').join('') + '</tr><tr class=\"det\" hidden><td colspan=\"' + cells.length + '\">' + detail + '</td></tr>';\nconst W = s => ({ wrap: s });\n\nlet issCache = {}, issSeq = 0;\nasync function drawIssues(force) {\n  const d = range, box = $('#iss');\n  if (!issCache[d] || force) {\n    const seq = ++issSeq;\n    box.style.opacity = .35;\n    try { const r = await fetch(q('/admin/issues', { days: d })); if (!r.ok) throw 0; issCache[d] = await r.json(); }\n    catch { if (seq === issSeq) { box.style.opacity = ''; box.innerHTML = '<p class=\"dim\">讀不到</p>'; } return; }\n    if (seq !== issSeq || d !== range) return;\n  }\n  box.style.opacity = '';\n  renderIssues(issCache[d]);\n  setTimeout(fit);\n}\n\nfunction renderIssues(I) {\n  const k = I.kpi;\n  $('#ik').innerHTML = [[k.srv, '服務器錯誤', 's-err'], [k.cli, '前端錯誤', 's-err'], [k.fail, '打不開', 's-fail'], [k.refused, '被拒的操作', 's-ref'], [k.disc, '斷線', 's-net'], [k.rage, '連點', 's-rage'], [k.fb, '反饋', 's-fb']]\n    .map(([v, name, id]) => '<a data-go=\"' + id + '\" class=\"' + (v ? '' : 'zero') + '\"><b>' + v + '</b><span>' + name + '</span></a>').join('');\n  const out = [];\n  // 錯誤：同一類（去掉數字、引號裏的名字，加上第一個出錯位置）歸一行；只在舊版本出現過的淡一些（多半已經修了）\n  out.push(sec('s-err', '錯誤', I.errors.length ? sum(I.errors) : null, table(['次數', '人', '位置', '錯誤', '瀏覽器', '最近'], I.errors.map(g => {\n    const old = g.builds.length && !g.builds.includes(I.build);\n    const side = g.side === '服務器' ? 's' : g.side === '演出' ? 'f' : 'c';\n    const det = g.samples.slice().reverse().map(x => '<div class=\"smp\"><span class=\"dim\">' + when(x.t) + '</span> ' + roomA(x.r, x.t, x.i) + ' ' + atName(x.at) + ' ' + byName(x.by ?? (x.st ? 'st' : x.seat))\n      + (x.op ? ' <span class=\"mono\">' + esc(x.op) + '</span>' : '') + (x.w ? ' <span class=\"dim\">' + esc(x.w) + '</span>' : '') + (x.br ? ' <span class=\"dim\">' + esc(x.br + ' · ' + (x.os || '')) + '</span>' : '')\n      + (x.snap ? ' <a href=\"' + q('/admin/crash', { f: x.snap }) + '\">快照</a>' : '') + (x.build ? ' <span class=\"dim mono\">' + esc(x.build) + '</span>' : '')\n      + '<pre>' + esc(x.msg) + (x.src ? '\n' + esc(x.src) : '') + (x.stack ? '\n' + esc(x.stack) : '') + '</pre></div>').join('');\n    return more([g.n, g.who, '<span class=\"side ' + side + '\">' + g.side + '</span><span class=\"mono\">' + esc(g.at) + '</span>', W(esc(g.msg)), W(spread(g.br)), ago(I.now - g.last)], det, old ? 'old' : '');\n  }))));\n  out.push(sec('s-fb', '反饋', I.feedback.length || null, table(['時間', '房間', '內容', '聯繫'], I.feedback.map(f => '<tr><td>' + when(f.t) + '</td><td>' + roomA(f.r, f.t) + '</td><td class=\"wrap\">' + esc(f.text) + '</td><td class=\"wrap\">' + esc(f.contact) + '</td></tr>'))));\n  out.push(sec('s-fail', '打不開', (sum(I.fails) + sum(I.res)) || null, table(['次數', '原因', '瀏覽器'], I.fails.map(x => '<tr><td>' + x.n + '</td><td>' + (FAIL[x.why] || esc(x.why)) + '</td><td>' + esc(x.br) + '</td></tr>'))\n    + table(['次數', '沒載入的文件', '瀏覽器'], I.res.map(x => '<tr><td>' + x.n + '</td><td class=\"mono\">' + esc(x.url) + '</td><td>' + esc(x.br) + '</td></tr>'))));\n  // 被拒的操作：點了，服務器說不行。佔比高的多半是界面讓人以為能點\n  out.push(sec('s-ref', '被拒的操作', I.refused.length ? sum(I.refused) : null, table(['次數', '佔這個操作', '操作', '原因', '說書人點的', '在哪', '模式', '房間'], I.refused.map(g => more([g.n, pctOf(g.n, g.total), '<span class=\"mono\">' + esc(g.op) + '</span>', W(esc(g.e)), pctOf(g.st, g.n),\n    spread(g.ats, a => AT[a] || esc(a)), spread(g.md, modeName), g.rooms],\n    g.samples.slice().reverse().map(x => '<div class=\"smp\"><span class=\"dim\">' + when(x.t) + '</span> ' + roomA(x.r, x.t, x.i) + ' ' + atName(x.at) + ' ' + byName(x.by) + (x.a ? ' <span class=\"mono dim\">' + esc(JSON.stringify(x.a)) + '</span>' : '') + '</div>').join(''))))));\n  out.push(sec('s-join', '進不了房間', I.joins.length ? sum(I.joins) : null, table(['次數', '怎麼進', '原因'], I.joins.map(x => '<tr><td>' + x.n + '</td><td>' + (HOW[x.how] || esc(x.how)) + '</td><td>' + esc(x.e) + '</td></tr>'))));\n  // 連點：700 毫秒內在同一處點了三下以上。點的是灰按鈕的另算（灰的）\n  out.push(sec('s-rage', '連點', I.rage.length ? sum(I.rage) : null, table(['次數', '人', '點的是', '在哪', '灰的'], I.rage.map(x => '<tr><td>' + x.n + '</td><td>' + x.who + '</td><td class=\"mono wrap\">' + esc(x.sel) + '</td><td>' + spread(x.ats, a => AT[a] || esc(a)) + '</td><td>' + (x.dis || '') + '</td></tr>'))));\n  out.push(sec('s-toast', '彈出的提示', I.toast.length ? sum(I.toast) : null, table(['次數', '人', '提示'], I.toast.map(x => '<tr><td>' + x.n + '</td><td>' + x.who + '</td><td class=\"wrap\">' + esc(x.text) + '</td></tr>'))));\n  // 夜裏每一步停了多久：按 90% 的局要多久排，最慢的在上面\n  out.push(sec('s-step', '夜裏每一步', I.steps.length ? sum(I.steps) : null, table(['模式', '這一步', '次數', '中位', '90%', '最久', '中位停在'], I.steps.slice(0, 30).map(x => '<tr><td>' + modeName(x.md) + '</td><td>' + esc(STEPS[x.role] || x.role) + '</td><td>' + x.n + '</td><td>' + secs(x.p50) + '</td><td>' + secs(x.p90) + '</td><td>' + secs(x.max) + '</td><td class=\"wrap dim\">'\n    + Object.entries(x.d).sort((a, b) => b[1] - a[1]).map(([s, v]) => (ST[s] || esc(s)) + ' ' + secs(v)).join(' · ') + '</td></tr>'))));\n  out.push(sec('s-cold', '散局', (sum(I.cold) + sum(I.abandon)) || null, table(['模式', '怎麼散的', '在哪', '這一步', '次數'], [...I.cold.map(x => ({ ...x, how: '沒人操作了' })), ...I.abandon.map(x => ({ ...x, how: '說書人放棄' }))].sort((a, b) => b.n - a.n)\n    .map(x => '<tr><td>' + modeName(x.md) + '</td><td>' + x.how + '</td><td>' + atName(x.at) + '</td><td>' + esc(STEPS[x.role] || x.role || '') + '</td><td>' + x.n + '</td></tr>'))));\n  out.push(sec('s-undo', '撤銷', I.undo.length ? sum(I.undo) : null, table(['模式', '撤銷的操作', '次數'], I.undo.map(x => '<tr><td>' + modeName(x.md) + '</td><td class=\"mono\">' + esc(x.u) + '</td><td>' + x.n + '</td></tr>'))));\n  const N = I.net, b = N.boot, mini = items => '<div class=\"mini\">' + items.filter(([v]) => v !== '–' && v !== '≤ –').map(([v, k]) => '<div><b>' + v + '</b><span>' + k + '</span></div>').join('') + '</div>';\n  out.push(sec('s-net', '網絡和載入', null, mini([['≤ ' + secs(N.rtt.p50), '操作來回 · 中位'], ['≤ ' + secs(N.rtt.p95), '操作來回 · 95%'], [N.rtt.to, '操作超時'],\n    [secs(N.off.p50), '斷線到回來 · 中位'], [secs(N.off.p90), '斷線到回來 · 90%'], [secs(b.ready.p50), '打開到能用 · 中位'], [secs(b.ready.p90), '打開到能用 · 90%'], [secs(b.conn.p50), '連上服務器 · 中位'], [N.jank.who || '–', '卡頓過的人'], [N.jank.max ? secs(N.jank.max) : '–', '最長一次卡頓']])\n    + table(['斷線原因', '次數'], N.disc.map(([w, n]) => '<tr><td>' + (WHY[w] || esc(w)) + '</td><td>' + n + '</td></tr>'))\n    + table(['斷線時走的', '次數'], N.tr.map(([w, n]) => '<tr><td>' + (w === 'polling' ? '輪詢（websocket 不通）' : esc(w)) + '</td><td>' + n + '</td></tr>'))\n    + table(['慢操作（服務器 ≥ 300 毫秒）', '次數'], I.slowOps.map(([o, n]) => '<tr><td class=\"mono\">' + esc(o) + '</td><td>' + n + '</td></tr>'))));\n  out.push(sec('s-dev', '瀏覽器', null, table(['瀏覽器', '訪問', '出錯', '比例'], I.devices.map(x => '<tr' + (x.bad ? ' class=\"bad\"' : '') + '><td>' + esc(x.br) + '</td><td>' + x.n + '</td><td>' + (x.bad || '') + '</td><td>' + (x.bad ? pctOf(x.bad, x.n) : '') + '</td></tr>'))));\n  const f0 = I.funnel[0][1] || 1;\n  out.push(sec('s-fun', '走到哪一步', null, '<div class=\"fun\">' + I.funnel.map(([k, n]) => '<span>' + k + '</span><i style=\"width:' + Math.max(1, n / f0 * 100) + '%\"></i><span>' + n + ' · ' + pctOf(n, f0) + '</span>').join('') + '</div>'));\n  $('#iss').innerHTML = out.join('');\n}\n// 展開明細；頂上的數字跳到那一段\ndocument.addEventListener('click', e => {\n  const tr = e.target.closest('.iss tr.more');\n  if (tr && !e.target.closest('a')) { const d = tr.nextElementSibling; d.hidden = !d.hidden; tr.classList.toggle('open', !d.hidden); fit(); return; }\n  const a = e.target.closest('[data-go]');\n  if (a) { const t = document.getElementById(a.dataset.go); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 12, behavior: 'smooth' }); }\n});\n// 現在、對局頁上的房號點進時間線\ndocument.querySelectorAll('a.tl').forEach(a => a.href = q('/admin/room', { r: a.dataset.r, ...(a.dataset.i ? { i: a.dataset.i } : {}) }));": [
+ "const KEY = new URLSearchParams(location.search).get('key') || '';\nconst STEPS = {0};\nconst q = (p, o) => p + '?' + new URLSearchParams({ key: KEY, ...o });\nconst roomA = (r, t, i) => r ? '<a href=\"' + q('/admin/room', { r, t: t || '', ...(i ? { i } : {}) }) + '\">' + r + '</a>' : '';\nconst secs = ms => ms == null ? '–' : ms === Infinity ? '更久' : ms < 1000 ? Math.round(ms) + ' 毫秒' : ms < 60000 ? (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' 秒' : Math.floor(ms / 60000) + ' 分 ' + Math.round(ms % 60000 / 1000) + ' 秒';\nconst when = t => md(t) + ' ' + hm(t);\nconst AT = { lobby: '準備', ended: '結束', night: '夜裏', day: '白天', dawn: '天亮' };\nconst spread = (list, name = x => esc(x)) => list.length === 1 ? name(list[0][0]) : list.map(([k, n]) => name(k) + '（' + n + '）').join('<br>');\nconst atName = a => { const m = String(a || '').match(/^(night|day|dawn)(d+)$/); return m ? (m[1] === 'night' ? '第' + m[2] + '夜' : m[1] === 'dawn' ? '第' + m[2] + '天天亮' : '第' + m[2] + '天') : AT[a] || a || ''; };\nconst ST = { choose: '選人', decide: '裁定', ack: '確認結果', confirm: '確認', mark: '標記', review: '天亮確認', fake: '假裝叫醒' };\nconst WHY = { bg: '切後台 / 鎖屏', 'transport close': '關頁面 / 網斷了', 'ping timeout': '網絡卡住', 'transport error': '連接出錯', 'server shutting down': '服務器重啓', 'server namespace disconnect': '服務器斷開', 'parse error': '數據壞了' };\nconst HOW = { create: '建房', st: '說書人回房', pl: '玩家進房', claim: '重連鏈接' };\nconst FAIL = { old: '瀏覽器太舊', load: '沒有載入完成' };\nconst modeName = m => D.modes[m] ? '<span style=\"color:' + D.modes[m][1] + '\">' + D.modes[m][0] + '</span>' : esc(m || '');\nconst byName = b => b == null ? '' : b === 'st' ? '說書人' : b === 'w' ? '觀眾' : b === '-' ? '未入座' : String(b).startsWith('st>') ? '說書人→' + String(b).slice(3) + '號' : b + '號';\nconst pctOf = (a, b) => b ? Math.round(a / b * 100) + '%' : '–';\nconst table = (head, rows, cls) => rows.length ? '<div class=\"scroll\"><table' + (cls ? ' class=\"' + cls + '\"' : '') + '><tr>' + head.map(h => '<th>' + h + '</th>').join('') + '</tr>' + rows.join('') + '</table></div>' : '';\nconst sec = (id, title, n, body) => body ? '<h2 id=\"' + id + '\">' + title + (n != null ? '<b>' + n + '</b>' : '') + '</h2>' + body : '';\nconst sum = a => a.reduce((n, x) => n + x.n, 0);\n// 點一行展開下面的明細（例子、調用棧、房間鏈接），再點收起\nconst more = (cells, detail, cls = '') => '<tr class=\"more ' + cls + '\">' + cells.map(c => '<td' + (c && c.wrap ? ' class=\"wrap\"' : '') + '>' + (c && c.wrap ? c.wrap : c ?? '') + '</td>').join('') + '</tr><tr class=\"det\" hidden><td colspan=\"' + cells.length + '\">' + detail + '</td></tr>';\nconst W = s => ({ wrap: s });\n\nlet issCache = {}, issSeq = 0;\nasync function drawIssues(force) {\n  const d = range, box = $('#iss');\n  if (!issCache[d] || force) {\n    const seq = ++issSeq;\n    box.style.opacity = .35;\n    try { const r = await fetch(q('/admin/issues', { days: d })); if (!r.ok) throw 0; issCache[d] = await r.json(); }\n    catch { if (seq === issSeq) { box.style.opacity = ''; box.innerHTML = '<p class=\"dim\">讀不到</p>'; } return; }\n    if (seq !== issSeq || d !== range) return;\n  }\n  box.style.opacity = '';\n  renderIssues(issCache[d]);\n  setTimeout(fit);\n}\n\nfunction renderIssues(I) {\n  const k = I.kpi;\n  $('#ik').innerHTML = [[k.srv, '服務器錯誤', 's-err'], [k.cli, '前端錯誤', 's-err'], [k.fail, '打不開', 's-fail'], [k.refused, '被拒的操作', 's-ref'], [k.disc, '斷線', 's-net'], [k.rage, '連點', 's-rage'], [k.fb, '反饋', 's-fb']]\n    .map(([v, name, id]) => '<a data-go=\"' + id + '\" class=\"' + (v ? '' : 'zero') + '\"><b>' + v + '</b><span>' + name + '</span></a>').join('');\n  const out = [];\n  // 錯誤：同一類（去掉數字、引號裏的名字，加上第一個出錯位置）歸一行；只在舊版本出現過的淡一些（多半已經修了）\n  out.push(sec('s-err', '錯誤', I.errors.length ? sum(I.errors) : null, table(['次數', '人', '位置', '錯誤', '瀏覽器', '最近'], I.errors.map(g => {\n    const old = g.builds.length && !g.builds.includes(I.build);\n    const side = g.side === '服務器' ? 's' : g.side === '演出' ? 'f' : 'c';\n    const det = g.samples.slice().reverse().map(x => '<div class=\"smp\"><span class=\"dim\">' + when(x.t) + '</span> ' + roomA(x.r, x.t, x.i) + ' ' + atName(x.at) + ' ' + byName(x.by ?? (x.st ? 'st' : x.seat))\n      + (x.op ? ' <span class=\"mono\">' + esc(x.op) + '</span>' : '') + (x.w ? ' <span class=\"dim\">' + esc(x.w) + '</span>' : '') + (x.br ? ' <span class=\"dim\">' + esc(x.br + ' · ' + (x.os || '')) + '</span>' : '')\n      + (x.snap ? ' <a href=\"' + q('/admin/crash', { f: x.snap }) + '\">快照</a>' : '') + (x.build ? ' <span class=\"dim mono\">' + esc(x.build) + '</span>' : '')\n      + '<pre>' + esc(x.msg) + (x.src ? '\n' + esc(x.src) : '') + (x.stack ? '\n' + esc(x.stack) : '') + '</pre></div>').join('');\n    return more([g.n, g.who, '<span class=\"side ' + side + '\">' + g.side + '</span><span class=\"mono\">' + esc(g.at) + '</span>', W(esc(g.msg)), W(spread(g.br)), ago(I.now - g.last)], det, old ? 'old' : '');\n  }))));\n  out.push(sec('s-fb', '反饋', I.feedback.length || null, table(['時間', '房間', '內容', '聯繫'], I.feedback.map(f => '<tr><td>' + when(f.t) + '</td><td>' + roomA(f.r, f.t) + '</td><td class=\"wrap\">' + esc(f.text) + '</td><td class=\"wrap\">' + esc(f.contact) + '</td></tr>'))));\n  out.push(sec('s-fail', '打不開', (sum(I.fails) + sum(I.res)) || null, table(['次數', '原因', '瀏覽器'], I.fails.map(x => '<tr><td>' + x.n + '</td><td>' + (FAIL[x.why] || esc(x.why)) + '</td><td>' + esc(x.br) + '</td></tr>'))\n    + table(['次數', '沒載入的文件', '瀏覽器'], I.res.map(x => '<tr><td>' + x.n + '</td><td class=\"mono\">' + esc(x.url) + '</td><td>' + esc(x.br) + '</td></tr>'))));\n  // 被拒的操作：點了，服務器說不行。佔比高的多半是界面讓人以為能點\n  out.push(sec('s-ref', '被拒的操作', I.refused.length ? sum(I.refused) : null, table(['次數', '佔這個操作', '操作', '原因', '說書人點的', '在哪', '模式', '房間'], I.refused.map(g => more([g.n, pctOf(g.n, g.total), '<span class=\"mono\">' + esc(g.op) + '</span>', W(esc(g.e)), pctOf(g.st, g.n),\n    spread(g.ats, a => AT[a] || esc(a)), spread(g.md, modeName), g.rooms],\n    g.samples.slice().reverse().map(x => '<div class=\"smp\"><span class=\"dim\">' + when(x.t) + '</span> ' + roomA(x.r, x.t, x.i) + ' ' + atName(x.at) + ' ' + byName(x.by) + (x.a ? ' <span class=\"mono dim\">' + esc(JSON.stringify(x.a)) + '</span>' : '') + '</div>').join(''))))));\n  out.push(sec('s-join', '進不了房間', I.joins.length ? sum(I.joins) : null, table(['次數', '怎麼進', '原因'], I.joins.map(x => '<tr><td>' + x.n + '</td><td>' + (HOW[x.how] || esc(x.how)) + '</td><td>' + esc(x.e) + '</td></tr>'))));\n  // 連點：700 毫秒內在同一處點了三下以上。點的是灰按鈕的另算（灰的）\n  out.push(sec('s-rage', '連點', I.rage.length ? sum(I.rage) : null, table(['次數', '人', '點的是', '在哪', '灰的'], I.rage.map(x => '<tr><td>' + x.n + '</td><td>' + x.who + '</td><td class=\"mono wrap\">' + esc(x.sel) + '</td><td>' + spread(x.ats, a => AT[a] || esc(a)) + '</td><td>' + (x.dis || '') + '</td></tr>'))));\n  out.push(sec('s-toast', '彈出的提示', I.toast.length ? sum(I.toast) : null, table(['次數', '人', '提示'], I.toast.map(x => '<tr><td>' + x.n + '</td><td>' + x.who + '</td><td class=\"wrap\">' + esc(x.text) + '</td></tr>'))));\n  // 夜裏每一步停了多久：按 90% 的局要多久排，最慢的在上面\n  out.push(sec('s-step', '夜裏每一步', I.steps.length ? sum(I.steps) : null, table(['模式', '這一步', '次數', '中位', '90%', '最久', '中位停在'], I.steps.slice(0, 30).map(x => '<tr><td>' + modeName(x.md) + '</td><td>' + esc(STEPS[x.role] || x.role) + '</td><td>' + x.n + '</td><td>' + secs(x.p50) + '</td><td>' + secs(x.p90) + '</td><td>' + secs(x.max) + '</td><td class=\"wrap dim\">'\n    + Object.entries(x.d).sort((a, b) => b[1] - a[1]).map(([s, v]) => (ST[s] || esc(s)) + ' ' + secs(v)).join(' · ') + '</td></tr>'))));\n  out.push(sec('s-cold', '散局', (sum(I.cold) + sum(I.abandon)) || null, table(['模式', '怎麼散的', '在哪', '這一步', '次數'], [...I.cold.map(x => ({ ...x, how: '沒人操作了' })), ...I.abandon.map(x => ({ ...x, how: '說書人放棄' }))].sort((a, b) => b.n - a.n)\n    .map(x => '<tr><td>' + modeName(x.md) + '</td><td>' + x.how + '</td><td>' + atName(x.at) + '</td><td>' + esc(STEPS[x.role] || x.role || '') + '</td><td>' + x.n + '</td></tr>'))));\n  out.push(sec('s-undo', '撤銷', I.undo.length ? sum(I.undo) : null, table(['模式', '撤銷的操作', '次數'], I.undo.map(x => '<tr><td>' + modeName(x.md) + '</td><td class=\"mono\">' + esc(x.u) + '</td><td>' + x.n + '</td></tr>'))));\n  const N = I.net, b = N.boot, mini = items => '<div class=\"mini\">' + items.filter(([v]) => v !== '–' && v !== '≤ –').map(([v, k]) => '<div><b>' + v + '</b><span>' + k + '</span></div>').join('') + '</div>';\n  out.push(sec('s-net', '網絡和載入', null, mini([['≤ ' + secs(N.rtt.p50), '操作來回 · 中位'], ['≤ ' + secs(N.rtt.p95), '操作來回 · 95%'], [N.rtt.to, '操作超時'],\n    [secs(N.off.p50), '斷線到回來 · 中位'], [secs(N.off.p90), '斷線到回來 · 90%'], [secs(b.ready.p50), '打開到能用 · 中位'], [secs(b.ready.p90), '打開到能用 · 90%'], [secs(b.conn.p50), '連上服務器 · 中位'], [N.jank.who || '–', '卡頓過的人'], [N.jank.max ? secs(N.jank.max) : '–', '最長一次卡頓']])\n    + table(['斷線原因', '次數'], N.disc.map(([w, n]) => '<tr><td>' + (WHY[w] || esc(w)) + '</td><td>' + n + '</td></tr>'))\n    + table(['斷線時走的', '次數'], N.tr.map(([w, n]) => '<tr><td>' + (w === 'polling' ? '輪詢（websocket 不通）' : esc(w)) + '</td><td>' + n + '</td></tr>'))\n    + table(['慢操作（服務器 ≥ 300 毫秒）', '次數'], I.slowOps.map(([o, n]) => '<tr><td class=\"mono\">' + esc(o) + '</td><td>' + n + '</td></tr>'))));\n  out.push(sec('s-dev', '瀏覽器', null, table(['瀏覽器', '訪問', '出錯', '比例'], I.devices.map(x => '<tr' + (x.bad ? ' class=\"bad\"' : '') + '><td>' + esc(x.br) + '</td><td>' + x.n + '</td><td>' + (x.bad || '') + '</td><td>' + (x.bad ? pctOf(x.bad, x.n) : '') + '</td></tr>'))));\n  const f0 = I.funnel[0][1] || 1;\n  out.push(sec('s-fun', '走到哪一步', null, '<div class=\"fun\">' + I.funnel.map(([k, n]) => '<span>' + k + '</span><i style=\"width:' + Math.max(1, n / f0 * 100) + '%\"></i><span>' + n + ' · ' + pctOf(n, f0) + '</span>').join('') + '</div>'));\n  $('#iss').innerHTML = out.join('');\n}\n// 展開明細；頂上的數字跳到那一段\ndocument.addEventListener('click', e => {\n  const tr = e.target.closest('.iss tr.more');\n  if (tr && !e.target.closest('a')) { const d = tr.nextElementSibling; d.hidden = !d.hidden; tr.classList.toggle('open', !d.hidden); fit(); return; }\n  const a = e.target.closest('[data-go]');\n  if (a) { const t = document.getElementById(a.dataset.go); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 12, behavior: 'smooth' }); }\n});\n// 現在、對局頁上的房號點進時間線\ndocument.querySelectorAll('a.tl').forEach(a => a.href = q('/admin/room', { r: a.dataset.r, ...(a.dataset.i ? { i: a.dataset.i } : {}) }));": [
   "lib/admin-issues.js"
  ],
  "MVP 次數": [
