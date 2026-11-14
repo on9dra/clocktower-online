@@ -1,6 +1,7 @@
 // 隱士 / 間諜「上次被當作什麼」（room.g.regLog，說書人卡上的提示）：只是記下來，不鎖定下一次。用法：node tests/regs.test.js
 import assert from 'assert';
 import { setup, S, st, ok, pl, act, runOnly } from './helpers.js';
+import { noteReg } from '../lib/util.js';
 
 const mk = roles => { const r = setup(roles); r.scriptId = 'tb'; return r; };
 const last = (r, role) => r.g.regLog?.[S(r, role).id]?.at(-1);
@@ -126,5 +127,15 @@ const day = r => st(r, 'next');
   ok(st(r, 'confirm', { fields: { yes: false } }));
   assert.deepStrictEqual([last(r, 'recluse').src, last(r, 'recluse').not], ['fortuneteller', true]);
   assert.strictEqual(r.g.regLog[S(r, 'recluse').id].length, 2, '之前那次還留著');
+}
+// 同一個角色連著得到一樣的說法只記一行；最多留 4 行
+{
+  const r = mk(['fortuneteller', 'imp', 'recluse', 'poisoner', 'empath', 'monk', 'saint']), id = S(r, 'recluse').id;
+  r.phase = 'night';
+  r.g.night = 2; noteReg(r, id, 'demon', 'fortuneteller', true);
+  r.g.night = 3; noteReg(r, id, 'demon', 'fortuneteller', true);
+  assert.deepStrictEqual([r.g.regLog[id].length, r.g.regLog[id][0].n], [1, 3], '占卜師兩晚都說否：一行，記最近那晚');
+  for (const n of [4, 5, 6, 7, 8]) { r.g.night = n; noteReg(r, id, 'demon', 'fortuneteller', n % 2 === 1); }
+  assert.deepStrictEqual(r.g.regLog[id].map(x => x.n), [5, 6, 7, 8]);
 }
 console.log('regs ok');

@@ -731,9 +731,6 @@
  "被刺客刺殺": [
   "lib/night.js"
  ],
- "被當作": [
-  "public/js/decidewhy.js"
- ],
  "被惡魔殺死": [
   "public/js/log.js"
  ],
@@ -1248,6 +1245,9 @@
  ],
  "當前沒有投票": [
   "lib/day.js"
+ ],
+ "當作": [
+  "public/js/decidewhy.js"
  ],
  "擋下": [
   "public/js/fx-ab-dlc.js",
@@ -3571,9 +3571,6 @@
   "public/js/help.js",
   "public/js/manual.js"
  ],
- "上次": [
-  "public/js/decidewhy.js"
- ],
  "上次沒有選人：選擇三名玩家，使其": [
   "public/js/glyph.js"
  ],
@@ -5657,9 +5654,6 @@
   "public/js/hud.js"
  ],
  "之後醒來的惡魔選了人，還會再問你一次，也可以等那時再定。": [
-  "public/js/decidewhy.js"
- ],
- "之前": [
   "public/js/decidewhy.js"
  ],
  "之中有": [

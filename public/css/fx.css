@@ -249,7 +249,7 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
   .infocard.ruling.corner .frm-line { flex-wrap: nowrap; margin: 0; font-size: 16px; white-space: nowrap; }
   .infocard.ruling.corner .frm-line .rn b { display: none; } /* 標題已經寫了是貞潔者 */
   .infocard.ruling.corner .btn { min-height: 40px; }
-  .infocard.ruling.corner > .reg-hint { grid-column: 2; align-self: end; } /* 上次被當作什麼：按鈕底下，和問句最後一行平齊 */
+  .infocard.ruling.corner > .reg-hint { grid-column: 2; align-self: end; } /* 之前被當作什麼：按鈕底下，和問句最後一行平齊 */
 }
 @media (max-width: 340px) { .infocard.ruling.corner .v-left .w { display: none; } } /* 最窄的手機：只留計時圖標和秒數，不鑽到「立即反噬」底下 */
 /* 最窄的手機（320）：左邊不折行的「② 間諜 提名 ④ 貞潔者」加上並排的兩個按鈕超出卡片，「無事發生」被切掉一半。
@@ -317,11 +317,25 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .why-lines.brief > .why-line { text-wrap: wrap; }
 .why-line > .w { margin-inline: 2px; }
 .why-line > .w.pl { margin-left: -2px; }
-/* 隱士 / 間諜上次被當作什麼（decidewhy.js regHint）：選項下面一行淡淡的小字，只是提醒，不搶選項和結論 */
-.reg-hint { display: grid; justify-content: center; row-gap: 2px; min-width: 0; }
-.reg-hint .why-line { line-height: 20px; text-align: start; } /* 兩行（上次 / 之前）左邊對齊，整塊居中 */
+/* 隱士 / 間諜之前被當作什麼（decidewhy.js regHint）：選項下面一張淡淡的編號小表，只是提醒，不搶選項和結論。
+   表頭「⑤ 隱士」，每行「編號 | 給了誰 | 被當作什麼」三欄對齊，整塊居中 */
+.reg-hint { display: grid; justify-content: center; row-gap: 6px; min-width: 0; }
+.rh-group { display: grid; grid-template-columns: auto auto minmax(0, auto); align-items: center; gap: 2px 8px; min-width: 0; color: var(--muted); }
+.rh-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 4px; padding-bottom: 2px; border-bottom: 1px dashed var(--line-strong); }
+.rh-row { display: contents; }
+.rh-n { min-width: 1ch; font: 600 12px/20px var(--serif); text-align: right; color: var(--muted); }
+.rh-what { display: flex; flex-wrap: wrap; align-items: center; gap: 0 3px; min-width: 0; line-height: 20px; }
 .reg-hint .w { font-size: 13px; color: var(--muted); }
 .reg-hint .rn b { font-size: 13px; font-weight: 600; color: var(--muted); }
-.reg-hint .w.rh-src { font-size: 12px; }
-.reg-hint .rh-seat { gap: 2px; }
+/* 橫屏矮：卡片已經頂到高度上限，表放在選項右邊，不往下加行（多一行就要捲動，發送會被擠出去） */
+@media (max-height: 500px) and (orientation: landscape) {
+  .st-card > .infocard:has(> .ic-body > .reg-hint) { grid-template-columns: minmax(0, 1fr) auto; grid-auto-flow: row dense; column-gap: 16px; }
+  .st-card > .infocard:has(> .ic-body > .reg-hint) > *,
+  .st-card > .infocard:has(> .ic-body > .reg-hint) > :is(.ic-body, .ic-top, .ic-foot) > * { grid-column: 1 / -1; }
+  .st-card > .infocard:has(> .ic-body > .reg-hint) > .ic-body > :not(.ic-tag, .ic-say, .ic-impaired, .reg-hint) { grid-column: 1; align-self: center; }
+  .st-card > .infocard:has(> .ic-body > .reg-hint) > .ic-body > .reg-hint { grid-column: 2; align-self: center; }
+  /* 裁定卡（貞潔者小窗橫在頂上一條、獵手 / 呆瓜卡寬而矮）：編號一條接一條排開，卡片不變高，字不被縮小，小窗不多擋底下的審判牌 */
+  .infocard.ruling .rh-group { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px 16px; }
+  .infocard.ruling .rh-row { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+}
 .nw { display: inline-flex; align-items: center; gap: inherit; white-space: nowrap; } /* 角色名和後面的（惡魔）不拆到兩行 */
