@@ -160,8 +160,15 @@ assert.deepStrictEqual(trace.browser('Mozilla/5.0 (Linux; Android 12; V2134A) Ap
   const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
   const child = spawn(process.execPath, ['server.js'], { cwd: root, env: { ...process.env, PORT, DATA_DIR: SRV, RATE_LIMIT: '0' }, windowsHide: true });
   try {
-    await new Promise((res, rej) => { child.stdout.on('data', d => /已啓動/.test(d) && res()); child.on('exit', rej); setTimeout(rej, 8000); });
-    const call = (s, ev, d) => new Promise(r => s.emit(ev, d, r));
+    // 機器忙的時候（別的會話在跑測試台、瀏覽器）服務器起得慢：多等一會兒，起不來就說清楚為什麼
+    let errOut = '';
+    child.stderr.on('data', d => { errOut = (errOut + d).slice(-600); });
+    await new Promise((res, rej) => {
+      child.stdout.on('data', d => /已啓動/.test(d) && res());
+      child.on('exit', code => rej(new Error(`測試服務器退出了（${code}）：${errOut}`)));
+      setTimeout(() => rej(new Error(`測試服務器 30 秒沒起來：${errOut}`)), 30000).unref();
+    });
+    const call = (s, ev, d) => new Promise((r, j) => s.timeout(10000).emit(ev, d, (e, x) => (e ? j(new Error(`${ev} 10 秒沒回音`)) : r(x))));
     const st = io(URL, { auth: { sid: 'srvtest01' }, transports: ['websocket'] });
     const made = await call(st, 'st:create', {});
     assert.ok(made.ok);
