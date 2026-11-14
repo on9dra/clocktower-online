@@ -408,7 +408,7 @@ function startButton(ctx, due, off) {
 }
 
 // 機器人補位：說書人一個人試劇本用（線上、線下多設備；單設備直接定人數）。夜裏輪到它自己選，投票隨機舉手。
-// 三樣一直在原位、不換字，不能用時變暗、點了說為什麼；借用按鈕下面留給偽裝的那一塊，抽完讓位（加減座位本來就會作廢抽取）
+// 三樣一直在原位、不換字，不能用時變暗、點了說為什麼；放在按鈕下面留給偽裝的那一塊裏（.lobby-after，不佔高度），抽完讓位（加減座位本來就會作廢抽取）
 function botConfig(ctx) {
   const s = ctx.state;
   if (s.oneDevice) return null;
@@ -457,8 +457,7 @@ function lobbyPane(ctx) {
       btns(s.oneDevice && seatCounter(ctx), !s.offline && BW('打亂座位', () => ctx.st('shuffleSeats'), 'ghost', n > 1 ? null : '至少要兩個人才能換座'), B('角色配置', () => openSetup(ctx)),
         BW('隨機抽取', () => ctx.st('draft'), '', n < 5 ? `至少要 5 人才能抽，現在 ${n} 人` : n > maxOf(s) ? `這個劇本只適合 5–${maxOf(s)} 人，現在 ${n} 人` : null)),
       // 偽裝永遠三格：小劇本人多時不在場的善良角色不夠，抽不滿的格子留成「空」，照樣能點開選；「偽裝」兩個字也能點開
-      botConfig(ctx),
-      h('div', { class: 'lobby-after' }, st.draft && row(
+      h('div', { class: 'lobby-after' }, botConfig(ctx), st.draft && row(
         h('button', { class: 'bluff-pick bluff-tag', title: '指定', onclick: () => pickBluff(ctx, Math.max(0, [0, 1, 2].findIndex(i => !st.bluffs[i]))) }, tag('bluff')),
         [0, 1, 2].map(i => { const id = st.bluffs[i];
           return h('button', { class: 'bluff-pick' + (st.bluffPins?.[i] ? ' pinned' : '') + (id ? '' : ' empty'), title: '指定', onclick: () => pickBluff(ctx, i) }, id ? named(id) : w('空', 'muted')); })),
@@ -571,13 +570,13 @@ export function herringPicking(ctx) {
   return { can: new Set(good), on: new Set([s.st.redHerring].filter(Boolean)), fixed: new Set(), why: () => '紅鯡魚只能是善良玩家',
     pick: id => { herringPick = null; ctx.st('setRedHerring', { seatId: id }); ctx.render(); } };
 }
-// 和開局前預選的首夜信息排在同一排（preItems）
+// 和開局前預選的首夜信息排在同一排（preItems），中間一道豎線隔開：紅鯡魚是占卜師的設置，預選是給首夜要拿信息的人的，兩回事
 function herringRow(ctx) {
   const s = ctx.state, on = herringPick === s.inst, id = s.st.redHerring, pre = preItems(ctx);
   if (!hasFt(s) && !pre.length) return null;
   return h('div', { class: 'row herring-row', 'data-key': 'herring' }, hasFt(s) && [mini('fortuneteller'), w('紅鯡魚', 'ink'),
     h('button', { class: 'bluff-pick herring' + (on ? ' on' : ''), title: on ? '收回' : '換一個', onclick: () => { herringPick = on ? null : s.inst; preEdit = null; ctx.render(); } },
-      on ? [h('span', { class: 'sb empty' }), w('點桌上的善良玩家', 'muted')] : id ? seatBadge(s, id) : w('未設', 'muted'))], pre);
+      on ? [h('span', { class: 'sb empty' }), w('點桌上的善良玩家', 'muted')] : id ? seatBadge(s, id) : w('未設', 'muted'))], hasFt(s) && pre.length > 0 && h('i', { class: 'hr-sep', 'data-key': 'hr-sep' }), pre);
 }
 
 // 玩家：輪到自己行動時建立本地的選人狀態（桌面和圓桌中央的確認牌要用到），其他時候清掉
