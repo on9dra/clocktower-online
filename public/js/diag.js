@@ -35,7 +35,7 @@ export function report(e, kind = 'err', src = '') {
 addEventListener('error', ev => {
   const t = ev.target;
   if (t && t !== window && t.tagName) { // 圖片、腳本、樣式表、音頻沒下下來
-    const url = t.currentSrc || t.src || t.href || '';
+    const url = String(t.currentSrc || t.src || t.href?.baseVal || t.href || ''); // svg 裏的 image：href 是對象
     if (url.startsWith(ORIGIN)) note('res', { url: strip(url).slice(0, 160), kind: t.tagName.toLowerCase() });
     return;
   }

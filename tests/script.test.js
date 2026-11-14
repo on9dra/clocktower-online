@@ -43,7 +43,11 @@ const parse = e => parseScript(e, 'abc');
   assert.strictEqual(d.first, 12.5);
   assert.strictEqual(d.other, 0);
   assert.deepStrictEqual(d.reminders, ['中招']);
-  assert.ok(!('image' in d), '圖片鏈接不存');
+  assert.strictEqual(d.image, 'https://evil.example/a.png', '角色的圖：只收 https（http 改成 https）');
+  const img = v => parse(['imp', { id: 'x', name: '甲', team: 'minion', ability: '', image: v }]).defs[parse(['imp', { id: 'x', name: '甲', team: 'minion', ability: '', image: v }]).roles[1]].image;
+  assert.strictEqual(img(['https://a.example/1.png', 'https://a.example/2.png']), 'https://a.example/1.png', '數組取第一張');
+  assert.strictEqual(img('community/i/0123456789ab.webp'), 'community/i/0123456789ab.webp', '社區劇本庫的小圖');
+  for (const v of ['javascript:alert(1)', 'data:image/png;base64,AAAA', '/admin?key=1', 'community/i/../../x.webp', 'https://a.example/"><script>', 'https://a.example/' + 'x'.repeat(400), 7, null]) assert.strictEqual(img(v), undefined, '不收：' + String(v).slice(0, 30));
   // 夜晚順序：Json 自己排的，用 Json 裏的 id
   const o = parse([{ id: '_meta', firstNight: ['dusk', 'zhang_san', 'imp', 'dawn'] }, 'imp', { id: 'zhang_san', name: '張三', team: 'minion', ability: '' }]);
   assert.deepStrictEqual(o.first, [o.roles[1], 'imp']);

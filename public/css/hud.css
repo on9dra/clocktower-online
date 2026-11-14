@@ -952,6 +952,11 @@ body.art .token.back { box-shadow: 0 2px 6px #0006; background: url(../img/art/c
 .sp-sub .sp-grid { justify-content: center; }
 /* 沒有內置圖標的角色：名字的第一個字 */
 .token-char { dominant-baseline: central; fill: currentColor; font: 900 310px var(--serif); text-anchor: middle; }
+/* 角色自帶的圖、後到的官方圖示：到了淡入，不突然冒出來 */
+.ri-img { opacity: 0; transition: opacity .3s ease; }
+.ri-img.on { opacity: 1; }
+.ri-in { animation: ri-in .3s ease; }
+@keyframes ri-in { from { opacity: 0; } }
 /* 頂欄的手動局標記：手機上放不下，和劇本名一樣收進「⋯」的標題 */
 .mode-tag { flex: none; padding: 0 6px; border-radius: 3px; background: var(--ink); color: var(--card); font: 700 13px var(--serif); white-space: nowrap; }
 @media (max-width: 860px) {

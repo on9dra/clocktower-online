@@ -25,7 +25,7 @@ export function passCard(ctx) {
 export const demonsOf = s => s.seats.filter(x => x.role && ROLES[x.role].team === 'demon' && !x.dead);
 
 // ───── 上傳劇本 ─────
-const KEEP = ['id', 'name', 'author', 'team', 'ability', 'firstNight', 'otherNight', 'firstNightReminder', 'otherNightReminder', 'reminders', 'remindersGlobal'];
+const KEEP = ['id', 'name', 'author', 'team', 'ability', 'firstNight', 'otherNight', 'firstNightReminder', 'otherNightReminder', 'reminders', 'remindersGlobal', 'image'];
 const MAX_FILE = 4 * 1024 * 1024, MAX_SEND = 60 * 1024; // 服務端單條消息最多 64KB
 // 圖片（可能內嵌得很大）、風味文字不用，發之前去掉
 const slim = e => (e && typeof e === 'object' ? Object.fromEntries(KEEP.filter(k => k in e).map(k => [k, e[k]])) : e);

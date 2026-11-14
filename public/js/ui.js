@@ -199,14 +199,45 @@ export function closeMenu() {
   if (openMenu) { leaveDom(openMenu, 130); openMenu = null; }
 }
 
-// 畫角色圖標：內置角色是圖，上傳的劇本裏的角色取名字的第一個字，和角色牌一樣的印章（名字是別人寫的，不能進 innerHTML）
-export function fillIcon(el, roleId) {
-  if (ICONS[roleId]) { el.innerHTML = ICONS[roleId]; return; }
-  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+// 畫角色圖標。內置角色是圖；別的官方角色的圖在 icons-more.js，第一次用到時後台加載，到了把已經畫出來的換上；
+// 上傳的劇本裏的角色用 Json 自帶的圖（image），沒有圖、圖壞了的取名字的第一個字（名字是別人寫的，不能進 innerHTML）
+const SVG = 'http://www.w3.org/2000/svg';
+const seen = new Set(), bad = new Set(); // 加載過的圖再畫時不重新淡入；壞掉的不再試
+let more;
+function moreIcons() {
+  more ||= import('./icons-more.js').then(m => {
+    Object.assign(ICONS, m.MORE);
+    for (const el of document.querySelectorAll('svg[data-ri]')) {
+      const id = el.dataset.ri;
+      el.removeAttribute('data-ri');
+      if (ICONS[id]) { el.innerHTML = ICONS[id]; el.classList.add('ri-in'); }
+    }
+  }, () => { more = null; });
+}
+function charIcon(el, roleId) {
+  const t = document.createElementNS(SVG, 'text');
   t.textContent = Array.from(tr(ROLES[roleId]?.name || ''))[0] || '';
   t.setAttribute('x', 256); t.setAttribute('y', 256);
   t.setAttribute('class', 'token-char');
   el.append(t);
+}
+export function fillIcon(el, roleId) {
+  if (ICONS[roleId]) { el.innerHTML = ICONS[roleId]; return; }
+  const src = ROLES[roleId]?.image;
+  if (!src || bad.has(src)) {
+    charIcon(el, roleId);
+    if (!src && ROLES[roleId] && !/^h\w+_\d+$/.test(roleId)) { el.dataset.ri = roleId; moreIcons(); } // 官方角色：圖還在路上
+    return;
+  }
+  // 社區劇本庫的小圖已經裁到貼邊；別處的圖按通行的畫法四周留了大片空白，放大到 1.5 倍
+  const im = document.createElementNS(SVG, 'image'), z = src.startsWith('community/') ? 512 : 768;
+  for (const [k, v] of Object.entries({ href: src, x: (512 - z) / 2, y: (512 - z) / 2, width: z, height: z })) im.setAttribute(k, v);
+  if (!seen.has(src)) {
+    im.setAttribute('class', 'ri-img');
+    im.addEventListener('load', () => { seen.add(src); im.classList.add('on'); }, { once: true });
+  }
+  im.addEventListener('error', () => { bad.add(src); im.remove(); charIcon(el, roleId); }, { once: true });
+  el.append(im);
 }
 
 // 角色圓形標記（不使用官方圖片，按陣營配色）

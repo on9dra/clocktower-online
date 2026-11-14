@@ -33,7 +33,7 @@ const CATS = [
 ];
 const catOf = folder => CATS.findIndex(c => c[2].includes(folder));
 
-const KEEP = ['id', 'name', 'author', 'team', 'ability', 'firstNight', 'otherNight', 'firstNightReminder', 'otherNightReminder', 'reminders', 'remindersGlobal', 'small'];
+const KEEP = ['id', 'name', 'author', 'team', 'ability', 'firstNight', 'otherNight', 'firstNightReminder', 'otherNightReminder', 'reminders', 'remindersGlobal', 'small', 'image'];
 const slim = e => (e && typeof e === 'object' ? Object.fromEntries(KEEP.filter(k => k in e).map(k => [k, e[k]])) : e);
 const walk = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(x => (x.isDirectory() ? walk(path.join(d, x.name)) : /\.json$/i.test(x.name) ? [path.join(d, x.name)] : []));
 const norm = s => String(s || '').toLowerCase().replace(/\s+|v\d+(\.\d+)*$/g, '').replace(/[（(]\d+[)）]$/, '');
@@ -93,6 +93,17 @@ console.log(`讀了 ${files.length} 個 Json，去重後 ${out.length} 本，開
 const dir = path.join(ROOT, 'public', 'community'), sdir = path.join(dir, 's');
 fs.rmSync(sdir, { recursive: true, force: true });
 fs.mkdirSync(sdir, { recursive: true });
+// 自製角色的圖：縮好的小圖在 public/community/i（tools/community-icons.py 下載、裁邊、縮小），有就掛本地的，沒有就不帶圖（原圖又大又常失效，不讓玩家的手機去拉）。
+// 官方角色用遊戲自己的圖示，Json 裏帶的圖不要。還沒下載過的網址寫進 tools/community-icons.todo
+const idir = path.join(dir, 'i'), todo = new Set();
+const localImg = e => {
+  const url = String((Array.isArray(e.image) ? e.image[0] : e.image) || '').trim();
+  if (!/^https?:\/\//i.test(url)) return undefined;
+  const f = crypto.createHash('sha1').update(url).digest('hex').slice(0, 12) + '.webp';
+  if (fs.existsSync(path.join(idir, f))) return 'community/i/' + f;
+  todo.add(url);
+};
+const homeNames = s => new Set(s.roles.filter(id => isHome(s, id)).map(id => s.defs[id].name));
 const index = [];
 for (const x of out) {
   const ok = trial(x.entries);
@@ -100,13 +111,20 @@ for (const x of out) {
   const lo = ok[0], hi = ok.at(-1);
   // _meta：名字、作者照博物館的；只能 5–6 人玩的標 small，服務端按這個限人數
   const meta = { id: '_meta', name: x.name.slice(0, 30), author: x.author.slice(0, 30), ...(hi <= 6 ? { small: true } : {}) };
-  const entries = [meta, ...x.entries.filter(e => !(e && e.id === '_meta'))];
+  const hn = homeNames(x.s);
+  const entries = [meta, ...x.entries.filter(e => !(e && e.id === '_meta')).map(e => {
+    if (!e || typeof e !== 'object' || !('image' in e)) return e;
+    const { image, ...rest } = e, img = hn.has(String(e.name ?? '').trim().slice(0, 30)) ? localImg(e) : undefined;
+    return img ? { ...rest, image: img } : rest;
+  })];
   const k = crypto.createHash('sha1').update(x.name + '|' + x.author).digest('hex').slice(0, 10);
   fs.writeFileSync(path.join(sdir, k + '.json'), JSON.stringify(entries));
   const home = x.s.roles.filter(id => isHome(x.s, id)).length;
   index.push({ k, name: meta.name, author: meta.author, cat: CATS[x.cat][0], kind: x.s.auto ? 'auto' : home ? 'home' : 'off', lo, hi, n: x.s.roles.length });
 }
 fs.writeFileSync(path.join(dir, 'index.json'), JSON.stringify({ list: index })); // 分類的名字和順序在 public/js/manual.js 的 CATS
+fs.writeFileSync(path.join(ROOT, 'tools', 'community-icons.todo'), [...todo].join('\n'));
+if (todo.size) console.log(`還有 ${todo.size} 張角色圖沒下載：python tools/community-icons.py，然後再跑一次這個腳本`);
 fs.rmSync(process.env.DATA_DIR, { recursive: true, force: true });
 const by = k => CATS.map(c => `${c[1]} ${index.filter(i => i.cat === c[0] && (!k || i.kind === k)).length}`).join('、');
 console.log(`寫入 ${index.length} 本：${by()}`);
