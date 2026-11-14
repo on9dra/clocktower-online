@@ -1265,6 +1265,10 @@ body.art .token.blank.named { color: #2a2622; }
 .seat-more .tag.by-role .tag-ico { border-width: 1px; box-shadow: inset 0 0 0 1px var(--card), inset 0 0 0 1.8px var(--team), 0 0 0 1.5px var(--card), 0 1px 2px #0005; }
 /* 座位選中、可選、提名、計票的描邊和底色只給頭像本身：標記、狀態圖章、假身份副牌裏的小牌不跟著描（.seat.selected .token 這些規則都在前面） */
 .seat :is(.seat-more, .st-ico, .fake-badge, .pmarks) .token { outline: none; background: var(--card); }
+/* 動畫也一樣（被提名的紅色脈衝、選中的彈跳、可選的上下晃、懸停抬起）：動畫裏的 box-shadow 壓過小牌自己的樣式，小牌會被套上一圈。
+   座位剛死時的淡出照舊整個座位一起 */
+.ring .seat :is(.seat-more, .st-ico, .fake-badge, .pmarks) .token { transform: none; }
+.ring .seat:not(.fx-died) :is(.seat-more, .st-ico, .fake-badge, .pmarks) .token { animation: none; }
 .tg-b { position: absolute; right: -4px; bottom: -3px; display: grid; place-items: center; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); color: #fff;
   box-shadow: 0 0 0 1.2px var(--card); font: 800 9px/1 var(--sans); font-style: normal; letter-spacing: 0; pointer-events: none; }
 .tag .tg-b .ico, .tg-b .ico { width: 80%; height: 80%; } /* 壓過 hud.css 的 .tag .ico */
