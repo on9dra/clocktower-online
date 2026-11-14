@@ -228,18 +228,11 @@
 .spread .ic-body .opt-tile.on.lock { background: #c9eed5; }
 @media (prefers-reduced-motion: reduce) { .lk-ring, .lock-on > svg, .seat.selected.locked .token { animation: none; } }
 
-/* 準備階段的「預選」鍵（flow.js preItems）：紅鯡魚後面；按下去等點桌上的人。已經預選了的排在它後面 */
+/* 準備階段的「預選」鍵（flow.js preItems）：紅鯡魚下面單獨一行（board.css .pre-row）；按下去等點桌上的人 */
 .bluff-pick.pre-btn { display: inline-flex; align-items: center; gap: 3px; min-height: 30px; padding-inline: 6px; border: 1.5px solid var(--line-strong); }
 .bluff-pick.pre-btn .ico { width: 14px; height: 14px; }
 .bluff-pick.pre-btn.on { border-color: var(--brass); background: var(--hover); }
 .bluff-pick.pre .pre-r.token { width: 18px; height: 18px; }
-.herring-row:has(.pre-btn) { flex-wrap: wrap; row-gap: 2px; }
-@media (max-width: 640px) and (orientation: portrait) {
-  .town.picking:has(.herring-row .pre-btn) { --dn: 124px; }
-  .herring-row:has(.pre-btn) { flex-wrap: nowrap; gap: 3px; }
-  .herring-row:has(.pre-btn) > .w { display: none; } /* 擠：紅鯡魚只留占卜師小牌 + 座位 */
-}
-@media (max-width: 640px) and (max-height: 700px) and (orientation: portrait) { .town.picking:has(.herring-row .pre-btn) { --dn: 116px; } }
 /* 自製角色的預選卡：正中是要給他看的座位號 + 角色牌；首夜標記卡上同一行，下面「展示」「改」 */
 .pf-what { justify-content: center; gap: 4px; }
 .mk-pre { display: grid; justify-items: center; gap: 4px; }

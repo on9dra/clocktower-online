@@ -570,13 +570,13 @@ export function herringPicking(ctx) {
   return { can: new Set(good), on: new Set([s.st.redHerring].filter(Boolean)), fixed: new Set(), why: () => '紅鯡魚只能是善良玩家',
     pick: id => { herringPick = null; ctx.st('setRedHerring', { seatId: id }); ctx.render(); } };
 }
-// 和開局前預選的首夜信息排在同一排（preItems），中間一道豎線隔開：紅鯡魚是占卜師的設置，預選是給首夜要拿信息的人的，兩回事
+// 開局前預選的首夜信息（preItems）在下面單獨一行：紅鯡魚是占卜師的設置，預選是給首夜要拿信息的人的，兩回事，排在一起會被當成一件事
 function herringRow(ctx) {
   const s = ctx.state, on = herringPick === s.inst, id = s.st.redHerring, pre = preItems(ctx);
-  if (!hasFt(s) && !pre.length) return null;
-  return h('div', { class: 'row herring-row', 'data-key': 'herring' }, hasFt(s) && [mini('fortuneteller'), w('紅鯡魚', 'ink'),
+  return [hasFt(s) && h('div', { class: 'row herring-row', 'data-key': 'herring' }, mini('fortuneteller'), w('紅鯡魚', 'ink'),
     h('button', { class: 'bluff-pick herring' + (on ? ' on' : ''), title: on ? '收回' : '換一個', onclick: () => { herringPick = on ? null : s.inst; preEdit = null; ctx.render(); } },
-      on ? [h('span', { class: 'sb empty' }), w('點桌上的善良玩家', 'muted')] : id ? seatBadge(s, id) : w('未設', 'muted'))], hasFt(s) && pre.length > 0 && h('i', { class: 'hr-sep', 'data-key': 'hr-sep' }), pre);
+      on ? [h('span', { class: 'sb empty' }), w('點桌上的善良玩家', 'muted')] : id ? seatBadge(s, id) : w('未設', 'muted'))),
+    pre.length > 0 && h('div', { class: 'row pre-row', 'data-key': 'pre-row' }, pre)];
 }
 
 // 玩家：輪到自己行動時建立本地的選人狀態（桌面和圓桌中央的確認牌要用到），其他時候清掉

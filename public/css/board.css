@@ -934,7 +934,7 @@ body.art .pc.vt-card { --mark: var(--evil); padding: 2px 8px 6px; }
 .bots > * { flex: none; }
 .bots select { width: auto; padding-block: 4px; font-size: 16px; }
 .lobby-after:has(> :not(.bots)) > .bots { opacity: 0; visibility: hidden; }
-.lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 66px; pointer-events: none; }
+.lobby-after { display: grid; justify-items: center; align-content: start; gap: 6px; height: 98px; pointer-events: none; }
 /* 開始遊戲在圓桌正中間（底部會被手機瀏覽器的地址欄擋住）：一直在，開不了時淡一點，點了說原因 */
 .start-row { display: flex; justify-content: center; margin-top: 2px; }
 .btn.start { display: inline-flex; align-items: center; gap: 6px; }
@@ -1281,11 +1281,15 @@ body.art .token.blank.named { color: #2a2622; }
 }
 /* 紅鯡魚（flow.js herringRow）：偽裝下面一行，占卜師上場才有；點了在桌上點人，這一格空著閃 */
 .herring-row { gap: 6px; }
-/* 紅鯡魚和預選之間的豎線：兩樣各管各的，隔開 */
-.hr-sep { flex: none; align-self: center; width: 1px; height: 18px; margin-inline: 8px; background: var(--line-strong); opacity: .7; }
-@media (max-width: 640px) and (orientation: portrait) { .hr-sep { margin-inline: 6px; } }
-/* 矮屏：偽裝下面還有紅鯡魚 / 預選這一排時，116px 不夠，最下面一排會出屏幕 */
-@media (max-width: 640px) and (max-height: 700px) and (orientation: portrait) { .town.picking:has(.lobby-after .herring-row :is(.pre, .pre-btn)) { --dn: 128px; } }
+/* 預選（flow.js preItems）：紅鯡魚下面單獨一行，兩樣各管各的。豎屏手機圓桌下方多讓出這一行 */
+@media (max-width: 640px) and (orientation: portrait) { .town.picking:has(.lobby-after .pre-row) { --dn: 158px; } }
+/* 很矮的屏（不到 600 高）放不下三行：紅鯡魚和預選並排，中間一道豎線隔開 */
+@media (max-width: 640px) and (max-height: 599px) and (orientation: portrait) {
+  .town.picking:has(.lobby-after .pre-row) { --dn: 128px; }
+  .lobby-after:has(.herring-row):has(.pre-row) { grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 10px; }
+  .lobby-after:has(.herring-row):has(.pre-row) > :not(.herring-row, .pre-row, .bots) { grid-column: 1 / -1; }
+  .lobby-after > .herring-row + .pre-row { padding-left: 10px; border-left: 1px solid var(--line-strong); }
+}
 .bluff-pick.herring { min-width: 44px; border-color: var(--line-strong); }
 .bluff-pick.herring.on { border-color: var(--brass); background: var(--hover); }
 /* 開局前預選首夜信息（flow.js preItems）：紅鯡魚後面一格一個角色——角色小牌 + 預選的座位號，沒選是一個虛線空圈（不閃，閃的只給正在點的） */
