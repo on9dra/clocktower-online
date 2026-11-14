@@ -317,27 +317,37 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 @media (min-width: 641px) and (max-height: 500px) and (orientation: landscape) { /* 橫屏卡在圓桌旁邊，沒有「收起」 */
   .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .why-tools > .ic-note { top: 8px; }
 }
-/* 換版：舊的句子先淡掉，新的再淡進來（切換籤本身不動） */
 /* 手機上兩邊浮不下的時候（圓桌中間的裁定卡、英文的長句、360 以下的窄屏）：兩個籤並成一行放在主句上面。
    多一小行，比第一行被擠得折成兩三行矮 */
 @media (max-width: 640px) {
+  /* 頂上的紙條有切換籤就撐滿寬度：兩個籤貼著紙條兩邊，換版時不跟著句子長短挪 */
+  .st-card .spread .ic-body:has(.why-mode) { width: 96vw; }
+  .spread .ic-body > .ic-say > .frm:has(> .why-lines) { display: flex; }
   :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 0 0 3px; }
-  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools > * { float: none; width: auto; margin: 0; }
+  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools > * { flex: none; float: none; width: auto; margin: 0; }
   :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-mode { flex-direction: row; gap: 4px; }
   :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools > .wm-pad { display: none; }
 }
 @media (max-width: 360px) {
   .why-tools { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 0 0 3px; }
-  .why-tools > * { float: none; width: auto; margin: 0; }
+  .why-tools > * { flex: none; float: none; width: auto; margin: 0; }
   .why-tools .why-mode { flex-direction: row; gap: 4px; }
   .why-tools > .wm-pad { display: none; }
 }
+/* 換版：舊的句子先淡掉，新的再淡進來（切換籤本身不動） */
 .why-line.why-out > :not(.why-tools) { opacity: 0; transition: opacity .12s ease; }
 .why-line.why-in > :not(.why-tools) { animation: why-in .26s ease both; }
 @keyframes why-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .why-line.why-in > * { animation: none; } }
 .why-line { display: block; max-width: 100%; text-align: center; line-height: 22px; text-wrap: balance; word-break: keep-all; overflow-wrap: break-word; } /* 中文在標點處換行，不把「所以」拆成兩行；一句長到放不下才在字間斷 */
 .why-line > * { vertical-align: middle; }
-.why-line + .why-line { margin-top: 4px; }
+/* 電腦上卡本來按內容定寬：有切換籤的卡撐到最寬，換版時卡不變寬變窄，籤留在原處 */
+@media (min-width: 641px) and (min-height: 501px), (min-width: 641px) and (orientation: portrait) { .st-card:has(> .infocard .why-mode) { width: 100vw; } }
+/* 主句一塊（decidewhy.js whyLead）：每行撐滿這一塊、字居中，兩個籤浮在這一塊的兩邊，不跟著句子長短挪位置 */
+.why-lines { display: grid; row-gap: 8px; min-width: 0; }
+.frm > .why-lines { flex: 1 1 100%; }
+/* 簡略版是一句「前因：問題」：放不下時在冒號後面折（照常排滿第一行），不均分成兩半把前因拆開 */
+.why-lines.brief > .why-line { text-wrap: wrap; }
 .why-line > .w { margin-inline: 2px; }
+.why-line > .w.pl { margin-left: -2px; }
 .nw { display: inline-flex; align-items: center; gap: inherit; white-space: nowrap; } /* 角色名和後面的（惡魔）不拆到兩行 */

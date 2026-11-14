@@ -21,6 +21,8 @@ const line = (...kids) => h('div', { class: 'why-line' }, kids.flat(Infinity).fi
   const prev = out.at(-1);
   if (prev?.nodeType === 1 && !prev.classList.contains('w') && k.classList?.contains('w') && PUNCT.test(k.textContent)) out[out.length - 1] = h('span', { class: 'nw' }, prev, k);
   else out.push(k);
+  // 標點開頭的一段緊跟前一個詞（英文 Poisoned, so…），不空出兩邊的字距
+  if (prev?.classList?.contains('w') && k.classList?.contains('w') && PUNCT.test(k.textContent)) k.classList.add('pl');
   return out;
 }, []));
 const roleOf = (s, id) => s.seats.find(x => x.id === id)?.role;
@@ -168,7 +170,8 @@ export function whyLead(ctx, why, title, bare = false) {
   if (short.length && !bare) lines[0].prepend(h('span', { class: 'why-tools' }, modeTabs(ctx), note || h('span', { class: 'wm-pad', 'aria-hidden': 'true' })));
   else if (note) lines.at(-1).append(note);
   if (Date.now() - flipped < 400) for (const l of lines) l.classList.add('why-in');
-  return { lines, note: null };
+  // 包成一塊：換版時這一塊的高度從舊的過渡到新的（swap）
+  return { lines: [h('div', { class: 'why-lines' + (lines === short ? ' brief' : '') }, lines)], note: null };
 }
 
 const modeTabs = ctx => h('span', { class: 'why-mode' }, [[true, '簡略'], [false, '詳細']].map(([on, label]) =>
@@ -187,19 +190,31 @@ function setBrief(ctx, on) {
 }
 function swap(ctx) {
   flipped = Date.now();
-  const els = [...document.querySelectorAll('.town > .ring, .st-card:not(.leaving):not(.corner)')];
-  const strip = document.querySelector('.st-card:not(.leaving) .ic-body');
-  const was = new Map(els.map(el => [el, el.getBoundingClientRect()])), stripH = strip?.offsetHeight;
+  // 主句那一塊變高變矮，不硬切：它的高度從舊的過渡到新的，下面的選項、按鈕和卡的底邊自然跟著走，新句子隨高度露出來。
+  // 手機上紙條的底邊貼著圓桌，圓桌讓位有 .45s 的 CSS 過渡（board.css .is-st .ring、hud.css），用同一個節奏，紙條頂邊就不動；
+  // 這期間圓桌別按動畫中的高度重量（town.js fitAround 認 'fit-hold'）。橫屏的卡上下居中，高度一變位置自己跟著走。
+  // 電腦上卡可能換了縮放、重新居中：卡從原來的大小、位置過渡過去（圓桌在挪的時候不給卡加 transform：卡在圓桌裏面，兩邊一起挪就晃了）
+  const ring = document.querySelector('.town > .ring'), VARS = ['--bh', '--fh', '--rk'];
+  const pick = () => document.querySelector('.st-card:not(.leaving):not(.corner)');
+  const sayOf = card => card?.querySelector('.why-lines');
+  const read = () => VARS.map(k => ring?.style.getPropertyValue(k) || '').join();
+  const height = el => el ? parseFloat(getComputedStyle(el).height) : 0; // 不受 zoom 影響的佈局高度
+  const stripOf = card => card?.querySelector('.ic-body'), maxH = el => el ? getComputedStyle(el).maxHeight : 'none';
+  const vars = read(), was = pick()?.getBoundingClientRect(), h0 = height(sayOf(pick())), m0 = maxH(stripOf(pick()));
   ctx.render(); // 同步：畫完、fitTableCard 排好版才回來
-  const ease = { duration: 300, easing: 'cubic-bezier(.2,.8,.3,1)' };
-  for (const [el, a] of was) {
-    if (!el.isConnected) continue;
-    const b = el.getBoundingClientRect(), k = b.width ? a.width / b.width : 1;
-    if (Math.abs(a.left - b.left) + Math.abs(a.top - b.top) < 1 && Math.abs(k - 1) < .005) continue;
-    el.animate([{ transformOrigin: '0 0', transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${k})` },
-      { transformOrigin: '0 0', transform: 'none' }], ease);
+  const card = pick(), say = sayOf(card), h1 = height(say), timing = { duration: 450, easing: 'ease' };
+  if (say && h0 && Math.abs(h1 - h0) >= .5) {
+    const clip = { clipPath: 'inset(-100vmax -100vmax 0 -100vmax)', alignContent: 'start' }; // 只裁底邊：還沒露出來的句尾不壓住下面的選項
+    say.animate([{ ...clip, height: h0 + 'px' }, { ...clip, height: h1 + 'px' }], { ...timing, id: 'fit-hold' });
+    // 紙條的最高高度（hud.css max-height: var(--up)）一下就換成了新的：跟著同樣的節奏從舊的過渡過去，不先把句子裁掉。
+    // 小屏上圓桌已經縮到頭、紙條本來就在滾動的，兩個值一樣，照舊
+    const strip = say.closest('.ic-body'), m1 = maxH(strip);
+    if (strip && m0 !== m1 && m0 !== 'none' && m1 !== 'none' && getComputedStyle(strip).position === 'absolute') strip.animate([{ maxHeight: m0 }, { maxHeight: m1 }], timing);
   }
-  // 手機頂上的橫條釘在上面，只是變高變矮：高度過渡過去
-  if (strip?.isConnected && stripH && strip.offsetHeight !== stripH && getComputedStyle(strip).position !== 'static')
-    strip.animate([{ height: stripH + 'px' }, { height: strip.offsetHeight + 'px' }], ease);
+  if (read() === vars && card && was && getComputedStyle(card).position !== 'absolute') {
+    const b = card.getBoundingClientRect(), k = b.width ? was.width / b.width : 1;
+    if (Math.abs(was.left - b.left) + Math.abs(was.top - b.top) >= 1 || Math.abs(k - 1) >= .005)
+      card.animate([{ transformOrigin: '0 0', transform: `translate(${was.left - b.left}px, ${was.top - b.top}px) scale(${k})` },
+        { transformOrigin: '0 0', transform: 'none' }], timing);
+  }
 }
