@@ -245,9 +245,8 @@ export function rulingCard(ctx, r = ctx.state.st.ruling, op = 'rule') {
   const btn = (label, work) => B(label, () => ctx.st(op, { work }), side ? 'sm' : '');
   const opts = r.forced ? [r.auto] : [true, false];
   const left = side && r.due ? Math.max(0, Math.ceil((r.due - ctx.now()) / 1000)) : null;
-  // 誰做了什麼 → 為什麼是這個結果 / 要你定什麼（decidewhy.js，詳細 / 簡略兩版）→ 句尾的規則說明。
-  // 角落小窗放不下說明籤和切換籤：只放主句
-  const { lines, note } = whyLead(ctx, rulingWhy(s, r), RULE_TITLE[r.kind], side);
+  // 誰做了什麼 → 為什麼是這個結果 / 要你定什麼（decidewhy.js）；右上角的問號點開講全。角落小窗只放主句
+  const { lines, note } = whyLead(rulingWhy(s, r), RULE_TITLE[r.kind], side);
   const say = [cardTag(!side && icon('timer'), RULE_TITLE[r.kind] || '裁定'),
     rulingWho(s, r),
     r.why && row(w(r.why, 'evil'), w('能力無效', 'muted')),

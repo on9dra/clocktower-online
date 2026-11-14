@@ -561,9 +561,7 @@ const fitStyle = () => ({ '--bh': fit.bh + 'px', '--fh': fit.fh + 'px', '--rk': 
 function fitAround(st, ring) {
   const up = st.querySelector('.ic-body, .tb-roles'), dn = st.querySelector('.ic-foot, .tb-foot, .spread > .row');
   if (!ring || !dn || getComputedStyle(dn).position !== 'absolute') return;
-  // 上面那塊正在從舊高度過渡到新高度（decidewhy.js swap，動畫 id 'fit-hold'）：量到的是動畫中的框，沿用畫完時量的
-  const held = up?.getAnimations({ subtree: true }).some(a => a.id === 'fit-hold');
-  const bh = up ? (held ? fit.bh : Math.ceil(up.scrollHeight)) : 0, fh = Math.ceil(dn.offsetHeight);
+  const bh = up ? Math.ceil(up.scrollHeight) : 0, fh = Math.ceil(dn.offsetHeight);
   if (bh === fit.bh && fh === fit.fh) return;
   Object.assign(fit, { bh, fh });
   for (const [k, v] of Object.entries(fitStyle())) ring.style.setProperty(k, v);

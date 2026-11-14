@@ -337,9 +337,8 @@ function decideCard(ctx, step) {
     const seat = s.seats.find(x => x.id === o.id);
     return seat ? [seatBadge(s, seat.id), mini(seat.role)] : o.id === 'none' ? icon('none') : w(o.label, 'ink');
   };
-  // 主句：為什麼現在問、要定什麼（decidewhy.js）；沒寫到的裁定才退回選了誰 + 問句
-  // 主句：詳細 / 簡略兩版，說明籤在句尾（decidewhy.js）；沒寫到的裁定才退回選了誰 + 問句，說明籤放在選項下面
-  const { lines, note } = whyLead(ctx, why, decideTitle(step));
+  // 主句：為什麼現在問、要定什麼，右上角的問號點開講全（decidewhy.js）；沒寫到的裁定才退回選了誰 + 問句
+  const { lines, note } = whyLead(why, decideTitle(step));
   const lead = lines || [(step.picks || []).map(id => seatBadge(s, id)), w(d.say || d.prompt, 'ink')];
   // 上方：問句 + 選項（座位類的也能直接點桌上的頭像）；正中：選定的那一個；下方：確定
   const picked = d.options.find(o => o.id === cur);

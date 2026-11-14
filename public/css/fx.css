@@ -277,75 +277,38 @@ body[data-phase="night"] .ring::after, body[data-phase="dawn"] .ring::after { bo
 .ab-stitch { background: var(--evil); border-radius: 3px; box-shadow: 0 0 0 1.5px var(--card); }
 .ab-slash { background: var(--ink); border-radius: 50%; box-shadow: 0 0 0 2px var(--card); transform-origin: 0 50%; }
 
-/* 裁定卡角落的規則說明（decidewhy.js whyNote）：一枚「說明」小籤；點開是一張說明紙（彈窗），卡片本身不變大、不縮小 */
-.ic-note { grid-column: 1 / -1; justify-self: end; margin: -4px 0 0; font-size: 12px; line-height: 1.4; }
-.ic-note .in-tab { display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--brass);
-  font: 12px/1.4 var(--serif); letter-spacing: .1em; cursor: pointer; }
-.ic-note .in-tab .ico { width: 14px; height: 14px; }
+/* 卡片右上角的小問號（decidewhy.js whyNote）：點開是一張說明卡（彈窗），卡片本身不變大、不縮小 */
+.why-q { position: absolute; top: 0; right: 0; z-index: 3; display: grid; place-items: center; width: 18px; height: 18px; padding: 0; box-sizing: border-box;
+  border: 1.5px solid var(--brass); border-radius: 50%; background: var(--card); color: var(--brass); font: 700 12px/1 var(--serif); cursor: pointer;
+  box-shadow: 0 1px 3px #0003; transition: background-color .15s, color .15s; }
+.why-q::before { content: ''; position: absolute; inset: -9px; } /* 點按範圍比看到的大一圈 */
+@media (hover: hover) { .why-q:hover { background-color: var(--brass); color: var(--card); } }
+/* 電腦、橫屏：壓在卡框右上角的花飾上（卡框是 20px 的邊框圖，「收起」在框裏面的右上角，不碰） */
+@media (min-width: 641px) {
+  .st-card > .infocard :is(.ic-body, .ic-top) > .why-q { top: -19px; right: -19px; }
+  /* 白天裁定卡按內容定寬，句子短時卡也窄：頭一行（誰對誰做了什麼）左右讓出「收起」的寬度，不鑽到它底下 */
+  .st-card > .infocard.ruling:has(.fold-x) .frm-line { padding-inline: 48px; }
+}
+/* 橫屏的卡自己滾動，框上的東西會被裁掉：放在框裏面的右上角（橫屏沒有「收起」） */
+@media (min-width: 641px) and (max-height: 500px) and (orientation: landscape) { .st-card > .infocard :is(.ic-body, .ic-top) > .why-q { top: 1px; right: 1px; } }
+@media (max-width: 640px) {
+  .why-q { width: 20px; height: 20px; font-size: 13px; }
+  /* 頂上的紙條（紙條外面會被裁掉）：貼著紙的右上角；第一行左右各讓出問號的寬度，字不鑽到問號底下，仍然居中 */
+  .spread > .ic-body > .why-q { top: 4px; right: 4px; }
+  .spread .ic-body:has(> .why-q) > .ic-say { padding-inline: 28px; }
+  /* 圓桌中間的小卡：角標掛在紙的右上角上 */
+  .spread > .ic-top > .why-q { top: -8px; right: -8px; }
+}
 .why-sheet { max-width: 30em; font: 15px/1.7 var(--serif); color: var(--ink); }
 .why-sheet p { margin: 0 0 8px; text-wrap: pretty; }
 .why-sheet .row { justify-content: flex-end; margin-top: 12px; }
+/* 說明卡頂上：把前因後果講全的句子（卡上是簡略版），下面虛線隔開規則說明 */
+.why-sheet .why-full { display: grid; row-gap: 6px; margin: 0 0 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--line-strong); font-size: 16px; }
 :root[data-lang="en"] .why-sheet { font-family: inherit; }
-/* 有主句時「說明」籤跟在句尾（decidewhy.js whyLead），不另佔一行 */
-.why-line > .ic-note { display: inline-block; margin: 0 0 0 6px; }
-@media (min-width: 641px) {
-  .st-card > .infocard .ic-note .in-tab { gap: 2px; padding: 1px 3px; letter-spacing: .04em; }
-  .st-card > .infocard .ic-note .in-tab .ico { width: 12px; height: 12px; }
-}
-/* 簡略 / 詳細：上下疊著的兩個小字，選中的是墨色加底線。浮在第一行左邊，右邊浮著一樣寬的「說明」（沒有就是一塊空 .wm-pad），
-   第一行夾在中間仍然居中；疊起來不比一行高，只讓出第一行兩邊。電腦、橫屏的夜裏裁定卡兩邊本來就空著 52px（右上角是「收起」）：
-   直接掛在卡框兩角 */
-.why-line { --wm-w: 48px; }
-.why-tools > .ic-note .in-tab { gap: 2px; padding: 1px 3px; letter-spacing: .04em; }
-.why-tools > .ic-note .in-tab .ico { width: 12px; height: 12px; }
-:root[data-lang="en"] .why-line { --wm-w: 62px; }
-.why-mode { float: left; display: flex; flex-direction: column; align-items: flex-start; width: var(--wm-w); margin: -2px 6px -4px -4px; font: 11.5px/1.3 var(--serif); }
-.why-tools { display: contents; }
-.why-tools > :is(.wm-pad, .ic-note) { float: right; width: calc(var(--wm-w) - 4px); height: 1px; }
-.why-tools > .ic-note { display: flex; justify-content: flex-end; height: auto; margin: 2px -4px 0 6px; }
-.why-mode .wm { padding: 2px 3px; border: 0; border-bottom: 1px solid transparent; background: none; color: var(--muted); font: inherit; letter-spacing: .08em; white-space: nowrap;
-  cursor: pointer; transition: color .2s, border-color .2s; }
-.why-mode .wm.on { color: var(--ink); font-weight: 700; border-bottom-color: var(--brass); cursor: default; }
-@media (hover: hover) { .why-mode .wm:not(.on):hover { color: var(--brass); } }
-:root[data-lang="en"] .why-mode .wm { letter-spacing: 0; }
-@media (min-width: 641px) {
-  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .why-mode { position: absolute; left: 8px; top: 8px; z-index: 2; float: none; margin: 0; }
-  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .wm-pad { display: none; }
-  /* 「說明」也不跟在句尾（句子多折一行，整張卡就被縮小）：掛在右上角「收起」下面，左右兩角對稱 */
-  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .why-tools > .ic-note { position: absolute; right: 6px; top: 32px; z-index: 2; margin: 0; }
-}
-@media (min-width: 641px) and (max-height: 500px) and (orientation: landscape) { /* 橫屏卡在圓桌旁邊，沒有「收起」 */
-  .st-card > .infocard:not(.ruling):not(:has(.ic-who)) .why-tools > .ic-note { top: 8px; }
-}
-/* 手機上兩邊浮不下的時候（圓桌中間的裁定卡、英文的長句、360 以下的窄屏）：兩個籤並成一行放在主句上面。
-   多一小行，比第一行被擠得折成兩三行矮 */
-@media (max-width: 640px) {
-  /* 頂上的紙條有切換籤就撐滿寬度：兩個籤貼著紙條兩邊，換版時不跟著句子長短挪 */
-  .st-card .spread .ic-body:has(.why-mode) { width: 96vw; }
-  .spread .ic-body > .ic-say > .frm:has(> .why-lines) { display: flex; }
-  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 0 0 3px; }
-  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools > * { flex: none; float: none; width: auto; margin: 0; }
-  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-mode { flex-direction: row; gap: 4px; }
-  :is(.infocard.ruling, :root[data-lang="en"] .infocard) .why-tools > .wm-pad { display: none; }
-}
-@media (max-width: 360px) {
-  .why-tools { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 0 0 3px; }
-  .why-tools > * { flex: none; float: none; width: auto; margin: 0; }
-  .why-tools .why-mode { flex-direction: row; gap: 4px; }
-  .why-tools > .wm-pad { display: none; }
-}
-/* 換版：舊的句子先淡掉，新的再淡進來（切換籤本身不動） */
-.why-line.why-out > :not(.why-tools) { opacity: 0; transition: opacity .12s ease; }
-.why-line.why-in > :not(.why-tools) { animation: why-in .26s ease both; }
-@keyframes why-in { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .why-line.why-in > * { animation: none; } }
 .why-line { display: block; max-width: 100%; text-align: center; line-height: 22px; text-wrap: balance; word-break: keep-all; overflow-wrap: break-word; } /* 中文在標點處換行，不把「所以」拆成兩行；一句長到放不下才在字間斷 */
 .why-line > * { vertical-align: middle; }
-/* 電腦上卡本來按內容定寬：有切換籤的卡撐到最寬，換版時卡不變寬變窄，籤留在原處 */
-@media (min-width: 641px) and (min-height: 501px), (min-width: 641px) and (orientation: portrait) { .st-card:has(> .infocard .why-mode) { width: 100vw; } }
-/* 主句一塊（decidewhy.js whyLead）：每行撐滿這一塊、字居中，兩個籤浮在這一塊的兩邊，不跟著句子長短挪位置 */
+/* 主句一塊（decidewhy.js whyLead） */
 .why-lines { display: grid; row-gap: 8px; min-width: 0; }
-.frm > .why-lines { flex: 1 1 100%; }
 /* 簡略版是一句「前因：問題」：放不下時在冒號後面折（照常排滿第一行），不均分成兩半把前因拆開 */
 .why-lines.brief > .why-line { text-wrap: wrap; }
 .why-line > .w { margin-inline: 2px; }
